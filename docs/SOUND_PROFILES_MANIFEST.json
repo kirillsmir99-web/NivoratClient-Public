@@ -1,0 +1,62 @@
+{
+  "profiles": {
+    "MINECRAFT": {
+      "kind": "vanilla",
+      "folder": null
+    },
+    "NIVORAT_CLASSIC": {
+      "folder": "assets/nivoratclient/sounds/ui",
+      "eventPrefix": "nivoratclient:ui.classic."
+    },
+    "NIVORAT_SERENE": {
+      "folder": "assets/nivoratclient/sounds/ui_serene",
+      "eventPrefix": "nivoratclient:ui.serene."
+    }
+  },
+  "classicEvents": [
+    "button",
+    "category_collapse",
+    "category_expand",
+    "close",
+    "dropdown_close",
+    "dropdown_open",
+    "open",
+    "slider_tick",
+    "success",
+    "toggle_off",
+    "toggle_on",
+    "warning"
+  ],
+  "sereneEvents": [
+    "button_primary",
+    "button_secondary",
+    "category_collapse",
+    "category_expand",
+    "close",
+    "copy",
+    "delete",
+    "dropdown_close",
+    "dropdown_open",
+    "error",
+    "hover",
+    "import",
+    "link_open",
+    "maximize",
+    "modal_close",
+    "modal_open",
+    "open",
+    "pin",
+    "reload",
+    "restore",
+    "search_focus",
+    "slider_tick",
+    "success",
+    "toggle_off",
+    "toggle_on",
+    "unpin",
+    "warning"
+  ],
+  "recommendedDefault": "NIVORAT_SERENE",
+  "sliderRule": "Play only when the quantized slider step changes; never per render frame.",
+  "allCustomSounds": "Original assets generated for this pack; no third-party sound license required."
+}

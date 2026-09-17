@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "activity",
+  "version": "${version}",
+  "name": "NivoratClient",
+  "description": "NivoratClient modern dark settings UI",
+  "authors": [
+    "Nivorat"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/activity/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "activity.client.ActivityClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

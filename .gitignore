@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+
+# Fabric Loom
+run/
+.fabric/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+bin/
+out/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+logs/
+*.log
+*.log.gz
+
+# External standalone projects / reference packs
+Одиночные моды/
+NivoratClient_ImplementationPack_v2/
+

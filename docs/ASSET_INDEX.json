@@ -1,0 +1,52 @@
+{
+  "fonts_expected": [
+    "onest.ttf",
+    "inter.ttf",
+    "manrope.ttf",
+    "rubik.ttf"
+  ],
+  "sounds": [
+    "open.ogg",
+    "close.ogg",
+    "button.ogg",
+    "toggle_on.ogg",
+    "toggle_off.ogg",
+    "dropdown_open.ogg",
+    "dropdown_close.ogg",
+    "category_expand.ogg",
+    "category_collapse.ogg",
+    "success.ogg",
+    "warning.ogg",
+    "slider_tick.ogg"
+  ],
+  "icons": [
+    "animation.svg",
+    "check.svg",
+    "chevron_down.svg",
+    "chevron_right.svg",
+    "close.svg",
+    "copy.svg",
+    "discord.svg",
+    "donate.svg",
+    "external.svg",
+    "font.svg",
+    "glass.svg",
+    "import.svg",
+    "info.svg",
+    "keybind.svg",
+    "maximize.svg",
+    "pin.svg",
+    "refresh.svg",
+    "reset.svg",
+    "restore.svg",
+    "save.svg",
+    "search.svg",
+    "settings.svg",
+    "sound.svg",
+    "telegram.svg",
+    "tiktok.svg",
+    "trash.svg",
+    "warning.svg",
+    "youtube.svg"
+  ]
+}
