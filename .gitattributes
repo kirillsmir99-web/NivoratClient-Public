@@ -1,0 +1,17 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Source code and text files
+*.java text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.properties text eol=lf
+*.gradle text eol=lf
+*.bat text eol=crlf
+
+# Binary files
+*.jar binary
+*.png binary
+*.ogg binary
+*.ttf binary
+*.ico binary
