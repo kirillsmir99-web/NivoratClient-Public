@@ -202,10 +202,77 @@ public class AutoGGKillTrackerTest {
         assertTrue(AutoGGKillTracker.isOwnDeathMessage("§cNivorat §7разбился", local));
         assertTrue(AutoGGKillTracker.isOwnDeathMessage("Nivorat drowned", local));
 
+        // Direct server notices where player username is omitted (addressed as "Вы" / "Вас")
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Вы погибли", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Вы умерли", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Вас убил BadGuy", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Вы были убиты игроком BadGuy", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Вы разбились", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Вы сгорели в лаве", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Вы подорвались", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("You died", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("You were killed by Enemy", local));
+
         // Kills scored by local player should NOT be marked as own death
         assertFalse(AutoGGKillTracker.isOwnDeathMessage("Enemy был убит Nivorat", local));
         assertFalse(AutoGGKillTracker.isOwnDeathMessage("Enemy was slain by Nivorat", local));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Вы убили Enemy", local));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Вы успешно убили игрока Enemy", local));
         assertFalse(AutoGGKillTracker.isOwnDeathMessage("Hello everyone in chat!", local));
         assertFalse(AutoGGKillTracker.isOwnDeathMessage(null, local));
+    }
+
+    @Test
+    @DisplayName("Direct FFA kill feed notices: 'Вы убили ...', 'Убийство: ...', 'You killed ...'")
+    void testDirectYouKilledPatterns() {
+        String local = "Nivorat";
+
+        assertEquals("Enemy1", AutoGGKillTracker.parseChatKill("Вы убили Enemy1", local));
+        assertEquals("ProPlayer", AutoGGKillTracker.parseChatKill("Вы успешно убили игрока ProPlayer", local));
+        assertEquals("TargetX", AutoGGKillTracker.parseChatKill("Вы одолели игрока TargetX", local));
+        assertEquals("Creeper99", AutoGGKillTracker.parseChatKill("Убийство: Creeper99", local));
+        assertEquals("Speedy", AutoGGKillTracker.parseChatKill("Килл: Speedy", local));
+        assertEquals("FastGuy", AutoGGKillTracker.parseChatKill("Kill: FastGuy", local));
+        assertEquals("Gamer", AutoGGKillTracker.parseChatKill("You killed Gamer", local));
+        assertEquals("Boss", AutoGGKillTracker.parseChatKill("You slayed Boss", local));
+
+        // Cannot attribute killing yourself
+        assertNull(AutoGGKillTracker.parseChatKill("Вы убили Nivorat", local));
+    }
+
+    @Test
+    @DisplayName("Killer-victim PvP formats: '<Killer> убил <Victim>', 'Killer ⚔ Victim', 'Killer » Victim'")
+    void testKillerVictimPatterns() {
+        String local = "Nivorat";
+
+        assertEquals("Target1", AutoGGKillTracker.parseChatKill("Nivorat убил Target1", local));
+        assertEquals("Target2", AutoGGKillTracker.parseChatKill("Nivorat зарубил Target2", local));
+        assertEquals("CartVictim", AutoGGKillTracker.parseChatKill("Nivorat взорвал CartVictim", local));
+        assertEquals("SniperTarget", AutoGGKillTracker.parseChatKill("Nivorat расстрелял SniperTarget", local));
+        assertEquals("ArenaEnemy", AutoGGKillTracker.parseChatKill("[FFA] Nivorat ⚔ ArenaEnemy", local));
+        assertEquals("DuoEnemy", AutoGGKillTracker.parseChatKill("Nivorat -> DuoEnemy", local));
+        assertEquals("SwordVictim", AutoGGKillTracker.parseChatKill("Nivorat » SwordVictim", local));
+        assertEquals("VictimEN", AutoGGKillTracker.parseChatKill("Nivorat killed VictimEN", local));
+
+        // Another player scored the kill -> null
+        assertNull(AutoGGKillTracker.parseChatKill("OtherPlayer убил Target1", local));
+        assertNull(AutoGGKillTracker.parseChatKill("OtherPlayer ⚔ Target1", local));
+
+        // Normal chat message must NOT be misidentified as a kill
+        assertNull(AutoGGKillTracker.parseChatKill("<Nivorat> Hello world", local));
+        assertNull(AutoGGKillTracker.parseChatKill("<Nivorat> Good game everyone", local));
+    }
+
+    @Test
+    @DisplayName("Combat tracking: isRecentlyAttacked within 4500ms window")
+    void testIsRecentlyAttacked() {
+        int targetId = 1234;
+        assertFalse(AutoGGKillTracker.isRecentlyAttacked(targetId));
+
+        AutoGGKillTracker.recordAttack(targetId);
+        assertTrue(AutoGGKillTracker.isRecentlyAttacked(targetId));
+
+        AutoGGKillTracker.reset();
+        assertFalse(AutoGGKillTracker.isRecentlyAttacked(targetId));
     }
 }

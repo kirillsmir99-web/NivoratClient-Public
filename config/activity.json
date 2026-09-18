@@ -448,6 +448,7 @@
         "phrase": "GGWP",
         "send_on_kill": true,
         "send_on_own_death": true,
+        "send_on_death": true,
         "random_order": false,
         "delay_ms": 950.0,
         "menu_keybind": {
@@ -455,8 +456,7 @@
           "ctrl": false,
           "shift": false,
           "alt": false
-        },
-        "send_on_death": true
+        }
       }
     },
     "cart_hud": {

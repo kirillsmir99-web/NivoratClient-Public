@@ -301,6 +301,11 @@ public class AutoGGModule extends NivoratModule {
                             AutoGGClient.CONFIG.selected = prevIdx;
                         }
                         AutoGGClient.CONFIG.save();
+                        ActivityConfig c = ActivityConfigManager.getConfig();
+                        if (c != null) {
+                            c.autoGGPhrase = AutoGGClient.CONFIG.currentPhrase();
+                            ActivityConfigManager.markDirty();
+                        }
                         activity.client.gui.sound.SoundManager.playSuccess();
                         if (screen != null) screen.reloadCurrentTab();
                     }
@@ -354,6 +359,9 @@ public class AutoGGModule extends NivoratModule {
     public Setting<?> getSetting(String id) {
         if ("gg_phrase".equals(id)) {
             return super.getSetting("phrase");
+        }
+        if ("send_on_own_death".equals(id)) {
+            return super.getSetting("send_on_death");
         }
         return super.getSetting(id);
     }

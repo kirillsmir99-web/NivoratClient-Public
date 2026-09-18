@@ -527,5 +527,28 @@ public class AutoGGRadialScreenTest {
         assertEquals("easy peasy", AutoGGClient.CONFIG.currentPhrase());
         assertEquals("easy peasy", config.autoGGPhrase);
     }
+
+    @Test
+    @DisplayName("AutoGGRadialScreen: BlockSpan construction and 1px coalescing integrity")
+    void testBlockSpanCoalescingIntegrity() {
+        List<AutoGGRadialScreen.Span> spans = List.of(
+                new AutoGGRadialScreen.Span(-50, -30, 30),
+                new AutoGGRadialScreen.Span(-49, -32, 32)
+        );
+        List<AutoGGRadialScreen.BlockSpan> blocks = AutoGGRadialScreen.coalesceSpans(spans, 1);
+        assertEquals(2, blocks.size());
+
+        AutoGGRadialScreen.BlockSpan b0 = blocks.get(0);
+        assertEquals(-50, b0.y1);
+        assertEquals(-49, b0.y2);
+        assertEquals(-30, b0.x1);
+        assertEquals(30, b0.x2);
+
+        AutoGGRadialScreen.BlockSpan b1 = blocks.get(1);
+        assertEquals(-49, b1.y1);
+        assertEquals(-48, b1.y2);
+        assertEquals(-32, b1.x1);
+        assertEquals(32, b1.x2);
+    }
 }
 

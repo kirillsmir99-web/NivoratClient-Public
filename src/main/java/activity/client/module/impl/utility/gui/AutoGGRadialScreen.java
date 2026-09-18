@@ -80,23 +80,26 @@ public final class AutoGGRadialScreen extends Screen {
     private static final List<BlockSpan>[][] SECTOR_BLOCKS_CACHE = new List[9][];
     private static final List<BlockSpan> RING_BLOCKS = new ArrayList<>();
     private static final List<BlockSpan> HUB_BLOCKS = new ArrayList<>();
+    @SuppressWarnings("unchecked")
+    private static final List<BlockSpan>[] DIVIDER_BLOCKS_CACHE = new List[9];
 
     static {
-        // 1. Sector fills
+        // 1. Sector fills & Dividers
+        int inner2 = INNER_RADIUS * INNER_RADIUS;
+        int outer2 = OUTER_RADIUS * OUTER_RADIUS;
+
         for (int count = 1; count <= 8; count++) {
             SECTOR_BLOCKS_CACHE[count] = new List[count];
             double sectorAngle = (Math.PI * 2.0) / count;
-            int inner2 = INNER_RADIUS * INNER_RADIUS;
-            int outer2 = OUTER_RADIUS * OUTER_RADIUS;
 
             for (int s = 0; s < count; s++) {
                 List<Span> list = new ArrayList<>();
-                for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y += 2) {
+                for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
                     int y2 = y * y;
                     int maxOuterX = (int) Math.sqrt(Math.max(0, outer2 - y2));
                     int spanStart = Integer.MIN_VALUE;
 
-                    for (int x = -maxOuterX; x <= maxOuterX; x += 2) {
+                    for (int x = -maxOuterX; x <= maxOuterX; x++) {
                         int dist2 = x * x + y2;
                         boolean inRadial = dist2 >= inner2 && dist2 <= outer2;
                         boolean inSector = false;
@@ -113,7 +116,7 @@ public final class AutoGGRadialScreen extends Screen {
                             }
                         } else {
                             if (spanStart != Integer.MIN_VALUE) {
-                                list.add(new Span(y, spanStart, x + 1));
+                                list.add(new Span(y, spanStart, x));
                                 spanStart = Integer.MIN_VALUE;
                             }
                         }
@@ -122,36 +125,51 @@ public final class AutoGGRadialScreen extends Screen {
                         list.add(new Span(y, spanStart, maxOuterX + 1));
                     }
                 }
-                SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 2);
+                SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 1);
+            }
+
+            // Divider spans for count > 1
+            DIVIDER_BLOCKS_CACHE[count] = new ArrayList<>();
+            if (count > 1) {
+                List<Span> divSpans = new ArrayList<>();
+                for (int i = 0; i < count; i++) {
+                    double a = i * sectorAngle - Math.PI / 2.0;
+                    double cosA = Math.cos(a);
+                    double sinA = Math.sin(a);
+                    for (int r = INNER_RADIUS + 1; r < OUTER_RADIUS; r++) {
+                        int px = (int) Math.round(cosA * r);
+                        int py = (int) Math.round(sinA * r);
+                        divSpans.add(new Span(py, px, px + 1));
+                    }
+                }
+                DIVIDER_BLOCKS_CACHE[count].addAll(coalesceSpans(optimizeSpans(divSpans), 1));
             }
         }
 
         // 2. Base Ring
         List<Span> rawRing = new ArrayList<>();
-        int inner2 = INNER_RADIUS * INNER_RADIUS;
-        int outer2 = OUTER_RADIUS * OUTER_RADIUS;
-        for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y += 2) {
+        for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
             int y2 = y * y;
             if (y2 > outer2) continue;
-            int maxOuterX = (int) Math.sqrt(outer2 - y2);
-            int maxInnerX = (y2 < inner2) ? (int) Math.sqrt(inner2 - y2) : 0;
+            int maxOuterX = (int) Math.round(Math.sqrt(outer2 - y2));
+            int maxInnerX = (y2 < inner2) ? (int) Math.round(Math.sqrt(inner2 - y2)) : 0;
             if (maxInnerX > 0) {
                 rawRing.add(new Span(y, -maxOuterX, -maxInnerX));
-                rawRing.add(new Span(y, maxInnerX + 1, maxOuterX + 1));
+                rawRing.add(new Span(y, maxInnerX, maxOuterX + 1));
             } else {
                 rawRing.add(new Span(y, -maxOuterX, maxOuterX + 1));
             }
         }
-        RING_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawRing), 2));
+        RING_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawRing), 1));
 
         // 3. Central Hub
         List<Span> rawHub = new ArrayList<>();
         int hub2 = HUB_RADIUS * HUB_RADIUS;
-        for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y += 2) {
-            int maxHubX = (int) Math.sqrt(Math.max(0, hub2 - y * y));
+        for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y++) {
+            int maxHubX = (int) Math.round(Math.sqrt(Math.max(0, hub2 - y * y)));
             rawHub.add(new Span(y, -maxHubX, maxHubX + 1));
         }
-        HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 2));
+        HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 1));
     }
 
     public static List<Span> optimizeSpans(List<Span> raw) {
@@ -183,7 +201,7 @@ public final class AutoGGRadialScreen extends Screen {
         return optimized;
     }
 
-    private static List<BlockSpan> coalesceSpans(List<Span> spans, int stepY) {
+    public static List<BlockSpan> coalesceSpans(List<Span> spans, int stepY) {
         if (spans == null || spans.isEmpty()) return new ArrayList<>();
         List<BlockSpan> blocks = new ArrayList<>();
         for (Span s : spans) {
@@ -310,16 +328,8 @@ public final class AutoGGRadialScreen extends Screen {
         }
 
         // Radial dividers between sectors
-        if (count > 1) {
-            double sectorAngle = (Math.PI * 2.0) / count;
-            for (int i = 0; i < count; i++) {
-                double a = i * sectorAngle - Math.PI / 2.0;
-                int x0 = (int) Math.round(Math.cos(a) * (INNER_RADIUS + 1));
-                int y0 = (int) Math.round(Math.sin(a) * (INNER_RADIUS + 1));
-                int x1 = (int) Math.round(Math.cos(a) * (OUTER_RADIUS - 1));
-                int y1 = (int) Math.round(Math.sin(a) * (OUTER_RADIUS - 1));
-                drawFastLine(context, cx + x0, cy + y0, cx + x1, cy + y1, 0x55353B49);
-            }
+        if (count > 1 && DIVIDER_BLOCKS_CACHE[count] != null) {
+            drawBlockList(context, cx, cy, DIVIDER_BLOCKS_CACHE[count], 0x55353B49);
         }
 
         // Central Hub
@@ -352,10 +362,10 @@ public final class AutoGGRadialScreen extends Screen {
         int menuColor = hubHovered ? 0xFF00D2FF : 0xFF8D94A3;
         context.drawCenteredTextWithShadow(textRenderer, Text.literal("Меню"), cx, cy + 2, menuColor);
 
-        // 5. Telegram watermark
-        renderTelegramWatermark(context, cx, cy, mouseX, mouseY);
-
         context.getMatrices().popMatrix();
+
+        // 5. Telegram watermark (rendered outside matrix scale so click coordinates match)
+        renderTelegramWatermark(context, cx, cy, mouseX, mouseY);
 
         super.render(context, mouseX, mouseY, delta);
     }
@@ -499,30 +509,6 @@ public final class AutoGGRadialScreen extends Screen {
         for (int i = 0; i < blocks.size(); i++) {
             BlockSpan b = blocks.get(i);
             context.fill(cx + b.x1, cy + b.y1, cx + b.x2, cy + b.y2, color);
-        }
-    }
-
-    private static void drawFastLine(DrawContext context, int x0, int y0, int x1, int y1, int color) {
-        int dx = Math.abs(x1 - x0);
-        int dy = Math.abs(y1 - y0);
-        int sx = x0 < x1 ? 1 : -1;
-        int sy = y0 < y1 ? 1 : -1;
-        int err = dx - dy;
-        int cxLine = x0;
-        int cyLine = y0;
-
-        while (true) {
-            context.fill(cxLine, cyLine, cxLine + 1, cyLine + 1, color);
-            if (cxLine == x1 && cyLine == y1) break;
-            int e2 = 2 * err;
-            if (e2 > -dy) {
-                err -= dy;
-                cxLine += sx;
-            }
-            if (e2 < dx) {
-                err += dx;
-                cyLine += sy;
-            }
         }
     }
 

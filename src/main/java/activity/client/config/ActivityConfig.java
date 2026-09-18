@@ -609,7 +609,7 @@ public class ActivityConfig {
         this.autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
         this.autoGGPhrase = "GGWP";
         this.autoGGSendOnKill = true;
-        this.autoGGSendOnOwnDeath = false;
+        this.autoGGSendOnOwnDeath = true;
         this.autoGGRandomOrder = false;
         this.autoGGDelayMs = 950.0;
 
@@ -1211,6 +1211,7 @@ public class ActivityConfig {
         entry.settings.put("phrase", this.autoGGPhrase);
         entry.settings.put("send_on_kill", this.autoGGSendOnKill);
         entry.settings.put("send_on_own_death", this.autoGGSendOnOwnDeath);
+        entry.settings.put("send_on_death", this.autoGGSendOnOwnDeath);
         entry.settings.put("random_order", this.autoGGRandomOrder);
         entry.settings.put("delay_ms", this.autoGGDelayMs);
         entry.settings.put("menu_keybind", this.autoGGMenuKeybind);
@@ -1463,7 +1464,7 @@ public class ActivityConfig {
             if (gg.settings != null && !gg.settings.isEmpty()) {
                 this.autoGGPhrase = getSettingString(gg.settings, "phrase", this.autoGGPhrase);
                 this.autoGGSendOnKill = getSettingBoolean(gg.settings, "send_on_kill", this.autoGGSendOnKill);
-                this.autoGGSendOnOwnDeath = getSettingBoolean(gg.settings, "send_on_own_death", this.autoGGSendOnOwnDeath);
+                this.autoGGSendOnOwnDeath = getSettingBoolean(gg.settings, "send_on_death", getSettingBoolean(gg.settings, "send_on_own_death", this.autoGGSendOnOwnDeath));
                 this.autoGGRandomOrder = getSettingBoolean(gg.settings, "random_order", this.autoGGRandomOrder);
                 this.autoGGDelayMs = getSettingDouble(gg.settings, "delay_ms", this.autoGGDelayMs);
                 Keybind mkb = getSettingKeybind(gg.settings, "menu_keybind", null);

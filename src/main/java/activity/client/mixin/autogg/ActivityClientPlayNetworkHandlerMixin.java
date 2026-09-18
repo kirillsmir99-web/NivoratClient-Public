@@ -4,12 +4,18 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
+import net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
 import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
+import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerRespawnS2CPacket;
+import net.minecraft.network.packet.s2c.play.ProfilelessChatMessageS2CPacket;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -39,6 +45,8 @@ public final class ActivityClientPlayNetworkHandlerMixin {
             Entity entity = client.world.getEntityById(id);
             if (entity instanceof PlayerEntity victim && victim != client.player) {
                 AutoGGClient.onPotentialFfaVictimDestroyed(victim);
+            } else {
+                AutoGGClient.onPotentialFfaVictimDestroyed(id);
             }
         }
     }
@@ -63,7 +71,56 @@ public final class ActivityClientPlayNetworkHandlerMixin {
     }
 
     @Inject(method = "onGameMessage", at = @At("TAIL"))
-    private void activity$autogg$result(GameMessageS2CPacket packet, CallbackInfo ci) {
-        AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.content().getString());
+    private void activity$autogg$gameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
+        if (packet.content() != null) {
+            AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.content().getString());
+        }
+    }
+
+    @Inject(method = "onChatMessage", at = @At("TAIL"))
+    private void activity$autogg$chatMessage(ChatMessageS2CPacket packet, CallbackInfo ci) {
+        String msg = packet.unsignedContent() != null ? packet.unsignedContent().getString() : (packet.body() != null ? packet.body().content() : null);
+        if (msg != null) {
+            AutoGGClient.onRoundResult(MinecraftClient.getInstance(), msg);
+        }
+    }
+
+    @Inject(method = "onProfilelessChatMessage", at = @At("TAIL"))
+    private void activity$autogg$profilelessChatMessage(ProfilelessChatMessageS2CPacket packet, CallbackInfo ci) {
+        if (packet.message() != null) {
+            AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.message().getString());
+        }
+    }
+
+    @Inject(method = "onOverlayMessage", at = @At("TAIL"))
+    private void activity$autogg$overlayMessage(OverlayMessageS2CPacket packet, CallbackInfo ci) {
+        if (packet.text() != null) {
+            AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.text().getString());
+        }
+    }
+
+    @Inject(method = "onDeathMessage", at = @At("TAIL"))
+    private void activity$autogg$deathMessage(DeathMessageS2CPacket packet, CallbackInfo ci) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null && packet.playerId() == client.player.getId()) {
+            AutoGGClient.markOwnDeath();
+        }
+        if (packet.message() != null) {
+            AutoGGClient.onRoundResult(client, packet.message().getString());
+        }
+    }
+
+    @Inject(method = "onTitle", at = @At("TAIL"))
+    private void activity$autogg$title(TitleS2CPacket packet, CallbackInfo ci) {
+        if (packet.text() != null) {
+            AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.text().getString());
+        }
+    }
+
+    @Inject(method = "onSubtitle", at = @At("TAIL"))
+    private void activity$autogg$subtitle(SubtitleS2CPacket packet, CallbackInfo ci) {
+        if (packet.text() != null) {
+            AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.text().getString());
+        }
     }
 }

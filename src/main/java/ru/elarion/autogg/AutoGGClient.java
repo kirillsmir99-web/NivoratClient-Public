@@ -3,6 +3,7 @@ package ru.elarion.autogg;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,6 +57,19 @@ public final class AutoGGClient {
             }
         }
 
+        // Real-time tick evaluation for FFA arena kills
+        if (CONFIG.enabled && CONFIG.sendOnKill && client.world != null && client.player != null) {
+            long now = System.currentTimeMillis();
+            for (PlayerEntity victim : client.world.getPlayers()) {
+                if (victim == null || victim == client.player) continue;
+                if (activity.client.module.impl.utility.AutoGGKillTracker.shouldAttributeFfaKill(victim, client, now)) {
+                    onConfirmedKill(victim.getName().getString());
+                    break;
+                }
+            }
+            activity.client.module.impl.utility.AutoGGKillTracker.updateTargetPositions(client);
+        }
+
         if (!recentAttacks.isEmpty()) {
             long now = System.currentTimeMillis();
             recentAttacks.entrySet().removeIf(entry -> (now - entry.getValue()) > 4000L);
@@ -63,6 +77,13 @@ public final class AutoGGClient {
 
         if (pendingPhrase != null && System.currentTimeMillis() >= scheduledSendTime) {
             if (client.player != null && client.player.networkHandler != null) {
+                boolean currentlyDead = client.player.isDead() || client.player.getHealth() <= 0.0F
+                        || (client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen);
+                long waitTime = System.currentTimeMillis() - (scheduledSendTime - Math.max(50L, (long) customDelayMs));
+                if (currentlyDead && waitTime < 1800L) {
+                    // Briefly hold phrase until player respawns so the packet is accepted by server
+                    return;
+                }
                 if (CONFIG.enabled && !pendingPhrase.isBlank()) {
                     if (pendingPhrase.startsWith("/")) {
                         client.player.networkHandler.sendChatCommand(pendingPhrase.substring(1));
@@ -104,10 +125,17 @@ public final class AutoGGClient {
         }
     }
 
-    public static void onPotentialFfaVictimDestroyed(PlayerEntity victim) {
+    public static void onPotentialFfaVictimDestroyed(Entity victim) {
         ensureActive();
         if (active != null && victim != null) {
             active.handleEntityDeath(victim);
+        }
+    }
+
+    public static void onPotentialFfaVictimDestroyed(int entityId) {
+        ensureActive();
+        if (active != null && activity.client.module.impl.utility.AutoGGKillTracker.isRecentlyAttacked(entityId)) {
+            active.onConfirmedKill(null);
         }
     }
 
@@ -133,13 +161,43 @@ public final class AutoGGClient {
 
         boolean nearPlacedCart = activity.client.module.impl.utility.AutoGGKillTracker.isNearbyPlacedCart(x, y, z, 8.5);
         if (distSq <= 12.0 * 12.0 || nearPlacedCart || holdingExplosive) {
-            activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(x, y, z, Math.max(8.5, radius * 2.0));
+            double effectiveRadius = Math.max(8.5, radius * 2.0);
+            activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(x, y, z, effectiveRadius);
+
+            if (client.world != null) {
+                long now = System.currentTimeMillis();
+                for (PlayerEntity p : client.world.getPlayers()) {
+                    if (p != null && p != client.player) {
+                        double dx = p.getX() - x;
+                        double dy = p.getY() - y;
+                        double dz = p.getZ() - z;
+                        double r = effectiveRadius + 3.5;
+                        if ((dx * dx + dy * dy + dz * dz) <= r * r) {
+                            Vec3d pPos = new Vec3d(p.getX(), p.getY(), p.getZ());
+                            activity.client.module.impl.utility.AutoGGKillTracker.recordAttack(p.getId(), pPos, now);
+                            activity.client.module.impl.utility.AutoGGKillTracker.recordVictimName(p.getId(), p.getName().getString());
+                        }
+                    }
+                }
+            }
         }
     }
 
     public void handleOwnDeath() {
         localDiedThisRound = true;
         if (!CONFIG.enabled || !CONFIG.sendOnOwnDeath) return;
+        long now = System.currentTimeMillis();
+        if (now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
+            String phrase = CONFIG.nextPhrase();
+            if (phrase != null && !phrase.isBlank()) {
+                pendingPhrase = phrase;
+                scheduledSendTime = now + Math.max(50L, (long) customDelayMs);
+            }
+        }
+    }
+
+    public void onConfirmedKill(String victimName) {
+        if (!CONFIG.enabled || !CONFIG.sendOnKill) return;
         long now = System.currentTimeMillis();
         if (now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
             String phrase = CONFIG.nextPhrase();
@@ -165,15 +223,7 @@ public final class AutoGGClient {
             return;
         }
         recentAttacks.remove(entity.getId());
-
-        long now = System.currentTimeMillis();
-        if (now - lastSentAt > SEND_COOLDOWN_MS) {
-            String phrase = CONFIG.nextPhrase();
-            if (!phrase.isBlank()) {
-                pendingPhrase = phrase;
-                scheduledSendTime = now + (long) customDelayMs;
-            }
-        }
+        onConfirmedKill(entity.getName().getString());
     }
 
     public static void onRoundResult(MinecraftClient client, String message) {
@@ -194,15 +244,8 @@ public final class AutoGGClient {
 
         // 2. Check server chat kill feed for kills scored by our player
         String killVictim = activity.client.module.impl.utility.AutoGGKillTracker.parseChatKill(message, playerName);
-        if (killVictim != null && CONFIG.enabled && CONFIG.sendOnKill) {
-            long now = System.currentTimeMillis();
-            if (now - lastSentAt > SEND_COOLDOWN_MS) {
-                String phrase = CONFIG.nextPhrase();
-                if (!phrase.isBlank()) {
-                    pendingPhrase = phrase;
-                    scheduledSendTime = now + (long) customDelayMs;
-                }
-            }
+        if (killVictim != null) {
+            onConfirmedKill(killVictim);
             return;
         }
 
