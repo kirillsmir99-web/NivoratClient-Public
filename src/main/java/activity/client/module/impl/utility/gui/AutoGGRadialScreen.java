@@ -82,17 +82,28 @@ public final class AutoGGRadialScreen extends Screen {
     private static final List<BlockSpan> HUB_BLOCKS = new ArrayList<>();
     @SuppressWarnings("unchecked")
     private static final List<BlockSpan>[] DIVIDER_BLOCKS_CACHE = new List[9];
+    private static final int[][] SECTOR_TEXT_OFFSETS = new int[9][];
+    private static final Text TEXT_AUTOGG = Text.literal("AutoGG");
+    private static final Text TEXT_MENU = Text.literal("Меню");
+    private static final String WATERMARK_RAW = "ТГ канал автора модов - @virionDEV";
+    private static final Text WATERMARK_NORMAL = Text.literal("§7ТГ канал автора модов - §b@virionDEV");
+    private static final Text WATERMARK_HOVERED = Text.literal("§b§nТГ канал автора модов - @virionDEV");
 
     static {
         // 1. Sector fills & Dividers
         int inner2 = INNER_RADIUS * INNER_RADIUS;
         int outer2 = OUTER_RADIUS * OUTER_RADIUS;
+        int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
 
         for (int count = 1; count <= 8; count++) {
             SECTOR_BLOCKS_CACHE[count] = new List[count];
+            SECTOR_TEXT_OFFSETS[count] = new int[count * 2];
             double sectorAngle = (Math.PI * 2.0) / count;
 
             for (int s = 0; s < count; s++) {
+                double mid = -Math.PI / 2.0 + (s + 0.5) * sectorAngle;
+                SECTOR_TEXT_OFFSETS[count][s * 2] = (int) Math.round(Math.cos(mid) * textRadius);
+                SECTOR_TEXT_OFFSETS[count][s * 2 + 1] = (int) Math.round(Math.sin(mid) * textRadius);
                 List<Span> list = new ArrayList<>();
                 for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
                     int y2 = y * y;
@@ -204,8 +215,19 @@ public final class AutoGGRadialScreen extends Screen {
     public static List<BlockSpan> coalesceSpans(List<Span> spans, int stepY) {
         if (spans == null || spans.isEmpty()) return new ArrayList<>();
         List<BlockSpan> blocks = new ArrayList<>();
+        BlockSpan current = null;
         for (Span s : spans) {
-            blocks.add(new BlockSpan(s.y, s.y + stepY, s.x1, s.x2));
+            if (current != null && current.y2 == s.y && current.x1 == s.x1 && current.x2 == s.x2) {
+                current = new BlockSpan(current.y1, (short) (s.y + stepY), current.x1, current.x2);
+            } else {
+                if (current != null) {
+                    blocks.add(current);
+                }
+                current = new BlockSpan(s.y, (short) (s.y + stepY), s.x1, s.x2);
+            }
+        }
+        if (current != null) {
+            blocks.add(current);
         }
         return blocks;
     }
@@ -339,12 +361,20 @@ public final class AutoGGRadialScreen extends Screen {
         // 3. Sector text labels
         String defaultPhrase = AutoGGClient.CONFIG.currentPhrase();
         if (count > 0) {
+            int[] offsets = (count <= 8) ? SECTOR_TEXT_OFFSETS[count] : null;
             double sectorAngle = (Math.PI * 2.0) / count;
+            int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
+
             for (int i = 0; i < count; i++) {
-                double mid = -Math.PI / 2.0 + (i + 0.5) * sectorAngle;
-                int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
-                int tx = cx + (int) Math.round(Math.cos(mid) * textRadius);
-                int ty = cy + (int) Math.round(Math.sin(mid) * textRadius);
+                int tx, ty;
+                if (offsets != null) {
+                    tx = cx + offsets[i * 2];
+                    ty = cy + offsets[i * 2 + 1];
+                } else {
+                    double mid = -Math.PI / 2.0 + (i + 0.5) * sectorAngle;
+                    tx = cx + (int) Math.round(Math.cos(mid) * textRadius);
+                    ty = cy + (int) Math.round(Math.sin(mid) * textRadius);
+                }
 
                 String phrase = phrases.get(i);
                 boolean isHov = (this.hoveredSector == i);
@@ -358,9 +388,9 @@ public final class AutoGGRadialScreen extends Screen {
 
         // 4. Central Hub content
         int autoGgColor = hubHovered ? 0xFFFFFFFF : 0xFF00D2FF;
-        context.drawCenteredTextWithShadow(textRenderer, Text.literal("AutoGG"), cx, cy - 12, autoGgColor);
+        context.drawCenteredTextWithShadow(textRenderer, TEXT_AUTOGG, cx, cy - 12, autoGgColor);
         int menuColor = hubHovered ? 0xFF00D2FF : 0xFF8D94A3;
-        context.drawCenteredTextWithShadow(textRenderer, Text.literal("Меню"), cx, cy + 2, menuColor);
+        context.drawCenteredTextWithShadow(textRenderer, TEXT_MENU, cx, cy + 2, menuColor);
 
         context.getMatrices().popMatrix();
 
@@ -410,24 +440,21 @@ public final class AutoGGRadialScreen extends Screen {
 
     private boolean isTelegramHovered(double mouseX, double mouseY, int cx, int cy) {
         int tgY = cy + OUTER_RADIUS + 22;
-        String fullText = "ТГ канал автора модов - @virionDEV";
-        int textW = textRenderer != null ? textRenderer.getWidth(fullText) : 180;
+        int textW = textRenderer != null ? textRenderer.getWidth(WATERMARK_RAW) : 180;
         int tgX = cx - textW / 2;
         return mouseX >= tgX - 6 && mouseX <= tgX + textW + 6 && mouseY >= tgY - 3 && mouseY <= tgY + 13;
     }
 
     private void renderTelegramWatermark(DrawContext context, int cx, int cy, int mouseX, int mouseY) {
         int tgY = cy + OUTER_RADIUS + 22;
-        String fullText = "ТГ канал автора модов - @virionDEV";
-        int textW = textRenderer.getWidth(fullText);
+        int textW = textRenderer.getWidth(WATERMARK_RAW);
         int tgX = cx - textW / 2;
         boolean hovered = mouseX >= tgX - 6 && mouseX <= tgX + textW + 6 && mouseY >= tgY - 3 && mouseY <= tgY + 13;
 
         if (hovered) {
             context.fill(tgX - 6, tgY - 3, tgX + textW + 6, tgY + 13, 0x3300D2FF);
         }
-        Text watermark = Text.literal(hovered ? "§b§nТГ канал автора модов - @virionDEV" : "§7ТГ канал автора модов - §b@virionDEV");
-        context.drawCenteredTextWithShadow(textRenderer, watermark, cx, tgY, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, hovered ? WATERMARK_HOVERED : WATERMARK_NORMAL, cx, tgY, 0xFFFFFFFF);
     }
 
     @Override

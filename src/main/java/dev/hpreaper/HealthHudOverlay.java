@@ -10,6 +10,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -237,11 +238,15 @@ public final class HealthHudOverlay {
     }
 
     public static int getDefaultX(int screenWidth, int elementWidth) {
-        return screenWidth / 2 + 82 - elementWidth;
+        return 14;
+    }
+
+    public static int getDefaultY(int screenHeight, int elementHeight) {
+        return Math.max(4, (screenHeight - elementHeight) / 2);
     }
 
     public static int getDefaultY(int screenHeight) {
-        return screenHeight - HUD_Y_OFFSET;
+        return Math.max(4, (screenHeight - 34) / 2);
     }
 
     public static int getEffectiveX(DisplayMode mode, int screenWidth, int elementWidth) {
@@ -257,7 +262,7 @@ public final class HealthHudOverlay {
         if (customY >= 0) {
             return Math.max(4, Math.min(screenHeight - elementHeight - 2, customY));
         }
-        return getDefaultY(screenHeight);
+        return getDefaultY(screenHeight, elementHeight);
     }
 
     public static int getEffectiveX(int screenWidth, int elementWidth) {
@@ -270,13 +275,25 @@ public final class HealthHudOverlay {
 
     public static int getPreviewWidth(TextRenderer textRenderer, DisplayMode mode) {
         if (textRenderer == null) {
-            return 24;
+            return 56;
         }
         return switch (mode) {
-            case OWN_HEALTH -> textRenderer.getWidth("20.0");
-            case CROSSHAIR_AND_TARGET, TARGET_HEALTH -> textRenderer.getWidth("18.5");
-            case OWN_TARGET_AND_DIFFERENCE, DISABLED ->
-                textRenderer.getWidth("20.0") + textRenderer.getWidth(SEPARATOR) * 2 + textRenderer.getWidth("18.5") + textRenderer.getWidth("+1.5");
+            case OWN_HEALTH -> textRenderer.getWidth("ВЫ: 20.0") + 12;
+            case TARGET_HEALTH -> textRenderer.getWidth("ЦЕЛЬ: 18.5") + 12;
+            case CROSSHAIR_AND_TARGET -> textRenderer.getWidth("ЦЕЛЬ: 18.5") + 12;
+            case OWN_TARGET_AND_DIFFERENCE, DISABLED -> {
+                int w1 = textRenderer.getWidth("ВЫ: 20.0");
+                int w2 = textRenderer.getWidth("ЦЕЛЬ: 18.5");
+                int w3 = textRenderer.getWidth("РАЗН: +1.5");
+                yield Math.max(w1, Math.max(w2, w3)) + 14;
+            }
+        };
+    }
+
+    public static int getPreviewHeight(DisplayMode mode) {
+        return switch (mode) {
+            case OWN_HEALTH, TARGET_HEALTH, CROSSHAIR_AND_TARGET -> 17;
+            case OWN_TARGET_AND_DIFFERENCE, DISABLED -> 34;
         };
     }
 
@@ -293,34 +310,69 @@ public final class HealthHudOverlay {
                                      String diffText, int diffColor,
                                      DisplayMode mode) {
         TextRenderer tr = client.textRenderer;
+        if (tr == null) return;
+
         switch (mode) {
-            case OWN_HEALTH -> context.drawTextWithShadow(tr, ownText, x, y, ownColor);
+            case OWN_HEALTH -> {
+                int w = tr.getWidth("ВЫ: " + ownText) + 12;
+                int h = 17;
+                activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
+                activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFF00D2FF);
+                context.drawTextWithShadow(tr, Text.literal("ВЫ: "), x + 6, y + 5, 0xFF8D94A3);
+                context.drawTextWithShadow(tr, Text.literal(ownText), x + 6 + tr.getWidth("ВЫ: "), y + 5, ownColor);
+            }
             case CROSSHAIR_AND_TARGET -> {
                 if (targetText != null) {
-                    context.drawTextWithShadow(tr, targetText, x, y, targetColor);
+                    int w = tr.getWidth("ЦЕЛЬ: " + targetText) + 12;
+                    int h = 17;
+                    activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
+                    activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFFFF7A18);
+                    context.drawTextWithShadow(tr, Text.literal("ЦЕЛЬ: "), x + 6, y + 5, 0xFF8D94A3);
+                    context.drawTextWithShadow(tr, Text.literal(targetText), x + 6 + tr.getWidth("ЦЕЛЬ: "), y + 5, targetColor);
                 } else {
-                    context.drawTextWithShadow(tr, ownText, x, y, ownColor);
+                    int w = tr.getWidth("ВЫ: " + ownText) + 12;
+                    int h = 17;
+                    activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
+                    activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFF00D2FF);
+                    context.drawTextWithShadow(tr, Text.literal("ВЫ: "), x + 6, y + 5, 0xFF8D94A3);
+                    context.drawTextWithShadow(tr, Text.literal(ownText), x + 6 + tr.getWidth("ВЫ: "), y + 5, ownColor);
                 }
             }
             case TARGET_HEALTH -> {
                 if (targetText != null) {
-                    context.drawTextWithShadow(tr, targetText, x, y, targetColor);
+                    int w = tr.getWidth("ЦЕЛЬ: " + targetText) + 12;
+                    int h = 17;
+                    activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
+                    activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFFFF7A18);
+                    context.drawTextWithShadow(tr, Text.literal("ЦЕЛЬ: "), x + 6, y + 5, 0xFF8D94A3);
+                    context.drawTextWithShadow(tr, Text.literal(targetText), x + 6 + tr.getWidth("ЦЕЛЬ: "), y + 5, targetColor);
                 }
             }
             case OWN_TARGET_AND_DIFFERENCE -> {
                 if (targetText != null && diffText != null) {
-                    int curX = x;
-                    context.drawTextWithShadow(tr, ownText, curX, y, ownColor);
-                    curX += tr.getWidth(ownText);
-                    context.drawTextWithShadow(tr, SEPARATOR, curX, y, COLOR_MARKER);
-                    curX += tr.getWidth(SEPARATOR);
-                    context.drawTextWithShadow(tr, targetText, curX, y, targetColor);
-                    curX += tr.getWidth(targetText);
-                    context.drawTextWithShadow(tr, SEPARATOR, curX, y, COLOR_MARKER);
-                    curX += tr.getWidth(SEPARATOR);
-                    context.drawTextWithShadow(tr, diffText, curX, y, diffColor);
+                    int w1 = tr.getWidth("ВЫ: " + ownText);
+                    int w2 = tr.getWidth("ЦЕЛЬ: " + targetText);
+                    int w3 = tr.getWidth("РАЗН: " + diffText);
+                    int w = Math.max(w1, Math.max(w2, w3)) + 14;
+                    int h = 34;
+                    activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
+                    activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFF00D2FF);
+
+                    context.drawTextWithShadow(tr, Text.literal("ВЫ: "), x + 6, y + 4, 0xFF8D94A3);
+                    context.drawTextWithShadow(tr, Text.literal(ownText), x + 6 + tr.getWidth("ВЫ: "), y + 4, ownColor);
+
+                    context.drawTextWithShadow(tr, Text.literal("ЦЕЛЬ: "), x + 6, y + 14, 0xFF8D94A3);
+                    context.drawTextWithShadow(tr, Text.literal(targetText), x + 6 + tr.getWidth("ЦЕЛЬ: "), y + 14, targetColor);
+
+                    context.drawTextWithShadow(tr, Text.literal("РАЗН: "), x + 6, y + 24, 0xFF8D94A3);
+                    context.drawTextWithShadow(tr, Text.literal(diffText), x + 6 + tr.getWidth("РАЗН: "), y + 24, diffColor);
                 } else {
-                    context.drawTextWithShadow(tr, ownText, x, y, ownColor);
+                    int w = tr.getWidth("ВЫ: " + ownText) + 12;
+                    int h = 17;
+                    activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
+                    activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFF00D2FF);
+                    context.drawTextWithShadow(tr, Text.literal("ВЫ: "), x + 6, y + 5, 0xFF8D94A3);
+                    context.drawTextWithShadow(tr, Text.literal(ownText), x + 6 + tr.getWidth("ВЫ: "), y + 5, ownColor);
                 }
             }
             case DISABLED -> {}
@@ -402,12 +454,22 @@ public final class HealthHudOverlay {
 
         TextRenderer tr = client.textRenderer;
         int elementWidth = switch (VitalityConfig.displayMode) {
-            case OWN_HEALTH -> tr.getWidth(ownText);
-            case CROSSHAIR_AND_TARGET -> targetText != null ? tr.getWidth(targetText) : tr.getWidth(ownText);
-            case TARGET_HEALTH -> targetText != null ? tr.getWidth(targetText) : 0;
-            case OWN_TARGET_AND_DIFFERENCE -> targetText != null ? (tr.getWidth(ownText) + tr.getWidth(SEPARATOR) * 2 + tr.getWidth(targetText) + tr.getWidth(diffText)) : tr.getWidth(ownText);
+            case OWN_HEALTH -> tr.getWidth("ВЫ: " + ownText) + 12;
+            case CROSSHAIR_AND_TARGET -> (targetText != null ? tr.getWidth("ЦЕЛЬ: " + targetText) : tr.getWidth("ВЫ: " + ownText)) + 12;
+            case TARGET_HEALTH -> targetText != null ? (tr.getWidth("ЦЕЛЬ: " + targetText) + 12) : 0;
+            case OWN_TARGET_AND_DIFFERENCE -> {
+                if (targetText != null && diffText != null) {
+                    int w1 = tr.getWidth("ВЫ: " + ownText);
+                    int w2 = tr.getWidth("ЦЕЛЬ: " + targetText);
+                    int w3 = tr.getWidth("РАЗН: " + diffText);
+                    yield Math.max(w1, Math.max(w2, w3)) + 14;
+                } else {
+                    yield tr.getWidth("ВЫ: " + ownText) + 12;
+                }
+            }
             case DISABLED -> 0;
         };
+        int elementHeight = (VitalityConfig.displayMode == DisplayMode.OWN_TARGET_AND_DIFFERENCE && targetText != null && diffText != null) ? 34 : 17;
 
         if (elementWidth <= 0) {
             return;
@@ -416,10 +478,7 @@ public final class HealthHudOverlay {
         int sw = context.getScaledWindowWidth();
         int sh = context.getScaledWindowHeight();
         int x = getEffectiveX(VitalityConfig.displayMode, sw, elementWidth);
-        int y = getEffectiveY(VitalityConfig.displayMode, sh, 9);
-        if (VitalityConfig.getModeY(VitalityConfig.displayMode) < 0 && player.getAir() < player.getMaxAir()) {
-            y -= 10;
-        }
+        int y = getEffectiveY(VitalityConfig.displayMode, sh, elementHeight);
 
         renderElement(context, client, x, y, ownText, ownColor, targetText, COLOR_TARGET, diffText, diffColor, VitalityConfig.displayMode);
     }

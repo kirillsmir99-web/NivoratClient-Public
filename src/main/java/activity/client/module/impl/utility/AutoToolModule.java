@@ -70,6 +70,23 @@ public class AutoToolModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("weapon_switch", Text.translatable("activity.setting.utility.weapon_switch"),
+                Text.translatable("activity.setting.utility.weapon_switch.desc"), SettingGroup.GENERAL,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoToolWeaponSwitch;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoToolWeaponSwitch = val;
+                        syncEngineConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         // 2. BEHAVIOR (ordinal 1)
         registerNumber("durability_threshold", Text.translatable("activity.setting.utility.durability_threshold"),
                 Text.translatable("activity.setting.utility.durability_threshold.desc"), SettingGroup.BEHAVIOR,
@@ -211,6 +228,7 @@ public class AutoToolModule extends NivoratModule {
         AutoToolClient.CONFIG.restorePreviousItem = c.autoToolRestorePrevious;
         AutoToolClient.CONFIG.durabilityThreshold = (int) Math.round(c.autoToolDurabilityThreshold);
         AutoToolClient.CONFIG.combatGuard = c.autoToolCombatGuard;
+        AutoToolClient.CONFIG.weaponSwitch = c.autoToolWeaponSwitch;
         AutoToolClient.CONFIG.durabilitySaver = c.autoToolDurabilitySaver;
         AutoToolClient.CONFIG.legitMode = c.autoToolLegitMode;
         AutoToolClient.CONFIG.singleSlotMode = c.autoToolSingleSlotMode;
@@ -247,7 +265,7 @@ public class AutoToolModule extends NivoratModule {
     @Override
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (isEnabled()) {
-            AutoToolEngine.onAttackEntity();
+            AutoToolEngine.onAttackEntity(entity);
         }
         return ActionResult.PASS;
     }
@@ -268,6 +286,7 @@ public class AutoToolModule extends NivoratModule {
             c.autoToolLockWhileMining = config.autoToolLockWhileMining;
             c.autoToolDurabilityThreshold = config.autoToolDurabilityThreshold;
             c.autoToolCombatGuard = config.autoToolCombatGuard;
+            c.autoToolWeaponSwitch = config.autoToolWeaponSwitch;
             c.autoToolDurabilitySaver = config.autoToolDurabilitySaver;
             c.autoToolIgnoreInstantBreak = config.autoToolIgnoreInstantBreak;
         }

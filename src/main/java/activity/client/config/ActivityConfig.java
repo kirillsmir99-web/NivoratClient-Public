@@ -188,6 +188,7 @@ public class ActivityConfig {
     public boolean autoToolEnabled = true;
     public Keybind autoToolKeybind = new Keybind();
     public boolean autoToolCombatGuard = true;
+    public boolean autoToolWeaponSwitch = true;
     public boolean autoToolDurabilitySaver = true;
     public double autoToolDurabilityThreshold = 5.0;
     public boolean autoToolPreferSilkTouch = false;
@@ -595,6 +596,7 @@ public class ActivityConfig {
         this.autoToolEnabled = true;
         this.autoToolKeybind.clear();
         this.autoToolCombatGuard = true;
+        this.autoToolWeaponSwitch = true;
         this.autoToolDurabilitySaver = true;
         this.autoToolDurabilityThreshold = 5.0;
         this.autoToolPreferSilkTouch = false;
@@ -1196,6 +1198,7 @@ public class ActivityConfig {
     private void populateToolSettings(ModuleConfigEntry entry) {
         if (entry == null) return;
         entry.settings.put("combat_guard", this.autoToolCombatGuard);
+        entry.settings.put("weapon_switch", this.autoToolWeaponSwitch);
         entry.settings.put("durability_saver", this.autoToolDurabilitySaver);
         entry.settings.put("durability_threshold", this.autoToolDurabilityThreshold);
         entry.settings.put("prefer_silk_touch", this.autoToolPreferSilkTouch);
@@ -1447,6 +1450,7 @@ public class ActivityConfig {
             if (tool.keybind != null) this.autoToolKeybind.copyFrom(tool.keybind);
             if (tool.settings != null && !tool.settings.isEmpty()) {
                 this.autoToolCombatGuard = getSettingBoolean(tool.settings, "combat_guard", this.autoToolCombatGuard);
+                this.autoToolWeaponSwitch = getSettingBoolean(tool.settings, "weapon_switch", this.autoToolWeaponSwitch);
                 this.autoToolDurabilitySaver = getSettingBoolean(tool.settings, "durability_saver", this.autoToolDurabilitySaver);
                 this.autoToolDurabilityThreshold = getSettingDouble(tool.settings, "durability_threshold", this.autoToolDurabilityThreshold);
                 this.autoToolPreferSilkTouch = getSettingBoolean(tool.settings, "prefer_silk_touch", this.autoToolPreferSilkTouch);

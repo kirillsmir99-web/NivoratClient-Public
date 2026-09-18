@@ -10,8 +10,8 @@ import net.minecraft.text.Text;
 
 public final class CartHudOverlay {
     public static ItemStack ICON = null;
-    public static final int ELEMENT_WIDTH = 34;
-    public static final int ELEMENT_HEIGHT = 18;
+    public static final int ELEMENT_WIDTH = 28;
+    public static final int ELEMENT_HEIGHT = 34;
 
     private static final Text[] COUNT_TEXT_CACHE = new Text[65];
     static {
@@ -35,11 +35,11 @@ public final class CartHudOverlay {
     }
 
     public static int getDefaultX(int screenWidth) {
-        return screenWidth / 2 - 120;
+        return 14;
     }
 
     public static int getDefaultY(int screenHeight) {
-        return screenHeight - 44;
+        return screenHeight / 2 + 30;
     }
 
     public static int getEffectiveX(int screenWidth) {
@@ -98,16 +98,25 @@ public final class CartHudOverlay {
     }
 
     public static void renderElement(DrawContext context, MinecraftClient client, int x, int y, int cartCount) {
+        int w = ELEMENT_WIDTH;
+        int h = ELEMENT_HEIGHT;
+        activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
+        activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFF00D2FF);
+
         if (ICON == null) {
             try {
                 ICON = new ItemStack(Items.TNT_MINECART);
             } catch (Throwable ignored) {}
         }
         if (ICON != null) {
-            context.drawItem(ICON, x, y - 4);
+            context.drawItem(ICON, x + 6, y + 3);
         }
         int color = cartCount <= 2 ? 0xFFFF5555 : 0xFFFFFFFF;
         Text text = (cartCount >= 0 && cartCount <= 64) ? COUNT_TEXT_CACHE[cartCount] : Text.literal(String.valueOf(cartCount));
-        context.drawTextWithShadow(client.textRenderer, text, x + 18, y, color);
+        if (client != null && client.textRenderer != null) {
+            int tw = client.textRenderer.getWidth(text);
+            int tx = x + (w - tw) / 2 + 1;
+            context.drawTextWithShadow(client.textRenderer, text, tx, y + 22, color);
+        }
     }
 }

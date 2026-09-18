@@ -3,12 +3,9 @@ package activity.client.mixin.autogg;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
-import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
@@ -32,29 +29,6 @@ public final class ActivityClientPlayNetworkHandlerMixin {
         Entity entity = packet.getEntity(client.world);
         if (entity == client.player) {
             AutoGGClient.markOwnDeath();
-        } else if (entity != null) {
-            AutoGGClient.onEntityDeath(entity);
-        }
-    }
-
-    @Inject(method = "onEntitiesDestroy", at = @At("HEAD"))
-    private void activity$autogg$entitiesDestroy(EntitiesDestroyS2CPacket packet, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null || client.player == null) return;
-        for (int id : packet.getEntityIds()) {
-            Entity entity = client.world.getEntityById(id);
-            if (entity instanceof PlayerEntity victim && victim != client.player) {
-                AutoGGClient.onPotentialFfaVictimDestroyed(victim);
-            } else {
-                AutoGGClient.onPotentialFfaVictimDestroyed(id);
-            }
-        }
-    }
-
-    @Inject(method = "onExplosion", at = @At("TAIL"))
-    private void activity$autogg$explosion(ExplosionS2CPacket packet, CallbackInfo ci) {
-        if (packet.center() != null) {
-            AutoGGClient.onServerExplosion(packet.center().x, packet.center().y, packet.center().z, packet.radius());
         }
     }
 

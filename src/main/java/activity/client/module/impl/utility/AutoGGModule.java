@@ -167,6 +167,16 @@ public class AutoGGModule extends NivoratModule {
         int count = currentPhrases != null ? currentPhrases.size() : 0;
         String activeSelected = AutoGGClient.CONFIG.currentPhrase();
 
+        // 0. Informative note: Duels only for foreign kills, own death works everywhere
+        activity.client.gui.component.ActivityLabel infoNote = new activity.client.gui.component.ActivityLabel(
+                startX, curY + 3,
+                Text.literal("ℹ Примечание: Мод оптимизирован для дуэлей")
+        );
+        infoNote.setColor(activity.client.gui.theme.ActivityColors.TEXT_ACCENT);
+        infoNote.setTooltip(Text.literal("На не-дуэлях/FFA автоотправка за чужие смерти отключена во избежание ложных срабатываний. Отправка при собственной смерти работает всегда."));
+        if (tab != null) tab.addControl(container, infoNote); else container.addChild(infoNote);
+        curY += rowH + gap;
+
         // 1. Header Label: Phrases Count / Limit (max 8)
         activity.client.gui.component.ActivityLabel headerLabel = new activity.client.gui.component.ActivityLabel(
                 startX, curY + 3,

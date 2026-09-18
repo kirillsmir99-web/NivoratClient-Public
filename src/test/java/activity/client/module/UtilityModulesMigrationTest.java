@@ -174,11 +174,12 @@ public class UtilityModulesMigrationTest {
         // Check keybind
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Check all 9 settings presence & aliases
+        // Check settings presence & aliases
         assertNotNull(mod.getSetting("prefer_silk"));
         assertNotNull(mod.getSetting("prefer_silk_touch")); // alias
         assertNotNull(mod.getSetting("restore_previous"));
         assertNotNull(mod.getSetting("restore_previous_item")); // alias
+        assertNotNull(mod.getSetting("weapon_switch"));
         assertNotNull(mod.getSetting("durability_threshold"));
         assertNotNull(mod.getSetting("combat_guard"));
         assertNotNull(mod.getSetting("durability_saver"));
@@ -195,6 +196,15 @@ public class UtilityModulesMigrationTest {
         silkSetting.set(false);
         assertFalse(config.autoToolPreferSilkTouch);
         assertFalse(AutoToolClient.CONFIG.preferSilkTouch);
+
+        // Test weapon_switch sync
+        BooleanSetting weaponSetting = (BooleanSetting) mod.getSetting("weapon_switch");
+        weaponSetting.set(false);
+        assertFalse(config.autoToolWeaponSwitch);
+        assertFalse(AutoToolClient.CONFIG.weaponSwitch);
+        weaponSetting.set(true);
+        assertTrue(config.autoToolWeaponSwitch);
+        assertTrue(AutoToolClient.CONFIG.weaponSwitch);
 
         // Test restore_previous sync
         BooleanSetting restoreSetting = (BooleanSetting) mod.getSetting("restore_previous");

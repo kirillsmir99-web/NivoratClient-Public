@@ -57,19 +57,6 @@ public final class AutoGGClient {
             }
         }
 
-        // Real-time tick evaluation for FFA arena kills
-        if (CONFIG.enabled && CONFIG.sendOnKill && client.world != null && client.player != null) {
-            long now = System.currentTimeMillis();
-            for (PlayerEntity victim : client.world.getPlayers()) {
-                if (victim == null || victim == client.player) continue;
-                if (activity.client.module.impl.utility.AutoGGKillTracker.shouldAttributeFfaKill(victim, client, now)) {
-                    onConfirmedKill(victim.getName().getString());
-                    break;
-                }
-            }
-            activity.client.module.impl.utility.AutoGGKillTracker.updateTargetPositions(client);
-        }
-
         if (!recentAttacks.isEmpty()) {
             long now = System.currentTimeMillis();
             recentAttacks.entrySet().removeIf(entry -> (now - entry.getValue()) > 4000L);
@@ -126,61 +113,15 @@ public final class AutoGGClient {
     }
 
     public static void onPotentialFfaVictimDestroyed(Entity victim) {
-        ensureActive();
-        if (active != null && victim != null) {
-            active.handleEntityDeath(victim);
-        }
+        // Disabled: Speculative FFA victim destroyed attribution disabled to prevent false triggers on third-party deaths
     }
 
     public static void onPotentialFfaVictimDestroyed(int entityId) {
-        ensureActive();
-        if (active != null && activity.client.module.impl.utility.AutoGGKillTracker.isRecentlyAttacked(entityId)) {
-            active.onConfirmedKill(null);
-        }
+        // Disabled: Speculative FFA victim destroyed attribution disabled to prevent false triggers on third-party deaths
     }
 
     public static void onServerExplosion(double x, double y, double z, float radius) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null) return;
-        double distSq = client.player.squaredDistanceTo(x, y, z);
-        boolean holdingExplosive = false;
-        try {
-            if (client.player.getMainHandStack() != null) {
-                String item = client.player.getMainHandStack().getItem().toString().toLowerCase();
-                if (item.contains("tnt") || item.contains("minecart") || item.contains("crystal") || item.contains("anchor") || item.contains("flint")) {
-                    holdingExplosive = true;
-                }
-            }
-            if (client.player.getOffHandStack() != null) {
-                String item = client.player.getOffHandStack().getItem().toString().toLowerCase();
-                if (item.contains("tnt") || item.contains("minecart") || item.contains("crystal") || item.contains("anchor") || item.contains("flint")) {
-                    holdingExplosive = true;
-                }
-            }
-        } catch (Throwable ignored) {}
-
-        boolean nearPlacedCart = activity.client.module.impl.utility.AutoGGKillTracker.isNearbyPlacedCart(x, y, z, 8.5);
-        if (distSq <= 12.0 * 12.0 || nearPlacedCart || holdingExplosive) {
-            double effectiveRadius = Math.max(8.5, radius * 2.0);
-            activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(x, y, z, effectiveRadius);
-
-            if (client.world != null) {
-                long now = System.currentTimeMillis();
-                for (PlayerEntity p : client.world.getPlayers()) {
-                    if (p != null && p != client.player) {
-                        double dx = p.getX() - x;
-                        double dy = p.getY() - y;
-                        double dz = p.getZ() - z;
-                        double r = effectiveRadius + 3.5;
-                        if ((dx * dx + dy * dy + dz * dz) <= r * r) {
-                            Vec3d pPos = new Vec3d(p.getX(), p.getY(), p.getZ());
-                            activity.client.module.impl.utility.AutoGGKillTracker.recordAttack(p.getId(), pPos, now);
-                            activity.client.module.impl.utility.AutoGGKillTracker.recordVictimName(p.getId(), p.getName().getString());
-                        }
-                    }
-                }
-            }
-        }
+        // Disabled: Speculative explosion proximity attacks disabled to prevent false triggers on third-party deaths
     }
 
     public void handleOwnDeath() {
@@ -209,21 +150,11 @@ public final class AutoGGClient {
     }
 
     public static void onEntityDeath(Entity entity) {
-        ensureActive();
-        if (active != null) active.handleEntityDeath(entity);
+        // Speculative proximity entity deaths disabled to prevent false triggers on FFA
     }
 
     private void handleEntityDeath(Entity entity) {
-        if (!CONFIG.enabled || !CONFIG.sendOnKill) return;
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null || !(entity instanceof PlayerEntity)) return;
-
-        // Strict kill attribution (direct hit or explosion within combat window)
-        if (!activity.client.module.impl.utility.AutoGGKillTracker.shouldAttributeKill(entity, client)) {
-            return;
-        }
-        recentAttacks.remove(entity.getId());
-        onConfirmedKill(entity.getName().getString());
+        // Speculative proximity entity deaths disabled to prevent false triggers on FFA
     }
 
     public static void onRoundResult(MinecraftClient client, String message) {
@@ -249,28 +180,21 @@ public final class AutoGGClient {
             return;
         }
 
-        // 2. Check round results (Duel / Arena win-loss)
-        String lower = message.toLowerCase();
-        int winnerIndex = lower.indexOf("победил:");
-        int loserIndex = lower.indexOf("проиграл:", Math.max(0, winnerIndex));
-        if (winnerIndex >= 0 && loserIndex >= 0) {
-            String winnerPart = message.substring(winnerIndex, loserIndex);
-            String loserPart = message.substring(loserIndex);
-            boolean playerWon = winnerPart.contains(playerName);
-            boolean playerLost = loserPart.contains(playerName);
+        // 3. Check round results (Duel / Arena win-loss)
+        boolean playerWon = activity.client.module.impl.utility.AutoGGKillTracker.isDuelWinMessage(message, playerName);
+        boolean playerLost = activity.client.module.impl.utility.AutoGGKillTracker.isDuelLossMessage(message, playerName);
 
-            if ((playerWon && !localDiedThisRound) || (playerLost && CONFIG.sendOnOwnDeath)) {
-                String phrase = CONFIG.nextPhrase();
-                long now = System.currentTimeMillis();
-                if (CONFIG.enabled && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
-                    pendingPhrase = phrase;
-                    scheduledSendTime = now + Math.max(50L, (long) customDelayMs);
-                }
+        if ((playerWon && !localDiedThisRound) || (playerLost && CONFIG.sendOnOwnDeath)) {
+            String phrase = CONFIG.nextPhrase();
+            long now = System.currentTimeMillis();
+            if (CONFIG.enabled && phrase != null && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
+                pendingPhrase = phrase;
+                scheduledSendTime = now + Math.max(50L, (long) customDelayMs);
             }
-            if (client.player != null && !client.player.isDead() && client.player.getHealth() > 0.0F
-                    && !(client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen)) {
-                localDiedThisRound = false;
-            }
+        }
+        if (client.player != null && !client.player.isDead() && client.player.getHealth() > 0.0F
+                && !(client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen)) {
+            localDiedThisRound = false;
         }
     }
 

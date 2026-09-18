@@ -235,6 +235,7 @@ public final class PresetSerializer {
         dst.autoToolEnabled = src.autoToolEnabled;
         dst.autoToolKeybind.copyFrom(src.autoToolKeybind);
         dst.autoToolCombatGuard = src.autoToolCombatGuard;
+        dst.autoToolWeaponSwitch = src.autoToolWeaponSwitch;
         dst.autoToolDurabilitySaver = src.autoToolDurabilitySaver;
         dst.autoToolDurabilityThreshold = src.autoToolDurabilityThreshold;
         dst.autoToolPreferSilkTouch = src.autoToolPreferSilkTouch;

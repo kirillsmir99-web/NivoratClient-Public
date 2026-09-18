@@ -16,6 +16,7 @@ public final class AutoToolConfig {
     
     
     public boolean combatGuard = true;        
+    public boolean weaponSwitch = true;
     public boolean ignoreInstantBreak = true; 
     public boolean lockWhileMining = true;    
     

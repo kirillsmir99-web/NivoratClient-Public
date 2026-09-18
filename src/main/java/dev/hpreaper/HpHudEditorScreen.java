@@ -2,6 +2,7 @@ package dev.hpreaper;
 
 import activity.client.gui.render.ActivityGuiRenderer;
 import activity.client.gui.theme.ActivityColors;
+import activity.client.gui.sound.SoundManager;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -55,6 +56,7 @@ public final class HpHudEditorScreen extends Screen {
     @Override
     public void close() {
         isDragging = false;
+        SoundManager.playClose();
         VitalityConfig.save();
         activity.client.config.ActivityConfig c = activity.client.config.ActivityConfigManager.getConfig();
         if (c != null) {
@@ -79,15 +81,19 @@ public final class HpHudEditorScreen extends Screen {
     protected void init() {
         isDragging = false;
         this.clearChildren();
+        SoundManager.playOpen();
 
         int dockW = Math.min(520, width - 20);
-        int dockH = 104;
+        int dockH = 88;
         int dockX = (width - dockW) / 2;
         int dockY = height - dockH - 12;
 
         btnClose = addDrawableChild(ButtonWidget.builder(
             Text.literal("✕"),
-            b -> close()
+            b -> {
+                SoundManager.playClick();
+                close();
+            }
         ).dimensions(dockX + dockW - 19, dockY + 3, 16, 14).build());
 
         int innerW = dockW - 16;
@@ -97,25 +103,25 @@ public final class HpHudEditorScreen extends Screen {
         tabOwn = addDrawableChild(ButtonWidget.builder(
             Text.literal("Своё HP"),
             b -> selectMode(HealthHudOverlay.DisplayMode.OWN_HEALTH)
-        ).dimensions(dockX + 8, dockY + 26, tabW, 22).build());
+        ).dimensions(dockX + 8, dockY + 24, tabW, 20).build());
 
         tabEverywhere = addDrawableChild(ButtonWidget.builder(
             Text.literal("Везде"),
             b -> selectMode(HealthHudOverlay.DisplayMode.CROSSHAIR_AND_TARGET)
-        ).dimensions(dockX + 8 + (tabW + tabGap), dockY + 26, tabW, 22).build());
+        ).dimensions(dockX + 8 + (tabW + tabGap), dockY + 24, tabW, 20).build());
 
         tabTarget = addDrawableChild(ButtonWidget.builder(
             Text.literal("Только цель"),
             b -> selectMode(HealthHudOverlay.DisplayMode.TARGET_HEALTH)
-        ).dimensions(dockX + 8 + (tabW + tabGap) * 2, dockY + 26, tabW, 22).build());
+        ).dimensions(dockX + 8 + (tabW + tabGap) * 2, dockY + 24, tabW, 20).build());
 
         tabDiff = addDrawableChild(ButtonWidget.builder(
             Text.literal("Своё+Цель+Разница"),
             b -> selectMode(HealthHudOverlay.DisplayMode.OWN_TARGET_AND_DIFFERENCE)
-        ).dimensions(dockX + 8 + (tabW + tabGap) * 3, dockY + 26, tabW, 22).build());
+        ).dimensions(dockX + 8 + (tabW + tabGap) * 3, dockY + 24, tabW, 20).build());
 
         int btnGap = 4;
-        int filterW = 120;
+        int filterW = 115;
         int applyW = 125;
         int resetModeW = 105;
         int resetAllW = 85;
@@ -127,40 +133,48 @@ public final class HpHudEditorScreen extends Screen {
                 VitalityConfig.targetFilter = VitalityConfig.targetFilter.next();
                 b.setMessage(getFilterButtonText());
                 VitalityConfig.save();
+                SoundManager.playClick();
             }
-        ).dimensions(dockX + 8, dockY + 53, filterW, 20).build());
+        ).dimensions(dockX + 8, dockY + 48, filterW, 20).build());
 
         btnApplyAll = addDrawableChild(ButtonWidget.builder(
             Text.literal("Применить ко всем"),
             b -> {
                 int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
+                int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
                 int currentX = HealthHudOverlay.getEffectiveX(VitalityConfig.displayMode, width, elementW);
-                int currentY = HealthHudOverlay.getEffectiveY(VitalityConfig.displayMode, height, 9);
+                int currentY = HealthHudOverlay.getEffectiveY(VitalityConfig.displayMode, height, elementH);
                 VitalityConfig.applyPosToAll(currentX, currentY);
                 VitalityConfig.save();
+                SoundManager.playSuccess();
             }
-        ).dimensions(dockX + 8 + filterW + btnGap, dockY + 53, applyW, 20).build());
+        ).dimensions(dockX + 8 + filterW + btnGap, dockY + 48, applyW, 20).build());
 
         btnResetMode = addDrawableChild(ButtonWidget.builder(
             Text.literal("Сбросить режим"),
             b -> {
                 VitalityConfig.resetModePos(VitalityConfig.displayMode);
                 VitalityConfig.save();
+                SoundManager.playClick();
             }
-        ).dimensions(dockX + 8 + filterW + applyW + btnGap * 2, dockY + 53, resetModeW, 20).build());
+        ).dimensions(dockX + 8 + filterW + applyW + btnGap * 2, dockY + 48, resetModeW, 20).build());
 
         btnResetAll = addDrawableChild(ButtonWidget.builder(
             Text.literal("Сбросить всё"),
             b -> {
                 VitalityConfig.resetAll();
                 VitalityConfig.save();
+                SoundManager.playClick();
             }
-        ).dimensions(dockX + 8 + filterW + applyW + resetModeW + btnGap * 3, dockY + 53, resetAllW, 20).build());
+        ).dimensions(dockX + 8 + filterW + applyW + resetModeW + btnGap * 3, dockY + 48, resetAllW, 20).build());
 
         btnDone = addDrawableChild(ButtonWidget.builder(
             Text.literal("Готово"),
-            b -> close()
-        ).dimensions(dockX + 8 + filterW + applyW + resetModeW + resetAllW + btnGap * 4, dockY + 53, doneW, 20).build());
+            b -> {
+                SoundManager.playClick();
+                close();
+            }
+        ).dimensions(dockX + 8 + filterW + applyW + resetModeW + resetAllW + btnGap * 4, dockY + 48, doneW, 20).build());
 
         updateTabStates();
     }
@@ -169,6 +183,7 @@ public final class HpHudEditorScreen extends Screen {
         VitalityConfig.displayMode = mode;
         VitalityConfig.save();
         updateTabStates();
+        SoundManager.playSelect();
     }
 
     private void updateTabStates() {
@@ -193,7 +208,7 @@ public final class HpHudEditorScreen extends Screen {
 
     private void nudge(int dx, int dy) {
         int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
-        int elementH = 9;
+        int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
         int curX = HealthHudOverlay.getEffectiveX(VitalityConfig.displayMode, width, elementW);
         int curY = HealthHudOverlay.getEffectiveY(VitalityConfig.displayMode, height, elementH);
         int newX = Math.max(2, Math.min(width - elementW - 2, curX + dx));
@@ -226,14 +241,14 @@ public final class HpHudEditorScreen extends Screen {
         if (key == GLFW.GLFW_KEY_R) {
             VitalityConfig.resetModePos(VitalityConfig.displayMode);
             VitalityConfig.save();
-            ActivityGuiRenderer.playClickSound();
+            SoundManager.playClick();
             return true;
         }
         if (key == GLFW.GLFW_KEY_TAB) {
             HealthHudOverlay.cycleDisplayMode();
             updateTabStates();
             VitalityConfig.save();
-            ActivityGuiRenderer.playClickSound();
+            SoundManager.playSelect();
             return true;
         }
         if (input.isEscape()) {
@@ -246,23 +261,24 @@ public final class HpHudEditorScreen extends Screen {
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
         int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
-        int elementH = 9;
+        int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
         int currentX = HealthHudOverlay.getEffectiveX(VitalityConfig.displayMode, width, elementW);
         int currentY = HealthHudOverlay.getEffectiveY(VitalityConfig.displayMode, height, elementH);
 
         double mx = click.x();
         double my = click.y();
-        boolean inside = mx >= currentX - 8 && mx <= currentX + elementW + 8 && my >= currentY - 8 && my <= currentY + elementH + 8;
+        boolean inside = mx >= currentX - 12 && mx <= currentX + elementW + 12 && my >= currentY - 12 && my <= currentY + elementH + 12;
 
         if (click.buttonInfo().button() == 0 && inside) {
             isDragging = true;
             dragOffsetX = (int) Math.round(mx - currentX);
             dragOffsetY = (int) Math.round(my - currentY);
+            SoundManager.playClick();
             return true;
         } else if (click.buttonInfo().button() == 1 && inside) {
             VitalityConfig.resetModePos(VitalityConfig.displayMode);
             VitalityConfig.save();
-            ActivityGuiRenderer.playClickSound();
+            SoundManager.playClick();
             return true;
         }
         return super.mouseClicked(click, doubled);
@@ -282,13 +298,16 @@ public final class HpHudEditorScreen extends Screen {
     public boolean mouseDragged(Click click, double offsetX, double offsetY) {
         if (isDragging) {
             int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
-            int elementH = 9;
+            int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
             int newX = (int) Math.round(click.x() - dragOffsetX);
             int newY = (int) Math.round(click.y() - dragOffsetY);
 
             int centerX = width / 2 - elementW / 2;
             if (Math.abs(newX - centerX) <= 3) {
                 newX = centerX;
+            }
+            if (Math.abs(newX - 14) <= 4) {
+                newX = 14;
             }
 
             int clampedX = Math.max(2, Math.min(width - elementW - 2, newX));
@@ -310,7 +329,7 @@ public final class HpHudEditorScreen extends Screen {
         }
 
         int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
-        int elementH = 9;
+        int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
 
         if (isDragging) {
             int newX = (int) Math.round(mouseX - dragOffsetX);
@@ -319,6 +338,9 @@ public final class HpHudEditorScreen extends Screen {
             int centerX = width / 2 - elementW / 2;
             if (Math.abs(newX - centerX) <= 3) {
                 newX = centerX;
+            }
+            if (Math.abs(newX - 14) <= 4) {
+                newX = 14;
             }
 
             int clampedX = Math.max(2, Math.min(width - elementW - 2, newX));
@@ -381,7 +403,7 @@ public final class HpHudEditorScreen extends Screen {
         }
 
         int dockW = Math.min(520, width - 20);
-        int dockH = 104;
+        int dockH = 88;
         int dockX = (width - dockW) / 2;
         int dockY = height - dockH - 12;
 
@@ -404,7 +426,7 @@ public final class HpHudEditorScreen extends Screen {
 
             String hint = "ЛКМ — перемещение • ПКМ — сброс • Стрелки — подгонка (+Shift x5)";
             int hintW = textRenderer.getWidth(hint);
-            context.drawTextWithShadow(textRenderer, Text.literal(hint), dockX + (dockW - hintW) / 2, dockY + 83, ActivityColors.TEXT_MUTED);
+            context.drawTextWithShadow(textRenderer, Text.literal(hint), dockX + (dockW - hintW) / 2, dockY + 72, ActivityColors.TEXT_MUTED);
         }
 
         super.render(context, mouseX, mouseY, delta);

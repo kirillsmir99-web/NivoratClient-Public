@@ -477,6 +477,108 @@ public final class AutoGGKillTracker {
     }
 
     /**
+     * Checks if a message represents an explicit Duel / PvP victory announcement for the local player.
+     */
+    public static boolean isDuelWinMessage(String rawMessage, String localPlayerName) {
+        if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
+            return false;
+        }
+        String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        String lower = clean.toLowerCase(Locale.ROOT);
+        String nameLower = localPlayerName.toLowerCase(Locale.ROOT);
+
+        // Direct "Вы победили" notices
+        if (lower.contains("вы победили") || lower.contains("вы выиграли") || lower.contains("you won") || lower.contains("victory!")) {
+            return true;
+        }
+
+        // Duel win-loss format: "Победил: <Winner> ... Проиграл: <Loser>"
+        int winnerIdx = lower.indexOf("победил:");
+        if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель:");
+        if (winnerIdx < 0) winnerIdx = lower.indexOf("winner:");
+        if (winnerIdx < 0) winnerIdx = lower.indexOf("победа:");
+
+        int loserIdx = lower.indexOf("проиграл:", Math.max(0, winnerIdx));
+        if (loserIdx < 0) loserIdx = lower.indexOf("проигравший:", Math.max(0, winnerIdx));
+        if (loserIdx < 0) loserIdx = lower.indexOf("loser:", Math.max(0, winnerIdx));
+
+        if (winnerIdx >= 0 && loserIdx >= 0) {
+            String winnerPart = lower.substring(winnerIdx, loserIdx);
+            return winnerPart.contains(nameLower);
+        }
+
+        if (winnerIdx >= 0) {
+            String winnerPart = lower.substring(winnerIdx);
+            // Ensure this winner section mentions our player
+            String[] tokens = winnerPart.split("[,|;\\n\\r]");
+            if (tokens.length > 0 && tokens[0].contains(nameLower)) {
+                return true;
+            }
+        }
+
+        // Pattern: "Игрок <Winner> победил игрока <Loser>"
+        if (lower.contains("победил") || lower.contains("одолел") || lower.contains("defeated")) {
+            Pattern p = Pattern.compile("(?:игрок\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|одолел|разгромил)(?:\\s+игрока)?\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+            Matcher m = p.matcher(clean);
+            if (m.find()) {
+                String winner = m.group(1).trim();
+                return winner.equalsIgnoreCase(localPlayerName);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if a message represents an explicit Duel / PvP loss announcement for the local player.
+     */
+    public static boolean isDuelLossMessage(String rawMessage, String localPlayerName) {
+        if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
+            return false;
+        }
+        String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        String lower = clean.toLowerCase(Locale.ROOT);
+        String nameLower = localPlayerName.toLowerCase(Locale.ROOT);
+
+        // Direct "Вы проиграли" notices
+        if (lower.contains("вы проиграли") || lower.contains("вы потерпели поражение") || lower.contains("you lost") || lower.contains("defeat!")) {
+            return true;
+        }
+
+        int winnerIdx = lower.indexOf("победил:");
+        if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель:");
+        if (winnerIdx < 0) winnerIdx = lower.indexOf("winner:");
+
+        int loserIdx = lower.indexOf("проиграл:", Math.max(0, winnerIdx));
+        if (loserIdx < 0) loserIdx = lower.indexOf("проигравший:", Math.max(0, winnerIdx));
+        if (loserIdx < 0) loserIdx = lower.indexOf("loser:", Math.max(0, winnerIdx));
+
+        if (winnerIdx >= 0 && loserIdx >= 0) {
+            String loserPart = lower.substring(loserIdx);
+            return loserPart.contains(nameLower);
+        }
+
+        if (loserIdx >= 0) {
+            String loserPart = lower.substring(loserIdx);
+            String[] tokens = loserPart.split("[,|;\\n\\r]");
+            if (tokens.length > 0 && tokens[0].contains(nameLower)) {
+                return true;
+            }
+        }
+
+        if (lower.contains("победил") || lower.contains("одолел") || lower.contains("defeated")) {
+            Pattern p = Pattern.compile("(?:игрок\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|одолел|разгромил)(?:\\s+игрока)?\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+            Matcher m = p.matcher(clean);
+            if (m.find()) {
+                String loser = m.group(2).trim();
+                return loser.equalsIgnoreCase(localPlayerName);
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Test helper for validating direct hit attribution logic.
      */
     public static boolean isAttributedDirectHit(int entityId, double distance, long now) {

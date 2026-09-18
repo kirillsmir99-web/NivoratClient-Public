@@ -148,6 +148,7 @@
     "alt": false
   },
   "autoToolCombatGuard": true,
+  "autoToolWeaponSwitch": true,
   "autoToolDurabilitySaver": true,
   "autoToolDurabilityThreshold": 5.0,
   "autoToolPreferSilkTouch": false,
@@ -425,6 +426,7 @@
       },
       "settings": {
         "combat_guard": true,
+        "weapon_switch": true,
         "durability_saver": true,
         "durability_threshold": 5.0,
         "prefer_silk_touch": false,
