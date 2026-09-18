@@ -28,6 +28,12 @@ public final class AutoGGClient {
 
     public static void recordAttack(int entityId) {
         recentAttacks.put(entityId, System.currentTimeMillis());
+        activity.client.module.impl.utility.AutoGGKillTracker.recordAttack(entityId);
+    }
+
+    public static void recordAttack(int entityId, net.minecraft.util.math.Vec3d pos) {
+        recentAttacks.put(entityId, System.currentTimeMillis());
+        activity.client.module.impl.utility.AutoGGKillTracker.recordAttack(entityId, pos);
     }
 
     public static void tick(MinecraftClient client) {
@@ -62,9 +68,9 @@ public final class AutoGGClient {
     public static void sendPhraseDirect(String phrase) {
         if (phrase == null || phrase.isBlank()) return;
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null && CONFIG.enabled) {
-            pendingPhrase = phrase;
-            scheduledSendTime = System.currentTimeMillis() + 60L + (long) (Math.random() * 40L);
+        if (client != null && client.player != null && client.player.networkHandler != null) {
+            client.player.networkHandler.sendChatMessage(phrase);
+            lastSentAt = System.currentTimeMillis();
         }
     }
 
@@ -83,8 +89,10 @@ public final class AutoGGClient {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.player == null || !(entity instanceof PlayerEntity)) return;
 
-        Long attackTime = recentAttacks.get(entity.getId());
-        if (attackTime == null || System.currentTimeMillis() - attackTime > 3000L) return;
+        // Strict kill attribution (direct hit within 900ms or explosion within 1500ms)
+        if (!activity.client.module.impl.utility.AutoGGKillTracker.shouldAttributeKill(entity, client)) {
+            return;
+        }
         recentAttacks.remove(entity.getId());
 
         long now = System.currentTimeMillis();
@@ -103,28 +111,44 @@ public final class AutoGGClient {
     }
 
     private void handleRoundResult(MinecraftClient client, String message) {
-        if (client == null || client.player == null) return;
+        if (client == null || client.player == null || message == null) return;
 
+        String playerName = client.player.getName().getString();
+
+        // 1. Check server chat kill feed
+        String killVictim = activity.client.module.impl.utility.AutoGGKillTracker.parseChatKill(message, playerName);
+        if (killVictim != null && CONFIG.enabled && CONFIG.sendOnKill) {
+            long now = System.currentTimeMillis();
+            if (now - lastSentAt > SEND_COOLDOWN_MS) {
+                String phrase = CONFIG.nextPhrase();
+                if (!phrase.isBlank()) {
+                    pendingPhrase = phrase;
+                    scheduledSendTime = now + (long) customDelayMs;
+                }
+            }
+            return;
+        }
+
+        // 2. Check round results (Duel / Arena win-loss)
         String lower = message.toLowerCase();
         int winnerIndex = lower.indexOf("победил:");
         int loserIndex = lower.indexOf("проиграл:", Math.max(0, winnerIndex));
-        if (winnerIndex < 0 || loserIndex < 0) return;
+        if (winnerIndex >= 0 && loserIndex >= 0) {
+            String winnerPart = message.substring(winnerIndex, loserIndex);
+            String loserPart = message.substring(loserIndex);
+            boolean playerWon = winnerPart.contains(playerName);
+            boolean playerLost = loserPart.contains(playerName);
 
-        String playerName = client.player.getName().getString();
-        String winnerPart = message.substring(winnerIndex, loserIndex);
-        String loserPart = message.substring(loserIndex);
-        boolean playerWon = winnerPart.contains(playerName);
-        boolean playerLost = loserPart.contains(playerName);
-
-        if ((playerWon && !localDiedThisRound) || (playerLost && CONFIG.sendOnOwnDeath)) {
-            String phrase = CONFIG.nextPhrase();
-            long now = System.currentTimeMillis();
-            if (CONFIG.enabled && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS) {
-                pendingPhrase = phrase;
-                scheduledSendTime = now + (long) customDelayMs;
+            if ((playerWon && !localDiedThisRound) || (playerLost && CONFIG.sendOnOwnDeath)) {
+                String phrase = CONFIG.nextPhrase();
+                long now = System.currentTimeMillis();
+                if (CONFIG.enabled && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS) {
+                    pendingPhrase = phrase;
+                    scheduledSendTime = now + (long) customDelayMs;
+                }
             }
+            localDiedThisRound = false;
         }
-        localDiedThisRound = false;
     }
 }
 

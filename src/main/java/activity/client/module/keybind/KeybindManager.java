@@ -143,9 +143,10 @@ public final class KeybindManager {
 
             if (isDown && !wasDown) {
                 KEY_STATES.put(bs.stateKey(), Boolean.TRUE);
-                bs.setting().set(sec);
+                bs.setting().triggerPress(client);
             } else if (!isDown && wasDown) {
                 KEY_STATES.put(bs.stateKey(), Boolean.FALSE);
+                bs.setting().triggerRelease(client);
             }
         }
     }

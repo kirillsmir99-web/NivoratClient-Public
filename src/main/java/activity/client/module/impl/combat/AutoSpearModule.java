@@ -27,19 +27,38 @@ public class AutoSpearModule extends NivoratModule {
 
     public AutoSpearModule() {
         super(ID, Text.translatable("activity.module.auto_spear.name"), Text.translatable("activity.module.auto_spear.desc"), ModuleCategory.COMBAT);
-        this.keybind.set(GLFW.GLFW_KEY_TAB, false, false, false);
+        this.keybind.clear();
         this.metadata = ModuleMetadata.builder(ID)
                 .displayName(name)
                 .description(description)
                 .category(category)
                 .author("Nivorat")
-                .version("2.0.1")
+                .version("2.1.0")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)
                 .aliases("autospear", "spear", "копье", "копьё", "автокопье", "авто-копье", "авто копье", "выпад", "выпад копьем", "выпад копьём", "задержка", "delay", "restore")
                 .build();
 
         // 1. GENERAL
+        registerKeybind("trigger_keybind", Text.translatable("activity.setting.combat.trigger_keybind"),
+                Text.translatable("activity.setting.combat.trigger_keybind.desc"), SettingGroup.GENERAL,
+                new activity.client.module.keybind.Keybind(GLFW.GLFW_KEY_TAB),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoSpearTriggerKeybind : new activity.client.module.keybind.Keybind(GLFW.GLFW_KEY_TAB);
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoSpearTriggerKeybind.copyFrom(val);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).onPress(client -> {
+            if (isEnabled()) {
+                controller.onTrigger(client);
+            }
+        });
         registerEnum("security_mode", Text.translatable("activity.setting.combat.security_mode"),
                 Text.translatable("activity.setting.combat.security_mode.desc"), SettingGroup.GENERAL,
                 List.of("legit", "semi_legit", "rage"), "legit",
@@ -197,6 +216,12 @@ public class AutoSpearModule extends NivoratModule {
         this.enabled = config.autoSpearEnabled;
         this.keybind.copyFrom(config.autoSpearKeybind);
         syncControllerConfig(config);
+    }
+
+    public void triggerManual(MinecraftClient client) {
+        if (isEnabled() && client != null) {
+            controller.onTrigger(client);
+        }
     }
 
     @Override

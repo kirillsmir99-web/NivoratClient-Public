@@ -6,16 +6,19 @@ import activity.client.gui.icon.ActivityIcon;
 import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleMetadata;
 import activity.client.module.api.NivoratModule;
+import activity.client.module.service.CartStateService;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.world.World;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import ru.elarion.autogg.AutoGGClient;
 
 public class AutoGGModule extends NivoratModule {
@@ -35,6 +38,22 @@ public class AutoGGModule extends NivoratModule {
                 .build();
 
         // 1. GENERAL (ordinal 0)
+        registerKeybind("menu_keybind", Text.translatable("activity.setting.utility.menu_keybind"),
+                Text.translatable("activity.setting.utility.menu_keybind.desc"), SettingGroup.GENERAL,
+                new activity.client.module.keybind.Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoGGMenuKeybind : new activity.client.module.keybind.Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoGGMenuKeybind.copyFrom(val);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).onPress(this::openRadialMenu);
+
         registerString("phrase", Text.translatable("activity.setting.utility.gg_phrase"),
                 Text.translatable("activity.setting.utility.gg_phrase.desc"), SettingGroup.GENERAL,
                 "GGWP",
@@ -149,6 +168,25 @@ public class AutoGGModule extends NivoratModule {
         }
     }
 
+    private final CartStateService.CartEventListener cartListener = new CartStateService.CartEventListener() {
+        @Override
+        public void onCartPlaced(BlockPos pos) {
+            if (isEnabled() && pos != null) {
+                AutoGGKillTracker.recordExplosion(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, AutoGGKillTracker.DEFAULT_EXPLOSION_RADIUS);
+            }
+        }
+    };
+
+    public void openRadialMenu(MinecraftClient client) {
+        if (client != null && client.currentScreen == null) {
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            activity.client.module.keybind.Keybind kb = (c != null && c.autoGGMenuKeybind != null)
+                    ? c.autoGGMenuKeybind
+                    : new activity.client.module.keybind.Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
+            client.setScreen(new activity.client.module.impl.utility.gui.AutoGGRadialScreen(null, true, kb));
+        }
+    }
+
     @Override
     public void onInitialize() {
         AutoGGClient.ensureActive();
@@ -156,6 +194,7 @@ public class AutoGGModule extends NivoratModule {
         if (c != null) {
             syncEngineConfig(c);
         }
+        CartStateService.addListener(cartListener);
     }
 
     @Override
@@ -177,9 +216,16 @@ public class AutoGGModule extends NivoratModule {
     }
 
     @Override
-    public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
+    public ActionResult onAttackEntity(PlayerEntity player, net.minecraft.world.World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (isEnabled() && entity != null) {
-            AutoGGClient.recordAttack(entity.getId());
+            Vec3d pos = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
+            AutoGGClient.recordAttack(entity.getId(), pos);
+
+            if (entity.getType() == EntityType.TNT_MINECART
+                    || entity.getType() == EntityType.END_CRYSTAL
+                    || entity.getType() == EntityType.TNT) {
+                AutoGGKillTracker.recordExplosion(pos.x, pos.y, pos.z, AutoGGKillTracker.DEFAULT_EXPLOSION_RADIUS);
+            }
         }
         return ActionResult.PASS;
     }

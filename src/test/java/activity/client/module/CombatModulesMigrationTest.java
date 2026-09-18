@@ -14,6 +14,8 @@ import activity.client.module.impl.combat.AutoStunSlamModule;
 import activity.client.module.setting.BooleanSetting;
 import activity.client.module.setting.DoubleSetting;
 import activity.client.module.setting.EnumSetting;
+import activity.client.module.setting.IntegerSetting;
+import activity.client.module.setting.KeybindSetting;
 import activity.client.module.setting.NumberSetting;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
@@ -150,8 +152,12 @@ public class CombatModulesMigrationTest {
         assertInstanceOf(AutoSpearModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Verify default keybind is TAB
-        assertEquals(GLFW.GLFW_KEY_TAB, mod.getKeybind().getKeyCode());
+        // Verify trigger keybind is TAB and primary toggle keybind is unbound by default
+        assertTrue(mod.getKeybind().isUnbound(), "AutoSpear primary toggle keybind is unbound by default to avoid collision with trigger keybind");
+        Setting<?> triggerKbSetting = mod.getSetting("trigger_keybind");
+        assertNotNull(triggerKbSetting, "trigger_keybind must be registered on AutoSpear");
+        assertInstanceOf(KeybindSetting.class, triggerKbSetting);
+        assertEquals(GLFW.GLFW_KEY_TAB, ((KeybindSetting) triggerKbSetting).get().getKeyCode(), "Default trigger keybind must be TAB");
 
         // Verify registered settings
         assertNotNull(mod.getSetting("security_mode"));

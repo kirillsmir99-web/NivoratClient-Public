@@ -71,7 +71,8 @@ public class ActivityConfig {
 
     // AutoSpear
     public boolean autoSpearEnabled = true;
-    public Keybind autoSpearKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
+    public Keybind autoSpearKeybind = new Keybind();
+    public Keybind autoSpearTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
     public String autoSpearSecurityMode = "legit";
     public String autoSpearPriorityMode = "auto";
     public double autoSpearRestoreDelayMs = 185.0;
@@ -199,6 +200,7 @@ public class ActivityConfig {
     // AutoGG
     public boolean autoGGEnabled = true;
     public Keybind autoGGKeybind = new Keybind();
+    public Keybind autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
     public String autoGGPhrase = "GGWP";
     public boolean autoGGSendOnKill = true;
     public boolean autoGGSendOnOwnDeath = false;
@@ -485,7 +487,8 @@ public class ActivityConfig {
         this.autoMaceRandomDelay = true;
 
         this.autoSpearEnabled = true;
-        this.autoSpearKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
+        this.autoSpearKeybind.clear();
+        this.autoSpearTriggerKeybind.set(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB, false, false, false);
         this.autoSpearSecurityMode = "legit";
         this.autoSpearPriorityMode = "auto";
         this.autoSpearRestoreDelayMs = 185.0;
@@ -603,6 +606,7 @@ public class ActivityConfig {
 
         this.autoGGEnabled = true;
         this.autoGGKeybind.clear();
+        this.autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
         this.autoGGPhrase = "GGWP";
         this.autoGGSendOnKill = true;
         this.autoGGSendOnOwnDeath = false;
@@ -710,6 +714,7 @@ public class ActivityConfig {
         // Keybind null guards
         if (this.autoMaceKeybind == null) this.autoMaceKeybind = new Keybind();
         if (this.autoSpearKeybind == null) this.autoSpearKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
+        if (this.autoSpearTriggerKeybind == null) this.autoSpearTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
         if (this.autoShieldbreakerKeybind == null) this.autoShieldbreakerKeybind = new Keybind();
         if (this.autoStunSlamKeybind == null) this.autoStunSlamKeybind = new Keybind();
         if (this.autoTotemKeybind == null) this.autoTotemKeybind = new Keybind();
@@ -719,6 +724,7 @@ public class ActivityConfig {
         if (this.hpReaperKeybind == null) this.hpReaperKeybind = new Keybind();
         if (this.autoToolKeybind == null) this.autoToolKeybind = new Keybind();
         if (this.autoGGKeybind == null) this.autoGGKeybind = new Keybind();
+        if (this.autoGGMenuKeybind == null) this.autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
         if (this.cartHudKeybind == null) this.cartHudKeybind = new Keybind();
 
         // Migration from legacy autoStunSlime JSON fields if present
@@ -1098,6 +1104,7 @@ public class ActivityConfig {
         entry.settings.put("restore_delay", this.autoSpearRestoreDelayMs);
         entry.settings.put("miss_chance", this.autoSpearMissChance);
         entry.settings.put("random_delay", this.autoSpearRandomDelay);
+        entry.settings.put("trigger_keybind", this.autoSpearTriggerKeybind);
     }
 
     private void populateShieldbreakerSettings(ModuleConfigEntry entry) {
@@ -1206,6 +1213,7 @@ public class ActivityConfig {
         entry.settings.put("send_on_own_death", this.autoGGSendOnOwnDeath);
         entry.settings.put("random_order", this.autoGGRandomOrder);
         entry.settings.put("delay_ms", this.autoGGDelayMs);
+        entry.settings.put("menu_keybind", this.autoGGMenuKeybind);
     }
 
     private void populateCartHudSettings(ModuleConfigEntry entry) {
@@ -1257,6 +1265,22 @@ public class ActivityConfig {
         return def;
     }
 
+    private static Keybind getSettingKeybind(java.util.Map<String, Object> map, String key, Keybind def) {
+        if (map == null) return def;
+        Object v = map.get(key);
+        if (v instanceof Keybind kb) return kb;
+        if (v instanceof com.google.gson.internal.LinkedTreeMap<?, ?> tree) {
+            try {
+                int code = ((Number) tree.get("keyCode")).intValue();
+                boolean ctrl = Boolean.TRUE.equals(tree.get("ctrl"));
+                boolean shift = Boolean.TRUE.equals(tree.get("shift"));
+                boolean alt = Boolean.TRUE.equals(tree.get("alt"));
+                return new Keybind(code, ctrl, shift, alt);
+            } catch (Exception ignored) {}
+        }
+        return def;
+    }
+
     /**
      * Looks up module entry handling case-insensitivity and AutoStun aliases.
      */
@@ -1305,6 +1329,8 @@ public class ActivityConfig {
                 this.autoSpearRestoreDelayMs = getSettingDouble(spear.settings, "restore_delay", this.autoSpearRestoreDelayMs);
                 this.autoSpearMissChance = getSettingDouble(spear.settings, "miss_chance", this.autoSpearMissChance);
                 this.autoSpearRandomDelay = getSettingBoolean(spear.settings, "random_delay", this.autoSpearRandomDelay);
+                Keybind tkb = getSettingKeybind(spear.settings, "trigger_keybind", null);
+                if (tkb != null) this.autoSpearTriggerKeybind.copyFrom(tkb);
             }
         }
         ModuleConfigEntry sb = getModuleEntry("auto_shieldbreaker");
@@ -1440,6 +1466,8 @@ public class ActivityConfig {
                 this.autoGGSendOnOwnDeath = getSettingBoolean(gg.settings, "send_on_own_death", this.autoGGSendOnOwnDeath);
                 this.autoGGRandomOrder = getSettingBoolean(gg.settings, "random_order", this.autoGGRandomOrder);
                 this.autoGGDelayMs = getSettingDouble(gg.settings, "delay_ms", this.autoGGDelayMs);
+                Keybind mkb = getSettingKeybind(gg.settings, "menu_keybind", null);
+                if (mkb != null) this.autoGGMenuKeybind.copyFrom(mkb);
             }
         }
         ModuleConfigEntry hud = getModuleEntry("cart_hud");
@@ -1491,6 +1519,7 @@ public class ActivityConfig {
 
         copy.autoSpearEnabled = this.autoSpearEnabled;
         copy.autoSpearKeybind.copyFrom(this.autoSpearKeybind);
+        copy.autoSpearTriggerKeybind.copyFrom(this.autoSpearTriggerKeybind);
         copy.autoSpearSecurityMode = this.autoSpearSecurityMode;
         copy.autoSpearPriorityMode = this.autoSpearPriorityMode;
         copy.autoSpearRestoreDelayMs = this.autoSpearRestoreDelayMs;
@@ -1592,6 +1621,7 @@ public class ActivityConfig {
 
         copy.autoGGEnabled = this.autoGGEnabled;
         copy.autoGGKeybind.copyFrom(this.autoGGKeybind);
+        copy.autoGGMenuKeybind.copyFrom(this.autoGGMenuKeybind);
         copy.autoGGPhrase = this.autoGGPhrase;
         copy.autoGGSendOnKill = this.autoGGSendOnKill;
         copy.autoGGSendOnOwnDeath = this.autoGGSendOnOwnDeath;
@@ -1695,6 +1725,7 @@ public class ActivityConfig {
                Double.compare(this.autoSpearRestoreDelayMs, that.autoSpearRestoreDelayMs) == 0 &&
                Double.compare(this.autoSpearMissChance, that.autoSpearMissChance) == 0 &&
                Objects.equals(this.autoSpearKeybind, that.autoSpearKeybind) &&
+               Objects.equals(this.autoSpearTriggerKeybind, that.autoSpearTriggerKeybind) &&
                Objects.equals(this.autoSpearSecurityMode, that.autoSpearSecurityMode) &&
                Objects.equals(this.autoSpearPriorityMode, that.autoSpearPriorityMode) &&
 
@@ -1798,6 +1829,7 @@ public class ActivityConfig {
                this.autoGGRandomOrder == that.autoGGRandomOrder &&
                Double.compare(this.autoGGDelayMs, that.autoGGDelayMs) == 0 &&
                Objects.equals(this.autoGGKeybind, that.autoGGKeybind) &&
+               Objects.equals(this.autoGGMenuKeybind, that.autoGGMenuKeybind) &&
                Objects.equals(this.autoGGPhrase, that.autoGGPhrase) &&
 
                this.cartHudEnabled == that.cartHudEnabled &&
@@ -1875,7 +1907,7 @@ public class ActivityConfig {
             modules,
             // Combat
             autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay,
-            autoSpearEnabled, autoSpearKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay,
+            autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay,
             autoShieldbreakerEnabled, autoShieldbreakerKeybind, autoShieldbreakerMode, autoShieldbreakerDistance, autoShieldbreakerChance,
             autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode,
             autoStunSlamEnabled, autoStunSlamKeybind, autoStunSlamMode, autoStunSlamDistance, autoStunSlamChance
@@ -1894,7 +1926,7 @@ public class ActivityConfig {
             hpReaperEnabled, hpReaperKeybind, hpReaperMode, hpReaperTargetFilter,
             hpReaperOwnHealthX, hpReaperOwnHealthY, hpReaperCrosshairTargetX, hpReaperCrosshairTargetY, hpReaperTargetHealthX, hpReaperTargetHealthY, hpReaperDiffX, hpReaperDiffY,
             autoToolEnabled, autoToolKeybind, autoToolCombatGuard, autoToolDurabilitySaver, autoToolDurabilityThreshold, autoToolPreferSilkTouch, autoToolRestorePrevious, autoToolLegitMode, autoToolSingleSlotMode, autoToolIgnoreInstantBreak, autoToolLockWhileMining,
-            autoGGEnabled, autoGGKeybind, autoGGPhrase, autoGGSendOnKill, autoGGSendOnOwnDeath, autoGGRandomOrder, autoGGDelayMs,
+            autoGGEnabled, autoGGKeybind, autoGGMenuKeybind, autoGGPhrase, autoGGSendOnKill, autoGGSendOnOwnDeath, autoGGRandomOrder, autoGGDelayMs,
             cartHudEnabled, cartHudKeybind, cartHudCustomX, cartHudCustomY,
             // HUD & System
             overlayEnabled, darkThemeEnabled, hudPosition, overlayOpacity, autoHideOnChat, hideInF3, searchFilter, filterCategory, matchCase

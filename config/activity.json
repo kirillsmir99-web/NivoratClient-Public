@@ -17,6 +17,12 @@
   "autoMaceRandomDelay": true,
   "autoSpearEnabled": true,
   "autoSpearKeybind": {
+    "keyCode": -1,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
+  "autoSpearTriggerKeybind": {
     "keyCode": 258,
     "ctrl": false,
     "shift": false,
@@ -157,6 +163,12 @@
     "shift": false,
     "alt": false
   },
+  "autoGGMenuKeybind": {
+    "keyCode": 71,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
   "autoGGPhrase": "GGWP",
   "autoGGSendOnKill": true,
   "autoGGSendOnOwnDeath": false,
@@ -249,7 +261,7 @@
     "auto_spear": {
       "enabled": true,
       "keybind": {
-        "keyCode": 258,
+        "keyCode": -1,
         "ctrl": false,
         "shift": false,
         "alt": false
@@ -259,7 +271,13 @@
         "priority_mode": "auto",
         "restore_delay": 185.0,
         "miss_chance": 0.0,
-        "random_delay": true
+        "random_delay": true,
+        "trigger_keybind": {
+          "keyCode": 258,
+          "ctrl": false,
+          "shift": false,
+          "alt": false
+        }
       }
     },
     "auto_shieldbreaker": {
@@ -432,6 +450,12 @@
         "send_on_own_death": false,
         "random_order": false,
         "delay_ms": 950.0,
+        "menu_keybind": {
+          "keyCode": 71,
+          "ctrl": false,
+          "shift": false,
+          "alt": false
+        },
         "send_on_death": false
       }
     },

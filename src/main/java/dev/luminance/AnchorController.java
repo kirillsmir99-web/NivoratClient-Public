@@ -199,6 +199,14 @@ public final class AnchorController {
                 if (hitToUse != null) {
                     client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hitToUse);
                     client.player.swingHand(Hand.MAIN_HAND);
+                    if (targetPos != null) {
+                        activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(
+                            targetPos.getX() + 0.5,
+                            targetPos.getY() + 0.5,
+                            targetPos.getZ() + 0.5,
+                            8.5
+                        );
+                    }
                 }
                 lastActionTime = now;
                 if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
