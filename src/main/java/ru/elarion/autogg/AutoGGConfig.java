@@ -40,15 +40,14 @@ public final class AutoGGConfig {
                 if (c.phrases == null) c.phrases = new ArrayList<>();
                 c.phrases.removeIf(s -> s == null || s.isBlank() || s.equalsIgnoreCase("Новая фраза"));
 
-                // Reset legacy defaults to strict new defaults: GGWP, Yes, GG
-                boolean hasLegacy = c.phrases.contains("EZ")
-                        || c.phrases.contains("Well Played!")
-                        || c.phrases.contains("Good Fight")
-                        || c.phrases.contains("GF")
-                        || c.phrases.contains("Короля не убить")
-                        || c.phrases.contains("Катка супер!")
-                        || c.phrases.contains("Мощно!");
-                if (c.phrases.isEmpty() || (hasLegacy && !c.phrases.contains("Yes"))) {
+                // Remove legacy default test phrases to strictly enforce user requirement
+                List<String> legacyList = List.of(
+                        "Good Fight", "Короля не убить", "Катка супер!", "Мощно!",
+                        "EZ", "GF", "Well Played!", "Well Played", "Новая фраза"
+                );
+                c.phrases.removeIf(s -> s == null || s.isBlank() || legacyList.stream().anyMatch(leg -> leg.equalsIgnoreCase(s.trim())));
+
+                if (c.phrases.isEmpty()) {
                     c.phrases = new ArrayList<>(DEFAULT_PHRASES);
                 }
 

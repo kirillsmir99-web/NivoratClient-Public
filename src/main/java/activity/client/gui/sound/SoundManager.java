@@ -4,6 +4,7 @@ import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 
@@ -166,6 +167,18 @@ public final class SoundManager {
         }
         lastHoverTime = now;
 
+        playSound(
+            ActivitySoundEvents.SERENE_HOVER,
+            ActivitySoundEvents.CLASSIC_BUTTON,
+            VANILLA_CLICK,
+            1.60f,
+            0.45f
+        );
+    }
+
+    public static void playHoverImmediate() {
+        if (!isSoundEnabled()) return;
+        lastHoverTime = System.currentTimeMillis();
         playSound(
             ActivitySoundEvents.SERENE_HOVER,
             ActivitySoundEvents.CLASSIC_BUTTON,
@@ -515,8 +528,15 @@ public final class SoundManager {
         try {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null && client.getSoundManager() != null) {
+                SoundEvent eventToPlay = targetEvent;
+                if (targetEvent.id() != null && "nivoratclient".equals(targetEvent.id().getNamespace())) {
+                    Identifier altId = Identifier.of("activity", targetEvent.id().getPath());
+                    if (Registries.SOUND_EVENT != null && Registries.SOUND_EVENT.containsId(altId)) {
+                        eventToPlay = SoundEvent.of(altId);
+                    }
+                }
                 client.getSoundManager().play(
-                    PositionedSoundInstance.ui(targetEvent, pitch, finalVolume)
+                    PositionedSoundInstance.ui(eventToPlay, pitch, finalVolume)
                 );
             }
         } catch (Throwable ignored) {

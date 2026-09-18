@@ -28,7 +28,7 @@ public class AutoGGModule extends NivoratModule {
     public static final String ID = "auto_gg";
 
     private static final List<String> COMMON_SUGGESTIONS = List.of(
-            "GGWP", "Yes", "GG", "Good Fight", "EZ", "GF", "Well Played", "WP"
+            "GGWP", "Yes", "GG"
     );
 
     public AutoGGModule() {
@@ -249,13 +249,11 @@ public class AutoGGModule extends NivoratModule {
             int addBtnW = 72;
             int inputW = innerRowW - addBtnW - 4;
 
-            activity.client.gui.component.ActivityTextField addField = new activity.client.gui.component.ActivityTextField(
-                    startX, curY, inputW, rowH,
-                    Text.literal("Новое слово (Tab - автодополнение)...")
-            );
+            final activity.client.gui.component.ActivityTextField[] addFieldHolder = new activity.client.gui.component.ActivityTextField[1];
 
             Runnable doAdd = () -> {
-                String text = addField.getText() != null ? addField.getText().trim() : "";
+                if (addFieldHolder[0] == null) return;
+                String text = addFieldHolder[0].getText() != null ? addFieldHolder[0].getText().trim() : "";
                 if (!text.isBlank()) {
                     if (!AutoGGClient.CONFIG.phrases.contains(text) && AutoGGClient.CONFIG.phrases.size() < 8) {
                         AutoGGClient.CONFIG.phrases.add(text);
@@ -271,6 +269,28 @@ public class AutoGGModule extends NivoratModule {
                     }
                 }
             };
+
+            activity.client.gui.component.ActivityTextField addField = new activity.client.gui.component.ActivityTextField(
+                    startX, curY, inputW, rowH,
+                    Text.literal("Новое слово (Tab - автодополнение)...")
+            ) {
+                @Override
+                public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
+                    if (input.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || input.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
+                        doAdd.run();
+                        return true;
+                    }
+                    if (input.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_TAB) {
+                        String match = activity.client.module.impl.utility.gui.AutoGGRadialScreen.findAutocomplete(getText());
+                        if (match != null) {
+                            setText(match);
+                            return true;
+                        }
+                    }
+                    return super.keyPressed(input);
+                }
+            };
+            addFieldHolder[0] = addField;
 
             activity.client.gui.component.ActivityButton btnAdd = new activity.client.gui.component.ActivityButton(
                     startX + inputW + 4, curY, addBtnW, rowH,

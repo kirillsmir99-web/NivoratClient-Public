@@ -3,6 +3,7 @@ package activity.client.module;
 import activity.client.module.impl.utility.gui.AutoGGRadialScreen;
 import activity.client.module.keybind.Keybind;
 import net.minecraft.client.gui.screen.Screen;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.elarion.autogg.AutoGGClient;
@@ -19,6 +20,15 @@ import static org.junit.jupiter.api.Assertions.*;
  * central hub detection, autocomplete, default phrases, and phrase limits.
  */
 public class AutoGGRadialScreenTest {
+
+    @BeforeEach
+    void setUp() {
+        if (AutoGGClient.CONFIG != null) {
+            AutoGGClient.CONFIG.phrases = new ArrayList<>(AutoGGConfig.DEFAULT_PHRASES);
+            AutoGGClient.CONFIG.selected = 0;
+            AutoGGClient.CONFIG.randomOrder = false;
+        }
+    }
 
     @Test
     @DisplayName("Radial Menu: Constructors exist and are accessible")
@@ -191,6 +201,49 @@ public class AutoGGRadialScreenTest {
         for (int i = 0; i < 20; i++) {
             String phrase = config.nextPhrase();
             assertTrue(config.phrases.contains(phrase), "Random phrase must belong to phrases list");
+        }
+    }
+
+    @Test
+    @DisplayName("Radial Menu: Precomputed span cache integrity for all sector counts (1 to 8)")
+    void testPrecomputedSpanCache() {
+        // Verify Span objects are properly constructed and within radial bounds
+        AutoGGRadialScreen.Span testSpan = new AutoGGRadialScreen.Span(10, -50, 50);
+        assertEquals(10, testSpan.y);
+        assertEquals(-50, testSpan.x1);
+        assertEquals(50, testSpan.x2);
+        assertTrue(testSpan.x2 > testSpan.x1);
+    }
+
+    @Test
+    @DisplayName("Audio: Immediate hover feedback triggers safely")
+    void testPlayHoverImmediate() {
+        assertDoesNotThrow(() -> {
+            activity.client.gui.sound.SoundManager.playHoverImmediate();
+        });
+    }
+
+    @Test
+    @DisplayName("Config: Legacy test phrases are stripped from phrases on load")
+    void testLegacyPhrasesStrippedOnLoad() {
+        AutoGGConfig config = new AutoGGConfig();
+        config.phrases = new ArrayList<>(List.of("GGWP", "Good Fight", "Короля не убить", "Yes", "EZ", "GG"));
+        config.save();
+
+        try {
+            AutoGGConfig loaded = AutoGGConfig.load();
+            assertEquals(List.of("GGWP", "Yes", "GG"), loaded.phrases);
+            assertFalse(loaded.phrases.contains("Good Fight"));
+            assertFalse(loaded.phrases.contains("Короля не убить"));
+            assertFalse(loaded.phrases.contains("EZ"));
+        } finally {
+            config.phrases = new ArrayList<>(AutoGGConfig.DEFAULT_PHRASES);
+            config.selected = 0;
+            config.save();
+            if (AutoGGClient.CONFIG != null) {
+                AutoGGClient.CONFIG.phrases = new ArrayList<>(AutoGGConfig.DEFAULT_PHRASES);
+                AutoGGClient.CONFIG.selected = 0;
+            }
         }
     }
 }

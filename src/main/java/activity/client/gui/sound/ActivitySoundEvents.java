@@ -14,6 +14,7 @@ import net.minecraft.util.Identifier;
 public final class ActivitySoundEvents {
 
     public static final String MOD_ID = "nivoratclient";
+    public static final String ALT_MOD_ID = "activity";
 
     // ==========================================
     // 1. SERENE EVENTS (27 UI EVENTS)
@@ -172,8 +173,6 @@ public final class ActivitySoundEvents {
     public static final SoundEvent PRESET_RESET = SERENE_ERROR;
     public static final SoundEvent PRESET_APPLY = SERENE_SUCCESS;
     public static final SoundEvent SLIDER_TICK = SERENE_SLIDER_TICK;
-
-    public static final String ALT_MOD_ID = "activity";
 
     private ActivitySoundEvents() {}
 

@@ -2,7 +2,7 @@
   "ui.open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/open",
+        "name": "activity:ui/open",
         "stream": false
       }
     ]
@@ -10,7 +10,7 @@
   "ui.close": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/close",
+        "name": "activity:ui/close",
         "stream": false
       }
     ]
@@ -18,7 +18,7 @@
   "ui.button": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/button",
+        "name": "activity:ui/button",
         "stream": false
       }
     ]
@@ -26,7 +26,7 @@
   "ui.toggle_on": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/toggle_on",
+        "name": "activity:ui/toggle_on",
         "stream": false
       }
     ]
@@ -34,7 +34,7 @@
   "ui.toggle_off": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/toggle_off",
+        "name": "activity:ui/toggle_off",
         "stream": false
       }
     ]
@@ -42,7 +42,7 @@
   "ui.dropdown_open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/dropdown_open",
+        "name": "activity:ui/dropdown_open",
         "stream": false
       }
     ]
@@ -50,7 +50,7 @@
   "ui.dropdown_close": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/dropdown_close",
+        "name": "activity:ui/dropdown_close",
         "stream": false
       }
     ]
@@ -58,7 +58,7 @@
   "ui.category_expand": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/category_expand",
+        "name": "activity:ui/category_expand",
         "stream": false
       }
     ]
@@ -66,7 +66,7 @@
   "ui.category_collapse": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/category_collapse",
+        "name": "activity:ui/category_collapse",
         "stream": false
       }
     ]
@@ -74,7 +74,7 @@
   "ui.success": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/success",
+        "name": "activity:ui/success",
         "stream": false
       }
     ]
@@ -82,7 +82,7 @@
   "ui.warning": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/warning",
+        "name": "activity:ui/warning",
         "stream": false
       }
     ]
@@ -90,7 +90,7 @@
   "ui.slider_tick": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/slider_tick",
+        "name": "activity:ui/slider_tick",
         "stream": false
       }
     ]
@@ -98,7 +98,7 @@
   "ui.classic.button": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/button",
+        "name": "activity:ui/button",
         "stream": false
       }
     ]
@@ -106,7 +106,7 @@
   "ui.classic.category_collapse": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/category_collapse",
+        "name": "activity:ui/category_collapse",
         "stream": false
       }
     ]
@@ -114,7 +114,7 @@
   "ui.classic.category_expand": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/category_expand",
+        "name": "activity:ui/category_expand",
         "stream": false
       }
     ]
@@ -122,7 +122,7 @@
   "ui.classic.close": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/close",
+        "name": "activity:ui/close",
         "stream": false
       }
     ]
@@ -130,7 +130,7 @@
   "ui.classic.dropdown_close": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/dropdown_close",
+        "name": "activity:ui/dropdown_close",
         "stream": false
       }
     ]
@@ -138,7 +138,7 @@
   "ui.classic.dropdown_open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/dropdown_open",
+        "name": "activity:ui/dropdown_open",
         "stream": false
       }
     ]
@@ -146,7 +146,7 @@
   "ui.classic.open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/open",
+        "name": "activity:ui/open",
         "stream": false
       }
     ]
@@ -154,7 +154,7 @@
   "ui.classic.slider_tick": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/slider_tick",
+        "name": "activity:ui/slider_tick",
         "stream": false
       }
     ]
@@ -162,7 +162,7 @@
   "ui.classic.success": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/success",
+        "name": "activity:ui/success",
         "stream": false
       }
     ]
@@ -170,7 +170,7 @@
   "ui.classic.toggle_off": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/toggle_off",
+        "name": "activity:ui/toggle_off",
         "stream": false
       }
     ]
@@ -178,7 +178,7 @@
   "ui.classic.toggle_on": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/toggle_on",
+        "name": "activity:ui/toggle_on",
         "stream": false
       }
     ]
@@ -186,7 +186,7 @@
   "ui.classic.warning": {
     "sounds": [
       {
-        "name": "nivoratclient:ui/warning",
+        "name": "activity:ui/warning",
         "stream": false
       }
     ]
@@ -194,7 +194,7 @@
   "ui.serene.button_primary": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/button_primary",
+        "name": "activity:ui_serene/button_primary",
         "stream": false
       }
     ]
@@ -202,7 +202,7 @@
   "ui.serene.button_secondary": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/button_secondary",
+        "name": "activity:ui_serene/button_secondary",
         "stream": false
       }
     ]
@@ -210,7 +210,7 @@
   "ui.serene.category_collapse": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/category_collapse",
+        "name": "activity:ui_serene/category_collapse",
         "stream": false
       }
     ]
@@ -218,7 +218,7 @@
   "ui.serene.category_expand": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/category_expand",
+        "name": "activity:ui_serene/category_expand",
         "stream": false
       }
     ]
@@ -226,7 +226,7 @@
   "ui.serene.close": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/close",
+        "name": "activity:ui_serene/close",
         "stream": false
       }
     ]
@@ -234,7 +234,7 @@
   "ui.serene.copy": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/copy",
+        "name": "activity:ui_serene/copy",
         "stream": false
       }
     ]
@@ -242,7 +242,7 @@
   "ui.serene.delete": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/delete",
+        "name": "activity:ui_serene/delete",
         "stream": false
       }
     ]
@@ -250,7 +250,7 @@
   "ui.serene.dropdown_close": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/dropdown_close",
+        "name": "activity:ui_serene/dropdown_close",
         "stream": false
       }
     ]
@@ -258,7 +258,7 @@
   "ui.serene.dropdown_open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/dropdown_open",
+        "name": "activity:ui_serene/dropdown_open",
         "stream": false
       }
     ]
@@ -266,7 +266,7 @@
   "ui.serene.error": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/error",
+        "name": "activity:ui_serene/error",
         "stream": false
       }
     ]
@@ -274,7 +274,7 @@
   "ui.serene.hover": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/hover",
+        "name": "activity:ui_serene/hover",
         "stream": false
       }
     ]
@@ -282,7 +282,7 @@
   "ui.serene.import": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/import",
+        "name": "activity:ui_serene/import",
         "stream": false
       }
     ]
@@ -290,7 +290,7 @@
   "ui.serene.link_open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/link_open",
+        "name": "activity:ui_serene/link_open",
         "stream": false
       }
     ]
@@ -298,7 +298,7 @@
   "ui.serene.maximize": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/maximize",
+        "name": "activity:ui_serene/maximize",
         "stream": false
       }
     ]
@@ -306,7 +306,7 @@
   "ui.serene.modal_close": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/modal_close",
+        "name": "activity:ui_serene/modal_close",
         "stream": false
       }
     ]
@@ -314,7 +314,7 @@
   "ui.serene.modal_open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/modal_open",
+        "name": "activity:ui_serene/modal_open",
         "stream": false
       }
     ]
@@ -322,7 +322,7 @@
   "ui.serene.open": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/open",
+        "name": "activity:ui_serene/open",
         "stream": false
       }
     ]
@@ -330,7 +330,7 @@
   "ui.serene.pin": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/pin",
+        "name": "activity:ui_serene/pin",
         "stream": false
       }
     ]
@@ -338,7 +338,7 @@
   "ui.serene.reload": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/reload",
+        "name": "activity:ui_serene/reload",
         "stream": false
       }
     ]
@@ -346,7 +346,7 @@
   "ui.serene.restore": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/restore",
+        "name": "activity:ui_serene/restore",
         "stream": false
       }
     ]
@@ -354,7 +354,7 @@
   "ui.serene.search_focus": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/search_focus",
+        "name": "activity:ui_serene/search_focus",
         "stream": false
       }
     ]
@@ -362,7 +362,7 @@
   "ui.serene.slider_tick": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/slider_tick",
+        "name": "activity:ui_serene/slider_tick",
         "stream": false
       }
     ]
@@ -370,7 +370,7 @@
   "ui.serene.success": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/success",
+        "name": "activity:ui_serene/success",
         "stream": false
       }
     ]
@@ -378,7 +378,7 @@
   "ui.serene.toggle_off": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/toggle_off",
+        "name": "activity:ui_serene/toggle_off",
         "stream": false
       }
     ]
@@ -386,7 +386,7 @@
   "ui.serene.toggle_on": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/toggle_on",
+        "name": "activity:ui_serene/toggle_on",
         "stream": false
       }
     ]
@@ -394,7 +394,7 @@
   "ui.serene.unpin": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/unpin",
+        "name": "activity:ui_serene/unpin",
         "stream": false
       }
     ]
@@ -402,7 +402,7 @@
   "ui.serene.warning": {
     "sounds": [
       {
-        "name": "nivoratclient:ui_serene/warning",
+        "name": "activity:ui_serene/warning",
         "stream": false
       }
     ]
