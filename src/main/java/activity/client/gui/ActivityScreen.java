@@ -874,6 +874,12 @@ public class ActivityScreen extends Screen {
             if (!isAnimating && !isMaximizeAnimating && this.currentScrollContainer != null) {
                 this.currentScrollContainer.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
+
+            // Step 8.5: Bottom footer text in main menu
+            int footerX = layout.windowX + layout.windowWidth / 2;
+            int footerY = Math.min(layout.windowY + layout.windowHeight + 4, this.height - this.textRenderer.fontHeight - 2);
+            int footerColor = ActivityColors.scaleAlpha(ActivityColors.TEXT_MUTED, alphaFactor);
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("ТГ канал автора модов - @virionDEV"), footerX, footerY, footerColor);
         } finally {
             context.getMatrices().popMatrix();
         }

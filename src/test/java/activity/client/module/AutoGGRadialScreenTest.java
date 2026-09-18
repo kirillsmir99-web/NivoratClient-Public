@@ -106,14 +106,14 @@ public class AutoGGRadialScreenTest {
     }
 
     @Test
-    @DisplayName("Radial Menu: Strict default phrases [GGWP, Yes, GG]")
+    @DisplayName("Radial Menu: Strict default phrases [GGWP, ez, GG]")
     void testDefaultPhrases() {
         List<String> phrases = AutoGGRadialScreen.getDefaultPhrases();
         assertNotNull(phrases, "Default phrases must not be null");
-        assertEquals(3, phrases.size(), "Strict default phrases list must have exactly 3 entries: GGWP, Yes, GG");
-        assertEquals(List.of("GGWP", "Yes", "GG"), phrases, "Must strictly be [GGWP, Yes, GG]");
+        assertEquals(3, phrases.size(), "Strict default phrases list must have exactly 3 entries: GGWP, ez, GG");
+        assertEquals(List.of("GGWP", "ez", "GG"), phrases, "Must strictly be [GGWP, ez, GG]");
         assertTrue(phrases.contains("GGWP"));
-        assertTrue(phrases.contains("Yes"));
+        assertTrue(phrases.contains("ez"));
         assertTrue(phrases.contains("GG"));
     }
 
@@ -149,8 +149,8 @@ public class AutoGGRadialScreenTest {
         assertEquals("GGWP", AutoGGRadialScreen.findAutocomplete("   "));
 
         // Prefix matching
-        assertEquals("Yes", AutoGGRadialScreen.findAutocomplete("ye"));
-        assertEquals("Yes", AutoGGRadialScreen.findAutocomplete("Y"));
+        assertEquals("ez", AutoGGRadialScreen.findAutocomplete("e"));
+        assertEquals("ez", AutoGGRadialScreen.findAutocomplete("E"));
         assertEquals("GGWP", AutoGGRadialScreen.findAutocomplete("ggw"));
         assertEquals("Good Fight", AutoGGRadialScreen.findAutocomplete("good"));
         assertEquals("Well Played", AutoGGRadialScreen.findAutocomplete("well"));
@@ -187,13 +187,13 @@ public class AutoGGRadialScreenTest {
     @DisplayName("Config: Phrase selection with randomOrder false vs true")
     void testRandomOrderPhraseSelection() {
         AutoGGConfig config = new AutoGGConfig();
-        config.phrases = new ArrayList<>(List.of("GGWP", "Yes", "GG"));
-        config.selected = 1; // "Yes"
+        config.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        config.selected = 1; // "ez"
         config.randomOrder = false;
 
         // When randomOrder is false, nextPhrase() returns currentPhrase() without mutating selected index
-        assertEquals("Yes", config.nextPhrase());
-        assertEquals("Yes", config.nextPhrase());
+        assertEquals("ez", config.nextPhrase());
+        assertEquals("ez", config.nextPhrase());
         assertEquals(1, config.selected);
 
         // When randomOrder is true, nextPhrase() returns one of the existing phrases
@@ -224,18 +224,19 @@ public class AutoGGRadialScreenTest {
     }
 
     @Test
-    @DisplayName("Config: Legacy test phrases are stripped from phrases on load")
+    @DisplayName("Config: Legacy test phrases are stripped and Yes migrated on load")
     void testLegacyPhrasesStrippedOnLoad() {
         AutoGGConfig config = new AutoGGConfig();
-        config.phrases = new ArrayList<>(List.of("GGWP", "Good Fight", "Короля не убить", "Yes", "EZ", "GG"));
+        config.phrases = new ArrayList<>(List.of("GGWP", "Good Fight", "Короля не убить", "Yes", "GG"));
         config.save();
 
         try {
             AutoGGConfig loaded = AutoGGConfig.load();
-            assertEquals(List.of("GGWP", "Yes", "GG"), loaded.phrases);
+            assertEquals(List.of("GGWP", "ez", "GG"), loaded.phrases);
             assertFalse(loaded.phrases.contains("Good Fight"));
             assertFalse(loaded.phrases.contains("Короля не убить"));
-            assertFalse(loaded.phrases.contains("EZ"));
+            assertFalse(loaded.phrases.contains("Yes"));
+            assertTrue(loaded.phrases.contains("ez"));
         } finally {
             config.phrases = new ArrayList<>(AutoGGConfig.DEFAULT_PHRASES);
             config.selected = 0;
@@ -245,5 +246,119 @@ public class AutoGGRadialScreenTest {
                 AutoGGClient.CONFIG.selected = 0;
             }
         }
+    }
+
+    @Test
+    @DisplayName("AutoGG: Own death triggers phrase scheduling when sendOnOwnDeath is enabled")
+    void testAutoGGOwnDeathTriggersPhraseScheduling() {
+        AutoGGClient.resetStateForTest();
+        AutoGGClient.CONFIG.enabled = true;
+        AutoGGClient.CONFIG.sendOnOwnDeath = true;
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        AutoGGClient.CONFIG.selected = 1; // "ez"
+        AutoGGClient.customDelayMs = 500.0;
+
+        assertFalse(AutoGGClient.hasPendingPhrase());
+
+        // Player dies -> markOwnDeath()
+        AutoGGClient.markOwnDeath();
+
+        assertTrue(AutoGGClient.isLocalDiedThisRound());
+        assertTrue(AutoGGClient.hasPendingPhrase());
+        assertEquals("ez", AutoGGClient.getPendingPhrase());
+        assertTrue(AutoGGClient.getScheduledSendTime() > System.currentTimeMillis());
+
+        // Repeated death call while pending should not overwrite or re-trigger
+        AutoGGClient.markOwnDeath();
+        assertEquals("ez", AutoGGClient.getPendingPhrase());
+
+        AutoGGClient.resetStateForTest();
+    }
+
+    @Test
+    @DisplayName("AutoGG: Own death does NOT trigger phrase scheduling when sendOnOwnDeath is disabled")
+    void testAutoGGOwnDeathDisabledDoesNotSchedule() {
+        AutoGGClient.resetStateForTest();
+        AutoGGClient.CONFIG.enabled = true;
+        AutoGGClient.CONFIG.sendOnOwnDeath = false;
+
+        AutoGGClient.markOwnDeath();
+
+        assertTrue(AutoGGClient.isLocalDiedThisRound());
+        assertFalse(AutoGGClient.hasPendingPhrase());
+
+        AutoGGClient.resetStateForTest();
+    }
+
+    @Test
+    @DisplayName("AutoGG: Cooldown strictly prevents duplicate dispatch within SEND_COOLDOWN_MS")
+    void testAutoGGCooldownEnforcement() {
+        AutoGGClient.resetStateForTest();
+        AutoGGClient.CONFIG.enabled = true;
+        AutoGGClient.CONFIG.sendOnOwnDeath = true;
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        AutoGGClient.CONFIG.selected = 0;
+
+        // Simulate recently sent 1000ms ago (< 8000ms cooldown)
+        AutoGGClient.setLastSentAtForTest(System.currentTimeMillis() - 1000L);
+
+        AutoGGClient.markOwnDeath();
+
+        assertFalse(AutoGGClient.hasPendingPhrase(), "Phrase must not be scheduled during cooldown");
+
+        // Simulate sent 10_000ms ago (> 8000ms cooldown)
+        AutoGGClient.setLastSentAtForTest(System.currentTimeMillis() - 10_000L);
+
+        AutoGGClient.markOwnDeath();
+
+        assertTrue(AutoGGClient.hasPendingPhrase(), "Phrase must be scheduled after cooldown expires");
+        assertEquals("GGWP", AutoGGClient.getPendingPhrase());
+
+        AutoGGClient.resetStateForTest();
+    }
+
+    @Test
+    @DisplayName("AutoGGModule: Star selection and default phrase synchronization")
+    void testAutoGGModuleCustomSectionStarSelection() {
+        activity.client.module.impl.utility.AutoGGModule module = new activity.client.module.impl.utility.AutoGGModule();
+        assertTrue(module.hasCustomSection());
+
+        activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
+        assertNotNull(config);
+
+        // Set phrases
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        config.autoGGPhrase = "ez";
+        module.syncEngineConfig(config);
+
+        assertEquals("ez", AutoGGClient.CONFIG.currentPhrase());
+
+        activity.client.gui.layout.ScrollContainer container = new activity.client.gui.layout.ScrollContainer(0, 0, 200, 300);
+        int consumedHeight = module.buildCustomSection(null, null, container, 10, 10, 180);
+        assertTrue(consumedHeight > 0);
+
+        // Container should contain star buttons, phrase buttons, delete buttons, add field, and suggestion chips
+        List<activity.client.gui.component.ActivityComponent> children = container.getChildren();
+        assertTrue(children.size() >= 3 * 3, "Should have widgets for each of the 3 phrases");
+
+        // Verify that one of the buttons is a star button with lit star ★
+        boolean hasLitStar = false;
+        boolean hasUnlitStar = false;
+        for (activity.client.gui.component.ActivityComponent comp : children) {
+            if (comp instanceof activity.client.gui.component.ActivityButton btn) {
+                String text = btn.getMessage() != null ? btn.getMessage().getString() : "";
+                if (text.contains("★")) {
+                    hasLitStar = true;
+                    assertEquals(activity.client.gui.component.ActivityButton.Variant.PRIMARY, btn.getVariant());
+                } else if (text.contains("☆")) {
+                    hasUnlitStar = true;
+                    assertEquals(activity.client.gui.component.ActivityButton.Variant.SECONDARY, btn.getVariant());
+                }
+                // Assert that "(По умолчанию)" is completely absent from all button labels
+                assertFalse(text.contains("По умолчанию"), "Button label must not contain 'По умолчанию'");
+            }
+        }
+        assertTrue(hasLitStar, "Must display at least one lit star for default phrase");
+        assertTrue(hasUnlitStar, "Must display unlit stars for non-default phrases");
     }
 }

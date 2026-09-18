@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class AutoGGConfig {
     public static final int MAX_PHRASES = 8;
-    public static final List<String> DEFAULT_PHRASES = List.of("GGWP", "Yes", "GG");
+    public static final List<String> DEFAULT_PHRASES = List.of("GGWP", "ez", "GG");
 
     public boolean enabled = true;
     public boolean sendOnKill = true;
@@ -40,12 +40,29 @@ public final class AutoGGConfig {
                 if (c.phrases == null) c.phrases = new ArrayList<>();
                 c.phrases.removeIf(s -> s == null || s.isBlank() || s.equalsIgnoreCase("Новая фраза"));
 
-                // Remove legacy default test phrases to strictly enforce user requirement
+                // Migrate legacy "Yes" to "ez"
+                for (int i = 0; i < c.phrases.size(); i++) {
+                    if ("Yes".equalsIgnoreCase(c.phrases.get(i).trim())) {
+                        c.phrases.set(i, "ez");
+                    }
+                }
+
+                // Remove legacy test phrases to strictly enforce user requirement (EZ/ez is allowed and default now)
                 List<String> legacyList = List.of(
                         "Good Fight", "Короля не убить", "Катка супер!", "Мощно!",
-                        "EZ", "GF", "Well Played!", "Well Played", "Новая фраза"
+                        "GF", "Well Played!", "Well Played", "Новая фраза"
                 );
                 c.phrases.removeIf(s -> s == null || s.isBlank() || legacyList.stream().anyMatch(leg -> leg.equalsIgnoreCase(s.trim())));
+
+                // Deduplicate while preserving order
+                List<String> deduped = new ArrayList<>();
+                for (String p : c.phrases) {
+                    String trimmed = p.trim();
+                    if (deduped.stream().noneMatch(existing -> existing.equalsIgnoreCase(trimmed))) {
+                        deduped.add(trimmed);
+                    }
+                }
+                c.phrases = deduped;
 
                 if (c.phrases.isEmpty()) {
                     c.phrases = new ArrayList<>(DEFAULT_PHRASES);

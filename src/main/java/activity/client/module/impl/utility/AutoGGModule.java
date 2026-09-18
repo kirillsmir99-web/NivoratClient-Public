@@ -28,7 +28,7 @@ public class AutoGGModule extends NivoratModule {
     public static final String ID = "auto_gg";
 
     private static final List<String> COMMON_SUGGESTIONS = List.of(
-            "GGWP", "Yes", "GG"
+            "GGWP", "ez", "GG"
     );
 
     public AutoGGModule() {
@@ -172,43 +172,54 @@ public class AutoGGModule extends NivoratModule {
                 startX, curY + 3,
                 Text.literal("Фразы AutoGG (" + count + "/8):")
         );
-        headerLabel.setTooltip(Text.literal("Нажмите на фразу, чтобы сделать её фразой по умолчанию. Лимит: максимум 8 слов."));
+        headerLabel.setTooltip(Text.literal("Нажмите на звезду или фразу, чтобы сделать её фразой по умолчанию. Лимит: максимум 8 слов."));
         if (tab != null) tab.addControl(container, headerLabel); else container.addChild(headerLabel);
         curY += rowH + gap;
 
-        // 2. Existing phrases list: each row has phrase button + delete button
+        // 2. Existing phrases list: each row has star button (lit up when default) + phrase button + delete button
         if (currentPhrases != null) {
             for (int i = 0; i < currentPhrases.size(); i++) {
                 String phrase = currentPhrases.get(i);
                 boolean isDefault = phrase.equalsIgnoreCase(activeSelected);
 
+                int starBtnW = 22;
                 int deleteBtnW = 20;
-                int phraseBtnW = innerRowW - deleteBtnW - 4;
+                int phraseBtnW = innerRowW - starBtnW - deleteBtnW - 8;
 
-                String displayLabel = isDefault ? ("✔ " + phrase + " (По умолчанию)") : ("  " + phrase);
-                activity.client.gui.component.ActivityButton btnPhrase = new activity.client.gui.component.ActivityButton(
-                        startX, curY, phraseBtnW, rowH,
-                        Text.literal(displayLabel),
+                Runnable makeDefaultAction = () -> {
+                    int idx = AutoGGClient.CONFIG.phrases.indexOf(phrase);
+                    if (idx >= 0) {
+                        AutoGGClient.CONFIG.selected = idx;
+                        AutoGGClient.CONFIG.save();
+                    }
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoGGPhrase = phrase;
+                        ActivityConfigManager.markDirty();
+                    }
+                    activity.client.gui.sound.SoundManager.playSelect();
+                    if (screen != null) screen.reloadCurrentTab();
+                };
+
+                // Star icon button: lights up bright gold (★) when default, otherwise dim (☆)
+                activity.client.gui.component.ActivityButton btnStar = new activity.client.gui.component.ActivityButton(
+                        startX, curY, starBtnW, rowH,
+                        Text.literal(isDefault ? "§6★" : "§7☆"),
                         isDefault ? activity.client.gui.component.ActivityButton.Variant.PRIMARY : activity.client.gui.component.ActivityButton.Variant.SECONDARY,
-                        b -> {
-                            int idx = AutoGGClient.CONFIG.phrases.indexOf(phrase);
-                            if (idx >= 0) {
-                                AutoGGClient.CONFIG.selected = idx;
-                                AutoGGClient.CONFIG.save();
-                            }
-                            ActivityConfig c = ActivityConfigManager.getConfig();
-                            if (c != null) {
-                                c.autoGGPhrase = phrase;
-                                ActivityConfigManager.markDirty();
-                            }
-                            activity.client.gui.sound.SoundManager.playSelect();
-                            if (screen != null) screen.reloadCurrentTab();
-                        }
+                        b -> makeDefaultAction.run()
                 );
-                btnPhrase.setTooltip(Text.literal(isDefault ? "Текущая фраза по умолчанию" : "Сделать фразой по умолчанию"));
+                btnStar.setTooltip(Text.literal(isDefault ? "Выбрано по умолчанию" : "Сделать по умолчанию"));
+
+                activity.client.gui.component.ActivityButton btnPhrase = new activity.client.gui.component.ActivityButton(
+                        startX + starBtnW + 4, curY, phraseBtnW, rowH,
+                        Text.literal(phrase),
+                        isDefault ? activity.client.gui.component.ActivityButton.Variant.PRIMARY : activity.client.gui.component.ActivityButton.Variant.SECONDARY,
+                        b -> makeDefaultAction.run()
+                );
+                btnPhrase.setTooltip(Text.literal(isDefault ? "Выбрано по умолчанию" : "Сделать по умолчанию"));
 
                 activity.client.gui.component.ActivityButton btnDelete = new activity.client.gui.component.ActivityButton(
-                        startX + phraseBtnW + 4, curY, deleteBtnW, rowH,
+                        startX + starBtnW + 4 + phraseBtnW + 4, curY, deleteBtnW, rowH,
                         Text.literal("✕"),
                         activity.client.gui.component.ActivityButton.Variant.DANGER,
                         b -> {
@@ -234,9 +245,11 @@ public class AutoGGModule extends NivoratModule {
                 }
 
                 if (tab != null) {
+                    tab.addControl(container, btnStar);
                     tab.addControl(container, btnPhrase);
                     tab.addControl(container, btnDelete);
                 } else {
+                    container.addChild(btnStar);
                     container.addChild(btnPhrase);
                     container.addChild(btnDelete);
                 }

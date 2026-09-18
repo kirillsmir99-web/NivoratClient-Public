@@ -44,8 +44,16 @@ public final class AutoGGClient {
 
     public void handleTick(MinecraftClient client) {
         if (client == null) return;
-        if (client.player != null && (client.player.isDead() || client.player.getHealth() <= 0.0F)) {
-            localDiedThisRound = true;
+        if (client.player != null) {
+            boolean isDead = client.player.isDead() || client.player.getHealth() <= 0.0F
+                    || (client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen);
+            if (isDead) {
+                if (!localDiedThisRound) {
+                    handleOwnDeath();
+                }
+            } else {
+                localDiedThisRound = false;
+            }
         }
 
         if (!recentAttacks.isEmpty()) {
@@ -56,7 +64,11 @@ public final class AutoGGClient {
         if (pendingPhrase != null && System.currentTimeMillis() >= scheduledSendTime) {
             if (client.player != null && CONFIG.enabled && !pendingPhrase.isBlank()) {
                 if (client.player.networkHandler != null) {
-                    client.player.networkHandler.sendChatMessage(pendingPhrase);
+                    if (pendingPhrase.startsWith("/")) {
+                        client.player.networkHandler.sendChatCommand(pendingPhrase.substring(1));
+                    } else {
+                        client.player.networkHandler.sendChatMessage(pendingPhrase);
+                    }
                 }
                 lastSentAt = System.currentTimeMillis();
             }
@@ -69,14 +81,33 @@ public final class AutoGGClient {
         if (phrase == null || phrase.isBlank()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         if (client != null && client.player != null && client.player.networkHandler != null) {
-            client.player.networkHandler.sendChatMessage(phrase);
+            if (phrase.startsWith("/")) {
+                client.player.networkHandler.sendChatCommand(phrase.substring(1));
+            } else {
+                client.player.networkHandler.sendChatMessage(phrase);
+            }
             lastSentAt = System.currentTimeMillis();
         }
     }
 
     public static void markOwnDeath() {
         ensureActive();
-        if (active != null) active.localDiedThisRound = true;
+        if (active != null) {
+            active.handleOwnDeath();
+        }
+    }
+
+    public void handleOwnDeath() {
+        localDiedThisRound = true;
+        if (!CONFIG.enabled || !CONFIG.sendOnOwnDeath) return;
+        long now = System.currentTimeMillis();
+        if (now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
+            String phrase = CONFIG.nextPhrase();
+            if (phrase != null && !phrase.isBlank()) {
+                pendingPhrase = phrase;
+                scheduledSendTime = now + (long) customDelayMs;
+            }
+        }
     }
 
     public static void onEntityDeath(Entity entity) {
@@ -142,13 +173,43 @@ public final class AutoGGClient {
             if ((playerWon && !localDiedThisRound) || (playerLost && CONFIG.sendOnOwnDeath)) {
                 String phrase = CONFIG.nextPhrase();
                 long now = System.currentTimeMillis();
-                if (CONFIG.enabled && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS) {
+                if (CONFIG.enabled && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
                     pendingPhrase = phrase;
                     scheduledSendTime = now + (long) customDelayMs;
                 }
             }
             localDiedThisRound = false;
         }
+    }
+
+    public static boolean hasPendingPhrase() {
+        return pendingPhrase != null;
+    }
+
+    public static String getPendingPhrase() {
+        return pendingPhrase;
+    }
+
+    public static long getScheduledSendTime() {
+        return scheduledSendTime;
+    }
+
+    public static boolean isLocalDiedThisRound() {
+        return active != null && active.localDiedThisRound;
+    }
+
+    public static void setLastSentAtForTest(long time) {
+        lastSentAt = time;
+    }
+
+    public static void resetStateForTest() {
+        pendingPhrase = null;
+        scheduledSendTime = 0L;
+        lastSentAt = 0L;
+        if (active != null) {
+            active.localDiedThisRound = false;
+        }
+        recentAttacks.clear();
     }
 }
 
