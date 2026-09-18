@@ -123,7 +123,7 @@ public final class AutoGGRadialScreen extends Screen {
                         list.add(new Span(y, spanStart, maxOuterX + 1));
                     }
                 }
-                SECTOR_SPANS_CACHE[count][s] = list;
+                SECTOR_SPANS_CACHE[count][s] = optimizeSpans(list);
             }
         }
 
@@ -182,11 +182,12 @@ public final class AutoGGRadialScreen extends Screen {
                         outlines.add(new Span(y, startX, size - offset));
                     }
                 }
-                SECTOR_OUTLINE_SPANS_CACHE[count][s] = outlines;
+                SECTOR_OUTLINE_SPANS_CACHE[count][s] = optimizeSpans(outlines);
             }
         }
 
         // 3. Ring spans
+        List<Span> rawRing = new ArrayList<>();
         int inner2 = INNER_RADIUS * INNER_RADIUS;
         int outer2 = OUTER_RADIUS * OUTER_RADIUS;
         for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
@@ -195,24 +196,27 @@ public final class AutoGGRadialScreen extends Screen {
             int maxOuterX = (int) Math.sqrt(outer2 - y2);
             int maxInnerX = (y2 < inner2) ? (int) Math.sqrt(inner2 - y2) : 0;
             if (maxInnerX > 0) {
-                RING_SPANS.add(new Span(y, -maxOuterX, -maxInnerX));
-                RING_SPANS.add(new Span(y, maxInnerX + 1, maxOuterX + 1));
+                rawRing.add(new Span(y, -maxOuterX, -maxInnerX));
+                rawRing.add(new Span(y, maxInnerX + 1, maxOuterX + 1));
             } else {
-                RING_SPANS.add(new Span(y, -maxOuterX, maxOuterX + 1));
+                rawRing.add(new Span(y, -maxOuterX, maxOuterX + 1));
             }
         }
+        RING_SPANS.addAll(optimizeSpans(rawRing));
 
         // 4. Hub spans
+        List<Span> rawHub = new ArrayList<>();
         int hub2 = HUB_RADIUS * HUB_RADIUS;
         for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y++) {
             int maxHubX = (int) Math.sqrt(hub2 - y * y);
-            HUB_SPANS.add(new Span(y, -maxHubX, maxHubX + 1));
+            rawHub.add(new Span(y, -maxHubX, maxHubX + 1));
         }
+        HUB_SPANS.addAll(optimizeSpans(rawHub));
 
         // 5. Circle borders
-        INNER_CIRCLE_SPANS = computeCircleOutlineSpans(INNER_RADIUS);
-        OUTER_CIRCLE_SPANS = computeCircleOutlineSpans(OUTER_RADIUS);
-        HUB_CIRCLE_SPANS = computeCircleOutlineSpans(HUB_RADIUS);
+        INNER_CIRCLE_SPANS = optimizeSpans(computeCircleOutlineSpans(INNER_RADIUS));
+        OUTER_CIRCLE_SPANS = optimizeSpans(computeCircleOutlineSpans(OUTER_RADIUS));
+        HUB_CIRCLE_SPANS = optimizeSpans(computeCircleOutlineSpans(HUB_RADIUS));
 
         // 6. Dividers
         for (int count = 2; count <= 8; count++) {
@@ -247,7 +251,7 @@ public final class AutoGGRadialScreen extends Screen {
                     }
                 }
             }
-            DIVIDER_SPANS_CACHE[count] = divSpans;
+            DIVIDER_SPANS_CACHE[count] = optimizeSpans(divSpans);
         }
     }
 
@@ -273,6 +277,35 @@ public final class AutoGGRadialScreen extends Screen {
             }
         }
         return spans;
+    }
+
+    public static List<Span> optimizeSpans(List<Span> raw) {
+        if (raw == null || raw.isEmpty()) return new ArrayList<>();
+        List<Span> sorted = new ArrayList<>(raw);
+        sorted.sort((a, b) -> {
+            if (a.y != b.y) return Short.compare(a.y, b.y);
+            return Short.compare(a.x1, b.x1);
+        });
+
+        List<Span> optimized = new ArrayList<>();
+        Span current = sorted.get(0);
+        int curY = current.y;
+        int curX1 = current.x1;
+        int curX2 = current.x2;
+
+        for (int i = 1; i < sorted.size(); i++) {
+            Span next = sorted.get(i);
+            if (next.y == curY && next.x1 <= curX2) {
+                curX2 = Math.max(curX2, next.x2);
+            } else {
+                optimized.add(new Span(curY, curX1, curX2));
+                curY = next.y;
+                curX1 = next.x1;
+                curX2 = next.x2;
+            }
+        }
+        optimized.add(new Span(curY, curX1, curX2));
+        return optimized;
     }
 
     public AutoGGRadialScreen(Screen parent) {
@@ -336,7 +369,14 @@ public final class AutoGGRadialScreen extends Screen {
                     String custom = this.customPhraseField.getText();
                     if (custom != null && !custom.isBlank()) {
                         custom = custom.trim();
-                        if (!AutoGGClient.CONFIG.phrases.contains(custom) && AutoGGClient.CONFIG.phrases.size() < 8) {
+                        boolean alreadyHas = false;
+                        for (String p : AutoGGClient.CONFIG.phrases) {
+                            if (p.equalsIgnoreCase(custom)) {
+                                alreadyHas = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyHas && AutoGGClient.CONFIG.phrases.size() < 8) {
                             AutoGGClient.CONFIG.phrases.add(custom);
                             AutoGGClient.CONFIG.save();
                         }
@@ -418,10 +458,8 @@ public final class AutoGGRadialScreen extends Screen {
         drawSpanList(context, cx, cy, OUTER_CIRCLE_SPANS, 0x85353B49);
 
         // 6. Central Hub (precomputed)
-        drawSpanList(context, cx, cy, HUB_SPANS, 0xF20A0C10);
-        if (hubHovered) {
-            drawSpanList(context, cx, cy, HUB_SPANS, 0x2500D2FF);
-        }
+        int hubBgColor = hubHovered ? 0xF2152835 : 0xF20A0C10;
+        drawSpanList(context, cx, cy, HUB_SPANS, hubBgColor);
         int hubBorderColor = hubHovered ? 0xFF00D2FF : 0x85353B49;
         drawSpanList(context, cx, cy, HUB_CIRCLE_SPANS, hubBorderColor);
 
@@ -499,9 +537,16 @@ public final class AutoGGRadialScreen extends Screen {
         if (phrase == null || phrase.isBlank()) return;
         phrase = phrase.trim();
 
-        int idx = AutoGGClient.CONFIG.phrases.indexOf(phrase);
+        int idx = -1;
+        for (int i = 0; i < AutoGGClient.CONFIG.phrases.size(); i++) {
+            if (AutoGGClient.CONFIG.phrases.get(i).equalsIgnoreCase(phrase)) {
+                idx = i;
+                break;
+            }
+        }
         if (idx >= 0) {
             AutoGGClient.CONFIG.selected = idx;
+            phrase = AutoGGClient.CONFIG.phrases.get(idx);
         } else {
             if (AutoGGClient.CONFIG.phrases.size() < 8) {
                 AutoGGClient.CONFIG.phrases.add(phrase);

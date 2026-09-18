@@ -133,7 +133,7 @@ public class AutoGGModule extends NivoratModule {
 
         registerBoolean("send_on_death", Text.translatable("activity.setting.utility.send_on_death"),
                 Text.translatable("activity.setting.utility.send_on_death.desc"), SettingGroup.EXTRA,
-                false,
+                true,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     return c != null && c.autoGGSendOnOwnDeath;
@@ -268,7 +268,14 @@ public class AutoGGModule extends NivoratModule {
                 if (addFieldHolder[0] == null) return;
                 String text = addFieldHolder[0].getText() != null ? addFieldHolder[0].getText().trim() : "";
                 if (!text.isBlank()) {
-                    if (!AutoGGClient.CONFIG.phrases.contains(text) && AutoGGClient.CONFIG.phrases.size() < 8) {
+                    boolean exists = false;
+                    for (String existing : AutoGGClient.CONFIG.phrases) {
+                        if (existing.equalsIgnoreCase(text)) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists && AutoGGClient.CONFIG.phrases.size() < 8) {
                         AutoGGClient.CONFIG.phrases.add(text);
                         AutoGGClient.CONFIG.selected = AutoGGClient.CONFIG.phrases.size() - 1;
                         AutoGGClient.CONFIG.save();
@@ -388,14 +395,26 @@ public class AutoGGModule extends NivoratModule {
         AutoGGClient.CONFIG.randomOrder = c.autoGGRandomOrder;
         AutoGGClient.customDelayMs = c.autoGGDelayMs;
         if (c.autoGGPhrase != null && !c.autoGGPhrase.isBlank()) {
-            int idx = AutoGGClient.CONFIG.phrases.indexOf(c.autoGGPhrase);
+            if ("Yes".equalsIgnoreCase(c.autoGGPhrase.trim())) {
+                c.autoGGPhrase = "ez";
+                ActivityConfigManager.markDirty();
+            }
+            int idx = -1;
+            for (int i = 0; i < AutoGGClient.CONFIG.phrases.size(); i++) {
+                if (AutoGGClient.CONFIG.phrases.get(i).equalsIgnoreCase(c.autoGGPhrase.trim())) {
+                    idx = i;
+                    break;
+                }
+            }
             if (idx >= 0) {
                 AutoGGClient.CONFIG.selected = idx;
+                AutoGGClient.CONFIG.phrases.set(idx, c.autoGGPhrase.trim());
             } else {
+                String trimmed = c.autoGGPhrase.trim();
                 if (AutoGGClient.CONFIG.phrases.size() < 8) {
-                    AutoGGClient.CONFIG.phrases.add(c.autoGGPhrase);
+                    AutoGGClient.CONFIG.phrases.add(trimmed);
                 }
-                AutoGGClient.CONFIG.selected = AutoGGClient.CONFIG.phrases.indexOf(c.autoGGPhrase);
+                AutoGGClient.CONFIG.selected = AutoGGClient.CONFIG.phrases.indexOf(trimmed);
             }
         }
     }

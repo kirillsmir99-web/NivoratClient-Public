@@ -171,7 +171,7 @@
   },
   "autoGGPhrase": "GGWP",
   "autoGGSendOnKill": true,
-  "autoGGSendOnOwnDeath": false,
+  "autoGGSendOnOwnDeath": true,
   "autoGGRandomOrder": false,
   "autoGGDelayMs": 950.0,
   "cartHudEnabled": true,
@@ -447,7 +447,7 @@
       "settings": {
         "phrase": "GGWP",
         "send_on_kill": true,
-        "send_on_own_death": false,
+        "send_on_own_death": true,
         "random_order": false,
         "delay_ms": 950.0,
         "menu_keybind": {
@@ -456,7 +456,7 @@
           "shift": false,
           "alt": false
         },
-        "send_on_death": false
+        "send_on_death": true
       }
     },
     "cart_hud": {

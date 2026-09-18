@@ -361,4 +361,86 @@ public class AutoGGRadialScreenTest {
         assertTrue(hasLitStar, "Must display at least one lit star for default phrase");
         assertTrue(hasUnlitStar, "Must display unlit stars for non-default phrases");
     }
+
+    @Test
+    @DisplayName("AutoGGModule: Legacy 'Yes' in autoGGPhrase is migrated to 'ez' without resurrecting 'Yes'")
+    void testLegacyYesMigrationInSyncEngineConfig() {
+        activity.client.module.impl.utility.AutoGGModule module = new activity.client.module.impl.utility.AutoGGModule();
+        activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
+        assertNotNull(config);
+
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        AutoGGClient.CONFIG.selected = 0;
+
+        // Legacy configuration contains "Yes"
+        config.autoGGPhrase = "Yes";
+        module.syncEngineConfig(config);
+
+        // Must be migrated to "ez"
+        assertEquals("ez", config.autoGGPhrase, "Legacy 'Yes' phrase must be migrated to 'ez'");
+        assertEquals("ez", AutoGGClient.CONFIG.currentPhrase(), "Active selected phrase must be 'ez'");
+        assertFalse(AutoGGClient.CONFIG.phrases.contains("Yes"), "Phrases list must never resurrect 'Yes'");
+        assertTrue(AutoGGClient.CONFIG.phrases.contains("ez"), "Phrases list must contain 'ez'");
+    }
+
+    @Test
+    @DisplayName("AutoGG: sendOnOwnDeath defaults to true for out-of-the-box death triggering")
+    void testSendOnOwnDeathDefaultsToTrue() {
+        AutoGGConfig cfg = new AutoGGConfig();
+        assertTrue(cfg.sendOnOwnDeath, "AutoGGConfig.sendOnOwnDeath must default to true");
+
+        activity.client.config.ActivityConfig actCfg = new activity.client.config.ActivityConfig();
+        assertTrue(actCfg.autoGGSendOnOwnDeath, "ActivityConfig.autoGGSendOnOwnDeath must default to true");
+    }
+
+    @Test
+    @DisplayName("AutoGGRadialScreen: optimizeSpans coalesces adjacent and overlapping spans correctly")
+    void testOptimizeSpansCoalescing() {
+        List<AutoGGRadialScreen.Span> raw = List.of(
+                new AutoGGRadialScreen.Span(10, 0, 5),
+                new AutoGGRadialScreen.Span(10, 5, 10),  // contiguous with previous
+                new AutoGGRadialScreen.Span(10, 8, 15),  // overlapping
+                new AutoGGRadialScreen.Span(10, 20, 25), // separated
+                new AutoGGRadialScreen.Span(20, -10, 10) // different line
+        );
+
+        List<AutoGGRadialScreen.Span> optimized = AutoGGRadialScreen.optimizeSpans(raw);
+        assertEquals(3, optimized.size(), "Should reduce 5 spans to 3 coalesced spans");
+
+        // Line 10, first merged span: [0, 15]
+        assertEquals(10, optimized.get(0).y);
+        assertEquals(0, optimized.get(0).x1);
+        assertEquals(15, optimized.get(0).x2);
+
+        // Line 10, second separate span: [20, 25]
+        assertEquals(10, optimized.get(1).y);
+        assertEquals(20, optimized.get(1).x1);
+        assertEquals(25, optimized.get(1).x2);
+
+        // Line 20: [-10, 10]
+        assertEquals(20, optimized.get(2).y);
+        assertEquals(-10, optimized.get(2).x1);
+        assertEquals(10, optimized.get(2).x2);
+    }
+
+    @Test
+    @DisplayName("AutoGGModule: Case-insensitive phrase matching prevents duplicate phrases differing only in case")
+    void testCaseInsensitivePhraseDeduplicationAndSelection() {
+        activity.client.module.impl.utility.AutoGGModule module = new activity.client.module.impl.utility.AutoGGModule();
+        activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
+        assertNotNull(config);
+
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        AutoGGClient.CONFIG.selected = 0;
+
+        // Config has uppercase "EZ"
+        config.autoGGPhrase = "EZ";
+        module.syncEngineConfig(config);
+
+        // Should select phrase at index 1, adopt desired casing, and NOT add a duplicate
+        assertEquals("EZ", config.autoGGPhrase);
+        assertEquals("EZ", AutoGGClient.CONFIG.phrases.get(AutoGGClient.CONFIG.selected));
+        assertEquals(1, AutoGGClient.CONFIG.selected);
+        assertEquals(3, AutoGGClient.CONFIG.phrases.size());
+    }
 }

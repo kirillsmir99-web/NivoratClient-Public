@@ -16,7 +16,7 @@ public final class AutoGGConfig {
 
     public boolean enabled = true;
     public boolean sendOnKill = true;
-    public boolean sendOnOwnDeath = false;
+    public boolean sendOnOwnDeath = true;
     public boolean randomOrder = false;
     public List<String> phrases = new ArrayList<>(DEFAULT_PHRASES);
     public int selected = 0;

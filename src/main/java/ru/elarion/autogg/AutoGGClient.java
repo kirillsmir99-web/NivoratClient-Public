@@ -105,7 +105,7 @@ public final class AutoGGClient {
             String phrase = CONFIG.nextPhrase();
             if (phrase != null && !phrase.isBlank()) {
                 pendingPhrase = phrase;
-                scheduledSendTime = now + (long) customDelayMs;
+                scheduledSendTime = now + Math.max(50L, (long) customDelayMs);
             }
         }
     }
@@ -175,10 +175,13 @@ public final class AutoGGClient {
                 long now = System.currentTimeMillis();
                 if (CONFIG.enabled && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
                     pendingPhrase = phrase;
-                    scheduledSendTime = now + (long) customDelayMs;
+                    scheduledSendTime = now + Math.max(50L, (long) customDelayMs);
                 }
             }
-            localDiedThisRound = false;
+            if (client.player != null && !client.player.isDead() && client.player.getHealth() > 0.0F
+                    && !(client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen)) {
+                localDiedThisRound = false;
+            }
         }
     }
 

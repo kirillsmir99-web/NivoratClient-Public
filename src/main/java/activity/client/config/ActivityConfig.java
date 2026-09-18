@@ -203,7 +203,7 @@ public class ActivityConfig {
     public Keybind autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
     public String autoGGPhrase = "GGWP";
     public boolean autoGGSendOnKill = true;
-    public boolean autoGGSendOnOwnDeath = false;
+    public boolean autoGGSendOnOwnDeath = true;
     public boolean autoGGRandomOrder = false;
     public double autoGGDelayMs = 950.0;
 
