@@ -8,13 +8,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class AutoGGConfig {
+    public static final int MAX_PHRASES = 8;
+    public static final List<String> DEFAULT_PHRASES = List.of("GGWP", "Yes", "GG");
+
     public boolean enabled = true;
     public boolean sendOnKill = true;
     public boolean sendOnOwnDeath = false;
     public boolean randomOrder = false;
-    public List<String> phrases = new ArrayList<>(List.of("GG", "GGWP", "EZ"));
+    public List<String> phrases = new ArrayList<>(DEFAULT_PHRASES);
     public int selected = 0;
 
     private static final Gson G = new GsonBuilder().setPrettyPrinting().create();
@@ -35,11 +39,24 @@ public final class AutoGGConfig {
                 c.enabled = true;
                 if (c.phrases == null) c.phrases = new ArrayList<>();
                 c.phrases.removeIf(s -> s == null || s.isBlank() || s.equalsIgnoreCase("Новая фраза"));
-                if (c.phrases.isEmpty()) {
-                    c.phrases.add("GG");
-                    c.phrases.add("GGWP");
-                    c.phrases.add("EZ");
+
+                // Reset legacy defaults to strict new defaults: GGWP, Yes, GG
+                boolean hasLegacy = c.phrases.contains("EZ")
+                        || c.phrases.contains("Well Played!")
+                        || c.phrases.contains("Good Fight")
+                        || c.phrases.contains("GF")
+                        || c.phrases.contains("Короля не убить")
+                        || c.phrases.contains("Катка супер!")
+                        || c.phrases.contains("Мощно!");
+                if (c.phrases.isEmpty() || (hasLegacy && !c.phrases.contains("Yes"))) {
+                    c.phrases = new ArrayList<>(DEFAULT_PHRASES);
                 }
+
+                // Strict limit of 8 words max
+                if (c.phrases.size() > MAX_PHRASES) {
+                    c.phrases = new ArrayList<>(c.phrases.subList(0, MAX_PHRASES));
+                }
+
                 c.selected = Math.max(0, Math.min(c.selected, c.phrases.size() - 1));
                 return c;
             }
@@ -49,22 +66,19 @@ public final class AutoGGConfig {
     }
 
     public String currentPhrase() {
-        if (phrases == null || phrases.isEmpty()) return "GG";
+        if (phrases == null || phrases.isEmpty()) return "GGWP";
         int idx = Math.max(0, Math.min(selected, phrases.size() - 1));
         return phrases.get(idx);
     }
 
     public String nextPhrase() {
-        if (phrases == null || phrases.isEmpty()) return "GG";
+        if (phrases == null || phrases.isEmpty()) return "GGWP";
         if (randomOrder) {
-            int idx = (int) (Math.random() * phrases.size());
+            int idx = ThreadLocalRandom.current().nextInt(phrases.size());
             return phrases.get(idx);
         }
         int idx = Math.max(0, Math.min(selected, phrases.size() - 1));
-        String result = phrases.get(idx);
-        selected = (idx + 1) % phrases.size();
-        save();
-        return result;
+        return phrases.get(idx);
     }
 
     public String phrase() {
@@ -73,10 +87,12 @@ public final class AutoGGConfig {
 
     public void save() {
         try {
+            if (phrases != null && phrases.size() > MAX_PHRASES) {
+                phrases = new ArrayList<>(phrases.subList(0, MAX_PHRASES));
+            }
             Files.createDirectories(p().getParent());
             Files.writeString(p(), G.toJson(this));
         } catch (Exception ignored) {
         }
     }
 }
-

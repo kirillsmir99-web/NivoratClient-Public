@@ -173,6 +173,8 @@ public final class ActivitySoundEvents {
     public static final SoundEvent PRESET_APPLY = SERENE_SUCCESS;
     public static final SoundEvent SLIDER_TICK = SERENE_SLIDER_TICK;
 
+    public static final String ALT_MOD_ID = "activity";
+
     private ActivitySoundEvents() {}
 
     /**
@@ -241,6 +243,12 @@ public final class ActivitySoundEvents {
         try {
             if (Registries.SOUND_EVENT != null && !Registries.SOUND_EVENT.containsId(id)) {
                 Registry.register(Registries.SOUND_EVENT, id, event);
+            }
+            if (id != null && !ALT_MOD_ID.equals(id.getNamespace())) {
+                Identifier altId = Identifier.of(ALT_MOD_ID, id.getPath());
+                if (Registries.SOUND_EVENT != null && !Registries.SOUND_EVENT.containsId(altId)) {
+                    Registry.register(Registries.SOUND_EVENT, altId, SoundEvent.of(altId));
+                }
             }
         } catch (Throwable ignored) {
             // Guard in unit-test or mock environments
