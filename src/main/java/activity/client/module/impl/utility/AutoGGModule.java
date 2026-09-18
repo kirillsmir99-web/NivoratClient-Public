@@ -76,7 +76,7 @@ public class AutoGGModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(() -> false);
 
         registerBoolean("random_order", Text.translatable("activity.setting.utility.random_order"),
                 Text.translatable("activity.setting.utility.random_order.desc"), SettingGroup.GENERAL,
@@ -172,11 +172,11 @@ public class AutoGGModule extends NivoratModule {
                 startX, curY + 3,
                 Text.literal("Фразы AutoGG (" + count + "/8):")
         );
-        headerLabel.setTooltip(Text.literal("Нажмите на звезду или фразу, чтобы сделать её фразой по умолчанию. Лимит: максимум 8 слов."));
+        headerLabel.setTooltip(Text.literal("Звездочка слева выбирает фразу по умолчанию. Нажмите на текст фразы для редактирования."));
         if (tab != null) tab.addControl(container, headerLabel); else container.addChild(headerLabel);
         curY += rowH + gap;
 
-        // 2. Existing phrases list: each row has star button (lit up when default) + phrase button + delete button
+        // 2. Existing phrases list: star button + inline editable text field + delete button
         if (currentPhrases != null) {
             for (int i = 0; i < currentPhrases.size(); i++) {
                 String phrase = currentPhrases.get(i);
@@ -184,47 +184,58 @@ public class AutoGGModule extends NivoratModule {
 
                 int starBtnW = 22;
                 int deleteBtnW = 20;
-                int phraseBtnW = innerRowW - starBtnW - deleteBtnW - 8;
+                int phraseFieldW = innerRowW - starBtnW - deleteBtnW - 8;
 
-                Runnable makeDefaultAction = () -> {
-                    int idx = AutoGGClient.CONFIG.phrases.indexOf(phrase);
-                    if (idx >= 0) {
-                        AutoGGClient.CONFIG.selected = idx;
-                        AutoGGClient.CONFIG.save();
-                    }
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoGGPhrase = phrase;
-                        ActivityConfigManager.markDirty();
-                    }
-                    activity.client.gui.sound.SoundManager.playSelect();
-                    if (screen != null) screen.reloadCurrentTab();
-                };
+                final int phraseIdx = i;
 
-                // Star icon button: lights up bright gold (★) when default, otherwise dim (☆)
+                // Star button: lights up gold (★) when default, otherwise dim (☆)
                 activity.client.gui.component.ActivityButton btnStar = new activity.client.gui.component.ActivityButton(
                         startX, curY, starBtnW, rowH,
                         Text.literal(isDefault ? "§6★" : "§7☆"),
                         isDefault ? activity.client.gui.component.ActivityButton.Variant.PRIMARY : activity.client.gui.component.ActivityButton.Variant.SECONDARY,
-                        b -> makeDefaultAction.run()
+                        b -> {
+                            AutoGGClient.CONFIG.selected = phraseIdx;
+                            AutoGGClient.CONFIG.save();
+                            ActivityConfig c = ActivityConfigManager.getConfig();
+                            if (c != null) {
+                                c.autoGGPhrase = AutoGGClient.CONFIG.currentPhrase();
+                                ActivityConfigManager.markDirty();
+                            }
+                            activity.client.gui.sound.SoundManager.playSelect();
+                            if (screen != null) screen.reloadCurrentTab();
+                        }
                 );
                 btnStar.setTooltip(Text.literal(isDefault ? "Выбрано по умолчанию" : "Сделать по умолчанию"));
 
-                activity.client.gui.component.ActivityButton btnPhrase = new activity.client.gui.component.ActivityButton(
-                        startX + starBtnW + 4, curY, phraseBtnW, rowH,
-                        Text.literal(phrase),
-                        isDefault ? activity.client.gui.component.ActivityButton.Variant.PRIMARY : activity.client.gui.component.ActivityButton.Variant.SECONDARY,
-                        b -> makeDefaultAction.run()
+                // Inline editable phrase field
+                activity.client.gui.component.ActivityTextField phraseField = new activity.client.gui.component.ActivityTextField(
+                        startX + starBtnW + 4, curY, phraseFieldW, rowH
                 );
-                btnPhrase.setTooltip(Text.literal(isDefault ? "Выбрано по умолчанию" : "Сделать по умолчанию"));
+                phraseField.setText(phrase);
+                phraseField.setMaxLength(64);
+                phraseField.setOnChanged(newVal -> {
+                    if (newVal != null && phraseIdx < AutoGGClient.CONFIG.phrases.size()) {
+                        String trimmed = newVal.trim();
+                        AutoGGClient.CONFIG.phrases.set(phraseIdx, newVal);
+                        if (AutoGGClient.CONFIG.selected == phraseIdx) {
+                            ActivityConfig c = ActivityConfigManager.getConfig();
+                            if (c != null) {
+                                c.autoGGPhrase = trimmed;
+                                ActivityConfigManager.markDirty();
+                            }
+                        }
+                        AutoGGClient.CONFIG.save();
+                    }
+                });
 
+                // Delete button
                 activity.client.gui.component.ActivityButton btnDelete = new activity.client.gui.component.ActivityButton(
-                        startX + starBtnW + 4 + phraseBtnW + 4, curY, deleteBtnW, rowH,
+                        startX + starBtnW + 4 + phraseFieldW + 4, curY, deleteBtnW, rowH,
                         Text.literal("✕"),
                         activity.client.gui.component.ActivityButton.Variant.DANGER,
                         b -> {
                             if (AutoGGClient.CONFIG.phrases.size() > 1) {
-                                AutoGGClient.CONFIG.phrases.remove(phrase);
+                                AutoGGClient.CONFIG.phrases.remove(phraseIdx);
                                 if (AutoGGClient.CONFIG.selected >= AutoGGClient.CONFIG.phrases.size()) {
                                     AutoGGClient.CONFIG.selected = 0;
                                 }
@@ -246,11 +257,11 @@ public class AutoGGModule extends NivoratModule {
 
                 if (tab != null) {
                     tab.addControl(container, btnStar);
-                    tab.addControl(container, btnPhrase);
+                    tab.addControl(container, phraseField);
                     tab.addControl(container, btnDelete);
                 } else {
                     container.addChild(btnStar);
-                    container.addChild(btnPhrase);
+                    container.addChild(phraseField);
                     container.addChild(btnDelete);
                 }
                 curY += rowH + gap;
@@ -276,14 +287,20 @@ public class AutoGGModule extends NivoratModule {
                         }
                     }
                     if (!exists && AutoGGClient.CONFIG.phrases.size() < 8) {
+                        String currentDefault = AutoGGClient.CONFIG.currentPhrase();
                         AutoGGClient.CONFIG.phrases.add(text);
-                        AutoGGClient.CONFIG.selected = AutoGGClient.CONFIG.phrases.size() - 1;
-                        AutoGGClient.CONFIG.save();
-                        ActivityConfig c = ActivityConfigManager.getConfig();
-                        if (c != null) {
-                            c.autoGGPhrase = text;
-                            ActivityConfigManager.markDirty();
+                        // Keep current default phrase selected (do not automatically shift star)
+                        int prevIdx = -1;
+                        for (int j = 0; j < AutoGGClient.CONFIG.phrases.size(); j++) {
+                            if (AutoGGClient.CONFIG.phrases.get(j).equalsIgnoreCase(currentDefault)) {
+                                prevIdx = j;
+                                break;
+                            }
                         }
+                        if (prevIdx >= 0) {
+                            AutoGGClient.CONFIG.selected = prevIdx;
+                        }
+                        AutoGGClient.CONFIG.save();
                         activity.client.gui.sound.SoundManager.playSuccess();
                         if (screen != null) screen.reloadCurrentTab();
                     }
@@ -292,20 +309,13 @@ public class AutoGGModule extends NivoratModule {
 
             activity.client.gui.component.ActivityTextField addField = new activity.client.gui.component.ActivityTextField(
                     startX, curY, inputW, rowH,
-                    Text.literal("Новое слово (Tab - автодополнение)...")
+                    Text.literal("")
             ) {
                 @Override
                 public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
                     if (input.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || input.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
                         doAdd.run();
                         return true;
-                    }
-                    if (input.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_TAB) {
-                        String match = activity.client.module.impl.utility.gui.AutoGGRadialScreen.findAutocomplete(getText());
-                        if (match != null) {
-                            setText(match);
-                            return true;
-                        }
                     }
                     return super.keyPressed(input);
                 }
@@ -327,45 +337,6 @@ public class AutoGGModule extends NivoratModule {
                 container.addChild(btnAdd);
             }
             curY += rowH + gap;
-
-            // 4. Autocomplete suggestion chips
-            List<String> missingSuggestions = new ArrayList<>();
-            for (String s : COMMON_SUGGESTIONS) {
-                if (currentPhrases == null || !currentPhrases.contains(s)) {
-                    missingSuggestions.add(s);
-                    if (missingSuggestions.size() >= 3) break;
-                }
-            }
-
-            if (!missingSuggestions.isEmpty()) {
-                int chipGap = 4;
-                int chipW = Math.max(40, (innerRowW - (missingSuggestions.size() - 1) * chipGap) / missingSuggestions.size());
-                for (int i = 0; i < missingSuggestions.size(); i++) {
-                    String sug = missingSuggestions.get(i);
-                    activity.client.gui.component.ActivityButton chip = new activity.client.gui.component.ActivityButton(
-                            startX + i * (chipW + chipGap), curY, chipW, 18,
-                            Text.literal("+ " + sug),
-                            activity.client.gui.component.ActivityButton.Variant.SECONDARY,
-                            b -> {
-                                if (AutoGGClient.CONFIG.phrases.size() < 8) {
-                                    AutoGGClient.CONFIG.phrases.add(sug);
-                                    AutoGGClient.CONFIG.selected = AutoGGClient.CONFIG.phrases.size() - 1;
-                                    AutoGGClient.CONFIG.save();
-                                    ActivityConfig c = ActivityConfigManager.getConfig();
-                                    if (c != null) {
-                                        c.autoGGPhrase = sug;
-                                        ActivityConfigManager.markDirty();
-                                    }
-                                    activity.client.gui.sound.SoundManager.playSuccess();
-                                    if (screen != null) screen.reloadCurrentTab();
-                                }
-                            }
-                    );
-                    chip.setTooltip(Text.literal("Быстро добавить фразу: " + sug));
-                    if (tab != null) tab.addControl(container, chip); else container.addChild(chip);
-                }
-                curY += 18 + gap;
-            }
         } else {
             activity.client.gui.component.ActivityLabel limitLabel = new activity.client.gui.component.ActivityLabel(
                     startX, curY + 3,
@@ -423,6 +394,7 @@ public class AutoGGModule extends NivoratModule {
         @Override
         public void onCartPlaced(BlockPos pos) {
             if (isEnabled() && pos != null) {
+                AutoGGKillTracker.recordCartPlacement(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
                 AutoGGKillTracker.recordExplosion(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, AutoGGKillTracker.DEFAULT_EXPLOSION_RADIUS);
             }
         }

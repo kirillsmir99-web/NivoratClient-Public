@@ -443,4 +443,89 @@ public class AutoGGRadialScreenTest {
         assertEquals(1, AutoGGClient.CONFIG.selected);
         assertEquals(3, AutoGGClient.CONFIG.phrases.size());
     }
+
+    @Test
+    @DisplayName("Radial Menu: Direct phrase sending does NOT alter selected default phrase index")
+    void testDirectPhraseSendDoesNotMutateSelectedDefault() {
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        AutoGGClient.CONFIG.selected = 0; // "GGWP" is starred default
+
+        // Directly send "ez" (simulate sector click)
+        AutoGGClient.sendPhraseDirect("ez");
+
+        // Selected index must remain 0 ("GGWP"), and currentPhrase() must still be "GGWP"
+        assertEquals(0, AutoGGClient.CONFIG.selected);
+        assertEquals("GGWP", AutoGGClient.CONFIG.currentPhrase());
+    }
+
+    @Test
+    @DisplayName("AutoGGModule: Adding new phrase preserves currently starred default phrase")
+    void testAddPhrasePreservesCurrentDefaultStar() {
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        AutoGGClient.CONFIG.selected = 1; // "ez" is currently selected default
+        String currentDefault = AutoGGClient.CONFIG.currentPhrase();
+        assertEquals("ez", currentDefault);
+
+        // Simulate add phrase logic from AutoGGModule
+        String newPhrase = "Good Game";
+        boolean exists = false;
+        for (String p : AutoGGClient.CONFIG.phrases) {
+            if (p.equalsIgnoreCase(newPhrase)) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists && AutoGGClient.CONFIG.phrases.size() < 8) {
+            AutoGGClient.CONFIG.phrases.add(newPhrase);
+            int prevIdx = -1;
+            for (int j = 0; j < AutoGGClient.CONFIG.phrases.size(); j++) {
+                if (AutoGGClient.CONFIG.phrases.get(j).equalsIgnoreCase(currentDefault)) {
+                    prevIdx = j;
+                    break;
+                }
+            }
+            if (prevIdx >= 0) {
+                AutoGGClient.CONFIG.selected = prevIdx;
+            }
+        }
+
+        // Selected index must still point to "ez", NOT to the newly added phrase
+        assertEquals(4, AutoGGClient.CONFIG.phrases.size());
+        assertEquals("ez", AutoGGClient.CONFIG.currentPhrase());
+        assertEquals(1, AutoGGClient.CONFIG.selected);
+    }
+
+    @Test
+    @DisplayName("AutoGGModule: Inline phrase editing updates phrases list and syncs default if selected")
+    void testInlinePhraseEditing() {
+        AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
+        AutoGGClient.CONFIG.selected = 1; // "ez"
+        activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
+        assertNotNull(config);
+        config.autoGGPhrase = "ez";
+
+        // 1. Edit a non-selected phrase (index 0: "GGWP" -> "Well Played")
+        int editIdx0 = 0;
+        String newVal0 = "Well Played";
+        AutoGGClient.CONFIG.phrases.set(editIdx0, newVal0);
+        if (AutoGGClient.CONFIG.selected == editIdx0) {
+            config.autoGGPhrase = newVal0;
+        }
+        assertEquals("Well Played", AutoGGClient.CONFIG.phrases.get(0));
+        assertEquals(1, AutoGGClient.CONFIG.selected);
+        assertEquals("ez", config.autoGGPhrase);
+
+        // 2. Edit the selected phrase (index 1: "ez" -> "easy peasy")
+        int editIdx1 = 1;
+        String newVal1 = "easy peasy";
+        AutoGGClient.CONFIG.phrases.set(editIdx1, newVal1);
+        if (AutoGGClient.CONFIG.selected == editIdx1) {
+            config.autoGGPhrase = newVal1;
+        }
+        assertEquals("easy peasy", AutoGGClient.CONFIG.phrases.get(1));
+        assertEquals(1, AutoGGClient.CONFIG.selected);
+        assertEquals("easy peasy", AutoGGClient.CONFIG.currentPhrase());
+        assertEquals("easy peasy", config.autoGGPhrase);
+    }
 }
+

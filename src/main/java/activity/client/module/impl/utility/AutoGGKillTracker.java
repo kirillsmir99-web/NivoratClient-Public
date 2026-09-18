@@ -33,11 +33,18 @@ public final class AutoGGKillTracker {
     public static final long EXPLOSION_WINDOW_MS = 1500L;
     public static final double DEFAULT_EXPLOSION_RADIUS = 8.5;
 
+    public static final long FFA_COMBAT_WINDOW_MS = 4500L;
+    public static final double FFA_MAX_DISTANCE = 16.0;
+    public static final long FFA_EXPLOSION_WINDOW_MS = 4000L;
+    public static final long CART_PLACEMENT_WINDOW_MS = 6000L;
+
     public record AttackRecord(int entityId, long timestampMs, Vec3d pos) {}
     public record ExplosionRecord(double x, double y, double z, double radius, long timestampMs) {}
+    public record CartPlacementRecord(double x, double y, double z, long timestampMs) {}
 
     private static final Map<Integer, AttackRecord> recentAttacks = new ConcurrentHashMap<>();
     private static final List<ExplosionRecord> recentExplosions = new CopyOnWriteArrayList<>();
+    private static final List<CartPlacementRecord> recentCartPlacements = new CopyOnWriteArrayList<>();
 
     private static final Pattern[] KILL_PATTERNS = new Pattern[] {
         // Russian patterns:
@@ -108,11 +115,37 @@ public final class AutoGGKillTracker {
     }
 
     /**
+     * Records placement of a minecart/TNT cart by the local player.
+     */
+    public static void recordCartPlacement(double x, double y, double z) {
+        recentCartPlacements.add(new CartPlacementRecord(x, y, z, System.currentTimeMillis()));
+    }
+
+    /**
+     * Checks if a position is within maxDist of a cart placed by the local player within window.
+     */
+    public static boolean isNearbyPlacedCart(double x, double y, double z, double maxDist) {
+        long now = System.currentTimeMillis();
+        for (CartPlacementRecord rec : recentCartPlacements) {
+            if (now - rec.timestampMs() <= CART_PLACEMENT_WINDOW_MS) {
+                double dx = x - rec.x();
+                double dy = y - rec.y();
+                double dz = z - rec.z();
+                if ((dx * dx + dy * dy + dz * dz) <= (maxDist * maxDist)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Cleans up attack records and explosion epicenters that have expired past their attribution windows.
      */
     public static void cleanExpired(long now) {
-        recentAttacks.entrySet().removeIf(e -> (now - e.getValue().timestampMs()) > ATTACK_WINDOW_MS);
-        recentExplosions.removeIf(e -> (now - e.timestampMs()) > EXPLOSION_WINDOW_MS);
+        recentAttacks.entrySet().removeIf(e -> (now - e.getValue().timestampMs()) > FFA_COMBAT_WINDOW_MS);
+        recentExplosions.removeIf(e -> (now - e.timestampMs()) > FFA_EXPLOSION_WINDOW_MS);
+        recentCartPlacements.removeIf(e -> (now - e.timestampMs()) > CART_PLACEMENT_WINDOW_MS);
     }
 
     /**
@@ -120,7 +153,7 @@ public final class AutoGGKillTracker {
      *
      * @param victim the entity receiving death status
      * @param client the Minecraft client
-     * @return true if our player caused the death via direct hit or explosion within strict window
+     * @return true if our player caused the death via direct hit or explosion within combat window
      */
     public static boolean shouldAttributeKill(Entity victim, MinecraftClient client) {
         if (victim == null || client == null || client.player == null) {
@@ -139,29 +172,32 @@ public final class AutoGGKillTracker {
         int victimId = victim.getId();
         Vec3d victimPos = new Vec3d(victim.getX(), victim.getY(), victim.getZ());
 
-        // 1. Direct hit check
+        // 1. Direct hit check (extended for FFA tick latency and combos)
         AttackRecord attack = recentAttacks.get(victimId);
         if (attack != null) {
             long diff = now - attack.timestampMs();
-            if (diff >= 0 && diff <= ATTACK_WINDOW_MS) {
+            if (diff >= 0 && diff <= FFA_COMBAT_WINDOW_MS) {
                 double distSq = client.player.squaredDistanceTo(victim);
-                if (distSq <= MAX_COMBAT_DISTANCE * MAX_COMBAT_DISTANCE) {
+                double attackDistSq = (attack.pos() != null && attack.pos() != Vec3d.ZERO)
+                        ? attack.pos().squaredDistanceTo(victimPos)
+                        : distSq;
+                if (distSq <= FFA_MAX_DISTANCE * FFA_MAX_DISTANCE || attackDistSq <= FFA_MAX_DISTANCE * FFA_MAX_DISTANCE) {
                     recentAttacks.remove(victimId);
                     return true;
                 }
             }
         }
 
-        // 2. Player-initiated explosion check
+        // 2. Player-initiated explosion check (TNT carts, respawn anchors, end crystals)
         if (victimPos != null) {
             for (ExplosionRecord exp : recentExplosions) {
                 long diff = now - exp.timestampMs();
-                if (diff >= 0 && diff <= EXPLOSION_WINDOW_MS) {
+                if (diff >= 0 && diff <= FFA_EXPLOSION_WINDOW_MS) {
                     double dx = victimPos.x - exp.x();
                     double dy = victimPos.y - exp.y();
                     double dz = victimPos.z - exp.z();
                     double distSq = dx * dx + dy * dy + dz * dz;
-                    double r = exp.radius();
+                    double r = exp.radius() + 2.5; // generous blast reach margin for knockback/hitboxes
                     if (distSq <= r * r) {
                         recentExplosions.remove(exp);
                         return true;
@@ -169,6 +205,19 @@ public final class AutoGGKillTracker {
                 }
             }
         }
+
+        // 3. HP Reaper Integration: Check if victim was the active crosshair/combat target
+        try {
+            if (victim instanceof net.minecraft.entity.LivingEntity living) {
+                net.minecraft.entity.LivingEntity activeTarget = dev.hpreaper.HealthHudOverlay.getActiveTarget(client.player, System.nanoTime());
+                if (activeTarget == living) {
+                    double distSq = client.player.squaredDistanceTo(victim);
+                    if (distSq <= FFA_MAX_DISTANCE * FFA_MAX_DISTANCE) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
 
         return false;
     }
@@ -201,6 +250,40 @@ public final class AutoGGKillTracker {
         }
 
         return null;
+    }
+
+    /**
+     * Checks if a server chat message indicates our player died.
+     */
+    public static boolean isOwnDeathMessage(String rawMessage, String localPlayerName) {
+        if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
+            return false;
+        }
+
+        String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        for (Pattern pattern : KILL_PATTERNS) {
+            Matcher matcher = pattern.matcher(clean);
+            if (matcher.find()) {
+                String victim = matcher.group(1).trim();
+                if (victim.equalsIgnoreCase(localPlayerName)) {
+                    return true;
+                }
+            }
+        }
+
+        // Check common suicide / death phrases containing local player's name
+        String lower = clean.toLowerCase(Locale.ROOT);
+        String nameLower = localPlayerName.toLowerCase(Locale.ROOT);
+        if (lower.contains(nameLower)) {
+            if (lower.contains("умер") || lower.contains("погиб") || lower.contains("разбился")
+                    || lower.contains("сгорел") || lower.contains("утонул") || lower.contains("died")
+                    || lower.contains("fell") || lower.contains("drowned") || lower.contains("burned")
+                    || lower.contains("blew up") || lower.contains("suicide")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -244,5 +327,6 @@ public final class AutoGGKillTracker {
     public static void reset() {
         recentAttacks.clear();
         recentExplosions.clear();
+        recentCartPlacements.clear();
     }
 }

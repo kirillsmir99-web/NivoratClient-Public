@@ -62,18 +62,18 @@ public final class AutoGGClient {
         }
 
         if (pendingPhrase != null && System.currentTimeMillis() >= scheduledSendTime) {
-            if (client.player != null && CONFIG.enabled && !pendingPhrase.isBlank()) {
-                if (client.player.networkHandler != null) {
+            if (client.player != null && client.player.networkHandler != null) {
+                if (CONFIG.enabled && !pendingPhrase.isBlank()) {
                     if (pendingPhrase.startsWith("/")) {
                         client.player.networkHandler.sendChatCommand(pendingPhrase.substring(1));
                     } else {
                         client.player.networkHandler.sendChatMessage(pendingPhrase);
                     }
+                    lastSentAt = System.currentTimeMillis();
                 }
-                lastSentAt = System.currentTimeMillis();
+                pendingPhrase = null;
+                scheduledSendTime = 0L;
             }
-            pendingPhrase = null;
-            scheduledSendTime = 0L;
         }
     }
 
@@ -94,6 +94,46 @@ public final class AutoGGClient {
         ensureActive();
         if (active != null) {
             active.handleOwnDeath();
+        }
+    }
+
+    public static void onPlayerRespawnPacket() {
+        ensureActive();
+        if (active != null) {
+            active.handleOwnDeath();
+        }
+    }
+
+    public static void onPotentialFfaVictimDestroyed(PlayerEntity victim) {
+        ensureActive();
+        if (active != null && victim != null) {
+            active.handleEntityDeath(victim);
+        }
+    }
+
+    public static void onServerExplosion(double x, double y, double z, float radius) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || client.player == null) return;
+        double distSq = client.player.squaredDistanceTo(x, y, z);
+        boolean holdingExplosive = false;
+        try {
+            if (client.player.getMainHandStack() != null) {
+                String item = client.player.getMainHandStack().getItem().toString().toLowerCase();
+                if (item.contains("tnt") || item.contains("minecart") || item.contains("crystal") || item.contains("anchor") || item.contains("flint")) {
+                    holdingExplosive = true;
+                }
+            }
+            if (client.player.getOffHandStack() != null) {
+                String item = client.player.getOffHandStack().getItem().toString().toLowerCase();
+                if (item.contains("tnt") || item.contains("minecart") || item.contains("crystal") || item.contains("anchor") || item.contains("flint")) {
+                    holdingExplosive = true;
+                }
+            }
+        } catch (Throwable ignored) {}
+
+        boolean nearPlacedCart = activity.client.module.impl.utility.AutoGGKillTracker.isNearbyPlacedCart(x, y, z, 8.5);
+        if (distSq <= 12.0 * 12.0 || nearPlacedCart || holdingExplosive) {
+            activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(x, y, z, Math.max(8.5, radius * 2.0));
         }
     }
 
@@ -120,7 +160,7 @@ public final class AutoGGClient {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.player == null || !(entity instanceof PlayerEntity)) return;
 
-        // Strict kill attribution (direct hit within 900ms or explosion within 1500ms)
+        // Strict kill attribution (direct hit or explosion within combat window)
         if (!activity.client.module.impl.utility.AutoGGKillTracker.shouldAttributeKill(entity, client)) {
             return;
         }
@@ -146,7 +186,13 @@ public final class AutoGGClient {
 
         String playerName = client.player.getName().getString();
 
-        // 1. Check server chat kill feed
+        // 1. Check if our player died via server chat death message
+        if (activity.client.module.impl.utility.AutoGGKillTracker.isOwnDeathMessage(message, playerName)) {
+            handleOwnDeath();
+            return;
+        }
+
+        // 2. Check server chat kill feed for kills scored by our player
         String killVictim = activity.client.module.impl.utility.AutoGGKillTracker.parseChatKill(message, playerName);
         if (killVictim != null && CONFIG.enabled && CONFIG.sendOnKill) {
             long now = System.currentTimeMillis();

@@ -176,4 +176,36 @@ public class AutoGGKillTrackerTest {
         assertNull(AutoGGKillTracker.parseChatKill(null, local));
         assertNull(AutoGGKillTracker.parseChatKill("Enemy was slain by Nivorat", null));
     }
+
+    @Test
+    @DisplayName("Cart placement: Tracking proximity to placed carts within 6000ms window")
+    void testCartPlacementTracking() {
+        AutoGGKillTracker.recordCartPlacement(10.0, 64.0, 10.0);
+
+        // Distance 2 blocks <= 8.5m -> true
+        assertTrue(AutoGGKillTracker.isNearbyPlacedCart(12.0, 64.0, 10.0, 8.5));
+        // Distance 8.0 blocks <= 8.5m -> true
+        assertTrue(AutoGGKillTracker.isNearbyPlacedCart(10.0, 64.0, 18.0, 8.5));
+
+        // Distance 20 blocks > 8.5m -> false
+        assertFalse(AutoGGKillTracker.isNearbyPlacedCart(30.0, 64.0, 10.0, 8.5));
+    }
+
+    @Test
+    @DisplayName("Own death message parsing: Accurately identifies when local player died")
+    void testIsOwnDeathMessage() {
+        String local = "Nivorat";
+
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Nivorat был убит OtherPlayer", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Nivorat was slain by Enemy", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Nivorat погиб от взрыва Enemy", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("§cNivorat §7разбился", local));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Nivorat drowned", local));
+
+        // Kills scored by local player should NOT be marked as own death
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Enemy был убит Nivorat", local));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Enemy was slain by Nivorat", local));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Hello everyone in chat!", local));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage(null, local));
+    }
 }
