@@ -59,6 +59,14 @@ public class ActivityKeybindButton extends ActivityComponent {
         this.onChanged = setting::setValue;
     }
 
+    public ActivityKeybindButton(int x, int y, int width, int height, activity.client.module.setting.KeybindSetting setting) {
+        super(x, y, width, height);
+        this.setting = null;
+        Objects.requireNonNull(setting, "setting");
+        this.keybind = setting.get();
+        this.onChanged = setting::set;
+    }
+
     public ActivityKeybindButton(int x, int y, int width, int height, Keybind keybind) {
         this(x, y, width, height, keybind, null);
     }

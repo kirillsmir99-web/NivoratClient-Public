@@ -60,7 +60,10 @@ public abstract class AbstractModuleStub implements IModule {
 
     @Override
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        if (this.enabled != enabled) {
+            this.enabled = enabled;
+            activity.client.module.api.ModuleEventDispatcher.updateActiveModules();
+        }
     }
 
     @Override

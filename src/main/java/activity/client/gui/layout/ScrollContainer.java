@@ -212,6 +212,15 @@ public class ScrollContainer extends ActivityComponent {
         this.targetScrollAmount = 0.0;
     }
 
+    public void clear() {
+        clearChildren();
+    }
+
+    @Nullable
+    public OverlayManager getOverlayManager() {
+        return this.overlayManager;
+    }
+
     public List<ActivityComponent> getChildren() {
         List<ActivityComponent> list = new ArrayList<>(this.entries.size());
         for (ScrollEntry entry : this.entries) {
@@ -757,5 +766,18 @@ public class ScrollContainer extends ActivityComponent {
         }
         this.contentHeight = computeContentHeight();
         clampScroll();
+    }
+
+    public void renderTooltips(DrawContext context, net.minecraft.client.font.TextRenderer textRenderer, int mouseX, int mouseY) {
+        if (!this.visible || !isMouseOver(mouseX, mouseY)) return;
+        for (ScrollEntry entry : this.entries) {
+            ActivityComponent comp = entry.getComponent();
+            if (comp.isVisible() && comp.isMouseOver(mouseX, mouseY)) {
+                if (comp.getTooltip() != null) {
+                    context.drawTooltip(textRenderer, activity.client.gui.font.FontManager.wrap(comp.getTooltip()), mouseX, mouseY);
+                    return;
+                }
+            }
+        }
     }
 }

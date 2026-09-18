@@ -29,6 +29,7 @@ public class ModuleMetadata {
     private final String telegramUrl;
     private final ActivityIcon icon;
     private final Keybind keybind;
+    private final java.util.List<String> aliases;
 
     public ModuleMetadata(
         String id,
@@ -42,6 +43,22 @@ public class ModuleMetadata {
         ActivityIcon icon,
         Keybind keybind
     ) {
+        this(id, displayName, description, author, version, lastUpdated, category, telegramUrl, icon, keybind, java.util.List.of());
+    }
+
+    public ModuleMetadata(
+        String id,
+        Text displayName,
+        Text description,
+        String author,
+        String version,
+        String lastUpdated,
+        ModuleCategory category,
+        String telegramUrl,
+        ActivityIcon icon,
+        Keybind keybind,
+        java.util.List<String> aliases
+    ) {
         this.id = Objects.requireNonNull(id, "id cannot be null");
         this.displayName = displayName != null ? displayName : Text.literal(id);
         this.description = description != null ? description : Text.empty();
@@ -52,6 +69,7 @@ public class ModuleMetadata {
         this.telegramUrl = telegramUrl != null ? telegramUrl : DEFAULT_TELEGRAM_URL;
         this.icon = icon != null ? icon : ActivityIcon.INFO;
         this.keybind = keybind;
+        this.aliases = aliases != null ? java.util.List.copyOf(aliases) : java.util.List.of();
     }
 
     public String getId() {
@@ -86,6 +104,10 @@ public class ModuleMetadata {
         return telegramUrl;
     }
 
+    public String getTelegram() {
+        return telegramUrl;
+    }
+
     public ActivityIcon getIcon() {
         return icon;
     }
@@ -105,6 +127,10 @@ public class ModuleMetadata {
         return "[" + keybind.getDisplayString() + "]";
     }
 
+    public java.util.List<String> getAliases() {
+        return aliases != null ? aliases : java.util.List.of();
+    }
+
     public static Builder builder(String id) {
         return new Builder(id);
     }
@@ -120,9 +146,24 @@ public class ModuleMetadata {
         private String telegramUrl = DEFAULT_TELEGRAM_URL;
         private ActivityIcon icon = ActivityIcon.INFO;
         private Keybind keybind;
+        private java.util.List<String> aliases = new java.util.ArrayList<>();
 
         public Builder(String id) {
             this.id = id;
+        }
+
+        public Builder aliases(String... aliases) {
+            if (aliases != null) {
+                this.aliases = java.util.List.of(aliases);
+            }
+            return this;
+        }
+
+        public Builder aliases(java.util.List<String> aliases) {
+            if (aliases != null) {
+                this.aliases = new java.util.ArrayList<>(aliases);
+            }
+            return this;
         }
 
         public Builder displayName(Text displayName) {
@@ -160,6 +201,10 @@ public class ModuleMetadata {
             return this;
         }
 
+        public Builder telegram(String telegram) {
+            return telegramUrl(telegram);
+        }
+
         public Builder icon(ActivityIcon icon) {
             this.icon = icon;
             return this;
@@ -181,7 +226,8 @@ public class ModuleMetadata {
                 category,
                 telegramUrl,
                 icon,
-                keybind
+                keybind,
+                aliases
             );
         }
     }

@@ -54,10 +54,15 @@ java {
 jar {
 	manifest {
 		attributes(
-			"Specification-Title": "Activity",
+			"Specification-Title": "NivoratClient",
 			"Specification-Version": project.version,
-			"Implementation-Title": project.name,
+			"Implementation-Title": "NivoratClient",
 			"Implementation-Version": project.version
 		)
 	}
 }
+
+remapJar {
+	archiveFileName = "NivoratClient.jar"
+}
+

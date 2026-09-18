@@ -45,11 +45,12 @@ public class SidebarTreeTest {
         assertEquals("utility", utility.getId());
         assertEquals(2, utility.getTabIndex());
         assertEquals(ActivityIcon.UTILITY, utility.getIcon());
-        assertEquals(4, utility.getChildren().size());
+        assertEquals(5, utility.getChildren().size());
         assertEquals("hp_reaper", utility.getChildren().get(0).getId());
         assertEquals("auto_tool", utility.getChildren().get(1).getId());
         assertEquals("auto_gg", utility.getChildren().get(2).getId());
-        assertEquals("hud_activity", utility.getChildren().get(3).getId());
+        assertEquals("cart_hud", utility.getChildren().get(3).getId());
+        assertEquals("hud_activity", utility.getChildren().get(4).getId());
 
         // Category 3: Config
         SidebarTree.CategoryNode config = categories.get(3);

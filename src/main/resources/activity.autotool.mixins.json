@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "activity.client.mixin.autotool",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ActivityClientPlayerInteractionManagerMixin",
+    "ActivityClientPlayerInteractionManagerAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

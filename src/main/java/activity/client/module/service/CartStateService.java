@@ -1,0 +1,153 @@
+package activity.client.module.service;
+
+import net.minecraft.block.AbstractRailBlock;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.util.math.BlockPos;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+/**
+ * Shared service managing TNT minecart inventory state, detection, and coordination
+ * across AutoCart, CartRefill, and CartHUD modules.
+ *
+ * <p>Eliminates duplicated inventory-scanning logic and reflection-based workarounds.
+ */
+public final class CartStateService {
+
+    public interface CartEventListener {
+        default void onCartPlaced(BlockPos pos) {}
+        default void onCartRefilled(int hotbarSlot) {}
+    }
+
+    private static final List<CartEventListener> LISTENERS = new CopyOnWriteArrayList<>();
+
+    private static int cachedCartCount = 0;
+    private static long lastCountWorldTime = -1L;
+
+    private CartStateService() {}
+
+    public static void addListener(CartEventListener listener) {
+        if (listener != null && !LISTENERS.contains(listener)) {
+            LISTENERS.add(listener);
+        }
+    }
+
+    public static void removeListener(CartEventListener listener) {
+        if (listener != null) {
+            LISTENERS.remove(listener);
+        }
+    }
+
+    public static void notifyCartPlaced(BlockPos pos) {
+        invalidate();
+        for (CartEventListener listener : LISTENERS) {
+            try {
+                listener.onCartPlaced(pos);
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    public static void notifyCartRefilled(int hotbarSlot) {
+        invalidate();
+        for (CartEventListener listener : LISTENERS) {
+            try {
+                listener.onCartRefilled(hotbarSlot);
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    /**
+     * Counts the total number of TNT minecarts currently in the player's inventory.
+     * Caches the count per world tick to avoid redundant inventory traversal during render frames.
+     */
+    public static int countCarts(ClientPlayerEntity player) {
+        if (player == null) return 0;
+        net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+        if (mc != null && mc.world != null) {
+            long worldTime = mc.world.getTime();
+            if (worldTime != lastCountWorldTime) {
+                lastCountWorldTime = worldTime;
+                cachedCartCount = countCartsUncached(player);
+            }
+            return cachedCartCount;
+        }
+        return countCartsUncached(player);
+    }
+
+    /**
+     * Direct uncached count of TNT minecarts in the player's inventory.
+     */
+    public static int countCartsUncached(ClientPlayerEntity player) {
+        if (player == null) return 0;
+        int count = 0;
+        for (int i = 0; i < player.getInventory().size(); i++) {
+            ItemStack stack = player.getInventory().getStack(i);
+            if (stack.isOf(Items.TNT_MINECART)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Finds the first slot in the main inventory (slots 9 to 35) containing a TNT minecart.
+     * Returns -1 if none found.
+     */
+    public static int findInventoryCart(ClientPlayerEntity player) {
+        if (player == null) return -1;
+        for (int i = 9; i < 36; i++) {
+            ItemStack stack = player.getInventory().getStack(i);
+            if (stack.isOf(Items.TNT_MINECART)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Finds the first slot in the hotbar (slots 0 to 8) containing a TNT minecart.
+     * Returns -1 if none found.
+     */
+    public static int findHotbarCart(ClientPlayerEntity player) {
+        if (player == null) return -1;
+        for (int slot = 0; slot < 9; slot++) {
+            ItemStack stack = player.getInventory().getStack(slot);
+            if (stack.isOf(Items.TNT_MINECART)) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Finds the first slot in the hotbar (slots 0 to 8) containing any rail block.
+     * Returns -1 if none found.
+     */
+    public static int findRailSlot(ClientPlayerEntity player) {
+        if (player == null) return -1;
+        for (int slot = 0; slot < 9; slot++) {
+            ItemStack stack = player.getInventory().getStack(slot);
+            if (stack.getItem() instanceof BlockItem blockItem
+                    && blockItem.getBlock() instanceof AbstractRailBlock) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Resets internal caches.
+     */
+    public static void reset() {
+        cachedCartCount = 0;
+        lastCountWorldTime = -1L;
+    }
+
+    public static void invalidate() {
+        reset();
+    }
+}

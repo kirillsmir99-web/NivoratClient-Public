@@ -17,10 +17,19 @@ public class ActivityLabel extends ActivityComponent {
     private boolean centered = false;
     private boolean shadow = true;
     private int maxWidth = -1;
-
     private Text cachedDisplayText = null;
     private int cachedDisplayWidth = -1;
     private int lastCalculatedMaxWidth = -2;
+
+    public Text getTooltip() {
+        return tooltip;
+    }
+
+    @Override
+    public ActivityLabel setTooltip(Text tooltip) {
+        this.tooltip = tooltip;
+        return this;
+    }
 
     public int getMaxWidth() {
         return maxWidth;

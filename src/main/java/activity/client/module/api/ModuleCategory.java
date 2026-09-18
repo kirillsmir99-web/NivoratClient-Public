@@ -9,6 +9,7 @@ public enum ModuleCategory {
     COMBAT("activity.category.combat", "Оружие и свапы"),
     DEFENSE("activity.category.defense", "Защита и карты"),
     UTILITY("activity.category.utility", "Утилиты и HUD"),
+    UTILITY_HUD("activity.category.utility", "Утилиты и HUD"),
     CONFIG("activity.category.config", "Профили и бинды");
 
     private final String translationKey;

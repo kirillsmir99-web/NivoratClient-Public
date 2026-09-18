@@ -34,7 +34,10 @@ public final class PresetSerializer {
         "searchFilter",
         "filterCategory",
         "matchCase",
-        "activeProfile"
+        "activeProfile",
+        "profilerActive",
+        "legacyMigrationDone",
+        "legacyMigrationVersion"
     );
 
     private static final Gson GSON = new GsonBuilder()
@@ -56,6 +59,8 @@ public final class PresetSerializer {
      */
     public static JsonObject extractSettingsSnapshot(ActivityConfig config) {
         if (config == null) return new JsonObject();
+        config.syncModuleConfigEntries();
+        config.syncClientSection();
         JsonElement tree = GSON.toJsonTree(config);
         if (!tree.isJsonObject()) return new JsonObject();
 
@@ -87,10 +92,16 @@ public final class PresetSerializer {
         String origCat = target.filterCategory;
         boolean origMatchCase = target.matchCase;
         String origProfile = target.activeProfile;
+        boolean origProfiler = target.profilerActive;
+        boolean origMigrationDone = target.legacyMigrationDone;
+        int origMigrationVer = target.legacyMigrationVersion;
 
         try {
             ActivityConfig deserialized = GSON.fromJson(snapshot, ActivityConfig.class);
             if (deserialized != null) {
+                if (snapshot.has("modules")) {
+                    deserialized.syncFromModuleEntries();
+                }
                 // Copy all module and gameplay settings
                 copySettings(deserialized, target);
             }
@@ -110,22 +121,31 @@ public final class PresetSerializer {
             target.filterCategory = origCat;
             target.matchCase = origMatchCase;
             target.activeProfile = origProfile;
+            target.profilerActive = origProfiler;
+            target.legacyMigrationDone = origMigrationDone;
+            target.legacyMigrationVersion = origMigrationVer;
         }
     }
 
-    private static void copySettings(ActivityConfig src, ActivityConfig dst) {
+    public static void copySettings(ActivityConfig src, ActivityConfig dst) {
         // Combat
         dst.autoMaceEnabled = src.autoMaceEnabled;
         dst.autoMaceKeybind.copyFrom(src.autoMaceKeybind);
         dst.autoMaceSourceMode = src.autoMaceSourceMode;
         dst.autoMaceEnchantMode = src.autoMaceEnchantMode;
+        dst.autoMaceMissBehavior = src.autoMaceMissBehavior;
         dst.autoMaceRestoreDelayMs = src.autoMaceRestoreDelayMs;
         dst.autoMaceLegitMode = src.autoMaceLegitMode;
         dst.autoMaceMissChance = src.autoMaceMissChance;
+        dst.autoMaceRandomDelay = src.autoMaceRandomDelay;
 
         dst.autoSpearEnabled = src.autoSpearEnabled;
         dst.autoSpearKeybind.copyFrom(src.autoSpearKeybind);
+        dst.autoSpearSecurityMode = src.autoSpearSecurityMode;
+        dst.autoSpearPriorityMode = src.autoSpearPriorityMode;
         dst.autoSpearRestoreDelayMs = src.autoSpearRestoreDelayMs;
+        dst.autoSpearMissChance = src.autoSpearMissChance;
+        dst.autoSpearRandomDelay = src.autoSpearRandomDelay;
 
         dst.autoShieldbreakerEnabled = src.autoShieldbreakerEnabled;
         dst.autoShieldbreakerKeybind.copyFrom(src.autoShieldbreakerKeybind);
@@ -134,6 +154,8 @@ public final class PresetSerializer {
         dst.autoShieldbreakerChance = src.autoShieldbreakerChance;
         dst.autoShieldbreakerSwitchDelayMs = src.autoShieldbreakerSwitchDelayMs;
         dst.autoShieldbreakerRestoreDelayMs = src.autoShieldbreakerRestoreDelayMs;
+        dst.autoShieldbreakerRandomDelay = src.autoShieldbreakerRandomDelay;
+        dst.autoShieldbreakerAbortOnManualSwitch = src.autoShieldbreakerAbortOnManualSwitch;
         dst.autoShieldbreakerLegitMode = src.autoShieldbreakerLegitMode;
 
         dst.autoStunSlamEnabled = src.autoStunSlamEnabled;
@@ -141,9 +163,11 @@ public final class PresetSerializer {
         dst.autoStunSlamMode = src.autoStunSlamMode;
         dst.autoStunSlamDistance = src.autoStunSlamDistance;
         dst.autoStunSlamChance = src.autoStunSlamChance;
+        dst.autoStunSlamAirTimeSec = src.autoStunSlamAirTimeSec;
         dst.autoStunSlamAxeDelayMs = src.autoStunSlamAxeDelayMs;
         dst.autoStunSlamMaceDelayMs = src.autoStunSlamMaceDelayMs;
         dst.autoStunSlamRestoreDelayMs = src.autoStunSlamRestoreDelayMs;
+        dst.autoStunSlamRandomDelay = src.autoStunSlamRandomDelay;
         dst.autoStunSlamLegitMode = src.autoStunSlamLegitMode;
 
         if (src.pinnedModules != null) {
@@ -153,6 +177,7 @@ public final class PresetSerializer {
         // Defense
         dst.autoTotemEnabled = src.autoTotemEnabled;
         dst.autoTotemKeybind.copyFrom(src.autoTotemKeybind);
+        dst.autoTotemMode = src.autoTotemMode;
         dst.autoTotemTriggerHearts = src.autoTotemTriggerHearts;
         dst.autoTotemRestoreHearts = src.autoTotemRestoreHearts;
         dst.autoTotemChance = src.autoTotemChance;
@@ -161,7 +186,14 @@ public final class PresetSerializer {
 
         dst.autoCartEnabled = src.autoCartEnabled;
         dst.autoCartKeybind.copyFrom(src.autoCartKeybind);
+        dst.autoCartPreset = src.autoCartPreset;
         dst.autoCartPlacementChance = src.autoCartPlacementChance;
+        dst.autoCartMaxDistance = src.autoCartMaxDistance;
+        dst.autoCartMinDelayMs = src.autoCartMinDelayMs;
+        dst.autoCartMaxDelayMs = src.autoCartMaxDelayMs;
+        dst.autoCartAllowSelfCart = src.autoCartAllowSelfCart;
+        dst.autoCartAllowPitPlacement = src.autoCartAllowPitPlacement;
+        dst.autoCartRandomDelay = src.autoCartRandomDelay;
         dst.autoCartRailDelay = src.autoCartRailDelay;
         dst.autoCartCartDelay = src.autoCartCartDelay;
         dst.autoCartRestoreDelay = src.autoCartRestoreDelay;
@@ -169,23 +201,36 @@ public final class PresetSerializer {
 
         dst.autoAnchorEnabled = src.autoAnchorEnabled;
         dst.autoAnchorKeybind.copyFrom(src.autoAnchorKeybind);
+        dst.autoAnchorPreset = src.autoAnchorPreset;
         dst.autoAnchorAutoExplode = src.autoAnchorAutoExplode;
         dst.autoAnchorAutoReturn = src.autoAnchorAutoReturn;
         dst.autoAnchorChargeDelay = src.autoAnchorChargeDelay;
+        dst.autoAnchorExplodeDelay = src.autoAnchorExplodeDelay;
         dst.autoAnchorChance = src.autoAnchorChance;
+        dst.autoAnchorTargetCharges = src.autoAnchorTargetCharges;
         dst.autoAnchorLegitMode = src.autoAnchorLegitMode;
 
         dst.cartRefillEnabled = src.cartRefillEnabled;
         dst.cartRefillKeybind.copyFrom(src.cartRefillKeybind);
         dst.cartRefillDelayTicks = src.cartRefillDelayTicks;
         dst.cartRefillChance = src.cartRefillChance;
-        dst.cartRefillLegitMode = src.cartRefillLegitMode;
         dst.cartRefillAutoClose = src.cartRefillAutoClose;
+        dst.cartRefillRandomDelay = src.cartRefillRandomDelay;
+        dst.cartRefillLegitMode = src.cartRefillLegitMode;
 
         // Utility
         dst.hpReaperEnabled = src.hpReaperEnabled;
         dst.hpReaperKeybind.copyFrom(src.hpReaperKeybind);
         dst.hpReaperMode = src.hpReaperMode;
+        dst.hpReaperTargetFilter = src.hpReaperTargetFilter;
+        dst.hpReaperOwnHealthX = src.hpReaperOwnHealthX;
+        dst.hpReaperOwnHealthY = src.hpReaperOwnHealthY;
+        dst.hpReaperCrosshairTargetX = src.hpReaperCrosshairTargetX;
+        dst.hpReaperCrosshairTargetY = src.hpReaperCrosshairTargetY;
+        dst.hpReaperTargetHealthX = src.hpReaperTargetHealthX;
+        dst.hpReaperTargetHealthY = src.hpReaperTargetHealthY;
+        dst.hpReaperDiffX = src.hpReaperDiffX;
+        dst.hpReaperDiffY = src.hpReaperDiffY;
 
         dst.autoToolEnabled = src.autoToolEnabled;
         dst.autoToolKeybind.copyFrom(src.autoToolKeybind);
@@ -194,11 +239,23 @@ public final class PresetSerializer {
         dst.autoToolDurabilityThreshold = src.autoToolDurabilityThreshold;
         dst.autoToolPreferSilkTouch = src.autoToolPreferSilkTouch;
         dst.autoToolRestorePrevious = src.autoToolRestorePrevious;
+        dst.autoToolLegitMode = src.autoToolLegitMode;
+        dst.autoToolSingleSlotMode = src.autoToolSingleSlotMode;
+        dst.autoToolIgnoreInstantBreak = src.autoToolIgnoreInstantBreak;
+        dst.autoToolLockWhileMining = src.autoToolLockWhileMining;
 
         dst.autoGGEnabled = src.autoGGEnabled;
         dst.autoGGKeybind.copyFrom(src.autoGGKeybind);
         dst.autoGGPhrase = src.autoGGPhrase;
+        dst.autoGGSendOnKill = src.autoGGSendOnKill;
         dst.autoGGSendOnOwnDeath = src.autoGGSendOnOwnDeath;
+        dst.autoGGRandomOrder = src.autoGGRandomOrder;
+        dst.autoGGDelayMs = src.autoGGDelayMs;
+
+        dst.cartHudEnabled = src.cartHudEnabled;
+        dst.cartHudKeybind.copyFrom(src.cartHudKeybind);
+        dst.cartHudCustomX = src.cartHudCustomX;
+        dst.cartHudCustomY = src.cartHudCustomY;
 
         // Visuals & Themes
         dst.overlayEnabled = src.overlayEnabled;
@@ -232,6 +289,71 @@ public final class PresetSerializer {
         dst.sliderSoundEnabled = src.sliderSoundEnabled;
         dst.animationsEnabled = src.animationsEnabled;
         dst.spatialOpenAnimation = src.spatialOpenAnimation;
+
+        // Structured Modules & Settings sync across all 12 modules
+        dst.syncModuleConfigEntries();
+        if (src.modules != null && !src.modules.isEmpty()) {
+            for (java.util.Map.Entry<String, ActivityConfig.ModuleConfigEntry> entry : src.modules.entrySet()) {
+                if (entry.getValue() != null) {
+                    ActivityConfig.ModuleConfigEntry e = dst.modules.computeIfAbsent(
+                        entry.getKey(),
+                        k -> new ActivityConfig.ModuleConfigEntry(entry.getValue().enabled, entry.getValue().keybind)
+                    );
+                    e.enabled = entry.getValue().enabled;
+                    if (entry.getValue().keybind != null) {
+                        e.keybind.copyFrom(entry.getValue().keybind);
+                    }
+                    if (entry.getValue().settings != null) {
+                        e.settings.putAll(entry.getValue().settings);
+                    }
+                }
+            }
+            dst.syncFromModuleEntries();
+        }
+
+        // Client section sync
+        if (src.client != null) {
+            if (src.client.ui != null) {
+                dst.client.ui.overlayEnabled = src.client.ui.overlayEnabled;
+                dst.client.ui.darkThemeEnabled = src.client.ui.darkThemeEnabled;
+                if (src.client.ui.hudPosition != null) dst.client.ui.hudPosition = src.client.ui.hudPosition;
+                dst.client.ui.overlayOpacity = src.client.ui.overlayOpacity;
+                dst.client.ui.autoHideOnChat = src.client.ui.autoHideOnChat;
+                dst.client.ui.hideInF3 = src.client.ui.hideInF3;
+                dst.client.ui.showCoordinates = src.client.ui.showCoordinates;
+                dst.client.ui.showFps = src.client.ui.showFps;
+                dst.client.ui.showBiome = src.client.ui.showBiome;
+                dst.client.ui.showWorldTime = src.client.ui.showWorldTime;
+                dst.client.ui.showDirection = src.client.ui.showDirection;
+                if (src.client.ui.coordFormat != null) dst.client.ui.coordFormat = src.client.ui.coordFormat;
+                dst.client.ui.hudPadding = src.client.ui.hudPadding;
+                if (src.client.ui.customTitle != null) dst.client.ui.customTitle = src.client.ui.customTitle;
+                dst.client.ui.textShadow = src.client.ui.textShadow;
+                if (src.client.ui.themeVariant != null) dst.client.ui.themeVariant = src.client.ui.themeVariant;
+                dst.client.ui.compactMode = src.client.ui.compactMode;
+                dst.client.ui.tooltipsEnabled = src.client.ui.tooltipsEnabled;
+                dst.client.ui.showKeyHints = src.client.ui.showKeyHints;
+                dst.client.ui.smoothTransitions = src.client.ui.smoothTransitions;
+                dst.client.ui.animationsEnabled = src.client.ui.animationsEnabled;
+                dst.client.ui.spatialOpenAnimation = src.client.ui.spatialOpenAnimation;
+                dst.client.ui.windowOpacity = src.client.ui.windowOpacity;
+                dst.client.ui.panelOpacity = src.client.ui.panelOpacity;
+                dst.client.ui.glassEffect = src.client.ui.glassEffect;
+            }
+            if (src.client.sound != null) {
+                dst.client.sound.soundEnabled = src.client.sound.soundEnabled;
+                if (src.client.sound.soundProfile != null) dst.client.sound.soundProfile = src.client.sound.soundProfile;
+                dst.client.sound.soundVolume = src.client.sound.soundVolume;
+                dst.client.sound.audioClicks = src.client.sound.audioClicks;
+                dst.client.sound.sliderSoundEnabled = src.client.sound.sliderSoundEnabled;
+            }
+            if (src.client.fonts != null) {
+                if (src.client.fonts.fontFamily != null) dst.client.fonts.fontFamily = src.client.fonts.fontFamily;
+                if (src.client.fonts.typographySize != null) dst.client.fonts.typographySize = src.client.fonts.typographySize;
+            }
+            dst.syncFromClientSection();
+        }
+        dst.syncClientSection();
     }
 
     /**

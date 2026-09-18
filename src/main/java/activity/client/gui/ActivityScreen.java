@@ -867,9 +867,12 @@ public class ActivityScreen extends Screen {
                 this.searchBar.renderPopup(context, mouseX, mouseY);
             }
 
-            // Step 8: Render tooltips for control buttons
+            // Step 8: Render tooltips for control buttons and scroll container
             if (!isAnimating && !isMaximizeAnimating && this.controlButtons != null) {
                 this.controlButtons.renderTooltips(context, this.textRenderer, mouseX, mouseY);
+            }
+            if (!isAnimating && !isMaximizeAnimating && this.currentScrollContainer != null) {
+                this.currentScrollContainer.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
         } finally {
             context.getMatrices().popMatrix();

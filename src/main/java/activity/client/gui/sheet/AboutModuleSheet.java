@@ -46,7 +46,7 @@ public class AboutModuleSheet implements Overlay {
 
     private final ActivityScreen screen;
     private final String moduleId;
-    private final ModuleMetadata metadata;
+    private ModuleMetadata metadata;
 
     private boolean closed = false;
     private float slideProgress = 0.0f;
@@ -147,6 +147,11 @@ public class AboutModuleSheet implements Overlay {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if (this.closed) return;
+
+        ModuleMetadata fresh = ModuleRegistry.getMetadata(this.moduleId);
+        if (fresh != null) {
+            this.metadata = fresh;
+        }
 
         float dt = AnimationClock.getDeltaTime();
         float target = 1.0f;

@@ -10,22 +10,28 @@
   },
   "autoMaceSourceMode": "sword_and_axe",
   "autoMaceEnchantMode": "smart",
+  "autoMaceMissBehavior": "sword_hit",
   "autoMaceRestoreDelayMs": 90.0,
   "autoMaceLegitMode": true,
   "autoMaceMissChance": 10.0,
+  "autoMaceRandomDelay": true,
   "autoSpearEnabled": true,
   "autoSpearKeybind": {
-    "keyCode": -1,
+    "keyCode": 258,
     "ctrl": false,
     "shift": false,
     "alt": false
   },
-  "autoSpearRestoreDelayMs": 70.0,
+  "autoSpearSecurityMode": "legit",
+  "autoSpearPriorityMode": "auto",
+  "autoSpearRestoreDelayMs": 185.0,
+  "autoSpearMissChance": 0.0,
+  "autoSpearRandomDelay": true,
   "autoShieldbreakerEnabled": true,
   "autoShieldbreakerKeybind": {
-    "keyCode": -1,
-    "ctrl": false,
-    "shift": false,
+    "keyCode": 74,
+    "ctrl": true,
+    "shift": true,
     "alt": false
   },
   "autoShieldbreakerMode": "full_auto",
@@ -33,20 +39,24 @@
   "autoShieldbreakerChance": 100.0,
   "autoShieldbreakerSwitchDelayMs": 50.0,
   "autoShieldbreakerRestoreDelayMs": 50.0,
+  "autoShieldbreakerRandomDelay": true,
+  "autoShieldbreakerAbortOnManualSwitch": true,
   "autoShieldbreakerLegitMode": true,
   "autoStunSlamEnabled": true,
   "autoStunSlamKeybind": {
-    "keyCode": -1,
-    "ctrl": false,
-    "shift": false,
+    "keyCode": 77,
+    "ctrl": true,
+    "shift": true,
     "alt": false
   },
   "autoStunSlamMode": "full_auto",
   "autoStunSlamDistance": 2.4,
   "autoStunSlamChance": 75.0,
+  "autoStunSlamAirTimeSec": 1.0,
   "autoStunSlamAxeDelayMs": 45.0,
   "autoStunSlamMaceDelayMs": 45.0,
   "autoStunSlamRestoreDelayMs": 50.0,
+  "autoStunSlamRandomDelay": true,
   "autoStunSlamLegitMode": true,
   "autoTotemEnabled": true,
   "autoTotemKeybind": {
@@ -55,6 +65,7 @@
     "shift": false,
     "alt": false
   },
+  "autoTotemMode": "main_hand",
   "autoTotemTriggerHearts": 3.0,
   "autoTotemRestoreHearts": 6.0,
   "autoTotemChance": 100.0,
@@ -62,16 +73,23 @@
   "autoTotemReturnOnPop": true,
   "autoCartEnabled": true,
   "autoCartKeybind": {
-    "keyCode": -1,
-    "ctrl": false,
-    "shift": false,
+    "keyCode": 73,
+    "ctrl": true,
+    "shift": true,
     "alt": false
   },
-  "autoCartPlacementChance": 70.0,
+  "autoCartPreset": "medium",
+  "autoCartPlacementChance": 100.0,
+  "autoCartMaxDistance": 4.4,
+  "autoCartMinDelayMs": 70.0,
+  "autoCartMaxDelayMs": 110.0,
+  "autoCartAllowSelfCart": false,
+  "autoCartAllowPitPlacement": true,
+  "autoCartRandomDelay": true,
+  "autoCartLegitMode": true,
   "autoCartRailDelay": 2.0,
   "autoCartCartDelay": 2.0,
   "autoCartRestoreDelay": 2.0,
-  "autoCartLegitMode": true,
   "autoAnchorEnabled": true,
   "autoAnchorKeybind": {
     "keyCode": -1,
@@ -79,10 +97,13 @@
     "shift": false,
     "alt": false
   },
+  "autoAnchorPreset": "balanced",
   "autoAnchorAutoExplode": false,
   "autoAnchorAutoReturn": true,
   "autoAnchorChargeDelay": 1.0,
+  "autoAnchorExplodeDelay": 1.0,
   "autoAnchorChance": 85.0,
+  "autoAnchorTargetCharges": 1.0,
   "autoAnchorLegitMode": true,
   "cartRefillEnabled": true,
   "cartRefillKeybind": {
@@ -93,8 +114,9 @@
   },
   "cartRefillDelayTicks": 2.0,
   "cartRefillChance": 100.0,
-  "cartRefillLegitMode": true,
   "cartRefillAutoClose": true,
+  "cartRefillRandomDelay": true,
+  "cartRefillLegitMode": true,
   "hpReaperEnabled": true,
   "hpReaperKeybind": {
     "keyCode": -1,
@@ -103,6 +125,15 @@
     "alt": false
   },
   "hpReaperMode": "target_hp",
+  "hpReaperTargetFilter": "all_entities",
+  "hpReaperOwnHealthX": -1,
+  "hpReaperOwnHealthY": -1,
+  "hpReaperCrosshairTargetX": -1,
+  "hpReaperCrosshairTargetY": -1,
+  "hpReaperTargetHealthX": -1,
+  "hpReaperTargetHealthY": -1,
+  "hpReaperDiffX": -1,
+  "hpReaperDiffY": -1,
   "autoToolEnabled": true,
   "autoToolKeybind": {
     "keyCode": -1,
@@ -115,6 +146,10 @@
   "autoToolDurabilityThreshold": 5.0,
   "autoToolPreferSilkTouch": false,
   "autoToolRestorePrevious": true,
+  "autoToolLegitMode": true,
+  "autoToolSingleSlotMode": false,
+  "autoToolIgnoreInstantBreak": true,
+  "autoToolLockWhileMining": true,
   "autoGGEnabled": true,
   "autoGGKeybind": {
     "keyCode": -1,
@@ -123,7 +158,19 @@
     "alt": false
   },
   "autoGGPhrase": "GGWP",
+  "autoGGSendOnKill": true,
   "autoGGSendOnOwnDeath": false,
+  "autoGGRandomOrder": false,
+  "autoGGDelayMs": 950.0,
+  "cartHudEnabled": true,
+  "cartHudKeybind": {
+    "keyCode": -1,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
+  "cartHudCustomX": -1,
+  "cartHudCustomY": -1,
   "overlayEnabled": true,
   "darkThemeEnabled": true,
   "hudPosition": "top_right",
@@ -166,18 +213,282 @@
   "windowOpacity": 85.0,
   "panelOpacity": 65.0,
   "glassEffect": true,
-  "windowPosX": 300,
-  "windowPosY": 100,
-  "windowWidth": 500,
-  "windowHeight": 320,
+  "windowPosX": -1,
+  "windowPosY": -1,
+  "windowWidth": -1,
+  "windowHeight": -1,
   "windowMaximized": false,
-  "unmaximizedX": 300,
-  "unmaximizedY": 100,
-  "unmaximizedWidth": 500,
-  "unmaximizedHeight": 320,
+  "unmaximizedX": -1,
+  "unmaximizedY": -1,
+  "unmaximizedWidth": -1,
+  "unmaximizedHeight": -1,
   "soundEnabled": true,
   "soundProfile": "serene",
   "sliderSoundEnabled": true,
   "animationsEnabled": true,
-  "spatialOpenAnimation": true
+  "spatialOpenAnimation": true,
+  "modules": {
+    "auto_mace": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "source_mode": "sword_and_axe",
+        "enchant_mode": "smart",
+        "miss_behavior": "sword_hit",
+        "restore_delay": 90.0,
+        "miss_chance": 10.0,
+        "random_delay": true,
+        "legit_mode": true
+      }
+    },
+    "auto_spear": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": 258,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "security_mode": "legit",
+        "priority_mode": "auto",
+        "restore_delay": 185.0,
+        "miss_chance": 0.0,
+        "random_delay": true
+      }
+    },
+    "auto_shieldbreaker": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": 74,
+        "ctrl": true,
+        "shift": true,
+        "alt": false
+      },
+      "settings": {
+        "mode": "full_auto",
+        "distance": 2.85,
+        "chance": 100.0,
+        "switch_delay": 50.0,
+        "restore_delay": 50.0,
+        "random_delay": true,
+        "abort_on_manual_switch": true,
+        "legit_mode": true
+      }
+    },
+    "auto_stun_slam": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": 77,
+        "ctrl": true,
+        "shift": true,
+        "alt": false
+      },
+      "settings": {
+        "mode": "full_auto",
+        "distance": 2.4,
+        "chance": 75.0,
+        "air_time": 1.0,
+        "axe_delay": 45.0,
+        "mace_delay": 45.0,
+        "restore_delay": 50.0,
+        "random_delay": true,
+        "legit_mode": true
+      }
+    },
+    "auto_totem": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "mode": "main_hand",
+        "trigger_hearts": 3.0,
+        "restore_hearts": 6.0,
+        "chance": 100.0,
+        "return_item": true,
+        "return_on_pop": true
+      }
+    },
+    "auto_cart": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": 73,
+        "ctrl": true,
+        "shift": true,
+        "alt": false
+      },
+      "settings": {
+        "preset": "medium",
+        "placement_chance": 100.0,
+        "max_distance": 4.4,
+        "min_delay": 70.0,
+        "max_delay": 110.0,
+        "allow_self_cart": false,
+        "allow_pit_placement": true,
+        "random_delay": true,
+        "rail_delay": 2.0,
+        "cart_delay": 2.0,
+        "restore_delay": 2.0,
+        "legit_mode": true
+      }
+    },
+    "auto_anchor": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "preset": "balanced",
+        "auto_explode": false,
+        "auto_return": true,
+        "charge_delay": 1.0,
+        "explode_delay": 1.0,
+        "chance": 85.0,
+        "target_charges": 1.0,
+        "legit_mode": true
+      }
+    },
+    "cart_refill": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "delay_ticks": 2.0,
+        "chance": 100.0,
+        "auto_close": true,
+        "random_delay": true,
+        "legit_mode": true
+      }
+    },
+    "hp_reaper": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "mode": "target_hp",
+        "target_filter": "all_entities",
+        "own_hp_x": -1,
+        "own_hp_y": -1,
+        "crosshair_x": -1,
+        "crosshair_y": -1,
+        "target_hp_x": -1,
+        "target_hp_y": -1,
+        "diff_x": -1,
+        "diff_y": -1
+      }
+    },
+    "auto_tool": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "combat_guard": true,
+        "durability_saver": true,
+        "durability_threshold": 5.0,
+        "prefer_silk_touch": false,
+        "restore_previous": true,
+        "legit_mode": true,
+        "single_slot_mode": false,
+        "ignore_instant_break": true,
+        "lock_while_mining": true,
+        "prefer_silk": false
+      }
+    },
+    "auto_gg": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "phrase": "GGWP",
+        "send_on_kill": true,
+        "send_on_own_death": false,
+        "random_order": false,
+        "delay_ms": 950.0,
+        "send_on_death": false
+      }
+    },
+    "cart_hud": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "custom_x": -1,
+        "custom_y": -1
+      }
+    }
+  },
+  "client": {
+    "ui": {
+      "overlayEnabled": true,
+      "darkThemeEnabled": true,
+      "hudPosition": "top_right",
+      "overlayOpacity": 85.0,
+      "autoHideOnChat": false,
+      "hideInF3": true,
+      "showCoordinates": true,
+      "showFps": true,
+      "showBiome": true,
+      "showWorldTime": false,
+      "showDirection": true,
+      "coordFormat": "X, Y, Z",
+      "hudPadding": 8.0,
+      "customTitle": "Activity HUD",
+      "textShadow": true,
+      "themeVariant": "Фирменная тёмная",
+      "compactMode": false,
+      "tooltipsEnabled": true,
+      "showKeyHints": true,
+      "smoothTransitions": true,
+      "animationsEnabled": true,
+      "spatialOpenAnimation": true,
+      "windowOpacity": 85.0,
+      "panelOpacity": 65.0,
+      "glassEffect": true
+    },
+    "sound": {
+      "soundEnabled": true,
+      "soundProfile": "serene",
+      "soundVolume": 70.0,
+      "audioClicks": true,
+      "sliderSoundEnabled": true
+    },
+    "fonts": {
+      "fontFamily": "onest",
+      "typographySize": "normal"
+    }
+  },
+  "legacyMigrationDone": false,
+  "legacyMigrationVersion": 0
 }

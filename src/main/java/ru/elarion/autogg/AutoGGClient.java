@@ -1,0 +1,130 @@
+package ru.elarion.autogg;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public final class AutoGGClient {
+    public static final AutoGGConfig CONFIG = AutoGGConfig.load();
+    private static final long SEND_COOLDOWN_MS = 8_000L;
+    private static final Map<Integer, Long> recentAttacks = new ConcurrentHashMap<>();
+
+    public static double customDelayMs = 950.0;
+    private static AutoGGClient active = new AutoGGClient();
+    private static long lastSentAt;
+    private static long scheduledSendTime = 0L;
+    private static String pendingPhrase = null;
+
+    private boolean localDiedThisRound;
+
+    public static void ensureActive() {
+        if (active == null) {
+            active = new AutoGGClient();
+        }
+    }
+
+    public static void recordAttack(int entityId) {
+        recentAttacks.put(entityId, System.currentTimeMillis());
+    }
+
+    public static void tick(MinecraftClient client) {
+        if (active != null) {
+            active.handleTick(client);
+        }
+    }
+
+    public void handleTick(MinecraftClient client) {
+        if (client == null) return;
+        if (client.player != null && (client.player.isDead() || client.player.getHealth() <= 0.0F)) {
+            localDiedThisRound = true;
+        }
+
+        if (!recentAttacks.isEmpty()) {
+            long now = System.currentTimeMillis();
+            recentAttacks.entrySet().removeIf(entry -> (now - entry.getValue()) > 4000L);
+        }
+
+        if (pendingPhrase != null && System.currentTimeMillis() >= scheduledSendTime) {
+            if (client.player != null && CONFIG.enabled && !pendingPhrase.isBlank()) {
+                if (client.player.networkHandler != null) {
+                    client.player.networkHandler.sendChatMessage(pendingPhrase);
+                }
+                lastSentAt = System.currentTimeMillis();
+            }
+            pendingPhrase = null;
+            scheduledSendTime = 0L;
+        }
+    }
+
+    public static void sendPhraseDirect(String phrase) {
+        if (phrase == null || phrase.isBlank()) return;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null && CONFIG.enabled) {
+            pendingPhrase = phrase;
+            scheduledSendTime = System.currentTimeMillis() + 60L + (long) (Math.random() * 40L);
+        }
+    }
+
+    public static void markOwnDeath() {
+        ensureActive();
+        if (active != null) active.localDiedThisRound = true;
+    }
+
+    public static void onEntityDeath(Entity entity) {
+        ensureActive();
+        if (active != null) active.handleEntityDeath(entity);
+    }
+
+    private void handleEntityDeath(Entity entity) {
+        if (!CONFIG.enabled || !CONFIG.sendOnKill) return;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || client.player == null || !(entity instanceof PlayerEntity)) return;
+
+        Long attackTime = recentAttacks.get(entity.getId());
+        if (attackTime == null || System.currentTimeMillis() - attackTime > 3000L) return;
+        recentAttacks.remove(entity.getId());
+
+        long now = System.currentTimeMillis();
+        if (now - lastSentAt > SEND_COOLDOWN_MS) {
+            String phrase = CONFIG.nextPhrase();
+            if (!phrase.isBlank()) {
+                pendingPhrase = phrase;
+                scheduledSendTime = now + (long) customDelayMs;
+            }
+        }
+    }
+
+    public static void onRoundResult(MinecraftClient client, String message) {
+        ensureActive();
+        if (active != null) active.handleRoundResult(client, message);
+    }
+
+    private void handleRoundResult(MinecraftClient client, String message) {
+        if (client == null || client.player == null) return;
+
+        String lower = message.toLowerCase();
+        int winnerIndex = lower.indexOf("победил:");
+        int loserIndex = lower.indexOf("проиграл:", Math.max(0, winnerIndex));
+        if (winnerIndex < 0 || loserIndex < 0) return;
+
+        String playerName = client.player.getName().getString();
+        String winnerPart = message.substring(winnerIndex, loserIndex);
+        String loserPart = message.substring(loserIndex);
+        boolean playerWon = winnerPart.contains(playerName);
+        boolean playerLost = loserPart.contains(playerName);
+
+        if ((playerWon && !localDiedThisRound) || (playerLost && CONFIG.sendOnOwnDeath)) {
+            String phrase = CONFIG.nextPhrase();
+            long now = System.currentTimeMillis();
+            if (CONFIG.enabled && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS) {
+                pendingPhrase = phrase;
+                scheduledSendTime = now + (long) customDelayMs;
+            }
+        }
+        localDiedThisRound = false;
+    }
+}
+

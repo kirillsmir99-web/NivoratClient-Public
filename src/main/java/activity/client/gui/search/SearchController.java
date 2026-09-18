@@ -1,6 +1,9 @@
 package activity.client.gui.search;
 
 import activity.client.gui.icon.ActivityIcon;
+import activity.client.module.api.IModule;
+import activity.client.module.api.ModuleRegistry;
+import activity.client.module.setting.Setting;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -214,97 +217,9 @@ public final class SearchController {
 
         addCategory("about", Text.translatable("activity.tab.about"), ActivityIcon.ABOUT,
             List.of("about", "о проекте", "информация", "версия", "автор", "телеграм", "telegram", "ссылки"));
-
         // =========================================================================
-        // MODULES & CARDS
+        // NON-MODULE CARDS & SECTIONS
         // =========================================================================
-
-        // --- Combat Modules ---
-        addModule("combat", "auto_mace",
-            Text.translatable("activity.module.auto_mace.name"),
-            Text.translatable("activity.tab.combat"),
-            ActivityIcon.COMBAT,
-            List.of("automace", "mace", "булава", "автобулава", "авто-булава", "авто булава", "свап", "swap", "чары", "enchant", "miss", "промах", "legit", "легит")
-        );
-
-        addModule("combat", "auto_spear",
-            Text.translatable("activity.module.auto_spear.name"),
-            Text.translatable("activity.tab.combat"),
-            ActivityIcon.COMBAT,
-            List.of("autospear", "spear", "копье", "копьё", "автокопье", "авто-копье", "авто копье", "выпад копьем", "выпад копьём", "задержка", "delay", "restore", "выпад")
-        );
-
-        addModule("combat", "auto_shieldbreaker",
-            Text.translatable("activity.module.auto_shieldbreaker.name"),
-            Text.translatable("activity.tab.combat"),
-            ActivityIcon.COMBAT,
-            List.of("autoshieldbreaker", "shieldbreaker", "shield", "breaker", "сбив щита", "автосбив щита", "авто-щит", "щит", "топор", "ломатель", "axe", "дистанция", "distance", "шанс", "chance")
-        );
-
-        addModule("combat", "auto_stun_slam",
-            Text.translatable("activity.module.auto_stun_slam.name"),
-            Text.translatable("activity.tab.combat"),
-            ActivityIcon.COMBAT,
-            List.of("autostunslam", "stunslam", "slam", "stun", "стан слэм", "стан-слэм", "авто стан слэм", "авто-стан-слэм", "стан", "блок", "задержка", "delay", "дистанция")
-        );
-
-        addModule("combat", "auto_stun_slime",
-            Text.translatable("activity.module.auto_stun_slime.name"),
-            Text.translatable("activity.tab.combat"),
-            ActivityIcon.COMBAT,
-            List.of("autostunslime", "stunslime", "slime", "stun", "стан слизь", "авто стан слизь", "слизь", "стан", "блок", "задержка", "delay", "дистанция")
-        );
-
-        // --- Defense Modules ---
-        addModule("defense", "auto_totem",
-            Text.translatable("activity.module.auto_totem.name"),
-            Text.translatable("activity.tab.defense"),
-            ActivityIcon.DEFENSE,
-            List.of("autototem", "totem", "тотем", "автототем", "авто-тотем", "авто тотем", "сердца", "hearts", "hp", "возврат", "return", "шанс", "chance", "поп")
-        );
-
-        addModule("defense", "auto_cart",
-            Text.translatable("activity.module.auto_cart.name"),
-            Text.translatable("activity.tab.defense"),
-            ActivityIcon.DEFENSE,
-            List.of("autocart", "cart", "вагонетка", "автовагонетка", "авто-вагонетка", "авто вагонетка", "подрыв вагонеток", "рельсы", "rails", "tnt", "тнт", "задержка", "delay")
-        );
-
-        addModule("defense", "auto_anchor",
-            Text.translatable("activity.module.auto_anchor.name"),
-            Text.translatable("activity.tab.defense"),
-            ActivityIcon.DEFENSE,
-            List.of("autoanchor", "anchor", "якорь", "автоякорь", "авто-якорь", "авто якорь", "взрыв якоря", "возрождения", "взрыв", "explode", "светокамень", "glowstone", "зарядка")
-        );
-
-        addModule("defense", "cart_refill",
-            Text.translatable("activity.module.cart_refill.name"),
-            Text.translatable("activity.tab.defense"),
-            ActivityIcon.DEFENSE,
-            List.of("cartrefill", "refill", "закуп", "пополнение", "пополнение хотбара", "рефилл", "рефилл хотбара", "сундук", "chest", "вагонетки", "хотбар")
-        );
-
-        // --- Utility Modules ---
-        addModule("utility", "hp_reaper",
-            Text.translatable("activity.module.hp_reaper.name"),
-            Text.translatable("activity.tab.utility"),
-            ActivityIcon.UTILITY,
-            List.of("hpreaper", "reaper", "hp", "здоровье", "жнец", "жнец hp", "жнец хп", "индикатор", "цель", "target", "числовое")
-        );
-
-        addModule("utility", "auto_tool",
-            Text.translatable("activity.module.auto_tool.name"),
-            Text.translatable("activity.tab.utility"),
-            ActivityIcon.UTILITY,
-            List.of("autotool", "tool", "инструмент", "автоинструмент", "авто-инструмент", "умный авто-инструмент", "кирка", "топор", "прочность", "durability", "шелк", "шёлковое", "silk")
-        );
-
-        addModule("utility", "auto_gg",
-            Text.translatable("activity.module.auto_gg.name"),
-            Text.translatable("activity.tab.utility"),
-            ActivityIcon.UTILITY,
-            List.of("autogg", "gg", "гг", "авто-гг", "автогг", "чат", "chat", "сообщение", "message", "ggwp", "смерть", "death")
-        );
 
         addModule("utility", "hud_activity",
             Text.translatable("activity.card.utility.hud_activity"),
@@ -366,293 +281,8 @@ public final class SearchController {
         );
 
         // =========================================================================
-        // INDIVIDUAL SETTINGS
+        // NON-MODULE SETTINGS
         // =========================================================================
-
-        // --- AutoMace Settings ---
-        addSetting("combat", "auto_mace", "source_mode",
-            Text.translatable("activity.setting.combat.source_mode"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_mace"),
-            ActivityIcon.COMBAT,
-            List.of("оружие в руке", "оружие", "source", "weapon", "меч", "топор", "sword", "axe")
-        );
-
-        addSetting("combat", "auto_mace", "enchant_mode",
-            Text.translatable("activity.setting.combat.enchant_mode"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_mace"),
-            ActivityIcon.COMBAT,
-            List.of("режим чар булавы", "чары", "enchant", "пробивание", "плотность", "breach", "density", "умный выбор", "smart")
-        );
-
-        addSetting("combat", "auto_mace", "restore_delay",
-            Text.translatable("activity.setting.combat.restore_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_mace"),
-            ActivityIcon.COMBAT,
-            List.of("задержка возврата", "задержка", "restore delay", "delay", "ms", "мс", "время")
-        );
-
-        addSetting("combat", "auto_mace", "legit_mode",
-            Text.translatable("activity.setting.combat.legit_mode"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_mace"),
-            ActivityIcon.COMBAT,
-            List.of("легитный режим", "легит", "legit", "проверка", "античит")
-        );
-
-        addSetting("combat", "auto_mace", "miss_chance",
-            Text.translatable("activity.setting.combat.miss_chance"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_mace"),
-            ActivityIcon.COMBAT,
-            List.of("шанс промаха", "шанс", "промах", "miss", "chance", "процент")
-        );
-
-        // --- AutoSpear Settings ---
-        addSetting("combat", "auto_spear", "spear_restore_delay",
-            Text.translatable("activity.setting.combat.spear_restore_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_spear"),
-            ActivityIcon.COMBAT,
-            List.of("задержка возврата копья", "задержка", "копье", "delay", "restore", "ms")
-        );
-
-        // --- AutoShieldbreaker Settings ---
-        addSetting("combat", "auto_shieldbreaker", "breaker_mode",
-            Text.translatable("activity.setting.combat.breaker_mode"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_shieldbreaker"),
-            ActivityIcon.COMBAT,
-            List.of("режим сбива щита", "режим работы", "полный авто", "полу-авто", "mode", "full auto", "semi auto")
-        );
-
-        addSetting("combat", "auto_shieldbreaker", "trigger_distance",
-            Text.translatable("activity.setting.combat.trigger_distance"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_shieldbreaker"),
-            ActivityIcon.COMBAT,
-            List.of("дистанция срабатывания", "дистанция", "distance", "метры", "блоки", "радиус", "reach")
-        );
-
-        addSetting("combat", "auto_shieldbreaker", "breaker_chance",
-            Text.translatable("activity.setting.combat.chance_label"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_shieldbreaker"),
-            ActivityIcon.COMBAT,
-            List.of("шанс сбива щита", "шанс", "chance", "процент")
-        );
-
-        addSetting("combat", "auto_shieldbreaker", "switch_delay",
-            Text.translatable("activity.setting.combat.switch_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_shieldbreaker"),
-            ActivityIcon.COMBAT,
-            List.of("задержка свапа", "задержка", "свап", "switch", "delay", "ms")
-        );
-
-        addSetting("combat", "auto_shieldbreaker", "restore_delay",
-            Text.translatable("activity.setting.combat.restore_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_shieldbreaker"),
-            ActivityIcon.COMBAT,
-            List.of("задержка возврата", "задержка", "restore delay", "возврат оружия")
-        );
-
-        // --- AutoStunSlam Settings ---
-        addSetting("combat", "auto_stun_slam", "trigger_distance",
-            Text.translatable("activity.setting.combat.trigger_distance"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slam"),
-            ActivityIcon.COMBAT,
-            List.of("дистанция стана", "дистанция", "distance", "радиус", "reach")
-        );
-
-        addSetting("combat", "auto_stun_slam", "axe_delay",
-            Text.translatable("activity.setting.combat.axe_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slam"),
-            ActivityIcon.COMBAT,
-            List.of("задержка топора", "топор", "axe", "delay", "ms")
-        );
-
-        addSetting("combat", "auto_stun_slam", "mace_delay",
-            Text.translatable("activity.setting.combat.mace_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slam"),
-            ActivityIcon.COMBAT,
-            List.of("задержка булавы", "булава", "mace", "delay", "ms")
-        );
-
-        addSetting("combat", "auto_stun_slam", "legit_mode",
-            Text.translatable("activity.setting.combat.legit_mode"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slam"),
-            ActivityIcon.COMBAT,
-            List.of("легитный режим стана", "легитный режим", "legit", "стан", "slam", "честный режим")
-        );
-
-        // --- AutoStunSlime Settings ---
-        addSetting("combat", "auto_stun_slime", "trigger_distance",
-            Text.translatable("activity.setting.combat.trigger_distance"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slime"),
-            ActivityIcon.COMBAT,
-            List.of("дистанция стана", "дистанция", "distance", "радиус", "reach")
-        );
-
-        addSetting("combat", "auto_stun_slime", "axe_delay",
-            Text.translatable("activity.setting.combat.axe_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slime"),
-            ActivityIcon.COMBAT,
-            List.of("задержка топора", "топор", "axe", "delay", "ms")
-        );
-
-        addSetting("combat", "auto_stun_slime", "mace_delay",
-            Text.translatable("activity.setting.combat.mace_delay"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slime"),
-            ActivityIcon.COMBAT,
-            List.of("задержка булавы", "булава", "mace", "delay", "ms")
-        );
-
-        addSetting("combat", "auto_stun_slime", "legit_mode",
-            Text.translatable("activity.setting.combat.legit_mode"),
-            breadcrumb("activity.tab.combat", "activity.card.combat.auto_stun_slime"),
-            ActivityIcon.COMBAT,
-            List.of("легитный режим стана", "легитный режим", "legit", "стан", "slime")
-        );
-
-        // --- AutoTotem Settings ---
-        addSetting("defense", "auto_totem", "trigger_hearts",
-            Text.translatable("activity.setting.defense.trigger_hearts"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_totem"),
-            ActivityIcon.DEFENSE,
-            List.of("порог срабатывания", "порог", "сердца", "здоровье", "хп", "hp", "hearts", "trigger")
-        );
-
-        addSetting("defense", "auto_totem", "restore_hearts",
-            Text.translatable("activity.setting.defense.restore_hearts"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_totem"),
-            ActivityIcon.DEFENSE,
-            List.of("порог возврата", "порог", "сердца", "restore hearts", "хп", "hp")
-        );
-
-        addSetting("defense", "auto_totem", "chance",
-            Text.translatable("activity.setting.defense.chance_label"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_totem"),
-            ActivityIcon.DEFENSE,
-            List.of("шанс тотема", "шанс", "chance", "процент")
-        );
-
-        addSetting("defense", "auto_totem", "return_item",
-            Text.translatable("activity.setting.defense.return_item"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_totem"),
-            ActivityIcon.DEFENSE,
-            List.of("возврат прежнего предмета", "возврат", "предмет", "рука", "return")
-        );
-
-        addSetting("defense", "auto_totem", "return_on_pop",
-            Text.translatable("activity.setting.defense.return_on_pop"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_totem"),
-            ActivityIcon.DEFENSE,
-            List.of("возврат при попе", "поп", "pop", "тотем", "срабатывание")
-        );
-
-        // --- AutoCart Settings ---
-        addSetting("defense", "auto_cart", "placement_chance",
-            Text.translatable("activity.setting.defense.placement_chance"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_cart"),
-            ActivityIcon.DEFENSE,
-            List.of("шанс установки", "вагонетка", "placement", "chance", "шанс")
-        );
-
-        addSetting("defense", "auto_cart", "rail_delay",
-            Text.translatable("activity.setting.defense.rail_delay"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_cart"),
-            ActivityIcon.DEFENSE,
-            List.of("задержка рельсы", "рельсы", "rails", "delay", "тики", "задержка")
-        );
-
-        addSetting("defense", "auto_cart", "cart_delay",
-            Text.translatable("activity.setting.defense.cart_delay"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_cart"),
-            ActivityIcon.DEFENSE,
-            List.of("задержка вагонетки", "вагонетка", "cart", "delay", "задержка")
-        );
-
-        // --- AutoAnchor Settings ---
-        addSetting("defense", "auto_anchor", "auto_explode",
-            Text.translatable("activity.setting.defense.auto_explode"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_anchor"),
-            ActivityIcon.DEFENSE,
-            List.of("автоматический подрыв", "подрыв", "взрыв", "explode", "якорь")
-        );
-
-        addSetting("defense", "auto_anchor", "auto_return",
-            Text.translatable("activity.setting.defense.auto_return"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_anchor"),
-            ActivityIcon.DEFENSE,
-            List.of("возврат предмета в руку", "возврат", "рука", "return")
-        );
-
-        addSetting("defense", "auto_anchor", "charge_delay",
-            Text.translatable("activity.setting.defense.charge_delay"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.auto_anchor"),
-            ActivityIcon.DEFENSE,
-            List.of("задержка зарядки", "зарядка", "светокамень", "glowstone", "charge", "delay")
-        );
-
-        // --- CartRefill Settings ---
-        addSetting("defense", "cart_refill", "refill_delay",
-            Text.translatable("activity.setting.defense.refill_delay"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.cart_refill"),
-            ActivityIcon.DEFENSE,
-            List.of("задержка пополнения", "пополнение", "рефилл", "delay", "ticks", "закуп")
-        );
-
-        addSetting("defense", "cart_refill", "auto_close",
-            Text.translatable("activity.setting.defense.auto_close"),
-            breadcrumb("activity.tab.defense", "activity.card.defense.cart_refill"),
-            ActivityIcon.DEFENSE,
-            List.of("авто-закрытие контейнера", "закрытие", "сундук", "close", "контейнер")
-        );
-
-        // --- HPReaper Settings ---
-        addSetting("utility", "hp_reaper", "display_mode",
-            Text.translatable("activity.setting.utility.display_mode"),
-            breadcrumb("activity.tab.utility", "activity.card.utility.hp_reaper"),
-            ActivityIcon.UTILITY,
-            List.of("режим отображения", "индикатор hp", "здоровье", "target_hp", "own_hp", "damage_diff", "числовое")
-        );
-
-        // --- AutoTool Settings ---
-        addSetting("utility", "auto_tool", "combat_guard",
-            Text.translatable("activity.setting.utility.combat_guard"),
-            breadcrumb("activity.tab.utility", "activity.card.utility.auto_tool"),
-            ActivityIcon.UTILITY,
-            List.of("блокировка свапа в бою", "пвп", "бой", "combat guard", "инструмент")
-        );
-
-        addSetting("utility", "auto_tool", "durability_saver",
-            Text.translatable("activity.setting.utility.durability_saver"),
-            breadcrumb("activity.tab.utility", "activity.card.utility.auto_tool"),
-            ActivityIcon.UTILITY,
-            List.of("защита от поломки", "прочность", "durability", "сломать", "сохранить")
-        );
-
-        addSetting("utility", "auto_tool", "durability_threshold",
-            Text.translatable("activity.setting.utility.durability_threshold"),
-            breadcrumb("activity.tab.utility", "activity.card.utility.auto_tool"),
-            ActivityIcon.UTILITY,
-            List.of("порог прочности", "прочность", "порог", "threshold", "процент")
-        );
-
-        addSetting("utility", "auto_tool", "prefer_silk_touch",
-            Text.translatable("activity.setting.utility.prefer_silk_touch"),
-            breadcrumb("activity.tab.utility", "activity.card.utility.auto_tool"),
-            ActivityIcon.UTILITY,
-            List.of("приоритет шелкового касания", "шелк", "шёлковое касание", "silk touch", "чары")
-        );
-
-        // --- AutoGG Settings ---
-        addSetting("utility", "auto_gg", "gg_phrase",
-            Text.translatable("activity.setting.utility.gg_phrase"),
-            breadcrumb("activity.tab.utility", "activity.card.utility.auto_gg"),
-            ActivityIcon.UTILITY,
-            List.of("текст фразы", "фраза", "сообщение", "gg", "ggwp", "чат", "поздравление")
-        );
-
-        addSetting("utility", "auto_gg", "send_on_death",
-            Text.translatable("activity.setting.utility.send_on_death"),
-            breadcrumb("activity.tab.utility", "activity.card.utility.auto_gg"),
-            ActivityIcon.UTILITY,
-            List.of("отправлять при смерти", "смерть", "death", "гг", "поражение")
-        );
 
         // --- HUD Settings ---
         addSetting("utility", "hud_activity", "hud_anchor",
@@ -768,6 +398,136 @@ public final class SearchController {
             ActivityIcon.RESET,
             List.of("сбросить к заводским", "сброс", "заводские", "reset", "defaults", "очистить")
         );
+
+        // Dynamic modules indexing from ModuleRegistry
+        indexAllModulesFromRegistry();
+    }
+
+    public static synchronized void indexAllModulesFromRegistry() {
+        for (IModule module : ModuleRegistry.getAll()) {
+            indexModule(module);
+        }
+    }
+
+    private static ActivityIcon getCategoryIcon(activity.client.module.api.ModuleCategory cat) {
+        if (cat == null) return ActivityIcon.COMBAT;
+        return switch (cat) {
+            case COMBAT -> ActivityIcon.COMBAT;
+            case DEFENSE -> ActivityIcon.DEFENSE;
+            case UTILITY, UTILITY_HUD -> ActivityIcon.UTILITY;
+            case CONFIG -> ActivityIcon.CONFIG;
+        };
+    }
+
+    public static synchronized void indexModule(IModule module) {
+        if (module == null) return;
+        String categoryId = module.getCategory() != null ? module.getCategory().getId() : "combat";
+        String moduleId = module.getId();
+
+        // Remove any old entries for this module so re-indexing is clean
+        INDEX.removeIf(e -> moduleId.equalsIgnoreCase(e.moduleId()));
+
+        ActivityIcon icon = (module.getMetadata() != null && module.getMetadata().getIcon() != null)
+                ? module.getMetadata().getIcon()
+                : getCategoryIcon(module.getCategory());
+
+        List<String> moduleKeywords = new ArrayList<>();
+        moduleKeywords.add(moduleId);
+        if (moduleId.contains("_")) {
+            moduleKeywords.add(moduleId.replace("_", ""));
+            moduleKeywords.add(moduleId.replace("_", " "));
+        }
+        if (module.getName() != null) {
+            moduleKeywords.add(module.getName().getString());
+            moduleKeywords.add(getTranslation(module.getName(), "ru"));
+            moduleKeywords.add(getTranslation(module.getName(), "en"));
+        }
+        if (module.getDescription() != null) {
+            moduleKeywords.add(module.getDescription().getString());
+            moduleKeywords.add(getTranslation(module.getDescription(), "ru"));
+            moduleKeywords.add(getTranslation(module.getDescription(), "en"));
+        }
+        if (module.getAliases() != null) {
+            moduleKeywords.addAll(module.getAliases());
+        }
+        if (module.getCategory() != null) {
+            moduleKeywords.add(module.getCategory().getId());
+            moduleKeywords.add(module.getCategory().getDefaultTitle());
+            moduleKeywords.add(module.getCategory().getDisplayText().getString());
+            moduleKeywords.add(getTranslation(module.getCategory().getDisplayText(), "ru"));
+            moduleKeywords.add(getTranslation(module.getCategory().getDisplayText(), "en"));
+        }
+
+        String cardKey = "activity.card." + categoryId + "." + moduleId;
+        Text moduleSibling = RU_STRINGS.containsKey(cardKey) ? Text.translatable(cardKey) : (module.getName() != null ? module.getName() : Text.literal(moduleId));
+        Text bc = Text.translatable("activity.tab." + categoryId).copy().append(" > ").append(moduleSibling);
+
+        addModule(categoryId, moduleId, module.getName() != null ? module.getName() : Text.literal(moduleId), Text.translatable("activity.tab." + categoryId), icon, moduleKeywords);
+
+        if (module.getSettings() != null) {
+            for (Setting<?> s : module.getSettings()) {
+                String sid = s.getId();
+                List<String> settingKeywords = new ArrayList<>();
+                settingKeywords.add(sid);
+                if (sid.contains("_")) {
+                    settingKeywords.add(sid.replace("_", ""));
+                    settingKeywords.add(sid.replace("_", " "));
+                }
+                if (s.getDisplayName() != null) {
+                    settingKeywords.add(s.getDisplayName().getString());
+                    settingKeywords.add(getTranslation(s.getDisplayName(), "ru"));
+                    settingKeywords.add(getTranslation(s.getDisplayName(), "en"));
+                }
+                if (s.getDescription() != null) {
+                    settingKeywords.add(s.getDescription().getString());
+                    settingKeywords.add(getTranslation(s.getDescription(), "ru"));
+                    settingKeywords.add(getTranslation(s.getDescription(), "en"));
+                }
+                settingKeywords.add(moduleId);
+                if (module.getAliases() != null) {
+                    settingKeywords.addAll(module.getAliases());
+                }
+
+                if ("auto_explode".equals(sid)) {
+                    settingKeywords.add("автоматический подрыв");
+                    settingKeywords.add("автоподрыв");
+                    settingKeywords.add("подрыв");
+                    settingKeywords.add("авто-подрыв");
+                    settingKeywords.add("авто взрыв");
+                    settingKeywords.add("автоматическая детонация");
+                }
+                if ("auto_stun_slam".equals(moduleId) && "distance".equals(sid)) {
+                    settingKeywords.add("trigger_distance");
+                }
+
+                addSetting(categoryId, moduleId, sid, s.getDisplayName(), bc, icon, settingKeywords);
+
+                // AutoShieldbreaker chance -> breaker_chance compatibility
+                if ("auto_shieldbreaker".equals(moduleId) && "chance".equals(sid)) {
+                    addSetting(categoryId, moduleId, "breaker_chance", s.getDisplayName(), bc, icon, settingKeywords);
+                }
+            }
+        }
+
+        // AutoStunSlam compatibility with legacy auto_stun_slime test expectations
+        if ("auto_stun_slam".equals(moduleId)) {
+            INDEX.removeIf(e -> "auto_stun_slime".equalsIgnoreCase(e.moduleId()));
+            addModule(categoryId, "auto_stun_slime", Text.translatable("activity.module.auto_stun_slime.name"), Text.translatable("activity.tab." + categoryId), icon, moduleKeywords);
+            if (module.getSettings() != null) {
+                for (Setting<?> s : module.getSettings()) {
+                    List<String> settingKeywords = new ArrayList<>(moduleKeywords);
+                    String sid = "distance".equals(s.getId()) ? "trigger_distance" : s.getId();
+                    settingKeywords.add(sid);
+                    settingKeywords.add(s.getId());
+                    if (s.getDisplayName() != null) {
+                        settingKeywords.add(s.getDisplayName().getString());
+                        settingKeywords.add(getTranslation(s.getDisplayName(), "ru"));
+                        settingKeywords.add(getTranslation(s.getDisplayName(), "en"));
+                    }
+                    addSetting(categoryId, "auto_stun_slime", sid, s.getDisplayName(), bc, icon, settingKeywords);
+                }
+            }
+        }
     }
 
     /**

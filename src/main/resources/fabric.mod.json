@@ -13,13 +13,20 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "activity.client.ActivityClient"
+      "activity.client.NivoratClient"
     ]
   },
+  "mixins": [
+    "activity.autotool.mixins.json",
+    "activity.autogg.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.19.3",
     "minecraft": "~1.21.11",
     "java": ">=21",
     "fabric-api": "*"
-  }
+  },
+  "provides": [
+    "nivoratclient"
+  ]
 }

@@ -138,7 +138,7 @@ public abstract class ActivityTab {
      * Convenience registration helper: adds widget to both the tab's state-tracking
      * list and the target {@link ScrollContainer}.
      */
-    protected <T extends ActivityComponent> T addControl(ScrollContainer container, T component) {
+    public <T extends ActivityComponent> T addControl(ScrollContainer container, T component) {
         if (component != null) {
             container.addChild(component);
             addComponent(component);
@@ -152,7 +152,7 @@ public abstract class ActivityTab {
     /**
      * Helper to create a grouped card container inside the scroll container.
      */
-    protected ActivityPanel createCard(ScrollContainer container, int x, int y, int width, int height, Text title) {
+    public ActivityPanel createCard(ScrollContainer container, int x, int y, int width, int height, Text title) {
         ActivityPanel card = new ActivityPanel(x, y, width, height, title);
         card.setBackgroundColor(ActivityColors.PANEL_INNER_BG);
         card.setBorderColor(ActivityColors.BORDER_CARD);
@@ -270,6 +270,13 @@ public abstract class ActivityTab {
      * @param rowWidth   available width for settings rows (accounting for scrollbar)
      */
     public abstract void buildTab(ActivityScreen screen, ScrollContainer container, int startX, int startY, int rowWidth);
+
+    /**
+     * Associated module category if this tab represents a gameplay module group, or null.
+     */
+    public activity.client.module.api.ModuleCategory getCategory() {
+        return null;
+    }
 
     /**
      * Resets all persistent state variables on this tab to their default values.

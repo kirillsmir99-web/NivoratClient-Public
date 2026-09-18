@@ -75,6 +75,9 @@ public final class ActivityConfigManager {
         config.sanitize();
         currentConfig = config;
         ModuleRegistry.loadAll(currentConfig);
+        NivoratConfigManager.syncFromModules(currentConfig);
+        currentConfig.syncModuleConfigEntries();
+        NivoratConfigManager.syncToModules(currentConfig);
         checkDirty();
     }
 
@@ -106,6 +109,7 @@ public final class ActivityConfigManager {
     public static synchronized void resetDefaults() {
         currentConfig.resetToDefaults();
         ModuleRegistry.loadAll(currentConfig);
+        NivoratConfigManager.syncToModules(currentConfig);
         checkDirty();
     }
 
@@ -126,6 +130,8 @@ public final class ActivityConfigManager {
      * Exports the active configuration as a formatted JSON string.
      */
     public static synchronized String exportPresetString() {
+        currentConfig.syncModuleConfigEntries();
+        currentConfig.sanitize();
         return GSON.toJson(currentConfig);
     }
 
@@ -133,7 +139,7 @@ public final class ActivityConfigManager {
      * Exports the active configuration as a compact Base64 encoded string for easy sharing.
      */
     public static synchronized String exportPresetCompact() {
-        String json = GSON.toJson(currentConfig);
+        String json = exportPresetString();
         return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -163,6 +169,12 @@ public final class ActivityConfigManager {
 
             ActivityConfig imported = GSON.fromJson(jsonToParse, ActivityConfig.class);
             if (imported == null) return false;
+            if (jsonToParse.contains("\"client\"")) {
+                imported.syncFromClientSection();
+            }
+            if (jsonToParse.contains("\"modules\"")) {
+                imported.syncFromModuleEntries();
+            }
             imported.sanitize();
             setConfig(imported);
             save();
@@ -189,7 +201,9 @@ public final class ActivityConfigManager {
         if (!Files.exists(CONFIG_PATH)) {
             ActivityClient.LOGGER.info("[Activity] Config file not found at {}. Generating default configuration.", CONFIG_PATH);
             currentConfig = new ActivityConfig();
+            activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(currentConfig);
             ModuleRegistry.loadAll(currentConfig);
+            NivoratConfigManager.syncToModules(currentConfig);
             savedSnapshot = currentConfig.copy();
             manualDirty = false;
             save();
@@ -204,10 +218,20 @@ public final class ActivityConfigManager {
                 throw new JsonParseException("Parsed configuration resulted in null object");
             }
 
+            if (json.contains("\"client\"")) {
+                loaded.syncFromClientSection();
+            }
+            if (json.contains("\"modules\"")) {
+                loaded.syncFromModuleEntries();
+            }
+
             loaded.sanitize();
+            activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(loaded);
             currentConfig = loaded;
+            NivoratConfigManager.syncFromModules(currentConfig);
             ModuleRegistry.loadAll(currentConfig);
-            savedSnapshot = loaded.copy();
+            NivoratConfigManager.syncToModules(currentConfig);
+            savedSnapshot = currentConfig.copy();
             manualDirty = false;
             ActivityClient.LOGGER.info("[Activity] Successfully loaded configuration from {}.", CONFIG_PATH);
             return currentConfig;
@@ -226,6 +250,7 @@ public final class ActivityConfigManager {
     public static synchronized boolean save() {
         try {
             ModuleRegistry.saveAll(currentConfig);
+            NivoratConfigManager.syncToModules(currentConfig);
             currentConfig.sanitize();
             String json = GSON.toJson(currentConfig);
 
@@ -270,7 +295,9 @@ public final class ActivityConfigManager {
         }
 
         currentConfig = new ActivityConfig();
+        activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(currentConfig);
         ModuleRegistry.loadAll(currentConfig);
+        NivoratConfigManager.syncToModules(currentConfig);
         save();
         ActivityClient.LOGGER.info("[Activity] Factory default configuration restored.");
     }

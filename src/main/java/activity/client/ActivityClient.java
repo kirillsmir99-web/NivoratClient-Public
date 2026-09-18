@@ -24,6 +24,7 @@ public class ActivityClient implements ClientModInitializer {
 
         // Load persisted configuration from disk (or initialize clean defaults)
         ActivityConfigManager.load();
+        activity.client.module.api.ModuleRegistry.initEvents();
         activity.client.gui.font.FontManager.init();
         activity.client.gui.sound.ActivitySoundEvents.register();
 

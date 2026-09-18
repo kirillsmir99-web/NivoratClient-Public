@@ -25,6 +25,16 @@ public abstract class ActivityComponent implements Element, Drawable {
     protected boolean focused = false;
     protected boolean hovered = false;
     protected float alpha = 1.0f;
+    protected net.minecraft.text.Text tooltip = null;
+
+    public net.minecraft.text.Text getTooltip() {
+        return this.tooltip;
+    }
+
+    public ActivityComponent setTooltip(net.minecraft.text.Text tooltip) {
+        this.tooltip = tooltip;
+        return this;
+    }
 
     public ActivityComponent(int x, int y, int width, int height) {
         this.x = x;

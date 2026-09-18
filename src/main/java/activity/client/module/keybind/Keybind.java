@@ -58,6 +58,7 @@ public final class Keybind {
         this.ctrl = ctrl;
         this.shift = shift;
         this.alt = alt;
+        KeybindManager.rebuildBoundKeybinds();
     }
 
     public void setKey(int keyCode, int modifiers) {

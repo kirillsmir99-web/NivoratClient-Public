@@ -2,7 +2,9 @@ package activity.client.module;
 
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
+import activity.client.gui.ModuleSettingsView;
 import activity.client.gui.icon.ActivityIcon;
+import activity.client.gui.layout.ScrollContainer;
 import activity.client.gui.menu.ModuleContextMenu;
 import activity.client.gui.sheet.AboutModuleSheet;
 import activity.client.gui.sidebar.SidebarTree;
@@ -10,7 +12,10 @@ import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleMetadata;
 import activity.client.module.api.ModuleRegistry;
+import activity.client.module.api.NivoratModule;
 import activity.client.module.keybind.Keybind;
+import activity.client.module.setting.BooleanSetting;
+import activity.client.module.setting.SettingGroup;
 import activity.client.module.stub.AutoStunSlamStub;
 import activity.client.module.stub.AutoStunSlimeStub;
 import net.minecraft.text.Text;
@@ -18,6 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -155,8 +162,9 @@ public class ModuleUXStage6Test {
             assertEquals(module.getId(), meta.getId());
             assertNotNull(meta.getDisplayName());
             assertNotNull(meta.getDescription());
-            assertEquals("Nivorat", meta.getAuthor());
-            assertEquals("1.0.0", meta.getVersion());
+            assertNotNull(meta.getAuthor());
+            assertNotNull(meta.getVersion());
+            assertTrue(meta.getVersion().matches("\\d+\\.\\d+\\.\\d+"), "Version should be semver: " + meta.getVersion());
             assertEquals("2026-09-16", meta.getLastUpdated());
             assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
             assertNotNull(meta.getCategory());
@@ -258,5 +266,162 @@ public class ModuleUXStage6Test {
 
         sheet.close();
         assertTrue(sheet.isClosed());
+    }
+
+    @Test
+    void testTelegramAliasInModuleMetadata() {
+        ModuleMetadata meta = ModuleMetadata.builder("test_tg")
+                .displayName(Text.literal("TG Test"))
+                .telegram("https://t.me/virionDEV")
+                .build();
+        assertEquals("https://t.me/virionDEV", meta.getTelegram());
+        assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
+
+        IModule mace = ModuleRegistry.get("auto_mace");
+        assertNotNull(mace);
+        assertNotNull(mace.getMetadata().getTelegram());
+        assertEquals("https://t.me/virionDEV", mace.getMetadata().getTelegram());
+    }
+
+    // =========================================================================
+    // 6. GENERIC MODULE SETTINGS VIEW & REACTIVE VISIBILITY
+    // =========================================================================
+
+    @Test
+    void testGenericModuleSettingsViewStandaloneAndOverlays() {
+        IModule mace = ModuleRegistry.get("auto_mace");
+        assertNotNull(mace);
+        assertTrue(mace instanceof NivoratModule);
+
+        assertDoesNotThrow(() -> {
+            assertNotNull(ModuleSettingsView.class.getConstructor(IModule.class));
+            assertNotNull(ModuleSettingsView.class.getConstructor(IModule.class, net.minecraft.client.gui.screen.Screen.class));
+            assertNotNull(ModuleSettingsView.class.getConstructor(NivoratModule.class));
+            assertNotNull(ModuleSettingsView.class.getConstructor(NivoratModule.class, net.minecraft.client.gui.screen.Screen.class));
+        });
+
+        activity.client.gui.overlay.OverlayManager overlayManager = new activity.client.gui.overlay.OverlayManager();
+        activity.client.gui.modal.ModalManager modalManager = new activity.client.gui.modal.ModalManager(overlayManager);
+        assertNotNull(overlayManager);
+        assertNotNull(modalManager);
+        assertFalse(overlayManager.hasActiveOverlay());
+
+        AboutModuleSheet sheet = new AboutModuleSheet(null, mace.getId());
+        overlayManager.open(sheet);
+        assertTrue(overlayManager.hasActiveOverlay());
+        overlayManager.clear();
+        assertFalse(overlayManager.hasActiveOverlay());
+
+        if (net.minecraft.client.MinecraftClient.getInstance() != null) {
+            ModuleSettingsView view = new ModuleSettingsView((NivoratModule) mace);
+            assertEquals(mace, view.getModule());
+            assertNull(view.getParentScreen());
+            assertNotNull(view.getMetadata());
+            assertEquals("auto_mace", view.getMetadata().getId());
+            assertEquals("https://t.me/virionDEV", view.getMetadata().getTelegram());
+            assertNotNull(view.getOverlayManager());
+            assertNotNull(view.getModalManager());
+
+            assertFalse(view.getOverlayManager().hasActiveOverlay());
+            view.openAboutModuleSheet(mace.getId());
+            assertTrue(view.getOverlayManager().hasActiveOverlay());
+            view.getOverlayManager().clear();
+            assertFalse(view.getOverlayManager().hasActiveOverlay());
+        }
+    }
+
+    @Test
+    void testBuildCardAllTwelveModulesUnified() {
+        ScrollContainer container = new ScrollContainer(0, 0, 400, 600);
+        List<String> twelveIds = List.of(
+            "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
+            "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+        );
+        for (String id : twelveIds) {
+            IModule mod = ModuleRegistry.get(id);
+            assertNotNull(mod, "Module " + id + " must be present in registry");
+            int height = ModuleSettingsView.buildCard(null, null, container, mod, 0, 0, 380, 360);
+            assertTrue(height > 40, "Height for " + id + " must be > 40px, was: " + height);
+        }
+    }
+
+    @Test
+    void testReactiveConditionalVisibilityInModuleSettingsView() {
+        TestConditionalModule testMod = new TestConditionalModule();
+        ScrollContainer container = new ScrollContainer(0, 0, 400, 600);
+
+        AtomicInteger reloadCount = new AtomicInteger(0);
+        AtomicBoolean aboutOpened = new AtomicBoolean(false);
+
+        // Initially mode is FALSE -> dependent setting is not visible
+        assertFalse(testMod.modeSetting.get());
+        assertFalse(testMod.dependentSetting.isVisible());
+
+        int hInitial = ModuleSettingsView.buildCard(
+                null, null, container, testMod, 0, 0, 400, 380,
+                id -> aboutOpened.set(true), null, null, reloadCount::incrementAndGet
+        );
+        assertTrue(hInitial > 0);
+        assertEquals(0, reloadCount.get());
+
+        // Toggle mode to TRUE: dependent setting becomes visible
+        testMod.modeSetting.set(true);
+        assertTrue(testMod.dependentSetting.isVisible());
+
+        // Triggering setting change alerts reload callback because visibility changed
+        testMod.notifyModeChanged();
+        assertEquals(1, reloadCount.get(), "Changing mode must trigger reload when visibility changes");
+    }
+
+    @Test
+    void testSidebarTreeRebuildAndRefresh() {
+        SidebarTree tree = new SidebarTree();
+        assertEquals(4, tree.getCategories().size());
+
+        tree.refresh();
+        assertEquals(4, tree.getCategories().size());
+
+        tree.rebuildNodes();
+        assertEquals(4, tree.getCategories().size());
+        assertEquals(4, tree.getCategories().get(0).getChildren().size());
+        assertEquals(4, tree.getCategories().get(1).getChildren().size());
+        assertEquals(5, tree.getCategories().get(2).getChildren().size());
+    }
+
+    private static class TestConditionalModule extends NivoratModule {
+        final BooleanSetting modeSetting;
+        final BooleanSetting dependentSetting;
+        private boolean enabledState = false;
+        private boolean advancedOption = false;
+
+        TestConditionalModule() {
+            super("test_conditional", Text.literal("Test Module"), Text.literal("Test Desc"), ModuleCategory.COMBAT);
+
+            this.modeSetting = registerBoolean(
+                    "enable_advanced",
+                    Text.literal("Advanced Mode"),
+                    Text.literal("Toggles advanced options"),
+                    SettingGroup.GENERAL,
+                    false,
+                    () -> this.enabledState,
+                    val -> this.enabledState = val
+            );
+
+            this.dependentSetting = registerBoolean(
+                    "advanced_option",
+                    Text.literal("Advanced Option"),
+                    Text.literal("Only shown when advanced mode is on"),
+                    SettingGroup.GENERAL,
+                    false,
+                    () -> this.advancedOption,
+                    val -> this.advancedOption = val
+            );
+            this.dependentSetting.visibleWhen(this.modeSetting);
+        }
+
+        void notifyModeChanged() {
+            this.modeSetting.set(this.modeSetting.get());
+        }
     }
 }

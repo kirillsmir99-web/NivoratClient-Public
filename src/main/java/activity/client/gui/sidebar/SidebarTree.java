@@ -466,60 +466,19 @@ public class SidebarTree {
     private void initNodes() {
         // Category 0: Combat
         CategoryNode combat = new CategoryNode("combat", 0, Text.translatable("activity.tab.combat"), ActivityIcon.COMBAT);
-        combat.addChild("auto_mace", Text.translatable("activity.module.auto_mace.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoMaceEnabled;
-        });
-        combat.addChild("auto_spear", Text.translatable("activity.module.auto_spear.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoSpearEnabled;
-        });
-        combat.addChild("auto_shieldbreaker", Text.translatable("activity.module.auto_shieldbreaker.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoShieldbreakerEnabled;
-        });
-        combat.addChild("auto_stun_slam", Text.translatable("activity.module.auto_stun_slam.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoStunSlamEnabled;
-        });
+        populateCategoryFromRegistry(combat, activity.client.module.api.ModuleCategory.COMBAT);
         combat.setExpanded(true); // default open for immediate UX visibility
         combat.setUserExpanded(true);
         this.categories.add(combat);
 
         // Category 1: Defense
         CategoryNode defense = new CategoryNode("defense", 1, Text.translatable("activity.tab.defense"), ActivityIcon.DEFENSE);
-        defense.addChild("auto_totem", Text.translatable("activity.module.auto_totem.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoTotemEnabled;
-        });
-        defense.addChild("auto_cart", Text.translatable("activity.module.auto_cart.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoCartEnabled;
-        });
-        defense.addChild("auto_anchor", Text.translatable("activity.module.auto_anchor.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoAnchorEnabled;
-        });
-        defense.addChild("cart_refill", Text.translatable("activity.module.cart_refill.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.cartRefillEnabled;
-        });
+        populateCategoryFromRegistry(defense, activity.client.module.api.ModuleCategory.DEFENSE);
         this.categories.add(defense);
 
         // Category 2: Utility & HUD
         CategoryNode utility = new CategoryNode("utility", 2, Text.translatable("activity.tab.utility"), ActivityIcon.UTILITY);
-        utility.addChild("hp_reaper", Text.translatable("activity.module.hp_reaper.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.hpReaperEnabled;
-        });
-        utility.addChild("auto_tool", Text.translatable("activity.module.auto_tool.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoToolEnabled;
-        });
-        utility.addChild("auto_gg", Text.translatable("activity.module.auto_gg.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.autoGGEnabled;
-        });
+        populateCategoryFromRegistry(utility, activity.client.module.api.ModuleCategory.UTILITY);
         utility.addChild("hud_activity", Text.translatable("activity.module.hud_activity.name"), () -> {
             ActivityConfig c = ActivityConfigManager.getConfig();
             return c != null && c.overlayEnabled;
@@ -535,6 +494,62 @@ public class SidebarTree {
         // Fixed Footer Items
         this.footerItems.add(new FooterNode("settings", 4, Text.translatable("activity.tab.settings"), ActivityIcon.SETTINGS));
         this.footerItems.add(new FooterNode("about", 5, Text.translatable("activity.tab.about"), ActivityIcon.ABOUT));
+    }
+
+    public void rebuildNodes() {
+        this.categories.clear();
+        this.footerItems.clear();
+        this.invalidateTextCache();
+        initNodes();
+    }
+
+    public void refresh() {
+        rebuildNodes();
+    }
+
+    private void populateCategoryFromRegistry(CategoryNode node, activity.client.module.api.ModuleCategory category) {
+        List<IModule> modules = ModuleRegistry.getByCategory(category);
+        for (IModule mod : modules) {
+            node.addChild(mod.getId(), mod.getName(), () -> isModuleActive(mod));
+        }
+    }
+
+    private static boolean isModuleActive(IModule mod) {
+        if (mod == null) return false;
+        ActivityConfig c = ActivityConfigManager.getConfig();
+        if (c != null) {
+            Boolean fromConfig = isModuleEnabledInConfig(c, mod.getId());
+            if (fromConfig != null) {
+                return fromConfig;
+            }
+        }
+        return mod.isEnabled();
+    }
+
+    private static Boolean isModuleEnabledInConfig(ActivityConfig c, String id) {
+        Boolean direct = switch (id) {
+            case "auto_mace" -> c.autoMaceEnabled;
+            case "auto_spear" -> c.autoSpearEnabled;
+            case "auto_shieldbreaker" -> c.autoShieldbreakerEnabled;
+            case "auto_stun_slam", "auto_stun_slime" -> c.autoStunSlamEnabled;
+            case "auto_totem" -> c.autoTotemEnabled;
+            case "auto_cart" -> c.autoCartEnabled;
+            case "auto_anchor" -> c.autoAnchorEnabled;
+            case "cart_refill" -> c.cartRefillEnabled;
+            case "hp_reaper" -> c.hpReaperEnabled;
+            case "auto_tool" -> c.autoToolEnabled;
+            case "auto_gg" -> c.autoGGEnabled;
+            case "cart_hud" -> c.cartHudEnabled;
+            default -> null;
+        };
+        if (direct != null) {
+            return direct;
+        }
+        ActivityConfig.ModuleConfigEntry entry = c.getModuleEntry(id);
+        if (entry != null) {
+            return entry.enabled;
+        }
+        return null;
     }
 
     public List<CategoryNode> getCategories() {
@@ -832,8 +847,10 @@ public class SidebarTree {
 
         // 3. Keybind badge
         int rightBound = toggleX - 4;
-        if (meta != null && textRenderer != null) {
-            String kbStr = meta.getKeybindDisplay();
+        if (module != null && textRenderer != null) {
+            String kbStr = (module.getKeybind() != null && !module.getKeybind().isUnbound())
+                ? "[" + module.getKeybind().getDisplayString() + "]"
+                : (meta != null ? meta.getKeybindDisplay() : "[-]");
             int kbW = activity.client.gui.font.UiTextRenderer.getWidth(textRenderer, kbStr);
             if (kbW < 45 && rightBound - kbW > x + 30) {
                 int kbX = rightBound - kbW;
@@ -849,7 +866,7 @@ public class SidebarTree {
         if (textRenderer != null) {
             int nameX = x + 4 + (icon != null ? icon.getWidth() : 12) + 4;
             int maxNameW = Math.max(0, rightBound - nameX);
-            Text modName = meta != null ? meta.getDisplayName() : Text.literal(moduleId);
+            Text modName = module != null ? module.getName() : (meta != null ? meta.getDisplayName() : Text.literal(moduleId));
             Text display = getQaDisplayName(moduleId, modName, textRenderer, maxNameW);
             if (maxNameW > 8) {
                 int fontH = activity.client.gui.font.UiTextRenderer.getFontHeight(textRenderer);
