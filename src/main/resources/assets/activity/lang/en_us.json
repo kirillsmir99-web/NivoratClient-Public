@@ -283,7 +283,7 @@
   "activity.setting.utility.send_on_kill": "Send On Kill",
   "activity.setting.utility.send_on_kill.desc": "Send message upon duel victory (disabled on non-duels/FFA to prevent false triggers)",
   "activity.setting.utility.send_on_death": "Send On Own Death",
-  "activity.setting.utility.send_on_death.desc": "Send message upon own death",
+  "activity.setting.utility.send_on_death.desc": "Send message upon own death or defeat (works everywhere in all modes)",
   "activity.setting.utility.menu_keybind": "Radial Menu Keybind",
   "activity.setting.utility.menu_keybind.desc": "Keybind to open the quick AutoGG radial phrase menu",
   "activity.setting.utility.open_carthud_editor": "Open Editor",

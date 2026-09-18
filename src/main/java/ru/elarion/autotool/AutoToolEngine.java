@@ -351,6 +351,22 @@ public final class AutoToolEngine {
         }
 
         if (bestScore <= 0.0F) {
+            if (config.durabilitySaver && currentStack.isDamageable()) {
+                int remaining = currentStack.getMaxDamage() - currentStack.getDamage();
+                if (remaining <= config.durabilityThreshold) {
+                    for (int i = 0; i < 9; i++) {
+                        if (inv.getStack(i).isEmpty()) {
+                            return i;
+                        }
+                    }
+                    for (int i = 0; i < 9; i++) {
+                        ItemStack s = inv.getStack(i);
+                        if (!s.isEmpty() && !s.isDamageable()) {
+                            return i;
+                        }
+                    }
+                }
+            }
             return -1;
         }
 
@@ -499,18 +515,38 @@ public final class AutoToolEngine {
             return -1;
         }
 
-        if (bestScore <= 1.0F && !state.isToolRequired()) {
+        if (bestScore <= 1.0F) {
             if (config.durabilitySaver && currentStack.isDamageable()) {
                 int remaining = currentStack.getMaxDamage() - currentStack.getDamage();
                 if (remaining <= config.durabilityThreshold) {
+                    // 1. Try empty hotbar slot
                     for (int i = 0; i < 9; i++) {
                         if (inv.getStack(i).isEmpty()) {
                             return i;
                         }
                     }
+                    // 2. Fallback to non-damageable item in hotbar (blocks, food, torches, etc.)
+                    for (int i = 0; i < 9; i++) {
+                        ItemStack s = inv.getStack(i);
+                        if (!s.isEmpty() && !s.isDamageable()) {
+                            return i;
+                        }
+                    }
+                    // 3. Fallback to any damageable item with safe durability
+                    for (int i = 0; i < 9; i++) {
+                        ItemStack s = inv.getStack(i);
+                        if (!s.isEmpty() && s.isDamageable()) {
+                            int rem = s.getMaxDamage() - s.getDamage();
+                            if (rem > config.durabilityThreshold) {
+                                return i;
+                            }
+                        }
+                    }
                 }
             }
-            return -1;
+            if (!state.isToolRequired()) {
+                return -1;
+            }
         }
 
         return bestSlot;

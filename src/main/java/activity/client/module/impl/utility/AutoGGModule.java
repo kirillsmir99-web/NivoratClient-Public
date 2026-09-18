@@ -167,13 +167,13 @@ public class AutoGGModule extends NivoratModule {
         int count = currentPhrases != null ? currentPhrases.size() : 0;
         String activeSelected = AutoGGClient.CONFIG.currentPhrase();
 
-        // 0. Informative note: Duels only for foreign kills, own death works everywhere
+        // 0. Informative footnote: Duels only for foreign kills, own death works everywhere
         activity.client.gui.component.ActivityLabel infoNote = new activity.client.gui.component.ActivityLabel(
                 startX, curY + 3,
-                Text.literal("ℹ Примечание: Мод оптимизирован для дуэлей")
+                Text.literal("ℹ Сноска: Мод работает только на дуэлях")
         );
         infoNote.setColor(activity.client.gui.theme.ActivityColors.TEXT_ACCENT);
-        infoNote.setTooltip(Text.literal("На не-дуэлях/FFA автоотправка за чужие смерти отключена во избежание ложных срабатываний. Отправка при собственной смерти работает всегда."));
+        infoNote.setTooltip(Text.literal("На серверах и режимах не-дуэлей (FFA и других) автоотправка за чужие смерти отключена во избежание ложных срабатываний. Отправка сообщений после собственной смерти работает везде без каких-либо проблем."));
         if (tab != null) tab.addControl(container, infoNote); else container.addChild(infoNote);
         curY += rowH + gap;
 
@@ -408,16 +408,6 @@ public class AutoGGModule extends NivoratModule {
         }
     }
 
-    private final CartStateService.CartEventListener cartListener = new CartStateService.CartEventListener() {
-        @Override
-        public void onCartPlaced(BlockPos pos) {
-            if (isEnabled() && pos != null) {
-                AutoGGKillTracker.recordCartPlacement(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-                AutoGGKillTracker.recordExplosion(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, AutoGGKillTracker.DEFAULT_EXPLOSION_RADIUS);
-            }
-        }
-    };
-
     public void openRadialMenu(MinecraftClient client) {
         if (client != null && client.currentScreen == null) {
             ActivityConfig c = ActivityConfigManager.getConfig();
@@ -435,7 +425,6 @@ public class AutoGGModule extends NivoratModule {
         if (c != null) {
             syncEngineConfig(c);
         }
-        CartStateService.addListener(cartListener);
     }
 
     @Override
@@ -458,16 +447,6 @@ public class AutoGGModule extends NivoratModule {
 
     @Override
     public ActionResult onAttackEntity(PlayerEntity player, net.minecraft.world.World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-        if (isEnabled() && entity != null) {
-            Vec3d pos = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
-            AutoGGClient.recordAttack(entity.getId(), pos);
-
-            if (entity.getType() == EntityType.TNT_MINECART
-                    || entity.getType() == EntityType.END_CRYSTAL
-                    || entity.getType() == EntityType.TNT) {
-                AutoGGKillTracker.recordExplosion(pos.x, pos.y, pos.z, AutoGGKillTracker.DEFAULT_EXPLOSION_RADIUS);
-            }
-        }
         return ActionResult.PASS;
     }
 

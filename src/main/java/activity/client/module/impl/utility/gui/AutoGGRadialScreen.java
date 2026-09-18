@@ -90,7 +90,7 @@ public final class AutoGGRadialScreen extends Screen {
     private static final Text WATERMARK_HOVERED = Text.literal("§b§nТГ канал автора модов - @virionDEV");
 
     static {
-        // 1. Sector fills & Dividers
+        // 1. Sector fills & Dividers (optimized 2px resolution)
         int inner2 = INNER_RADIUS * INNER_RADIUS;
         int outer2 = OUTER_RADIUS * OUTER_RADIUS;
         int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
@@ -105,12 +105,12 @@ public final class AutoGGRadialScreen extends Screen {
                 SECTOR_TEXT_OFFSETS[count][s * 2] = (int) Math.round(Math.cos(mid) * textRadius);
                 SECTOR_TEXT_OFFSETS[count][s * 2 + 1] = (int) Math.round(Math.sin(mid) * textRadius);
                 List<Span> list = new ArrayList<>();
-                for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
+                for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y += 2) {
                     int y2 = y * y;
                     int maxOuterX = (int) Math.sqrt(Math.max(0, outer2 - y2));
                     int spanStart = Integer.MIN_VALUE;
 
-                    for (int x = -maxOuterX; x <= maxOuterX; x++) {
+                    for (int x = -maxOuterX; x <= maxOuterX; x += 2) {
                         int dist2 = x * x + y2;
                         boolean inRadial = dist2 >= inner2 && dist2 <= outer2;
                         boolean inSector = false;
@@ -127,16 +127,16 @@ public final class AutoGGRadialScreen extends Screen {
                             }
                         } else {
                             if (spanStart != Integer.MIN_VALUE) {
-                                list.add(new Span(y, spanStart, x));
+                                list.add(new Span(y, spanStart, x + 2));
                                 spanStart = Integer.MIN_VALUE;
                             }
                         }
                     }
                     if (spanStart != Integer.MIN_VALUE) {
-                        list.add(new Span(y, spanStart, maxOuterX + 1));
+                        list.add(new Span(y, spanStart, maxOuterX + 2));
                     }
                 }
-                SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 1);
+                SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 2);
             }
 
             // Divider spans for count > 1
@@ -147,40 +147,40 @@ public final class AutoGGRadialScreen extends Screen {
                     double a = i * sectorAngle - Math.PI / 2.0;
                     double cosA = Math.cos(a);
                     double sinA = Math.sin(a);
-                    for (int r = INNER_RADIUS + 1; r < OUTER_RADIUS; r++) {
+                    for (int r = INNER_RADIUS + 1; r < OUTER_RADIUS; r += 2) {
                         int px = (int) Math.round(cosA * r);
                         int py = (int) Math.round(sinA * r);
-                        divSpans.add(new Span(py, px, px + 1));
+                        divSpans.add(new Span(py, px, px + 2));
                     }
                 }
-                DIVIDER_BLOCKS_CACHE[count].addAll(coalesceSpans(optimizeSpans(divSpans), 1));
+                DIVIDER_BLOCKS_CACHE[count].addAll(coalesceSpans(optimizeSpans(divSpans), 2));
             }
         }
 
         // 2. Base Ring
         List<Span> rawRing = new ArrayList<>();
-        for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
+        for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y += 2) {
             int y2 = y * y;
             if (y2 > outer2) continue;
             int maxOuterX = (int) Math.round(Math.sqrt(outer2 - y2));
             int maxInnerX = (y2 < inner2) ? (int) Math.round(Math.sqrt(inner2 - y2)) : 0;
             if (maxInnerX > 0) {
                 rawRing.add(new Span(y, -maxOuterX, -maxInnerX));
-                rawRing.add(new Span(y, maxInnerX, maxOuterX + 1));
+                rawRing.add(new Span(y, maxInnerX, maxOuterX + 2));
             } else {
-                rawRing.add(new Span(y, -maxOuterX, maxOuterX + 1));
+                rawRing.add(new Span(y, -maxOuterX, maxOuterX + 2));
             }
         }
-        RING_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawRing), 1));
+        RING_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawRing), 2));
 
         // 3. Central Hub
         List<Span> rawHub = new ArrayList<>();
         int hub2 = HUB_RADIUS * HUB_RADIUS;
-        for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y++) {
+        for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y += 2) {
             int maxHubX = (int) Math.round(Math.sqrt(Math.max(0, hub2 - y * y)));
-            rawHub.add(new Span(y, -maxHubX, maxHubX + 1));
+            rawHub.add(new Span(y, -maxHubX, maxHubX + 2));
         }
-        HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 1));
+        HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 2));
     }
 
     public static List<Span> optimizeSpans(List<Span> raw) {

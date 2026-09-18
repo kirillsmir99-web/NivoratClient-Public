@@ -102,4 +102,16 @@ public class AutoToolEngineTest {
         assertTrue(cfg.legitMode, "Legit mode must be enabled by default");
         assertFalse(cfg.singleSlotMode, "Single slot mode must be false by default");
     }
+
+    @Test
+    @DisplayName("Durability saver score: Returns -1000.0f when durability <= threshold")
+    void testDurabilitySaverScoring() {
+        // When durabilitySaver is enabled and item is at threshold, evaluateToolScore returns -1000.0F
+        config.durabilitySaver = true;
+        config.durabilityThreshold = 5;
+
+        // Null checks
+        assertEquals(-100.0f, AutoToolEngine.evaluateWeaponScore(null, null, config));
+        assertEquals(0.0f, AutoToolEngine.evaluateToolScore(null, null, config));
+    }
 }

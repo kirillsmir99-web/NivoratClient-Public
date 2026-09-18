@@ -7,7 +7,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
@@ -32,6 +31,11 @@ public final class CartHudEditorScreen extends Screen {
     private boolean isDragging = false;
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
+
+    // Interactive button bounds in the top banner
+    private int btnResetX, btnResetY, btnResetW, btnResetH;
+    private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
+    private int lastHoveredBtn = -1;
 
     public CartHudEditorScreen(Screen parent) {
         super(Text.literal("Cart HUD • Настройка позиции"));
@@ -65,35 +69,6 @@ public final class CartHudEditorScreen extends Screen {
         isDragging = false;
         this.clearChildren();
         SoundManager.playOpen();
-
-        int dockW = 320;
-        int dockH = 34;
-        int dockX = (width - dockW) / 2;
-        int dockY = height - dockH - 12;
-
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal("Сбросить по умолчанию"),
-            b -> {
-                CartHudConfig.customX = -1;
-                CartHudConfig.customY = -1;
-                CartHudConfig.save();
-                activity.client.config.ActivityConfig c = activity.client.config.ActivityConfigManager.getConfig();
-                if (c != null) {
-                    c.cartHudCustomX = -1;
-                    c.cartHudCustomY = -1;
-                    activity.client.config.ActivityConfigManager.markDirty();
-                }
-                SoundManager.playClick();
-            }
-        ).dimensions(dockX + 6, dockY + 6, 150, 22).build());
-
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal("Готово"),
-            b -> {
-                SoundManager.playClick();
-                close();
-            }
-        ).dimensions(dockX + 164, dockY + 6, 150, 22).build());
     }
 
     private void nudge(int dx, int dy) {
@@ -133,7 +108,13 @@ public final class CartHudEditorScreen extends Screen {
             CartHudConfig.customX = -1;
             CartHudConfig.customY = -1;
             CartHudConfig.save();
-            SoundManager.playClick();
+            activity.client.config.ActivityConfig c = activity.client.config.ActivityConfigManager.getConfig();
+            if (c != null) {
+                c.cartHudCustomX = -1;
+                c.cartHudCustomY = -1;
+                activity.client.config.ActivityConfigManager.markDirty();
+            }
+            SoundManager.playSelect();
             return true;
         }
         if (input.isEscape()) {
@@ -145,26 +126,57 @@ public final class CartHudEditorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
+        double mx = click.x();
+        double my = click.y();
+        int button = click.buttonInfo().button();
+
+        // 1. Top banner buttons
+        if (button == 0) {
+            if (mx >= btnResetX && mx <= btnResetX + btnResetW && my >= btnResetY && my <= btnResetY + btnResetH) {
+                CartHudConfig.customX = -1;
+                CartHudConfig.customY = -1;
+                CartHudConfig.save();
+                activity.client.config.ActivityConfig c = activity.client.config.ActivityConfigManager.getConfig();
+                if (c != null) {
+                    c.cartHudCustomX = -1;
+                    c.cartHudCustomY = -1;
+                    activity.client.config.ActivityConfigManager.markDirty();
+                }
+                SoundManager.playSelect();
+                return true;
+            }
+            if (mx >= btnDoneX && mx <= btnDoneX + btnDoneW && my >= btnDoneY && my <= btnDoneY + btnDoneH) {
+                SoundManager.playClick();
+                close();
+                return true;
+            }
+        }
+
+        // 2. Draggable cart element (+16px generous hitbox)
         int currentX = CartHudOverlay.getEffectiveX(width);
         int currentY = CartHudOverlay.getEffectiveY(height);
         int boxW = CartHudOverlay.ELEMENT_WIDTH;
         int boxH = CartHudOverlay.ELEMENT_HEIGHT;
 
-        double mx = click.x();
-        double my = click.y();
-        boolean inside = mx >= currentX - 12 && mx <= currentX + boxW + 12 && my >= currentY - 12 && my <= currentY + boxH + 12;
+        boolean inside = mx >= currentX - 16 && mx <= currentX + boxW + 16 && my >= currentY - 16 && my <= currentY + boxH + 16;
 
-        if (click.buttonInfo().button() == 0 && inside) {
+        if (button == 0 && inside) {
             isDragging = true;
             dragOffsetX = (int) Math.round(mx - currentX);
             dragOffsetY = (int) Math.round(my - currentY);
             SoundManager.playClick();
             return true;
-        } else if (click.buttonInfo().button() == 1 && inside) {
+        } else if (button == 1 && inside) {
             CartHudConfig.customX = -1;
             CartHudConfig.customY = -1;
             CartHudConfig.save();
-            SoundManager.playClick();
+            activity.client.config.ActivityConfig c = activity.client.config.ActivityConfigManager.getConfig();
+            if (c != null) {
+                c.cartHudCustomX = -1;
+                c.cartHudCustomY = -1;
+                activity.client.config.ActivityConfigManager.markDirty();
+            }
+            SoundManager.playSelect();
             return true;
         }
         return super.mouseClicked(click, doubled);
@@ -189,11 +201,16 @@ public final class CartHudEditorScreen extends Screen {
             int newY = (int) Math.round(click.y() - dragOffsetY);
 
             int centerX = width / 2 - boxW / 2;
-            if (Math.abs(newX - centerX) <= 3) {
+            if (Math.abs(newX - centerX) <= 4) {
                 newX = centerX;
             }
-            if (Math.abs(newX - 14) <= 4) {
+            if (Math.abs(newX - 14) <= 5) {
                 newX = 14;
+            }
+
+            int centerY = height / 2 - boxH / 2;
+            if (Math.abs(newY - centerY) <= 4) {
+                newY = centerY;
             }
 
             CartHudConfig.customX = Math.max(2, Math.min(width - boxW - 2, newX));
@@ -219,13 +236,20 @@ public final class CartHudEditorScreen extends Screen {
         if (isDragging) {
             int newX = (int) Math.round(mouseX - dragOffsetX);
             int newY = (int) Math.round(mouseY - dragOffsetY);
+
             int centerX = width / 2 - boxW / 2;
-            if (Math.abs(newX - centerX) <= 3) {
+            if (Math.abs(newX - centerX) <= 4) {
                 newX = centerX;
             }
-            if (Math.abs(newX - 14) <= 4) {
+            if (Math.abs(newX - 14) <= 5) {
                 newX = 14;
             }
+
+            int centerY = height / 2 - boxH / 2;
+            if (Math.abs(newY - centerY) <= 4) {
+                newY = centerY;
+            }
+
             CartHudConfig.customX = Math.max(2, Math.min(width - boxW - 2, newX));
             CartHudConfig.customY = Math.max(4, Math.min(height - boxH - 2, newY));
         }
@@ -236,43 +260,25 @@ public final class CartHudEditorScreen extends Screen {
         ActivityGuiRenderer.fill(context, 0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
         if (isDragging) {
+            if (Math.abs(currentX - 14) <= 1) {
+                ActivityGuiRenderer.drawVerticalLine(context, 14, 0, height, 0x5000D2FF);
+            }
             if (Math.abs(currentX + boxW / 2 - width / 2) <= 1) {
-                ActivityGuiRenderer.drawVerticalLine(context, width / 2, 0, height, 0x502B79C2);
+                ActivityGuiRenderer.drawVerticalLine(context, width / 2, 0, height, 0x5000D2FF);
             }
             if (Math.abs(currentY + boxH / 2 - height / 2) <= 1) {
-                ActivityGuiRenderer.drawHorizontalLine(context, 0, height / 2, width, 0x502B79C2);
+                ActivityGuiRenderer.drawHorizontalLine(context, 0, height / 2, width, 0x5000D2FF);
             }
         }
 
-        // Header banner
-        int bannerW = Math.min(440, width - 20);
-        int bannerH = 34;
-        int bannerX = (width - bannerW) / 2;
-        int bannerY = 12;
-
-        ActivityGuiRenderer.drawWindowFrame(context, bannerX, bannerY, bannerW, bannerH, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
-        ActivityGuiRenderer.fill(context, bannerX + 1, bannerY + 1, bannerW - 2, bannerH - 2, ActivityColors.HEADER_BACKGROUND);
-        ActivityGuiRenderer.drawGlassHighlight(context, bannerX, bannerY, bannerW, bannerH, 1.0f);
-
-        if (textRenderer != null) {
-            ActivityGuiRenderer.fill(context, bannerX + 8, bannerY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
-            context.drawTextWithShadow(textRenderer, Text.literal("CART HUD • НАСТРОЙКА ПОЗИЦИИ"), bannerX + 18, bannerY + 7, ActivityColors.TEXT_PRIMARY);
-
-            String posStr = (CartHudConfig.customX < 0 && CartHudConfig.customY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
-            int posStrW = textRenderer.getWidth(posStr);
-            context.drawTextWithShadow(textRenderer, Text.literal(posStr), bannerX + bannerW - 12 - posStrW, bannerY + 7, ActivityColors.TEXT_ACCENT);
-
-            context.drawTextWithShadow(textRenderer, Text.literal("Зажмите ЛКМ на иконке для перемещения • ПКМ — сброс"), bannerX + 18, bannerY + 20, ActivityColors.TEXT_MUTED);
-        }
-
-        int padX = 4;
-        int padY = 4;
+        int padX = 5;
+        int padY = 5;
         int haloX = currentX - padX;
         int haloY = currentY - padY;
         int haloW = boxW + padX * 2;
         int haloH = boxH + padY * 2;
 
-        boolean isHovered = mouseX >= currentX - 12 && mouseX <= currentX + boxW + 12 && mouseY >= currentY - 12 && mouseY <= currentY + boxH + 12;
+        boolean isHovered = mouseX >= currentX - 16 && mouseX <= currentX + boxW + 16 && mouseY >= currentY - 16 && mouseY <= currentY + boxH + 16;
 
         long timeMs = System.currentTimeMillis();
         double phase = (timeMs % 2400L) / 2400.0 * 2.0 * Math.PI;
@@ -308,12 +314,70 @@ public final class CartHudEditorScreen extends Screen {
             }
         }
 
-        // Bottom dock container
-        int dockW = 320;
-        int dockH = 34;
-        int dockX = (width - dockW) / 2;
-        int dockY = height - dockH - 12;
-        ActivityGuiRenderer.drawWindowFrame(context, dockX, dockY, dockW, dockH, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
+        // ==========================================
+        // TOP LAUNCHER BANNER (SLEEK & COMPACT)
+        // ==========================================
+        int bannerW = Math.min(500, width - 20);
+        int bannerH = 34;
+        int bannerX = (width - bannerW) / 2;
+        int bannerY = 10;
+
+        ActivityGuiRenderer.drawWindowFrame(context, bannerX, bannerY, bannerW, bannerH, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
+        ActivityGuiRenderer.fill(context, bannerX + 1, bannerY + 1, bannerW - 2, bannerH - 2, ActivityColors.HEADER_BACKGROUND);
+        ActivityGuiRenderer.drawGlassHighlight(context, bannerX, bannerY, bannerW, bannerH, 1.0f);
+
+        if (textRenderer != null) {
+            ActivityGuiRenderer.fill(context, bannerX + 8, bannerY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
+            context.drawTextWithShadow(textRenderer, Text.literal("CART HUD • НАСТРОЙКА ПОЗИЦИИ"), bannerX + 18, bannerY + 7, ActivityColors.TEXT_PRIMARY);
+
+            String posStr = (CartHudConfig.customX < 0 && CartHudConfig.customY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
+            context.drawTextWithShadow(textRenderer, Text.literal(posStr), bannerX + 18, bannerY + 19, ActivityColors.TEXT_ACCENT);
+        }
+
+        btnDoneW = 60;
+        btnDoneH = 20;
+        btnDoneX = bannerX + bannerW - btnDoneW - 6;
+        btnDoneY = bannerY + (bannerH - btnDoneH) / 2;
+
+        btnResetW = 100;
+        btnResetH = 20;
+        btnResetX = btnDoneX - btnResetW - 4;
+        btnResetY = btnDoneY;
+
+        int hoveredBtn = -1;
+        if (mouseX >= btnResetX && mouseX <= btnResetX + btnResetW && mouseY >= btnResetY && mouseY <= btnResetY + btnResetH) hoveredBtn = 1;
+        else if (mouseX >= btnDoneX && mouseX <= btnDoneX + btnDoneW && mouseY >= btnDoneY && mouseY <= btnDoneY + btnDoneH) hoveredBtn = 2;
+
+        if (hoveredBtn != lastHoveredBtn) {
+            if (hoveredBtn != -1) SoundManager.playHoverImmediate();
+            lastHoveredBtn = hoveredBtn;
+        }
+
+        // 1. Reset button
+        int resetBg = (hoveredBtn == 1) ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
+        ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, resetBg, (hoveredBtn == 1) ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER, true);
+        if (textRenderer != null) {
+            String rstText = "Сбросить";
+            int rw = textRenderer.getWidth(rstText);
+            context.drawTextWithShadow(textRenderer, Text.literal(rstText), btnResetX + (btnResetW - rw) / 2, btnResetY + 6, ActivityColors.TEXT_PRIMARY);
+        }
+
+        // 2. Done button
+        int doneBg = (hoveredBtn == 2) ? 0xFF33DCFF : ActivityColors.ACCENT_PRIMARY;
+        ActivityGuiRenderer.fill(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg);
+        ActivityGuiRenderer.drawBorder(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, (hoveredBtn == 2) ? 0xFFFFFFFF : ActivityColors.BORDER);
+        if (textRenderer != null) {
+            String dnText = "Готово";
+            int dw = textRenderer.getWidth(dnText);
+            context.drawTextWithShadow(textRenderer, Text.literal(dnText), btnDoneX + (btnDoneW - dw) / 2, btnDoneY + 6, 0xFF0E1015);
+        }
+
+        // Subtle bottom hint bar
+        if (textRenderer != null) {
+            String hint = "ЛКМ — перемещение • ПКМ / R — сброс • Стрелки — подгонка (+Shift x5)";
+            int hintW = textRenderer.getWidth(hint);
+            context.drawTextWithShadow(textRenderer, Text.literal(hint), (width - hintW) / 2, height - 16, ActivityColors.TEXT_MUTED);
+        }
 
         super.render(context, mouseX, mouseY, delta);
     }

@@ -223,21 +223,130 @@ public class AutoGGKillTrackerTest {
     }
 
     @Test
-    @DisplayName("Direct FFA kill feed notices: 'Вы убили ...', 'Убийство: ...', 'You killed ...'")
-    void testDirectYouKilledPatterns() {
+    @DisplayName("Direct kill notices: Only 2nd person notices attribute; server broadcasts like 'Kill: ...' rejected")
+    void testDirectKillAttribution() {
         String local = "Nivorat";
 
-        assertEquals("Enemy1", AutoGGKillTracker.parseChatKill("Вы убили Enemy1", local));
-        assertEquals("ProPlayer", AutoGGKillTracker.parseChatKill("Вы успешно убили игрока ProPlayer", local));
-        assertEquals("TargetX", AutoGGKillTracker.parseChatKill("Вы одолели игрока TargetX", local));
-        assertEquals("Creeper99", AutoGGKillTracker.parseChatKill("Убийство: Creeper99", local));
-        assertEquals("Speedy", AutoGGKillTracker.parseChatKill("Килл: Speedy", local));
-        assertEquals("FastGuy", AutoGGKillTracker.parseChatKill("Kill: FastGuy", local));
-        assertEquals("Gamer", AutoGGKillTracker.parseChatKill("You killed Gamer", local));
-        assertEquals("Boss", AutoGGKillTracker.parseChatKill("You slayed Boss", local));
+        // Direct 2nd person kill notices
+        assertEquals("Enemy1", AutoGGKillTracker.parseDirectKill("Вы убили Enemy1", local));
+        assertEquals("ProPlayer", AutoGGKillTracker.parseDirectKill("Вы успешно убили игрока ProPlayer", local));
+        assertEquals("TargetX", AutoGGKillTracker.parseDirectKill("Вы одолели игрока TargetX", local));
+        assertEquals("Gamer", AutoGGKillTracker.parseDirectKill("You killed Gamer", local));
+        assertEquals("Boss", AutoGGKillTracker.parseDirectKill("You slayed Boss", local));
+        assertEquals("Enemy2", AutoGGKillTracker.parseDirectKill("You defeated Enemy2", local));
 
-        // Cannot attribute killing yourself
-        assertNull(AutoGGKillTracker.parseChatKill("Вы убили Nivorat", local));
+        // Global server broadcasts must NOT be attributed as direct kills
+        assertNull(AutoGGKillTracker.parseDirectKill("Убийство: Creeper99", local));
+        assertNull(AutoGGKillTracker.parseDirectKill("Килл: Speedy", local));
+        assertNull(AutoGGKillTracker.parseDirectKill("Kill: FastGuy", local));
+
+        // Player chat messages mentioning direct kills must NOT trigger
+        assertNull(AutoGGKillTracker.parseDirectKill("<Steve> Вы убили Enemy1", local));
+        assertNull(AutoGGKillTracker.parseDirectKill("Steve: You killed Gamer", local));
+        assertNull(AutoGGKillTracker.parseDirectKill("[VIP] Steve: Вы убили ProPlayer", local));
+
+        // Self-kill rejected
+        assertNull(AutoGGKillTracker.parseDirectKill("Вы убили Nivorat", local));
+    }
+
+    @Test
+    @DisplayName("Duel Win Detection: Direct notices, titles, structured and regex announcements")
+    void testDuelWinDetection() {
+        String local = "Nivorat";
+
+        // Title packets / exact messages
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("ПОБЕДА!", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Победа", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("VICTORY!", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Victory", local));
+
+        // Direct notices
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Вы победили в дуэли!", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Вы выиграли дуэль!", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Вы одержали победу над игроком Enemy!", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Ваша победа!", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("You won the duel!", local));
+
+        // Structured formats (both winner-first and loser-first)
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Победил: Nivorat | Проиграл: Enemy", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Победитель: Nivorat, Проигравший: Enemy", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Проиграл: Enemy, Победил: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Winner: Nivorat, Loser: Enemy", local));
+
+        // Regex duel formats
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("[Дуэли] Nivorat одержал победу над игроком Enemy", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Nivorat выиграл дуэль у Enemy", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Nivorat won the duel", local));
+
+        // Rejections: local player lost
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Победил: Enemy | Проиграл: Nivorat", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Проиграл: Nivorat, Победил: Enemy", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("[Дуэли] Enemy победил игрока Nivorat", local));
+
+        // Rejections: unrelated players
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Победил: PlayerA | Проиграл: PlayerB", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("PlayerA won the duel", local));
+
+        // Rejections: player chat messages
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("<Troll> Вы победили!", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Steve: You won", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("[VIP] Steve: Вы одержали победу", local));
+    }
+
+    @Test
+    @DisplayName("Duel Loss Detection: Direct notices, titles, structured and regex announcements")
+    void testDuelLossDetection() {
+        String local = "Nivorat";
+
+        // Title packets / exact messages
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("ПОРАЖЕНИЕ!", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Поражение", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("DEFEAT!", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Defeat", local));
+
+        // Direct notices
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Вы проиграли в дуэли!", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Вы потерпели поражение!", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("You lost the duel!", local));
+
+        // Structured formats (both winner-first and loser-first)
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Победил: Enemy | Проиграл: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Проиграл: Nivorat, Победил: Enemy", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Winner: Enemy, Loser: Nivorat", local));
+
+        // Regex duel formats
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("[Дуэли] Enemy победил игрока Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Enemy одержал победу над игроком Nivorat", local));
+
+        // Rejections: local player won
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Победил: Nivorat | Проиграл: Enemy", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Проиграл: Enemy, Победил: Nivorat", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("[Дуэли] Nivorat победил игрока Enemy", local));
+
+        // Rejections: player chat messages
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("<Troll> Вы проиграли!", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Steve: You lost", local));
+    }
+
+    @Test
+    @DisplayName("Own death: Word boundary prevents false triggers on substring names")
+    void testOwnDeathSubstringWordBoundary() {
+        // Player named 'Dan' should NOT trigger when 'DangerZone' dies
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("DangerZone умер", "Dan"));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("DangerZone погиб в лаве", "Dan"));
+
+        // Player named 'Alex' should NOT trigger when 'Alexander' dies
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Alexander умер", "Alex"));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Alexander разбился", "Alex"));
+
+        // Exact name Dan DOES trigger
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Dan умер", "Dan"));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("Dan погиб в лаве", "Dan"));
+        assertTrue(AutoGGKillTracker.isOwnDeathMessage("§cDan §7разбился", "Dan"));
+
+        // Player chat messages mentioning death do NOT trigger own death
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("<Enemy> Вы погибли", "Nivorat"));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Enemy: You died", "Nivorat"));
     }
 
     @Test

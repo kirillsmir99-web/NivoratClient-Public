@@ -53,7 +53,6 @@ public final class AutoGGKillTracker {
     // Direct kill notice patterns where group 1 is victim (e.g. server says "Вы убили <Victim>")
     private static final Pattern[] DIRECT_YOU_KILLED_PATTERNS = new Pattern[] {
         Pattern.compile("(?:Вы|Вы\\s+успешно)\\s+(?:убили|уничтожили|одолели|победили|казнили)\\s+(?:игрока\\s+)?([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
-        Pattern.compile("(?:Убийство|Килл|Kill)[:!\\s]+(?:игрока\\s+)?([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
         Pattern.compile("(?:You\\s+killed|You\\s+slayed|You\\s+defeated)\\s+([\\w]+)", Pattern.CASE_INSENSITIVE)
     };
 
@@ -416,6 +415,34 @@ public final class AutoGGKillTracker {
         return null;
     }
 
+    private static boolean isPlayerChatMessage(String clean) {
+        if (clean == null || clean.isBlank()) return false;
+        if (clean.startsWith("<") && clean.contains(">")) {
+            return true;
+        }
+        int colonIdx = clean.indexOf(':');
+        if (colonIdx > 0) {
+            String prefix = clean.substring(0, colonIdx).trim().toLowerCase(Locale.ROOT);
+            if (prefix.contains("]")) {
+                prefix = prefix.substring(prefix.lastIndexOf(']') + 1).trim();
+            }
+            if (prefix.contains("»")) {
+                prefix = prefix.substring(prefix.lastIndexOf('»') + 1).trim();
+            }
+            if (!prefix.isEmpty() && !prefix.equals("победил") && !prefix.equals("победитель")
+                    && !prefix.equals("winner") && !prefix.equals("проиграл") && !prefix.equals("проигравший")
+                    && !prefix.equals("loser") && !prefix.equals("дуэли") && !prefix.equals("дуэль")
+                    && !prefix.equals("duel") && !prefix.equals("арена") && !prefix.equals("arena")
+                    && !prefix.equals("сервер") && !prefix.equals("server") && !prefix.equals("инфо")
+                    && !prefix.equals("info") && !prefix.equals("результат") && !prefix.equals("счет")
+                    && !prefix.equals("счёт") && !prefix.equals("убийство") && !prefix.equals("килл")
+                    && !prefix.equals("kill") && !prefix.equals("победа") && !prefix.equals("поражение")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Checks if a server chat message indicates our player died.
      */
@@ -425,6 +452,9 @@ public final class AutoGGKillTracker {
         }
 
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        if (isPlayerChatMessage(clean)) {
+            return false;
+        }
         String lower = clean.toLowerCase(Locale.ROOT);
 
         // If this message confirms a kill scored BY our player, it is definitely NOT own death
@@ -462,9 +492,9 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 4. Fallback check for messages containing player name and death keywords
-        String nameLower = localPlayerName.toLowerCase(Locale.ROOT);
-        if (lower.contains(nameLower)) {
+        // 4. Fallback check for messages containing player name (strict word boundary) and death keywords
+        Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
+        if (namePattern.matcher(clean).find()) {
             if (lower.contains("умер") || lower.contains("погиб") || lower.contains("разбился")
                     || lower.contains("сгорел") || lower.contains("утонул") || lower.contains("died")
                     || lower.contains("fell") || lower.contains("drowned") || lower.contains("burned")
@@ -477,6 +507,29 @@ public final class AutoGGKillTracker {
     }
 
     /**
+     * Parses direct private kill notices where the server informs our player ('Вы убили <Player>', etc.).
+     */
+    public static String parseDirectKill(String rawMessage, String localPlayerName) {
+        if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
+            return null;
+        }
+        String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        if (isPlayerChatMessage(clean)) {
+            return null;
+        }
+        for (Pattern pattern : DIRECT_YOU_KILLED_PATTERNS) {
+            Matcher matcher = pattern.matcher(clean);
+            if (matcher.find()) {
+                String victim = matcher.group(1).trim();
+                if (!victim.equalsIgnoreCase(localPlayerName)) {
+                    return victim;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Checks if a message represents an explicit Duel / PvP victory announcement for the local player.
      */
     public static boolean isDuelWinMessage(String rawMessage, String localPlayerName) {
@@ -484,45 +537,65 @@ public final class AutoGGKillTracker {
             return false;
         }
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        if (isPlayerChatMessage(clean)) {
+            return false;
+        }
         String lower = clean.toLowerCase(Locale.ROOT);
-        String nameLower = localPlayerName.toLowerCase(Locale.ROOT);
 
-        // Direct "Вы победили" notices
-        if (lower.contains("вы победили") || lower.contains("вы выиграли") || lower.contains("you won") || lower.contains("victory!")) {
+        // Exact Title / Subtitle wins
+        if (clean.equalsIgnoreCase("победа") || clean.equalsIgnoreCase("победа!") || clean.equalsIgnoreCase("victory") || clean.equalsIgnoreCase("victory!")) {
             return true;
         }
 
-        // Duel win-loss format: "Победил: <Winner> ... Проиграл: <Loser>"
+        // 1. Direct "Вы победили" notices
+        if (lower.contains("вы победили") || lower.contains("вы выиграли") || lower.contains("вы одержали победу")
+                || lower.contains("ваша победа") || lower.contains("you won") || lower.contains("victory!")) {
+            return true;
+        }
+
+        Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
+
+        // 2. Structured duel format: "Победил: <Winner> ... Проиграл: <Loser>"
         int winnerIdx = lower.indexOf("победил:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("winner:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("победа:");
+        if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель дуэли:");
 
-        int loserIdx = lower.indexOf("проиграл:", Math.max(0, winnerIdx));
-        if (loserIdx < 0) loserIdx = lower.indexOf("проигравший:", Math.max(0, winnerIdx));
-        if (loserIdx < 0) loserIdx = lower.indexOf("loser:", Math.max(0, winnerIdx));
+        int loserIdx = lower.indexOf("проиграл:");
+        if (loserIdx < 0) loserIdx = lower.indexOf("проигравший:");
+        if (loserIdx < 0) loserIdx = lower.indexOf("loser:");
 
         if (winnerIdx >= 0 && loserIdx >= 0) {
-            String winnerPart = lower.substring(winnerIdx, loserIdx);
-            return winnerPart.contains(nameLower);
+            String winnerPart;
+            String loserPart;
+            if (winnerIdx < loserIdx) {
+                winnerPart = clean.substring(winnerIdx, loserIdx);
+                loserPart = clean.substring(loserIdx);
+            } else {
+                loserPart = clean.substring(loserIdx, winnerIdx);
+                winnerPart = clean.substring(winnerIdx);
+            }
+            boolean inWinner = namePattern.matcher(winnerPart).find();
+            boolean inLoser = namePattern.matcher(loserPart).find();
+            return inWinner && !inLoser;
         }
 
         if (winnerIdx >= 0) {
-            String winnerPart = lower.substring(winnerIdx);
-            // Ensure this winner section mentions our player
-            String[] tokens = winnerPart.split("[,|;\\n\\r]");
-            if (tokens.length > 0 && tokens[0].contains(nameLower)) {
+            String winnerPart = clean.substring(winnerIdx);
+            String[] tokens = winnerPart.split("[,|;\\n\\r.]");
+            if (tokens.length > 0 && namePattern.matcher(tokens[0]).find()) {
                 return true;
             }
         }
 
-        // Pattern: "Игрок <Winner> победил игрока <Loser>"
-        if (lower.contains("победил") || lower.contains("одолел") || lower.contains("defeated")) {
-            Pattern p = Pattern.compile("(?:игрок\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|одолел|разгромил)(?:\\s+игрока)?\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-            Matcher m = p.matcher(clean);
-            if (m.find()) {
-                String winner = m.group(1).trim();
-                return winner.equalsIgnoreCase(localPlayerName);
+        // 3. Pattern: "[Префикс] <Winner> победил/выиграл/одолел/разгромил/одержал победу [игрока/игроком] <Loser>" or "<Winner> won the duel"
+        Pattern p = Pattern.compile("(?i)(?u)(?:\\[.*?\\]\\s*)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|выиграл|одолел|разгромил|одержал\\s+победу|won(?:\\s+the\\s+duel)?|defeated)(?:\\s+(?:в\\s+дуэли\\s+)?(?:у\\s+|над\\s+|against\\s+)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+))?");
+        Matcher m = p.matcher(clean);
+        if (m.find()) {
+            String winner = m.group(1).trim();
+            if (winner.equalsIgnoreCase(localPlayerName)) {
+                return true;
             }
         }
 
@@ -537,41 +610,60 @@ public final class AutoGGKillTracker {
             return false;
         }
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        if (isPlayerChatMessage(clean)) {
+            return false;
+        }
         String lower = clean.toLowerCase(Locale.ROOT);
-        String nameLower = localPlayerName.toLowerCase(Locale.ROOT);
+
+        // Exact Title / Subtitle loss
+        if (clean.equalsIgnoreCase("поражение") || clean.equalsIgnoreCase("поражение!") || clean.equalsIgnoreCase("defeat") || clean.equalsIgnoreCase("defeat!")) {
+            return true;
+        }
 
         // Direct "Вы проиграли" notices
         if (lower.contains("вы проиграли") || lower.contains("вы потерпели поражение") || lower.contains("you lost") || lower.contains("defeat!")) {
             return true;
         }
 
+        Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
+
         int winnerIdx = lower.indexOf("победил:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("winner:");
 
-        int loserIdx = lower.indexOf("проиграл:", Math.max(0, winnerIdx));
-        if (loserIdx < 0) loserIdx = lower.indexOf("проигравший:", Math.max(0, winnerIdx));
-        if (loserIdx < 0) loserIdx = lower.indexOf("loser:", Math.max(0, winnerIdx));
+        int loserIdx = lower.indexOf("проиграл:");
+        if (loserIdx < 0) loserIdx = lower.indexOf("проигравший:");
+        if (loserIdx < 0) loserIdx = lower.indexOf("loser:");
 
         if (winnerIdx >= 0 && loserIdx >= 0) {
-            String loserPart = lower.substring(loserIdx);
-            return loserPart.contains(nameLower);
+            String winnerPart;
+            String loserPart;
+            if (winnerIdx < loserIdx) {
+                winnerPart = clean.substring(winnerIdx, loserIdx);
+                loserPart = clean.substring(loserIdx);
+            } else {
+                loserPart = clean.substring(loserIdx, winnerIdx);
+                winnerPart = clean.substring(winnerIdx);
+            }
+            boolean inWinner = namePattern.matcher(winnerPart).find();
+            boolean inLoser = namePattern.matcher(loserPart).find();
+            return inLoser && !inWinner;
         }
 
         if (loserIdx >= 0) {
-            String loserPart = lower.substring(loserIdx);
-            String[] tokens = loserPart.split("[,|;\\n\\r]");
-            if (tokens.length > 0 && tokens[0].contains(nameLower)) {
+            String loserPart = clean.substring(loserIdx);
+            String[] tokens = loserPart.split("[,|;\\n\\r.]");
+            if (tokens.length > 0 && namePattern.matcher(tokens[0]).find()) {
                 return true;
             }
         }
 
-        if (lower.contains("победил") || lower.contains("одолел") || lower.contains("defeated")) {
-            Pattern p = Pattern.compile("(?:игрок\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|одолел|разгромил)(?:\\s+игрока)?\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-            Matcher m = p.matcher(clean);
-            if (m.find()) {
-                String loser = m.group(2).trim();
-                return loser.equalsIgnoreCase(localPlayerName);
+        Pattern p = Pattern.compile("(?i)(?u)(?:\\[.*?\\]\\s*)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|выиграл|одолел|разгромил|одержал\\s+победу|won(?:\\s+the\\s+duel)?|defeated)(?:\\s+(?:в\\s+дуэли\\s+)?(?:у\\s+|над\\s+|against\\s+)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+))");
+        Matcher m = p.matcher(clean);
+        if (m.find()) {
+            String loser = m.group(2) != null ? m.group(2).trim() : null;
+            if (loser != null && loser.equalsIgnoreCase(localPlayerName)) {
+                return true;
             }
         }
 

@@ -163,7 +163,17 @@ public final class AutoGGClient {
     }
 
     private void handleRoundResult(MinecraftClient client, String message) {
-        if (client == null || client.player == null || message == null) return;
+        if (client == null || client.player == null || message == null || !CONFIG.enabled) return;
+
+        // Fast keyword check before performing regex operations
+        String lower = message.toLowerCase(java.util.Locale.ROOT);
+        if (!lower.contains("побед") && !lower.contains("выигр") && !lower.contains("won") && !lower.contains("victor")
+                && !lower.contains("убил") && !lower.contains("умер") && !lower.contains("погиб") && !lower.contains("died")
+                && !lower.contains("kill") && !lower.contains("dead") && !lower.contains("defeat") && !lower.contains("проигр")
+                && !lower.contains("поражен")
+                && !lower.contains("lost") && !lower.contains("slain") && !lower.contains("ранил") && !lower.contains("одолел")) {
+            return;
+        }
 
         String playerName = client.player.getName().getString();
 
@@ -173,18 +183,20 @@ public final class AutoGGClient {
             return;
         }
 
-        // 2. Check server chat kill feed for kills scored by our player
-        String killVictim = activity.client.module.impl.utility.AutoGGKillTracker.parseChatKill(message, playerName);
-        if (killVictim != null) {
-            onConfirmedKill(killVictim);
-            return;
+        // 2. Check direct private kill notice ("Вы убили <Игрок>")
+        if (CONFIG.sendOnKill) {
+            String directVictim = activity.client.module.impl.utility.AutoGGKillTracker.parseDirectKill(message, playerName);
+            if (directVictim != null) {
+                onConfirmedKill(directVictim);
+                return;
+            }
         }
 
         // 3. Check round results (Duel / Arena win-loss)
         boolean playerWon = activity.client.module.impl.utility.AutoGGKillTracker.isDuelWinMessage(message, playerName);
         boolean playerLost = activity.client.module.impl.utility.AutoGGKillTracker.isDuelLossMessage(message, playerName);
 
-        if ((playerWon && !localDiedThisRound) || (playerLost && CONFIG.sendOnOwnDeath)) {
+        if ((playerWon && !localDiedThisRound && CONFIG.sendOnKill) || (playerLost && CONFIG.sendOnOwnDeath)) {
             String phrase = CONFIG.nextPhrase();
             long now = System.currentTimeMillis();
             if (CONFIG.enabled && phrase != null && !phrase.isBlank() && now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
