@@ -80,6 +80,8 @@ public final class CapitulationManager {
             InventoryScanService.invalidate();
             CombatRaytraceGuard.clearCache();
             CartStateService.reset();
+            activity.client.gui.ActivityScreen.clearSession();
+            activity.client.gui.font.NivoratFontManager.invalidateMetricsCache();
         } catch (Throwable ignored) {}
 
         // 5. Reset submodule standalone states

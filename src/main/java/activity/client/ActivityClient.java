@@ -20,7 +20,7 @@ public class ActivityClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        LOGGER.info("[Activity] Initializing Activity client mod...");
+        LOGGER.debug("[Activity] Initializing Activity client mod...");
 
         // Load persisted configuration from disk (or initialize clean defaults)
         ActivityConfigManager.load();
@@ -75,13 +75,16 @@ public class ActivityClient implements ClientModInitializer {
         });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+                return;
+            }
             if (ActivityConfigManager.isDirty()) {
-                LOGGER.info("[Activity] Flushing dirty configuration on client shutdown...");
+                LOGGER.debug("[Activity] Flushing dirty configuration on client shutdown...");
                 ActivityConfigManager.save();
             }
         });
 
-        LOGGER.info("[Activity] Activity client loaded successfully. Masked menu keybind active.");
+        LOGGER.debug("[Activity] Activity client loaded successfully. Masked menu keybind active.");
     }
 
     /**

@@ -53,6 +53,9 @@ public final class AutoToolConfig {
     }
 
     public void save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         try {
             Path path = getConfigPath();
             if (path.getParent() != null) {

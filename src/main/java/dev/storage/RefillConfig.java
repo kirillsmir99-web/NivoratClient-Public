@@ -87,6 +87,9 @@ public final class RefillConfig {
     }
 
     public static void save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         if (saving) {
             return;
         }

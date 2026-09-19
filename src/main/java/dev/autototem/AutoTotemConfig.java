@@ -55,6 +55,9 @@ public final class AutoTotemConfig {
     }
 
     public static void save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         try {
             if (CONFIG_PATH.getParent() != null && !Files.exists(CONFIG_PATH.getParent())) {
                 Files.createDirectories(CONFIG_PATH.getParent());

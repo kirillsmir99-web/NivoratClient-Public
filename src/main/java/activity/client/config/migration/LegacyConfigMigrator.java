@@ -219,7 +219,7 @@ public final class LegacyConfigMigrator {
                                        "client=NivoratClient\n";
                 Files.writeString(markerPath, markerContent, StandardCharsets.UTF_8);
             } catch (Exception e) {
-                ActivityClient.LOGGER.warn("[NivoratClient] Could not write migration marker: {}", e.getMessage());
+                ActivityClient.LOGGER.debug("[NivoratClient] Could not write migration marker: {}", e.getMessage());
             }
         }
     }
@@ -268,7 +268,7 @@ public final class LegacyConfigMigrator {
             return false;
         }
 
-        ActivityClient.LOGGER.info("[NivoratClient] Found legacy mod configs in {}. Starting consolidated migration...", configDir);
+        ActivityClient.LOGGER.debug("[NivoratClient] Found legacy mod configs in {}. Starting consolidated migration...", configDir);
 
         int migratedModules = 0;
 
@@ -318,7 +318,7 @@ public final class LegacyConfigMigrator {
 
         markMigrated(config, configDir);
 
-        ActivityClient.LOGGER.info("[NivoratClient] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
+        ActivityClient.LOGGER.debug("[NivoratClient] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
         return true;
     }
 
@@ -984,7 +984,7 @@ public final class LegacyConfigMigrator {
             p.load(in);
             return p;
         } catch (Exception e) {
-            ActivityClient.LOGGER.warn("[NivoratClient] Failed to read {}: {}", path, e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to read {}: {}", path, e.getMessage());
             return null;
         }
     }
@@ -1002,7 +1002,7 @@ public final class LegacyConfigMigrator {
                             return new LegacyConfigData(parsed.getAsJsonObject());
                         }
                     } catch (Exception e) {
-                        ActivityClient.LOGGER.warn("[NivoratClient] Failed to parse JSON {}: {}", file, e.getMessage());
+                        ActivityClient.LOGGER.debug("[NivoratClient] Failed to parse JSON {}: {}", file, e.getMessage());
                     }
                 } else {
                     Properties p = loadProperties(file);

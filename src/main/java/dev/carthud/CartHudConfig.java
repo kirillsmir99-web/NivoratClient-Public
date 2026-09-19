@@ -75,6 +75,9 @@ public final class CartHudConfig {
     }
 
     public static void save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         if (saving) {
             return;
         }

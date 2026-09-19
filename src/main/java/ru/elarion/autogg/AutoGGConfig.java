@@ -102,6 +102,9 @@ public final class AutoGGConfig {
     }
 
     public void save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         try {
             if (phrases != null && phrases.size() > MAX_PHRASES) {
                 phrases = new ArrayList<>(phrases.subList(0, MAX_PHRASES));

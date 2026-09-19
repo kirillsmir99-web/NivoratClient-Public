@@ -72,11 +72,11 @@ public final class NivoratFontManager {
                 if (client.getResourceManager().getResource(actId).isPresent()) {
                     return true;
                 }
-                ActivityClient.LOGGER.warn("[NivoratClient] Font {} unavailable, using Minecraft fallback.", family.getId());
+                ActivityClient.LOGGER.debug("[NivoratClient] Font {} unavailable, using Minecraft fallback.", family.getId());
                 return false;
             }
         } catch (Exception e) {
-            ActivityClient.LOGGER.warn("[NivoratClient] Font {} unavailable, using Minecraft fallback.", family.getId());
+            ActivityClient.LOGGER.debug("[NivoratClient] Font {} unavailable, using Minecraft fallback.", family.getId());
             return false;
         }
         return true;
@@ -188,7 +188,7 @@ public final class NivoratFontManager {
         TypographySize targetSize = size != null ? size : TypographySize.NORMAL;
 
         if (targetFamily != FontFamily.MINECRAFT && targetFamily != FontFamily.DEFAULT && !isFontAvailable(targetFamily)) {
-            ActivityClient.LOGGER.warn("[NivoratClient] Font {} unavailable, using Minecraft fallback.", targetFamily.getId());
+            ActivityClient.LOGGER.debug("[NivoratClient] Font {} unavailable, using Minecraft fallback.", targetFamily.getId());
             targetFamily = FontFamily.MINECRAFT;
         }
 
@@ -240,7 +240,7 @@ public final class NivoratFontManager {
         try {
             return text.copy().fillStyle(Style.EMPTY.withFont(activeFontSource));
         } catch (Exception e) {
-            ActivityClient.LOGGER.warn("[NivoratFontManager] Failed to wrap text '{}' with font '{}': {}",
+            ActivityClient.LOGGER.debug("[NivoratFontManager] Failed to wrap text '{}' with font '{}': {}",
                 text.getString(), activeFontFamily.getId(), e.getMessage());
             return text;
         }
@@ -354,7 +354,7 @@ public final class NivoratFontManager {
             try {
                 listener.run();
             } catch (Exception e) {
-                ActivityClient.LOGGER.error("[NivoratFontManager] Error in font change listener: {}", e.getMessage());
+                ActivityClient.LOGGER.debug("[NivoratFontManager] Error in font change listener: {}", e.getMessage());
             }
         }
     }

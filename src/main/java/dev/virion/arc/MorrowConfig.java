@@ -115,6 +115,9 @@ public final class MorrowConfig {
     }
 
     public static void save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         try {
             if (CONFIG_PATH.getParent() != null) Files.createDirectories(CONFIG_PATH.getParent());
             Properties properties = new Properties();

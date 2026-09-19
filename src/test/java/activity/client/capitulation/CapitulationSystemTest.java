@@ -91,4 +91,15 @@ public class CapitulationSystemTest {
         ModuleEventDispatcher.updateActiveModules();
         assertTrue(ModuleEventDispatcher.getActiveTickModules().length > 0);
     }
+
+    @Test
+    @DisplayName("Capitulation suppresses disk writes to prevent filesystem and USN journal trace detection")
+    void testDiskSaveSuppressionDuringCapitulation() {
+        CapitulationManager.capitulate(null);
+        assertTrue(CapitulationManager.isCapitulated());
+
+        // Attempting to save config when capitulated must return false and touch zero disk files
+        boolean saved = activity.client.config.ActivityConfigManager.save();
+        assertFalse(saved, "Config save must be blocked during capitulation");
+    }
 }

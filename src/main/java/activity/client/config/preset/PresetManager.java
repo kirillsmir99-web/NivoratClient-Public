@@ -348,11 +348,14 @@ public final class PresetManager {
                 customPresets.add(new Preset(id, name, createdAt, updatedAt, schema, clientVer, false, settings));
             }
         } catch (Exception e) {
-            ActivityClient.LOGGER.error("[NivoratClient] Failed to load custom presets from {}: {}", PRESETS_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to load custom presets from {}: {}", PRESETS_PATH, e.getMessage());
         }
     }
 
     public static synchronized void saveAll() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         try {
             Path parent = PRESETS_PATH.getParent();
             if (parent != null && !Files.exists(parent)) {
@@ -384,7 +387,7 @@ public final class PresetManager {
                 Files.move(tempPath, PRESETS_PATH, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
-            ActivityClient.LOGGER.error("[NivoratClient] Failed to save custom presets to {}: {}", PRESETS_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to save custom presets to {}: {}", PRESETS_PATH, e.getMessage());
         }
     }
 

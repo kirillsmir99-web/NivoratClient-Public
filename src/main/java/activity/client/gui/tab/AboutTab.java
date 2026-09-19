@@ -110,10 +110,10 @@ public class AboutTab extends ActivityTab {
                     if (mc != null && mc.player != null) {
                         mc.player.sendMessage(Text.translatable("activity.toast.url_copied"), false);
                     } else {
-                        ActivityClient.LOGGER.info("[Activity] URL copied to clipboard: {}", url);
+                        ActivityClient.LOGGER.debug("[Activity] URL copied to clipboard: {}", url);
                     }
                 } catch (Throwable ignored) {
-                    ActivityClient.LOGGER.info("[Activity] URL copied to clipboard: {}", url);
+                    ActivityClient.LOGGER.debug("[Activity] URL copied to clipboard: {}", url);
                 }
             }
         }

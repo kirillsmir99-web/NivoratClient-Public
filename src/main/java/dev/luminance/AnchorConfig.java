@@ -82,6 +82,9 @@ public final class AnchorConfig {
     }
 
     public static void save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         try {
             File dir = CONFIG_FILE.getParentFile();
             if (dir != null && !dir.exists()) {

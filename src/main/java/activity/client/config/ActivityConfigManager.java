@@ -180,7 +180,7 @@ public final class ActivityConfigManager {
             save();
             return true;
         } catch (Exception e) {
-            ActivityClient.LOGGER.error("[Activity] Failed to parse imported preset: {}", e.getMessage());
+            ActivityClient.LOGGER.debug("[Activity] Failed to parse imported preset: {}", e.getMessage());
             return false;
         }
     }
@@ -199,7 +199,7 @@ public final class ActivityConfigManager {
      */
     public static synchronized ActivityConfig load() {
         if (!Files.exists(CONFIG_PATH)) {
-            ActivityClient.LOGGER.info("[Activity] Config file not found at {}. Generating default configuration.", CONFIG_PATH);
+            ActivityClient.LOGGER.debug("[Activity] Config file not found at {}. Generating default configuration.", CONFIG_PATH);
             currentConfig = new ActivityConfig();
             activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(currentConfig);
             ModuleRegistry.loadAll(currentConfig);
@@ -233,10 +233,10 @@ public final class ActivityConfigManager {
             NivoratConfigManager.syncToModules(currentConfig);
             savedSnapshot = currentConfig.copy();
             manualDirty = false;
-            ActivityClient.LOGGER.info("[Activity] Successfully loaded configuration from {}.", CONFIG_PATH);
+            ActivityClient.LOGGER.debug("[Activity] Successfully loaded configuration from {}.", CONFIG_PATH);
             return currentConfig;
         } catch (Exception e) {
-            ActivityClient.LOGGER.error("[Activity] Failed to parse configuration at {}: {}", CONFIG_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[Activity] Failed to parse configuration at {}: {}", CONFIG_PATH, e.getMessage());
             handleCorruptedConfig(e);
             return currentConfig;
         }
@@ -248,6 +248,9 @@ public final class ActivityConfigManager {
      * @return true if saved successfully, false otherwise
      */
     public static synchronized boolean save() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return false;
+        }
         try {
             ModuleRegistry.saveAll(currentConfig);
             NivoratConfigManager.syncToModules(currentConfig);
@@ -275,7 +278,7 @@ public final class ActivityConfigManager {
             ActivityClient.LOGGER.debug("[Activity] Configuration atomically saved to {}.", CONFIG_PATH);
             return true;
         } catch (IOException e) {
-            ActivityClient.LOGGER.error("[Activity] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[Activity] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
             return false;
         }
     }
@@ -289,9 +292,9 @@ public final class ActivityConfigManager {
             long timestamp = System.currentTimeMillis();
             Path backupPath = CONFIG_PATH.resolveSibling("activity.json.corrupted_" + timestamp + ".bak");
             Files.copy(CONFIG_PATH, backupPath, StandardCopyOption.REPLACE_EXISTING);
-            ActivityClient.LOGGER.warn("[Activity] Emergency backup of corrupted configuration saved to {}.", backupPath);
+            ActivityClient.LOGGER.debug("[Activity] Emergency backup of corrupted configuration saved to {}.", backupPath);
         } catch (IOException ioException) {
-            ActivityClient.LOGGER.error("[Activity] Could not create backup of corrupted configuration: {}", ioException.getMessage());
+            ActivityClient.LOGGER.debug("[Activity] Could not create backup of corrupted configuration: {}", ioException.getMessage());
         }
 
         currentConfig = new ActivityConfig();
@@ -299,7 +302,7 @@ public final class ActivityConfigManager {
         ModuleRegistry.loadAll(currentConfig);
         NivoratConfigManager.syncToModules(currentConfig);
         save();
-        ActivityClient.LOGGER.info("[Activity] Factory default configuration restored.");
+        ActivityClient.LOGGER.debug("[Activity] Factory default configuration restored.");
     }
 
     public static Path getConfigPath() {
