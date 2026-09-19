@@ -44,6 +44,8 @@ public class ActivityButton extends ActivityComponent {
     private float hoverProgress = 0.0f;
     private int touchPadding = 0;
     private int brandHoverColor = 0;
+    @Nullable
+    private net.minecraft.util.Identifier customTexture;
 
     private Text cachedDisplayText = null;
     private int cachedDisplayWidth = -1;
@@ -129,6 +131,15 @@ public class ActivityButton extends ActivityComponent {
         this.brandHoverColor = brandHoverColor;
     }
 
+    @Nullable
+    public net.minecraft.util.Identifier getCustomTexture() {
+        return customTexture;
+    }
+
+    public void setCustomTexture(@Nullable net.minecraft.util.Identifier customTexture) {
+        this.customTexture = customTexture;
+    }
+
     public void setOnPress(PressAction onPress) {
         this.onPress = onPress;
     }
@@ -137,6 +148,33 @@ public class ActivityButton extends ActivityComponent {
         if (this.enabled && this.visible && this.onPress != null) {
             this.onPress.onPress(this);
         }
+    }
+
+    private void drawButtonIcon(DrawContext context, int x, int y, int size, int color) {
+        if (this.customTexture != null) {
+            try {
+                context.drawTexture(
+                    net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
+                    this.customTexture,
+                    x, y,
+                    0.0f, 0.0f,
+                    size, size,
+                    24, 24,
+                    color
+                );
+                return;
+            } catch (Throwable ignored) {}
+        }
+        if (this.icon != null) {
+            ActivityIconRenderer.draw(context, this.icon, x, y, size, color, 1.0f);
+        }
+    }
+
+    private void drawButtonIconCentered(DrawContext context, int boxX, int boxY, int boxW, int boxH, int color) {
+        int size = this.icon != null ? this.icon.getWidth() : 16;
+        int x = boxX + (boxW - size) / 2;
+        int y = boxY + (boxH - (this.icon != null ? this.icon.getHeight() : 16)) / 2;
+        drawButtonIcon(context, x, y, size, color);
     }
 
     @Override
@@ -207,12 +245,13 @@ public class ActivityButton extends ActivityComponent {
 
         ScissorHelper.pushScissor(context, this.x + 2, this.y + 1, Math.max(1, this.width - 4), Math.max(1, this.height - 2));
         try {
-            if (this.icon != null && this.message != null) {
-                int iconSize = this.icon.getWidth();
+            boolean hasIcon = (this.icon != null || this.customTexture != null);
+            if (hasIcon && this.message != null) {
+                int iconSize = this.icon != null ? this.icon.getWidth() : 16;
                 int gap = 4;
                 if (this.width < iconSize + 16) {
                     // Ultra-narrow: show icon only
-                    ActivityIconRenderer.drawCentered(context, this.icon, this.x, this.y, this.width, this.height, iconColor);
+                    drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor);
                 } else {
                     int maxTextW = this.width - iconSize - gap - 6;
                     if (this.cachedDisplayText == null || this.lastCalculatedWidth != this.width) {
@@ -233,12 +272,12 @@ public class ActivityButton extends ActivityComponent {
                     }
                     int totalContentWidth = iconSize + gap + this.cachedDisplayWidth;
                     int startX = Math.max(this.x + 3, this.x + (this.width - totalContentWidth) / 2);
-                    int iconY = this.y + (this.height - this.icon.getHeight()) / 2;
-                    ActivityIconRenderer.draw(context, this.icon, startX, iconY, iconColor);
+                    int iconY = this.y + (this.height - (this.icon != null ? this.icon.getHeight() : iconSize)) / 2;
+                    drawButtonIcon(context, startX, iconY, iconSize, iconColor);
                     activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, this.cachedDisplayText, startX + iconSize + gap, textY, textColor);
                 }
-            } else if (this.icon != null) {
-                ActivityIconRenderer.drawCentered(context, this.icon, this.x, this.y, this.width, this.height, iconColor);
+            } else if (hasIcon) {
+                drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor);
             } else if (this.message != null) {
                 if (this.cachedDisplayText == null || this.lastCalculatedWidth != this.width) {
                     int maxTextW = this.width - 6;

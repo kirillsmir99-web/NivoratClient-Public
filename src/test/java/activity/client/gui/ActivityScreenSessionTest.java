@@ -100,5 +100,21 @@ public class ActivityScreenSessionTest {
         assertEquals(0xFFFF0000, btnYoutube.getBrandHoverColor(), "YouTube button must have YouTube red hover color");
         assertEquals(0xFF00F2FE, btnTiktok.getBrandHoverColor(), "TikTok button must have TikTok cyan hover color");
         assertEquals(0xFF5865F2, btnDiscord.getBrandHoverColor(), "Discord button must have Discord blurple hover color");
+
+        // Verify custom textures
+        assertEquals(AboutTab.TEXTURE_TELEGRAM, btnTg.getCustomTexture());
+        assertEquals(AboutTab.TEXTURE_DONATE, btnDonate.getCustomTexture());
+        assertEquals(AboutTab.TEXTURE_YOUTUBE, btnYoutube.getCustomTexture());
+        assertEquals(AboutTab.TEXTURE_TIKTOK, btnTiktok.getCustomTexture());
+        assertEquals(AboutTab.TEXTURE_DISCORD, btnDiscord.getCustomTexture());
+    }
+
+    @Test
+    void testActivityButtonCustomTexture() {
+        ActivityButton btn = new ActivityButton(0, 0, 100, 20, null, null);
+        assertNull(btn.getCustomTexture());
+
+        btn.setCustomTexture(AboutTab.TEXTURE_DISCORD);
+        assertEquals(AboutTab.TEXTURE_DISCORD, btn.getCustomTexture());
     }
 }

@@ -14,6 +14,7 @@ import activity.client.gui.theme.ActivityColors;
 import activity.client.gui.theme.ActivityMetrics;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,12 @@ public class AboutTab extends ActivityTab {
     public static final String CLIENT_NAME = "NivoratClient";
     public static final String CLIENT_VERSION = "v1.0.0";
     public static final String DEVELOPER = "Nivorat";
+
+    public static final Identifier TEXTURE_TELEGRAM = Identifier.of("nivoratclient", "textures/gui/social/telegram.png");
+    public static final Identifier TEXTURE_DONATE = Identifier.of("nivoratclient", "textures/gui/social/donate.png");
+    public static final Identifier TEXTURE_YOUTUBE = Identifier.of("nivoratclient", "textures/gui/social/youtube.png");
+    public static final Identifier TEXTURE_TIKTOK = Identifier.of("nivoratclient", "textures/gui/social/tiktok.png");
+    public static final Identifier TEXTURE_DISCORD = Identifier.of("nivoratclient", "textures/gui/social/discord.png");
 
     private static final Text HEADER_TITLE = Text.translatable("activity.tab.about.header");
     private static final Text SUBTITLE = Text.translatable("activity.tab.about.subtitle");
@@ -232,6 +239,7 @@ public class AboutTab extends ActivityTab {
             btn -> openUrl(URL_TELEGRAM, screen)
         );
         btnTg.setBrandHoverColor(0xFF2AABEE);
+        btnTg.setCustomTexture(TEXTURE_TELEGRAM);
         btnTg.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnTg);
 
@@ -245,6 +253,7 @@ public class AboutTab extends ActivityTab {
             btn -> openUrl(URL_DONATE, screen)
         );
         btnDonate.setBrandHoverColor(0xFFFF4757);
+        btnDonate.setCustomTexture(TEXTURE_DONATE);
         btnDonate.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnDonate);
 
@@ -263,6 +272,7 @@ public class AboutTab extends ActivityTab {
             btn -> openUrl(URL_YOUTUBE, screen)
         );
         btnYoutube.setBrandHoverColor(0xFFFF0000);
+        btnYoutube.setCustomTexture(TEXTURE_YOUTUBE);
         btnYoutube.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnYoutube);
 
@@ -275,6 +285,7 @@ public class AboutTab extends ActivityTab {
             btn -> openUrl(URL_TIKTOK, screen)
         );
         btnTiktok.setBrandHoverColor(0xFF00F2FE);
+        btnTiktok.setCustomTexture(TEXTURE_TIKTOK);
         btnTiktok.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnTiktok);
 
@@ -287,6 +298,7 @@ public class AboutTab extends ActivityTab {
             btn -> openUrl(URL_DISCORD, screen)
         );
         btnDiscord.setBrandHoverColor(0xFF5865F2);
+        btnDiscord.setCustomTexture(TEXTURE_DISCORD);
         btnDiscord.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnDiscord);
 
