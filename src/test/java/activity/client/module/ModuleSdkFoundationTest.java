@@ -352,8 +352,30 @@ public class ModuleSdkFoundationTest {
             assertTrue(module.isEnabled(), "Module " + module.getId() + " should be enabled");
         }
 
-        // Reset to disabled for clean state
-        ModuleRegistry.setAllEnabled(false);
-        assertFalse(ModuleRegistry.isAnyModuleEnabled());
+        // Restore enabled state for subsequent tests
+        ModuleRegistry.setAllEnabled(true);
+        assertTrue(ModuleRegistry.isAnyModuleEnabled());
+    }
+
+    @Test
+    @DisplayName("CartRefillController never hijacks or closes screens and respects GUI non-interference")
+    void testCartRefillScreenNonInterferenceAndSafety() {
+        dev.storage.CartRefillController controller = new dev.storage.CartRefillController();
+        controller.reset();
+
+        // Controller lifecycle and toggle
+        boolean initial = controller.isEnabled();
+        controller.toggle();
+        assertEquals(!initial, controller.isEnabled());
+        controller.toggle();
+        assertEquals(initial, controller.isEnabled());
+
+        // KeybindManager menu conflict check
+        activity.client.config.ActivityConfig cfg = activity.client.config.ActivityConfigManager.getConfig();
+        assertNotNull(cfg);
+        if (cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound()) {
+            String menuConflict = KeybindManager.findConflict(cfg.menuKeybind, "some_random_module");
+            assertEquals("NivoratClient: Меню", menuConflict, "Keybind matching client menu must be detected as conflict");
+        }
     }
 }

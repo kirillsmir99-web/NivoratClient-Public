@@ -248,6 +248,27 @@ public final class KeybindManager {
     public static String findConflict(Keybind targetKeybind, String excludeModuleId) {
         if (targetKeybind == null || targetKeybind.isUnbound()) return null;
 
+        // Guard against conflicts with Minecraft's inventory key
+        if (!targetKeybind.isCtrl() && !targetKeybind.isShift() && !targetKeybind.isAlt() && !targetKeybind.isMouseButton()) {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.options != null && mc.options.inventoryKey != null) {
+                try {
+                    int invCode = mc.options.inventoryKey.getDefaultKey().getCode();
+                    if (targetKeybind.getKeyCode() == invCode) {
+                        return "Minecraft: Инвентарь";
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        // Guard against conflict with the main client menu keybind
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        if (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound()) {
+            if (targetKeybind.equals(config.menuKeybind) && !"client_menu".equalsIgnoreCase(excludeModuleId)) {
+                return "NivoratClient: Меню";
+            }
+        }
+
         for (IModule module : ModuleRegistry.getAll()) {
             if (module.getId().equalsIgnoreCase(excludeModuleId)) continue;
 

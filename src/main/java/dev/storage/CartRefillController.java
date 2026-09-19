@@ -2,31 +2,35 @@ package dev.storage;
 
 import net.fabricmc.pack.api.GaussianTimingEngine;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
 
+/**
+ * High-performance, stealth TNT minecart hotbar refill controller.
+ *
+ * <p>Key Guarantees:
+ * <ul>
+ *   <li>Never opens, intercepts, modifies, or closes any client GUI screen.</li>
+ *   <li>The player's inventory screen (E key) and containers are 100% immune to interference or closing.</li>
+ *   <li>Performs background slot swaps with humanized timing without triggering screen events.</li>
+ *   <li>Immediately suspends refill and updates snapshot when any screen is open.</li>
+ * </ul>
+ */
 public final class CartRefillController {
     private static final long COOLDOWN_MS = 300L;
 
     private enum State {
         IDLE,
-        WAITING_DELAY,
-        LEGIT_OPENED,
-        LEGIT_SWAPPED,
-        LEGIT_CLOSING
+        WAITING_DELAY
     }
 
     private State state = State.IDLE;
     private final boolean[] hadCartInHotbar = new boolean[9];
     private int targetSlot = -1;
     private int delayTimer = 0;
-    private int legitTimer = 0;
     private long lastRefillTime = 0L;
-    private Screen activeRefillScreen = null;
 
     public CartRefillController() {
     }
@@ -47,8 +51,6 @@ public final class CartRefillController {
         state = State.IDLE;
         targetSlot = -1;
         delayTimer = 0;
-        legitTimer = 0;
-        activeRefillScreen = null;
         for (int i = 0; i < 9; i++) {
             hadCartInHotbar[i] = false;
         }
@@ -65,12 +67,9 @@ public final class CartRefillController {
             return;
         }
 
-        if (client.player.currentScreenHandler != client.player.playerScreenHandler) {
-            updateSnapshot(client.player);
-            return;
-        }
-
-        if (client.currentScreen != null && client.currentScreen != activeRefillScreen) {
+        // If the player has ANY screen open (manual inventory, container, chat, settings, etc.),
+        // NEVER perform refills or interfere with their GUI. Keep snapshot updated and stay IDLE.
+        if (client.currentScreen != null || client.player.currentScreenHandler != client.player.playerScreenHandler) {
             updateSnapshot(client.player);
             return;
         }
@@ -78,9 +77,6 @@ public final class CartRefillController {
         switch (state) {
             case IDLE -> detectSpentCart(client.player);
             case WAITING_DELAY -> processWaitingDelay(client);
-            case LEGIT_OPENED -> processLegitOpened(client);
-            case LEGIT_SWAPPED -> processLegitSwapped(client);
-            case LEGIT_CLOSING -> processLegitClosing(client);
         }
     }
 
@@ -91,8 +87,6 @@ public final class CartRefillController {
         state = State.IDLE;
         targetSlot = -1;
         delayTimer = 0;
-        legitTimer = 0;
-        activeRefillScreen = null;
     }
 
     private void detectSpentCart(ClientPlayerEntity player) {
@@ -169,86 +163,18 @@ public final class CartRefillController {
             return;
         }
 
-        if (!RefillConfig.legitMode) {
-            client.interactionManager.clickSlot(
-                player.playerScreenHandler.syncId,
-                invCartSlot,
-                targetSlot,
-                SlotActionType.SWAP,
-                player
-            );
-            hadCartInHotbar[targetSlot] = true;
-            lastRefillTime = System.currentTimeMillis();
-            activity.client.module.service.CartStateService.notifyCartRefilled(targetSlot);
-            reset();
-            return;
-        }
-
-        activeRefillScreen = new InventoryScreen(player);
-        client.setScreen(activeRefillScreen);
-        legitTimer = 2;
-        state = State.LEGIT_OPENED;
-    }
-
-    private void processLegitOpened(MinecraftClient client) {
-        ClientPlayerEntity player = client.player;
-        if (player == null || client.interactionManager == null) {
-            reset();
-            return;
-        }
-
-        if (client.currentScreen != activeRefillScreen) {
-            reset();
-            return;
-        }
-
-        if (legitTimer > 0) {
-            legitTimer--;
-            return;
-        }
-
-        int invCartSlot = findInventoryCart(player);
-        if (invCartSlot >= 0 && targetSlot >= 0 && targetSlot < 9) {
-            client.interactionManager.clickSlot(
-                player.playerScreenHandler.syncId,
-                invCartSlot,
-                targetSlot,
-                SlotActionType.SWAP,
-                player
-            );
-            hadCartInHotbar[targetSlot] = true;
-            lastRefillTime = System.currentTimeMillis();
-            activity.client.module.service.CartStateService.notifyCartRefilled(targetSlot);
-        }
-
-        legitTimer = 2;
-        state = State.LEGIT_SWAPPED;
-    }
-
-    private void processLegitSwapped(MinecraftClient client) {
-        if (legitTimer > 0) {
-            legitTimer--;
-            return;
-        }
-
-        if (RefillConfig.autoClose && client.currentScreen == activeRefillScreen && client.player != null) {
-            legitTimer = 1;
-            state = State.LEGIT_CLOSING;
-        } else {
-            reset();
-        }
-    }
-
-    private void processLegitClosing(MinecraftClient client) {
-        if (legitTimer > 0) {
-            legitTimer--;
-            return;
-        }
-
-        if (client.currentScreen == activeRefillScreen && client.player != null) {
-            client.player.closeHandledScreen();
-            client.setScreen(null);
-        }
+        // Perform slot swap via packet in background.
+        // NEVER opens or closes GUI screens, so player inventory and other screens are never interrupted!
+        client.interactionManager.clickSlot(
+            player.playerScreenHandler.syncId,
+            invCartSlot,
+            targetSlot,
+            SlotActionType.SWAP,
+            player
+        );
+        hadCartInHotbar[targetSlot] = true;
+        lastRefillTime = System.currentTimeMillis();
+        activity.client.module.service.CartStateService.notifyCartRefilled(targetSlot);
         reset();
     }
 
