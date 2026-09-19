@@ -88,6 +88,14 @@ public final class AutoGGKillTracker {
         Pattern.compile("([\\w]+).*\\bkilled\\s+by\\s+([\\w]+)", Pattern.CASE_INSENSITIVE)
     };
 
+    private static final Pattern DUEL_WIN_REGEX_PATTERN = Pattern.compile(
+        "(?i)(?u)(?:\\[.*?\\]\\s*)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|выиграл|одолел|разгромил|одержал\\s+победу|won(?:\\s+the\\s+duel)?|defeated)(?:\\s+(?:в\\s+дуэли\\s+)?(?:у\\s+|над\\s+|against\\s+)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+))?"
+    );
+
+    private static final Pattern DUEL_LOSS_REGEX_PATTERN = Pattern.compile(
+        "(?i)(?u)(?:\\[.*?\\]\\s*)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|выиграл|одолел|разгромил|одержал\\s+победу|won(?:\\s+the\\s+duel)?|defeated)(?:\\s+(?:в\\s+дуэли\\s+)?(?:у\\s+|над\\s+|against\\s+)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+))"
+    );
+
     private AutoGGKillTracker() {}
 
     /**
@@ -590,8 +598,7 @@ public final class AutoGGKillTracker {
         }
 
         // 3. Pattern: "[Префикс] <Winner> победил/выиграл/одолел/разгромил/одержал победу [игрока/игроком] <Loser>" or "<Winner> won the duel"
-        Pattern p = Pattern.compile("(?i)(?u)(?:\\[.*?\\]\\s*)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|выиграл|одолел|разгромил|одержал\\s+победу|won(?:\\s+the\\s+duel)?|defeated)(?:\\s+(?:в\\s+дуэли\\s+)?(?:у\\s+|над\\s+|against\\s+)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+))?");
-        Matcher m = p.matcher(clean);
+        Matcher m = DUEL_WIN_REGEX_PATTERN.matcher(clean);
         if (m.find()) {
             String winner = m.group(1).trim();
             if (winner.equalsIgnoreCase(localPlayerName)) {
@@ -658,8 +665,7 @@ public final class AutoGGKillTracker {
             }
         }
 
-        Pattern p = Pattern.compile("(?i)(?u)(?:\\[.*?\\]\\s*)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|выиграл|одолел|разгромил|одержал\\s+победу|won(?:\\s+the\\s+duel)?|defeated)(?:\\s+(?:в\\s+дуэли\\s+)?(?:у\\s+|над\\s+|against\\s+)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+))");
-        Matcher m = p.matcher(clean);
+        Matcher m = DUEL_LOSS_REGEX_PATTERN.matcher(clean);
         if (m.find()) {
             String loser = m.group(2) != null ? m.group(2).trim() : null;
             if (loser != null && loser.equalsIgnoreCase(localPlayerName)) {
