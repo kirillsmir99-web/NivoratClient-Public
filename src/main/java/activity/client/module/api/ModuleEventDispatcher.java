@@ -143,6 +143,18 @@ public final class ModuleEventDispatcher {
         // Tick scheduler
         TickBoundScheduler.onTick(client);
 
+        // Guaranteed Inventory Screen Opener
+        if (client.currentScreen == null && client.options != null && client.options.inventoryKey != null) {
+            while (client.options.inventoryKey.wasPressed()) {
+                if (client.interactionManager != null && client.interactionManager.hasRidingInventory()) {
+                    client.player.openRidingInventory();
+                } else {
+                    client.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(client.player));
+                    break;
+                }
+            }
+        }
+
         // Keybind evaluation
         KeybindManager.handleTick(client);
 

@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class WindowControlButtonsTest {
 
+    private AtomicBoolean toggleAllCalled;
     private AtomicBoolean refreshCalled;
     private AtomicBoolean maximizeCalled;
     private AtomicBoolean closeCalled;
@@ -18,11 +19,13 @@ public class WindowControlButtonsTest {
 
     @BeforeEach
     void setUp() {
+        toggleAllCalled = new AtomicBoolean(false);
         refreshCalled = new AtomicBoolean(false);
         maximizeCalled = new AtomicBoolean(false);
         closeCalled = new AtomicBoolean(false);
 
         buttons = new WindowControlButtons(
+            () -> toggleAllCalled.set(true),
             () -> refreshCalled.set(true),
             () -> maximizeCalled.set(true),
             () -> closeCalled.set(true),
@@ -34,7 +37,7 @@ public class WindowControlButtonsTest {
 
     @Test
     void testDimensionsAndCoordinates() {
-        assertEquals(56, WindowControlButtons.TOTAL_WIDTH);
+        assertEquals(76, WindowControlButtons.TOTAL_WIDTH);
         assertEquals(16, WindowControlButtons.BTN_SIZE);
         assertEquals(4, WindowControlButtons.BTN_GAP);
 
@@ -61,17 +64,34 @@ public class WindowControlButtonsTest {
     }
 
     @Test
-    void testPressAndReleaseRefresh() {
+    void testPressAndReleaseToggleAll() {
         int startX = buttons.getStartX(layout);
         int startY = buttons.getStartY(layout);
 
-        // Click button 0 (Refresh)
+        // Click button 0 (Toggle All)
         assertTrue(buttons.mouseClicked(startX + 4, startY + 4, 0, layout));
         assertEquals(0, buttons.getPressedButton());
-        assertFalse(refreshCalled.get(), "Action should not fire until release");
+        assertFalse(toggleAllCalled.get(), "Action should not fire until release");
 
         // Release on button 0
         assertTrue(buttons.mouseReleased(startX + 4, startY + 4, 0, layout));
+        assertEquals(-1, buttons.getPressedButton());
+        assertTrue(toggleAllCalled.get(), "Toggle all action should fire on mouse release");
+    }
+
+    @Test
+    void testPressAndReleaseRefresh() {
+        int startX = buttons.getStartX(layout);
+        int startY = buttons.getStartY(layout);
+        int refreshX = startX + WindowControlButtons.BTN_SIZE + WindowControlButtons.BTN_GAP + 2;
+
+        // Click button 1 (Refresh)
+        assertTrue(buttons.mouseClicked(refreshX, startY + 4, 0, layout));
+        assertEquals(1, buttons.getPressedButton());
+        assertFalse(refreshCalled.get(), "Action should not fire until release");
+
+        // Release on button 1
+        assertTrue(buttons.mouseReleased(refreshX, startY + 4, 0, layout));
         assertEquals(-1, buttons.getPressedButton());
         assertTrue(refreshCalled.get(), "Refresh action should fire on mouse release");
     }
@@ -80,10 +100,10 @@ public class WindowControlButtonsTest {
     void testPressAndReleaseMaximize() {
         int startX = buttons.getStartX(layout);
         int startY = buttons.getStartY(layout);
-        int maximizeX = startX + WindowControlButtons.BTN_SIZE + WindowControlButtons.BTN_GAP + 2;
+        int maximizeX = startX + (WindowControlButtons.BTN_SIZE + WindowControlButtons.BTN_GAP) * 2 + 2;
 
         assertTrue(buttons.mouseClicked(maximizeX, startY + 4, 0, layout));
-        assertEquals(1, buttons.getPressedButton());
+        assertEquals(2, buttons.getPressedButton());
         assertFalse(maximizeCalled.get());
 
         assertTrue(buttons.mouseReleased(maximizeX, startY + 4, 0, layout));
@@ -95,10 +115,10 @@ public class WindowControlButtonsTest {
     void testPressAndReleaseClose() {
         int startX = buttons.getStartX(layout);
         int startY = buttons.getStartY(layout);
-        int closeX = startX + (WindowControlButtons.BTN_SIZE + WindowControlButtons.BTN_GAP) * 2 + 2;
+        int closeX = startX + (WindowControlButtons.BTN_SIZE + WindowControlButtons.BTN_GAP) * 3 + 2;
 
         assertTrue(buttons.mouseClicked(closeX, startY + 4, 0, layout));
-        assertEquals(2, buttons.getPressedButton());
+        assertEquals(3, buttons.getPressedButton());
         assertFalse(closeCalled.get());
 
         assertTrue(buttons.mouseReleased(closeX, startY + 4, 0, layout));
@@ -111,25 +131,28 @@ public class WindowControlButtonsTest {
         int startX = buttons.getStartX(layout);
         int startY = buttons.getStartY(layout);
 
-        // Click button 0 (Refresh)
+        // Click button 0 (Toggle All)
         assertTrue(buttons.mouseClicked(startX + 4, startY + 4, 0, layout));
         assertEquals(0, buttons.getPressedButton());
 
         // Release far away (drag off)
         assertFalse(buttons.mouseReleased(startX - 100, startY - 100, 0, layout));
         assertEquals(-1, buttons.getPressedButton(), "Pressed state must be cleared on release even if outside");
-        assertFalse(refreshCalled.get(), "Action must NOT fire when released outside the button");
+        assertFalse(toggleAllCalled.get(), "Action must NOT fire when released outside the button");
     }
 
     @Test
     void testDirectTrigger() {
         buttons.triggerAction(0);
-        assertTrue(refreshCalled.get());
+        assertTrue(toggleAllCalled.get());
 
         buttons.triggerAction(1);
-        assertTrue(maximizeCalled.get());
+        assertTrue(refreshCalled.get());
 
         buttons.triggerAction(2);
+        assertTrue(maximizeCalled.get());
+
+        buttons.triggerAction(3);
         assertTrue(closeCalled.get());
     }
 }

@@ -281,6 +281,20 @@ public class ActivityScreen extends Screen {
         this.dragController.init();
         this.controlButtons = new activity.client.gui.component.WindowControlButtons(
             () -> {
+                if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+                    return;
+                }
+                boolean target = !activity.client.module.api.ModuleRegistry.isAnyModuleEnabled();
+                activity.client.module.api.ModuleRegistry.setAllEnabled(target);
+                activity.client.gui.sound.SoundManager.playToggle(target);
+                this.showToast(
+                    Text.translatable(target ? "activity.toast.all_modules_enabled" : "activity.toast.all_modules_disabled"),
+                    null,
+                    null
+                );
+                this.reloadCurrentTab();
+            },
+            () -> {
                 activity.client.config.ActivityConfigManager.load();
                 this.tabManager.loadAllFromConfig(activity.client.config.ActivityConfigManager.getConfig());
                 this.reloadCurrentTab();

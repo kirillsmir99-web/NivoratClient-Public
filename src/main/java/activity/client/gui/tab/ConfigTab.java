@@ -348,10 +348,33 @@ public class ConfigTab extends ActivityTab {
             addControl(container, btnImport);
         }
 
-        // Row 1.4: Factory Reset Button with confirmation modal
+        // Row 1.4: Master Toggle & Factory Reset Buttons
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        int actionBtnW = (innerRowW - ActivityMetrics.COLUMN_GAP) / 2;
+        boolean anyModuleEnabled = ModuleRegistry.isAnyModuleEnabled();
+        ActivityButton btnToggleAll = new ActivityButton(
+            innerStartX1, rowY, actionBtnW, ActivityMetrics.BUTTON_HEIGHT,
+            anyModuleEnabled ? ActivityIcon.DISABLED : ActivityIcon.ENABLED,
+            anyModuleEnabled ? Text.translatable("activity.button.disable_all_modules") : Text.translatable("activity.button.enable_all_modules"),
+            anyModuleEnabled ? ActivityButton.Variant.SECONDARY : ActivityButton.Variant.PRIMARY,
+            b -> {
+                if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
+                boolean target = !ModuleRegistry.isAnyModuleEnabled();
+                ModuleRegistry.setAllEnabled(target);
+                activity.client.gui.sound.SoundManager.playToggle(target);
+                screen.showToast(
+                    Text.translatable(target ? "activity.toast.all_modules_enabled" : "activity.toast.all_modules_disabled"),
+                    null,
+                    null
+                );
+                screen.reloadCurrentTab();
+            }
+        );
+        btnToggleAll.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
+        addControl(container, btnToggleAll);
+
         ActivityButton btnReset = new ActivityButton(
-            innerStartX1, rowY, innerRowW, ActivityMetrics.BUTTON_HEIGHT,
+            innerStartX1 + actionBtnW + ActivityMetrics.COLUMN_GAP, rowY, actionBtnW, ActivityMetrics.BUTTON_HEIGHT,
             ActivityIcon.RESET,
             Text.translatable("activity.button.reset_defaults"),
             ActivityButton.Variant.DANGER,
@@ -375,6 +398,7 @@ public class ConfigTab extends ActivityTab {
                 );
             }
         );
+        btnReset.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnReset);
 
         // Row 1.5: Dynamic Feedback Status Label
