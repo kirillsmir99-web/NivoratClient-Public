@@ -447,12 +447,19 @@ public class AutoGGModule extends NivoratModule {
     }
 
     public void openRadialMenu(MinecraftClient client) {
-        if (client != null && client.currentScreen == null) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            activity.client.module.keybind.Keybind kb = (c != null && c.autoGGMenuKeybind != null)
-                    ? c.autoGGMenuKeybind
-                    : new activity.client.module.keybind.Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
-            client.setScreen(new activity.client.module.impl.utility.gui.AutoGGRadialScreen(null, true, kb));
+        if (client != null) {
+            if (client.currentScreen instanceof activity.client.module.impl.utility.gui.AutoGGRadialScreen) {
+                client.currentScreen.close();
+                activity.client.module.keybind.KeybindManager.suppressKey("sec:auto_gg:menu_keybind");
+                return;
+            }
+            if (client.currentScreen == null) {
+                ActivityConfig c = ActivityConfigManager.getConfig();
+                activity.client.module.keybind.Keybind kb = (c != null && c.autoGGMenuKeybind != null)
+                        ? c.autoGGMenuKeybind
+                        : new activity.client.module.keybind.Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
+                client.setScreen(new activity.client.module.impl.utility.gui.AutoGGRadialScreen(null, false, kb));
+            }
         }
     }
 

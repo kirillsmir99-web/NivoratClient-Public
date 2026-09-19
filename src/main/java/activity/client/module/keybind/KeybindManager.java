@@ -97,7 +97,13 @@ public final class KeybindManager {
      * Fast-path: exits immediately with zero GLFW queries if no keybinds are bound.
      */
     public static void handleTick(MinecraftClient client) {
-        if (client == null || client.player == null || client.currentScreen != null) {
+        if (client == null || client.player == null) {
+            KEY_STATES.clear();
+            return;
+        }
+
+        Window window = client.getWindow();
+        if (window == null || window.getHandle() == 0L) {
             KEY_STATES.clear();
             return;
         }
@@ -108,15 +114,32 @@ public final class KeybindManager {
             return;
         }
 
-        Window window = client.getWindow();
-        if (window == null || window.getHandle() == 0L) return;
-
         boolean ctrl = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL)
                 || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
         boolean shift = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT)
                 || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
         boolean alt = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_ALT)
                 || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_ALT);
+
+        // While a screen is open, keep track of physically held keys so that when the screen
+        // closes, keys held during GUI interaction or used to close the screen do not
+        // falsely register as fresh press events on the next tick.
+        if (client.currentScreen != null) {
+            for (int i = 0; i < primaries.length; i++) {
+                BoundPrimary bp = primaries[i];
+                boolean isDown = bp.keybind().matchesWindow(window, ctrl, shift, alt);
+                KEY_STATES.put(bp.stateKey(), isDown);
+            }
+            for (int i = 0; i < secondaries.length; i++) {
+                BoundSecondary bs = secondaries[i];
+                Keybind sec = bs.setting().get();
+                if (sec != null && !sec.isUnbound()) {
+                    boolean isDown = sec.matchesWindow(window, ctrl, shift, alt);
+                    KEY_STATES.put(bs.stateKey(), isDown);
+                }
+            }
+            return;
+        }
 
         // 1. Primary Module Keybinds
         for (int i = 0; i < primaries.length; i++) {
@@ -147,6 +170,40 @@ public final class KeybindManager {
             } else if (!isDown && wasDown) {
                 KEY_STATES.put(bs.stateKey(), Boolean.FALSE);
                 bs.setting().triggerRelease(client);
+            }
+        }
+    }
+
+    /**
+     * Explicitly marks a key state as down/handled to prevent re-triggering upon closing a screen.
+     */
+    public static void suppressKey(String stateKey) {
+        if (stateKey != null) {
+            KEY_STATES.put(stateKey, Boolean.TRUE);
+        }
+    }
+
+    /**
+     * Suppresses all currently physically held keys from triggering on the next tick.
+     */
+    public static void suppressAllHeldKeys(Window window) {
+        if (window == null || window.getHandle() == 0L) return;
+        boolean ctrl = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL)
+                || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
+        boolean shift = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT)
+                || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
+        boolean alt = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_ALT)
+                || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_ALT);
+
+        for (BoundPrimary bp : boundPrimaries) {
+            if (bp.keybind().matchesWindow(window, ctrl, shift, alt)) {
+                KEY_STATES.put(bp.stateKey(), Boolean.TRUE);
+            }
+        }
+        for (BoundSecondary bs : boundSecondaries) {
+            Keybind sec = bs.setting().get();
+            if (sec != null && !sec.isUnbound() && sec.matchesWindow(window, ctrl, shift, alt)) {
+                KEY_STATES.put(bs.stateKey(), Boolean.TRUE);
             }
         }
     }

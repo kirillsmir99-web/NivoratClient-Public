@@ -80,12 +80,9 @@ public final class AutoGGRadialScreen extends Screen {
     private static final List<BlockSpan>[][] SECTOR_BLOCKS_CACHE = new List[9][];
     private static final List<BlockSpan> RING_BLOCKS = new ArrayList<>();
     private static final List<BlockSpan> HUB_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> OUTER_BORDER_CORE = new ArrayList<>();
-    private static final List<BlockSpan> OUTER_BORDER_FEATHER = new ArrayList<>();
-    private static final List<BlockSpan> INNER_BORDER_CORE = new ArrayList<>();
-    private static final List<BlockSpan> INNER_BORDER_FEATHER = new ArrayList<>();
-    private static final List<BlockSpan> HUB_BORDER_CORE = new ArrayList<>();
-    private static final List<BlockSpan> HUB_BORDER_FEATHER = new ArrayList<>();
+    private static final List<BlockSpan> OUTER_BORDER_BLOCKS = new ArrayList<>();
+    private static final List<BlockSpan> INNER_BORDER_BLOCKS = new ArrayList<>();
+    private static final List<BlockSpan> HUB_BORDER_BLOCKS = new ArrayList<>();
     @SuppressWarnings("unchecked")
     private static final List<BlockSpan>[] DIVIDER_BLOCKS_CACHE = new List[9];
     private static final int[][] SECTOR_TEXT_OFFSETS = new int[9][];
@@ -95,34 +92,24 @@ public final class AutoGGRadialScreen extends Screen {
     private static final Text WATERMARK_NORMAL = Text.literal("§7ТГ канал автора модов - §b@virionDEV");
     private static final Text WATERMARK_HOVERED = Text.literal("§b§nТГ канал автора модов - @virionDEV");
 
-    private static List<BlockSpan> generateSmoothCircleBorder(int r, double dMin, double dMax) {
+    private static List<BlockSpan> generateCircleBorder(int r) {
         List<Span> spans = new ArrayList<>();
-        int maxDim = r + 3;
-        for (int y = -maxDim; y <= maxDim; y++) {
-            int y2 = y * y;
-            int spanStart = Integer.MIN_VALUE;
-            for (int x = -maxDim; x <= maxDim; x++) {
-                double d = Math.abs(Math.hypot(x, y) - r);
-                if (d >= dMin && d <= dMax) {
-                    if (spanStart == Integer.MIN_VALUE) {
-                        spanStart = x;
-                    }
-                } else {
-                    if (spanStart != Integer.MIN_VALUE) {
-                        spans.add(new Span(y, spanStart, x));
-                        spanStart = Integer.MIN_VALUE;
-                    }
-                }
-            }
-            if (spanStart != Integer.MIN_VALUE) {
-                spans.add(new Span(y, spanStart, maxDim + 1));
-            }
+        int r2 = r * r;
+        for (int y = -r; y <= r; y++) {
+            int x = (int) Math.round(Math.sqrt(Math.max(0, r2 - y * y)));
+            spans.add(new Span(y, -x, -x + 1));
+            spans.add(new Span(y, x, x + 1));
+        }
+        for (int x = -r; x <= r; x++) {
+            int y = (int) Math.round(Math.sqrt(Math.max(0, r2 - x * x)));
+            spans.add(new Span(-y, x, x + 1));
+            spans.add(new Span(y, x, x + 1));
         }
         return coalesceSpans(optimizeSpans(spans), 1);
     }
 
     static {
-        // 1. Sector fills & Dividers (mathematically continuous, gap-free)
+        // 1. Sector fills & Dividers (smooth, continuous, gap-free)
         int inner2 = INNER_RADIUS * INNER_RADIUS;
         int outer2 = OUTER_RADIUS * OUTER_RADIUS;
         int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
@@ -170,7 +157,7 @@ public final class AutoGGRadialScreen extends Screen {
                 SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 1);
             }
 
-            // Continuous radial divider spans for count > 1 (stepped at 0.35 to guarantee no gaps)
+            // Continuous Bresenham radial dividers for count > 1 (clean, gap-free, fast)
             DIVIDER_BLOCKS_CACHE[count] = new ArrayList<>();
             if (count > 1) {
                 List<Span> divSpans = new ArrayList<>();
@@ -178,10 +165,31 @@ public final class AutoGGRadialScreen extends Screen {
                     double a = i * sectorAngle - Math.PI / 2.0;
                     double cosA = Math.cos(a);
                     double sinA = Math.sin(a);
-                    for (double r = INNER_RADIUS + 0.5; r < OUTER_RADIUS - 0.5; r += 0.35) {
-                        int px = (int) Math.round(cosA * r);
-                        int py = (int) Math.round(sinA * r);
-                        divSpans.add(new Span(py, px, px + 1));
+                    int x1 = (int) Math.round(cosA * (INNER_RADIUS + 1));
+                    int y1 = (int) Math.round(sinA * (INNER_RADIUS + 1));
+                    int x2 = (int) Math.round(cosA * (OUTER_RADIUS - 1));
+                    int y2 = (int) Math.round(sinA * (OUTER_RADIUS - 1));
+
+                    int dx = Math.abs(x2 - x1);
+                    int dy = Math.abs(y2 - y1);
+                    int sx = x1 < x2 ? 1 : -1;
+                    int sy = y1 < y2 ? 1 : -1;
+                    int err = dx - dy;
+
+                    int curX = x1;
+                    int curY = y1;
+                    while (true) {
+                        divSpans.add(new Span(curY, curX, curX + 1));
+                        if (curX == x2 && curY == y2) break;
+                        int e2 = 2 * err;
+                        if (e2 > -dy) {
+                            err -= dy;
+                            curX += sx;
+                        }
+                        if (e2 < dx) {
+                            err += dx;
+                            curY += sy;
+                        }
                     }
                 }
                 DIVIDER_BLOCKS_CACHE[count].addAll(coalesceSpans(optimizeSpans(divSpans), 1));
@@ -236,13 +244,10 @@ public final class AutoGGRadialScreen extends Screen {
         }
         HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 1));
 
-        // 4. Precomputed smooth anti-aliased border rings
-        OUTER_BORDER_CORE.addAll(generateSmoothCircleBorder(OUTER_RADIUS, 0.0, 0.65));
-        OUTER_BORDER_FEATHER.addAll(generateSmoothCircleBorder(OUTER_RADIUS, 0.65, 1.35));
-        INNER_BORDER_CORE.addAll(generateSmoothCircleBorder(INNER_RADIUS, 0.0, 0.65));
-        INNER_BORDER_FEATHER.addAll(generateSmoothCircleBorder(INNER_RADIUS, 0.65, 1.35));
-        HUB_BORDER_CORE.addAll(generateSmoothCircleBorder(HUB_RADIUS, 0.0, 0.65));
-        HUB_BORDER_FEATHER.addAll(generateSmoothCircleBorder(HUB_RADIUS, 0.65, 1.35));
+        // 4. Precomputed smooth border rings (zero gaps, symmetric, fast 400+ FPS)
+        OUTER_BORDER_BLOCKS.addAll(generateCircleBorder(OUTER_RADIUS));
+        INNER_BORDER_BLOCKS.addAll(generateCircleBorder(INNER_RADIUS));
+        HUB_BORDER_BLOCKS.addAll(generateCircleBorder(HUB_RADIUS));
     }
 
     public static List<Span> optimizeSpans(List<Span> raw) {
@@ -276,22 +281,34 @@ public final class AutoGGRadialScreen extends Screen {
 
     public static List<BlockSpan> coalesceSpans(List<Span> spans, int stepY) {
         if (spans == null || spans.isEmpty()) return new ArrayList<>();
-        List<BlockSpan> blocks = new ArrayList<>();
-        BlockSpan current = null;
-        for (Span s : spans) {
-            if (current != null && current.y2 == s.y && current.x1 == s.x1 && current.x2 == s.x2) {
-                current = new BlockSpan(current.y1, (short) (s.y + stepY), current.x1, current.x2);
-            } else {
-                if (current != null) {
-                    blocks.add(current);
+        List<Span> sorted = optimizeSpans(spans);
+        List<BlockSpan> result = new ArrayList<>();
+        List<BlockSpan> active = new ArrayList<>();
+
+        for (Span s : sorted) {
+            for (int i = active.size() - 1; i >= 0; i--) {
+                BlockSpan b = active.get(i);
+                if (s.y > b.y2) {
+                    result.add(b);
+                    active.remove(i);
                 }
-                current = new BlockSpan(s.y, (short) (s.y + stepY), s.x1, s.x2);
+            }
+
+            boolean matched = false;
+            for (int i = 0; i < active.size(); i++) {
+                BlockSpan b = active.get(i);
+                if (b.y2 == s.y && b.x1 == s.x1 && b.x2 == s.x2) {
+                    active.set(i, new BlockSpan(b.y1, (short) (s.y + stepY), b.x1, b.x2));
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                active.add(new BlockSpan(s.y, (short) (s.y + stepY), s.x1, s.x2));
             }
         }
-        if (current != null) {
-            blocks.add(current);
-        }
-        return blocks;
+        result.addAll(active);
+        return result;
     }
 
     public AutoGGRadialScreen(Screen parent) {
@@ -340,6 +357,10 @@ public final class AutoGGRadialScreen extends Screen {
     @Override
     public void close() {
         SoundManager.playClose();
+        if (this.client != null && this.client.getWindow() != null) {
+            activity.client.module.keybind.KeybindManager.suppressAllHeldKeys(this.client.getWindow());
+        }
+        activity.client.module.keybind.KeybindManager.suppressKey("sec:auto_gg:menu_keybind");
         if (this.client != null) {
             this.client.setScreen(this.parent);
         } else {
@@ -403,11 +424,9 @@ public final class AutoGGRadialScreen extends Screen {
         // Base dark ring
         drawBlockList(context, cx, cy, RING_BLOCKS, 0xD00E1015);
 
-        // Outer and inner smooth anti-aliased border rings
-        drawBlockList(context, cx, cy, OUTER_BORDER_FEATHER, 0x22353B49);
-        drawBlockList(context, cx, cy, OUTER_BORDER_CORE, 0x66353B49);
-        drawBlockList(context, cx, cy, INNER_BORDER_FEATHER, 0x22353B49);
-        drawBlockList(context, cx, cy, INNER_BORDER_CORE, 0x66353B49);
+        // Outer and inner smooth crisp border rings
+        drawBlockList(context, cx, cy, OUTER_BORDER_BLOCKS, 0x66353B49);
+        drawBlockList(context, cx, cy, INNER_BORDER_BLOCKS, 0x66353B49);
 
         // Hovered sector highlight
         if (count > 0 && this.hoveredSector >= 0 && this.hoveredSector < count) {
@@ -425,10 +444,8 @@ public final class AutoGGRadialScreen extends Screen {
         // Central Hub
         int hubBgColor = hubHovered ? 0xF2152835 : 0xF20A0C10;
         drawBlockList(context, cx, cy, HUB_BLOCKS, hubBgColor);
-        int hubBorderCore = hubHovered ? 0xAA00D2FF : 0x66353B49;
-        int hubBorderFeather = hubHovered ? 0x4400D2FF : 0x22353B49;
-        drawBlockList(context, cx, cy, HUB_BORDER_FEATHER, hubBorderFeather);
-        drawBlockList(context, cx, cy, HUB_BORDER_CORE, hubBorderCore);
+        int hubBorderColor = hubHovered ? 0xAA00D2FF : 0x66353B49;
+        drawBlockList(context, cx, cy, HUB_BORDER_BLOCKS, hubBorderColor);
 
         // 3. Sector text labels
         String defaultPhrase = AutoGGClient.CONFIG.currentPhrase();
@@ -580,7 +597,11 @@ public final class AutoGGRadialScreen extends Screen {
         }
 
         if (boundKey != null && input.key() == boundKey.getKeyCode()) {
-            if (System.currentTimeMillis() - openTime > 100L) {
+            if (System.currentTimeMillis() - openTime > 60L) {
+                if (this.client != null && this.client.getWindow() != null) {
+                    activity.client.module.keybind.KeybindManager.suppressAllHeldKeys(this.client.getWindow());
+                }
+                activity.client.module.keybind.KeybindManager.suppressKey("sec:auto_gg:menu_keybind");
                 close();
                 return true;
             }

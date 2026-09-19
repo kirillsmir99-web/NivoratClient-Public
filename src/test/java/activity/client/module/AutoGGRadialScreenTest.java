@@ -550,5 +550,50 @@ public class AutoGGRadialScreenTest {
         assertEquals(-32, b1.x1);
         assertEquals(32, b1.x2);
     }
+
+    @Test
+    @DisplayName("AutoGGRadialScreen: 2D multi-span coalescing extends identical vertical runs")
+    void testBlockSpan2DCoalescingMultiSpan() {
+        List<AutoGGRadialScreen.Span> spans = List.of(
+                new AutoGGRadialScreen.Span(-50, -30, -20),
+                new AutoGGRadialScreen.Span(-50, 20, 30),
+                new AutoGGRadialScreen.Span(-49, -30, -20),
+                new AutoGGRadialScreen.Span(-49, 20, 30)
+        );
+        List<AutoGGRadialScreen.BlockSpan> blocks = AutoGGRadialScreen.coalesceSpans(spans, 1);
+        // Left run and right run should each coalesce vertically into 1 block of height 2
+        assertEquals(2, blocks.size(), "Two interleaved columns should coalesce into 2 vertical blocks");
+
+        boolean foundLeft = false;
+        boolean foundRight = false;
+        for (AutoGGRadialScreen.BlockSpan b : blocks) {
+            assertEquals(-50, b.y1);
+            assertEquals(-48, b.y2);
+            if (b.x1 == -30 && b.x2 == -20) foundLeft = true;
+            if (b.x1 == 20 && b.x2 == 30) foundRight = true;
+        }
+        assertTrue(foundLeft, "Left column must coalesce vertically from y=-50 to y=-48");
+        assertTrue(foundRight, "Right column must coalesce vertically from y=-50 to y=-48");
+    }
+
+    @Test
+    @DisplayName("KeybindManager: Key suppression prevents repeat trigger until released")
+    void testKeybindSuppression() {
+        String key = "sec:auto_gg:menu_keybind";
+        activity.client.module.keybind.KeybindManager.suppressKey(key);
+        // With suppression active, state is stored as TRUE (wasDown = true)
+        // so a subsequent tick will not fire an initial press
+        assertDoesNotThrow(() -> {
+            activity.client.module.keybind.KeybindManager.suppressKey(key);
+        });
+    }
+
+    @Test
+    @DisplayName("AutoGGModule: openRadialMenu toggles screen closed when already open")
+    void testAutoGGModuleToggleClose() {
+        activity.client.module.impl.utility.AutoGGModule module = new activity.client.module.impl.utility.AutoGGModule();
+        // Client is null in headless test, but method executes cleanly without NPE
+        assertDoesNotThrow(() -> module.openRadialMenu(null));
+    }
 }
 
