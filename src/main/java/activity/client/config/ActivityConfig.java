@@ -264,6 +264,7 @@ public class ActivityConfig {
     // ==========================================
     // 6. PHASE 2: VISUAL, FONT, SOUND, WINDOW
     // ==========================================
+    public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
     public String fontFamily = "onest";
     public String typographySize = "normal";
     public double windowOpacity = 85.0;
@@ -347,6 +348,7 @@ public class ActivityConfig {
         public double windowOpacity = 85.0;
         public double panelOpacity = 65.0;
         public boolean glassEffect = true;
+        public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -375,7 +377,8 @@ public class ActivityConfig {
                     Objects.equals(hudPosition, that.hudPosition) &&
                     Objects.equals(coordFormat, that.coordFormat) &&
                     Objects.equals(customTitle, that.customTitle) &&
-                    Objects.equals(themeVariant, that.themeVariant);
+                    Objects.equals(themeVariant, that.themeVariant) &&
+                    Objects.equals(menuKeybind, that.menuKeybind);
         }
 
         @Override
@@ -385,7 +388,7 @@ public class ActivityConfig {
                 hideInF3, showCoordinates, showFps, showBiome, showWorldTime, showDirection,
                 coordFormat, hudPadding, customTitle, textShadow, themeVariant, compactMode,
                 tooltipsEnabled, showKeyHints, smoothTransitions, animationsEnabled,
-                spatialOpenAnimation, windowOpacity, panelOpacity, glassEffect
+                spatialOpenAnimation, windowOpacity, panelOpacity, glassEffect, menuKeybind
             );
         }
     }
@@ -682,6 +685,7 @@ public class ActivityConfig {
         this.sliderSoundEnabled = true;
         this.animationsEnabled = true;
         this.spatialOpenAnimation = true;
+        this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
         this.client = new ClientSection();
         syncClientSection();
         syncModuleConfigEntries();
@@ -728,6 +732,7 @@ public class ActivityConfig {
         if (this.autoGGKeybind == null) this.autoGGKeybind = new Keybind();
         if (this.autoGGMenuKeybind == null) this.autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
         if (this.cartHudKeybind == null) this.cartHudKeybind = new Keybind();
+        if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
 
         // Migration from legacy autoStunSlime JSON fields if present
         if (this.autoStunSlimeEnabled != null) {
@@ -982,6 +987,7 @@ public class ActivityConfig {
         this.client.ui.windowOpacity = this.windowOpacity;
         this.client.ui.panelOpacity = this.panelOpacity;
         this.client.ui.glassEffect = this.glassEffect;
+        this.client.ui.menuKeybind = this.menuKeybind;
 
         this.client.sound.soundEnabled = this.soundEnabled;
         this.client.sound.soundProfile = this.soundProfile;
@@ -1021,6 +1027,7 @@ public class ActivityConfig {
             this.windowOpacity = this.client.ui.windowOpacity;
             this.panelOpacity = this.client.ui.panelOpacity;
             this.glassEffect = this.client.ui.glassEffect;
+            if (this.client.ui.menuKeybind != null) this.menuKeybind = this.client.ui.menuKeybind;
         }
         if (this.client.sound != null) {
             this.soundEnabled = this.client.sound.soundEnabled;
@@ -1699,6 +1706,7 @@ public class ActivityConfig {
         copy.sliderSoundEnabled = this.sliderSoundEnabled;
         copy.animationsEnabled = this.animationsEnabled;
         copy.spatialOpenAnimation = this.spatialOpenAnimation;
+        copy.menuKeybind.copyFrom(this.menuKeybind);
 
         copy.syncClientSection();
         copy.syncModuleConfigEntries();
@@ -1900,7 +1908,8 @@ public class ActivityConfig {
                Objects.equals(this.filterRegex, that.filterRegex) &&
                Objects.equals(this.gcPolicy, that.gcPolicy) &&
                Objects.equals(this.client, that.client) &&
-               Objects.equals(this.modules, that.modules);
+               Objects.equals(this.modules, that.modules) &&
+               Objects.equals(this.menuKeybind, that.menuKeybind);
     }
 
     @Override
@@ -1910,6 +1919,7 @@ public class ActivityConfig {
             pinnedModules,
             client,
             modules,
+            menuKeybind,
             // Combat
             autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay,
             autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay,

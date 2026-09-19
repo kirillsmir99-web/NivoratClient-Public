@@ -1,13 +1,13 @@
 package activity.client;
 
+import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 import activity.client.gui.ActivityScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.Window;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ public class ActivityClient implements ClientModInitializer {
     public static final String MOD_ID = "activity";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    private static KeyBinding openGuiKey;
+    private static boolean menuKeyDown = false;
 
     @Override
     public void onInitializeClient() {
@@ -28,17 +28,44 @@ public class ActivityClient implements ClientModInitializer {
         activity.client.gui.font.FontManager.init();
         activity.client.gui.sound.ActivitySoundEvents.register();
 
-        openGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-            "key.activity.open_gui",
-            GLFW.GLFW_KEY_O,
-            KeyBinding.Category.create(Identifier.of("activity", "general"))
-        ));
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (openGuiKey.wasPressed()) {
-                if (client.currentScreen == null) {
-                    client.setScreen(new ActivityScreen());
-                }
+            if (client == null || client.player == null) {
+                menuKeyDown = false;
+                return;
+            }
+
+            Window window = client.getWindow();
+            if (window == null || window.getHandle() == 0L) {
+                menuKeyDown = false;
+                return;
+            }
+
+            ActivityConfig config = ActivityConfigManager.getConfig();
+            if (config == null || config.menuKeybind == null || config.menuKeybind.isUnbound()) {
+                menuKeyDown = false;
+                return;
+            }
+
+            boolean ctrl = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL)
+                    || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
+            boolean shift = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT)
+                    || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
+            boolean alt = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_ALT)
+                    || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_ALT);
+
+            boolean isDown = config.menuKeybind.matchesWindow(window, ctrl, shift, alt);
+
+            // While any screen is open, keep track of key state so it doesn't trigger on close
+            if (client.currentScreen != null) {
+                menuKeyDown = isDown;
+                return;
+            }
+
+            if (isDown && !menuKeyDown) {
+                menuKeyDown = true;
+                client.setScreen(new ActivityScreen());
+            } else if (!isDown && menuKeyDown) {
+                menuKeyDown = false;
             }
         });
 
@@ -49,10 +76,13 @@ public class ActivityClient implements ClientModInitializer {
             }
         });
 
-        LOGGER.info("[Activity] Activity client loaded successfully. Keybind: 'O' (open_gui).");
+        LOGGER.info("[Activity] Activity client loaded successfully. Masked menu keybind active.");
     }
 
-    public static KeyBinding getOpenGuiKey() {
-        return openGuiKey;
+    /**
+     * Suppresses menu key trigger so that closing the screen via hotkey does not re-open it on tick.
+     */
+    public static void suppressMenuKey() {
+        menuKeyDown = true;
     }
 }

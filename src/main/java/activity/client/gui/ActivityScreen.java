@@ -36,7 +36,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
-import net.minecraft.client.option.KeyBinding;
+import activity.client.config.ActivityConfig;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -1213,8 +1213,9 @@ public class ActivityScreen extends Screen {
                 finishClose();
                 return true;
             }
-            KeyBinding openGuiKey = ActivityClient.getOpenGuiKey();
-            if (openGuiKey != null && openGuiKey.matchesKey(input)) {
+            ActivityConfig cfg = ActivityConfigManager.getConfig();
+            if (cfg != null && cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound() && cfg.menuKeybind.matchesKeyInput(input)) {
+                ActivityClient.suppressMenuKey();
                 finishClose();
                 return true;
             }
@@ -1226,8 +1227,9 @@ public class ActivityScreen extends Screen {
                 this.close();
                 return true;
             }
-            KeyBinding openGuiKey = ActivityClient.getOpenGuiKey();
-            if (openGuiKey != null && openGuiKey.matchesKey(input)) {
+            ActivityConfig cfg = ActivityConfigManager.getConfig();
+            if (cfg != null && cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound() && cfg.menuKeybind.matchesKeyInput(input)) {
+                ActivityClient.suppressMenuKey();
                 this.close();
                 return true;
             }
@@ -1297,10 +1299,11 @@ public class ActivityScreen extends Screen {
             return true;
         }
 
-        // Priority 6: Hotkey screen close ('O' / registered keybind when no text field is focused and no keybind listening) (AUD-10)
+        // Priority 6: Hotkey screen close (menuKeybind when no text field is focused and no keybind listening)
         if (!isAnyTextFieldFocused() && !isAnyKeybindListening()) {
-            KeyBinding openGuiKey = ActivityClient.getOpenGuiKey();
-            if (openGuiKey != null && openGuiKey.matchesKey(input)) {
+            ActivityConfig cfg = ActivityConfigManager.getConfig();
+            if (cfg != null && cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound() && cfg.menuKeybind.matchesKeyInput(input)) {
+                ActivityClient.suppressMenuKey();
                 this.close();
                 return true;
             }

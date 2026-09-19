@@ -221,6 +221,12 @@
   "scissorOpt": true,
   "filterRegex": ".*",
   "gcPolicy": "Консервативный",
+  "menuKeybind": {
+    "keyCode": 79,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
   "fontFamily": "onest",
   "typographySize": "normal",
   "windowOpacity": 85.0,
@@ -501,7 +507,13 @@
       "spatialOpenAnimation": true,
       "windowOpacity": 85.0,
       "panelOpacity": 65.0,
-      "glassEffect": true
+      "glassEffect": true,
+      "menuKeybind": {
+        "keyCode": 79,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      }
     },
     "sound": {
       "soundEnabled": true,

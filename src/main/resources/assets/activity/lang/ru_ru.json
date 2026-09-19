@@ -477,6 +477,8 @@
   "activity.category.defense": "Защита и карты",
   "activity.category.utility": "Утилиты и HUD",
   "activity.card.interface.typography": "ИНТЕРФЕЙС И ТИПОГРАФИКА",
+  "activity.setting.interface.menu_keybind": "Клавиша меню",
+  "activity.setting.interface.menu_keybind.tooltip": "Клавиша или кнопка мыши для открытия и закрытия меню NivoratClient",
   "activity.setting.interface.font_family": "Шрифт интерфейса",
   "activity.setting.interface.font_family.tooltip": "Выбор шрифта интерфейса NivoratClient (Minecraft / Onest / Inter / Manrope / Rubik)",
   "activity.card.settings.presets": "УПРАВЛЕНИЕ ПРЕСЕТАМИ",

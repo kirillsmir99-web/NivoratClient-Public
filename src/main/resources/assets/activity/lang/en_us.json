@@ -477,6 +477,8 @@
   "activity.category.defense": "Defense",
   "activity.category.utility": "Utility",
   "activity.card.interface.typography": "INTERFACE & TYPOGRAPHY",
+  "activity.setting.interface.menu_keybind": "Menu Keybind",
+  "activity.setting.interface.menu_keybind.tooltip": "Keyboard key or mouse button to open and close NivoratClient menu",
   "activity.setting.interface.font_family": "Interface Font",
   "activity.setting.interface.font_family.tooltip": "Select the NivoratClient interface font (Minecraft / Onest / Inter / Manrope / Rubik)",
   "activity.card.settings.presets": "PRESET MANAGEMENT",

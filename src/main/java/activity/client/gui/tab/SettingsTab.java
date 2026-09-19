@@ -8,6 +8,7 @@ import activity.client.config.preset.PresetSerializer;
 import activity.client.gui.ActivityScreen;
 import activity.client.gui.component.ActivityButton;
 import activity.client.gui.component.ActivityDropdown;
+import activity.client.gui.component.ActivityKeybindButton;
 import activity.client.gui.component.ActivityLabel;
 import activity.client.gui.component.ActivityPanel;
 import activity.client.gui.component.ActivitySlider;
@@ -75,6 +76,7 @@ public class SettingsTab extends ActivityTab {
     public void resetDefaults() {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null) {
+            config.menuKeybind.set(org.lwjgl.glfw.GLFW.GLFW_KEY_O, false, false, false);
             config.fontFamily = "onest";
             config.typographySize = "normal";
             config.windowOpacity = 85.0;
@@ -117,7 +119,7 @@ public class SettingsTab extends ActivityTab {
         // ==========================================
         // CARD 1: VISUAL & TYPOGRAPHY
         // ==========================================
-        int rows1 = 5;
+        int rows1 = 6;
         int card1Height = 22 + rows1 * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         int card1X = col1X;
         int innerStartX1 = card1X + ActivityMetrics.PADDING_PANEL;
@@ -127,7 +129,24 @@ public class SettingsTab extends ActivityTab {
 
         int rowY = curY1 + 22;
 
+        // Row 1.0: Menu Keybind
+        ActivityLabel labelMenuKey = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.menu_keybind"));
+        int keybindW = Math.min(130, (int) (innerRowW * 0.45f));
+        labelMenuKey.setMaxWidth(Math.max(20, innerRowW - keybindW - 6));
+        ActivityKeybindButton btnMenuKey = new ActivityKeybindButton(
+            innerStartX1 + innerRowW - keybindW, rowY, keybindW, ActivityMetrics.CONTROL_HEIGHT,
+            config.menuKeybind,
+            newKb -> {
+                config.menuKeybind.copyFrom(newKb);
+                ActivityConfigManager.markDirty();
+                ActivityConfigManager.save();
+            }
+        );
+        addControl(container, labelMenuKey);
+        addControl(container, btnMenuKey);
+
         // Row 1.1: Interface Font Dropdown
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelFont = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.font_family"));
         int dropdownW = Math.min(160, (int) (innerRowW * 0.55f));
         labelFont.setMaxWidth(Math.max(20, innerRowW - dropdownW - 6));
