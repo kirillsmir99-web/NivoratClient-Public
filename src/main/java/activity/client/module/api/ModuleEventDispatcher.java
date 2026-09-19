@@ -168,15 +168,11 @@ public final class ModuleEventDispatcher {
                 }
             }
 
-            if (invPressed) {
-                if (client.currentScreen == null) {
-                    if (client.interactionManager != null && client.interactionManager.hasRidingInventory()) {
-                        client.player.openRidingInventory();
-                    } else {
-                        client.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(client.player));
-                    }
-                } else if (client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen) {
-                    client.setScreen(null);
+            if (invPressed && client.currentScreen == null) {
+                if (client.interactionManager != null && client.interactionManager.hasRidingInventory()) {
+                    client.player.openRidingInventory();
+                } else {
+                    client.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(client.player));
                 }
             }
         }
