@@ -231,6 +231,7 @@ public class AboutTab extends ActivityTab {
             ActivityButton.Variant.PRIMARY,
             btn -> openUrl(URL_TELEGRAM, screen)
         );
+        btnTg.setBrandHoverColor(0xFF2AABEE);
         btnTg.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnTg);
 
@@ -243,6 +244,7 @@ public class AboutTab extends ActivityTab {
             ActivityButton.Variant.PRIMARY,
             btn -> openUrl(URL_DONATE, screen)
         );
+        btnDonate.setBrandHoverColor(0xFFFF4757);
         btnDonate.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnDonate);
 
@@ -260,6 +262,7 @@ public class AboutTab extends ActivityTab {
             ActivityButton.Variant.SECONDARY,
             btn -> openUrl(URL_YOUTUBE, screen)
         );
+        btnYoutube.setBrandHoverColor(0xFFFF0000);
         btnYoutube.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnYoutube);
 
@@ -271,6 +274,7 @@ public class AboutTab extends ActivityTab {
             ActivityButton.Variant.SECONDARY,
             btn -> openUrl(URL_TIKTOK, screen)
         );
+        btnTiktok.setBrandHoverColor(0xFF00F2FE);
         btnTiktok.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnTiktok);
 
@@ -282,6 +286,7 @@ public class AboutTab extends ActivityTab {
             ActivityButton.Variant.SECONDARY,
             btn -> openUrl(URL_DISCORD, screen)
         );
+        btnDiscord.setBrandHoverColor(0xFF5865F2);
         btnDiscord.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnDiscord);
 

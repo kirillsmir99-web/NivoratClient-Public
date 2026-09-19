@@ -43,6 +43,7 @@ public class ActivityButton extends ActivityComponent {
 
     private float hoverProgress = 0.0f;
     private int touchPadding = 0;
+    private int brandHoverColor = 0;
 
     private Text cachedDisplayText = null;
     private int cachedDisplayWidth = -1;
@@ -120,6 +121,14 @@ public class ActivityButton extends ActivityComponent {
         this.variant = variant;
     }
 
+    public int getBrandHoverColor() {
+        return brandHoverColor;
+    }
+
+    public void setBrandHoverColor(int brandHoverColor) {
+        this.brandHoverColor = brandHoverColor;
+    }
+
     public void setOnPress(PressAction onPress) {
         this.onPress = onPress;
     }
@@ -169,8 +178,14 @@ public class ActivityButton extends ActivityComponent {
         // Draw background and 1px border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bgColor, borderColor);
 
-        // Hover highlight overlay for secondary buttons (subtle 100ms fade in/out)
-        if (this.variant == Variant.SECONDARY && this.hoverProgress > 0.001f) {
+        // Hover highlight overlay with brand color or default secondary subtle fade
+        if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
+            borderColor = ActivityColors.interpolateColor(borderColor, this.brandHoverColor, this.hoverProgress);
+            textColor = ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress);
+            int overlayAlpha = (int) (0x28 * this.hoverProgress);
+            int overlayColor = (overlayAlpha << 24) | (this.brandHoverColor & 0x00FFFFFF);
+            ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, this.height - 2, overlayColor);
+        } else if (this.variant == Variant.SECONDARY && this.hoverProgress > 0.001f) {
             int maxAlpha = (ActivityColors.BUTTON_SECONDARY_HOVER >>> 24) & 0xFF; // 0x33 = 51
             int overlayAlpha = (int) (maxAlpha * this.hoverProgress);
             int overlayColor = (overlayAlpha << 24) | (ActivityColors.BUTTON_SECONDARY_HOVER & 0x00FFFFFF);
@@ -186,6 +201,9 @@ public class ActivityButton extends ActivityComponent {
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         int fontH = activity.client.gui.font.UiTextRenderer.getFontHeight(tr);
         int textY = this.y + (this.height - fontH) / 2;
+        int iconColor = (this.brandHoverColor != 0 && this.hoverProgress > 0.001f)
+            ? ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress)
+            : textColor;
 
         ScissorHelper.pushScissor(context, this.x + 2, this.y + 1, Math.max(1, this.width - 4), Math.max(1, this.height - 2));
         try {
@@ -194,7 +212,7 @@ public class ActivityButton extends ActivityComponent {
                 int gap = 4;
                 if (this.width < iconSize + 16) {
                     // Ultra-narrow: show icon only
-                    ActivityIconRenderer.drawCentered(context, this.icon, this.x, this.y, this.width, this.height, textColor);
+                    ActivityIconRenderer.drawCentered(context, this.icon, this.x, this.y, this.width, this.height, iconColor);
                 } else {
                     int maxTextW = this.width - iconSize - gap - 6;
                     if (this.cachedDisplayText == null || this.lastCalculatedWidth != this.width) {
@@ -216,11 +234,11 @@ public class ActivityButton extends ActivityComponent {
                     int totalContentWidth = iconSize + gap + this.cachedDisplayWidth;
                     int startX = Math.max(this.x + 3, this.x + (this.width - totalContentWidth) / 2);
                     int iconY = this.y + (this.height - this.icon.getHeight()) / 2;
-                    ActivityIconRenderer.draw(context, this.icon, startX, iconY, textColor);
+                    ActivityIconRenderer.draw(context, this.icon, startX, iconY, iconColor);
                     activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, this.cachedDisplayText, startX + iconSize + gap, textY, textColor);
                 }
             } else if (this.icon != null) {
-                ActivityIconRenderer.drawCentered(context, this.icon, this.x, this.y, this.width, this.height, textColor);
+                ActivityIconRenderer.drawCentered(context, this.icon, this.x, this.y, this.width, this.height, iconColor);
             } else if (this.message != null) {
                 if (this.cachedDisplayText == null || this.lastCalculatedWidth != this.width) {
                     int maxTextW = this.width - 6;

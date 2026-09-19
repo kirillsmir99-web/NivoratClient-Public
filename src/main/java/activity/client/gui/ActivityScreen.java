@@ -107,6 +107,42 @@ public class ActivityScreen extends Screen {
     private final activity.client.gui.layout.WindowDragController dragController = new activity.client.gui.layout.WindowDragController();
     private activity.client.gui.component.WindowControlButtons controlButtons;
 
+    // ==========================================
+    // GUI SESSION MEMORY (1-minute TTL)
+    // ==========================================
+    public static final long SESSION_MEMORY_TTL_MS = 60_000L;
+    private static String lastSessionTabId = null;
+    private static String lastSessionModuleId = null;
+    private static long lastSessionCloseTimestamp = 0L;
+
+    public static void recordSession(String tabId, String moduleId) {
+        lastSessionTabId = tabId;
+        lastSessionModuleId = moduleId;
+        lastSessionCloseTimestamp = System.currentTimeMillis();
+    }
+
+    public static boolean hasValidSession() {
+        return lastSessionTabId != null && (System.currentTimeMillis() - lastSessionCloseTimestamp <= SESSION_MEMORY_TTL_MS);
+    }
+
+    public static String getLastSessionTabId() {
+        return lastSessionTabId;
+    }
+
+    public static String getLastSessionModuleId() {
+        return lastSessionModuleId;
+    }
+
+    public static long getLastSessionCloseTimestamp() {
+        return lastSessionCloseTimestamp;
+    }
+
+    public static void clearSession() {
+        lastSessionTabId = null;
+        lastSessionModuleId = null;
+        lastSessionCloseTimestamp = 0L;
+    }
+
     public boolean isMaximized() {
         return this.dragController.isMaximized();
     }
@@ -252,6 +288,27 @@ public class ActivityScreen extends Screen {
 
         activity.client.gui.font.FontManager.addListener(this.fontChangeListener);
         this.searchBar.setOnQueryChange(this::onSearchQueryChanged);
+
+        if (!this.initializedOnce) {
+            if (hasValidSession()) {
+                int savedIndex = this.tabManager.getTabIndexById(lastSessionTabId);
+                if (savedIndex >= 0) {
+                    this.tabManager.setSelectedIndex(savedIndex);
+                    if (lastSessionModuleId != null) {
+                        this.sidebarTree.setSelectedModule(lastSessionTabId, lastSessionModuleId);
+                    } else {
+                        this.sidebarTree.clearSelectedModule();
+                    }
+                } else {
+                    this.tabManager.setSelectedIndex(0);
+                    this.sidebarTree.clearSelectedModule();
+                }
+            } else {
+                this.tabManager.setSelectedIndex(0);
+                this.sidebarTree.clearSelectedModule();
+            }
+        }
+
         WindowLayout layout = computeLayout();
         this.dragController.clampWindowPosition(this.width, this.height, layout.windowWidth, layout.windowHeight);
         layout = computeLayout();
@@ -410,6 +467,13 @@ public class ActivityScreen extends Screen {
 
         this.currentScrollContainer = scrollContainer;
         this.addComponent(scrollContainer);
+
+        if (!this.initializedOnce && hasValidSession() && lastSessionModuleId != null && activeTab != null) {
+            ActivityPanel card = activeTab.getModuleCard(lastSessionModuleId);
+            if (card != null) {
+                scrollContainer.scrollToChild(card);
+            }
+        }
 
         if (activeTab != null && !this.activeSearchQuery.isEmpty()) {
             activeTab.applySearchFilter(scrollContainer, this.activeSearchQuery);
@@ -1323,6 +1387,10 @@ public class ActivityScreen extends Screen {
     public void close() {
         if (!this.closing) {
             activity.client.gui.sound.SoundManager.playClose();
+            ActivityTab curTab = this.tabManager.getSelectedTab();
+            String curTabId = curTab != null ? curTab.getId() : null;
+            String curModId = this.sidebarTree != null ? this.sidebarTree.getSelectedModuleId() : null;
+            recordSession(curTabId, curModId);
         }
         activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
         boolean globalAnim = config == null || config.animationsEnabled;
@@ -1350,6 +1418,11 @@ public class ActivityScreen extends Screen {
     }
 
     public void finishClose() {
+        ActivityTab curTab = this.tabManager.getSelectedTab();
+        String curTabId = curTab != null ? curTab.getId() : null;
+        String curModId = this.sidebarTree != null ? this.sidebarTree.getSelectedModuleId() : null;
+        recordSession(curTabId, curModId);
+
         this.searchBar.clear();
         this.searchBar.setFocused(false);
         this.activeSearchQuery = "";
