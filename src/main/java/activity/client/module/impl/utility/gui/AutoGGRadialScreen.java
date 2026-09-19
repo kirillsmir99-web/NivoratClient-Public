@@ -80,9 +80,12 @@ public final class AutoGGRadialScreen extends Screen {
     private static final List<BlockSpan>[][] SECTOR_BLOCKS_CACHE = new List[9][];
     private static final List<BlockSpan> RING_BLOCKS = new ArrayList<>();
     private static final List<BlockSpan> HUB_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> OUTER_BORDER_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> INNER_BORDER_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> HUB_BORDER_BLOCKS = new ArrayList<>();
+    private static final List<BlockSpan> OUTER_BORDER_CORE = new ArrayList<>();
+    private static final List<BlockSpan> OUTER_BORDER_FEATHER = new ArrayList<>();
+    private static final List<BlockSpan> INNER_BORDER_CORE = new ArrayList<>();
+    private static final List<BlockSpan> INNER_BORDER_FEATHER = new ArrayList<>();
+    private static final List<BlockSpan> HUB_BORDER_CORE = new ArrayList<>();
+    private static final List<BlockSpan> HUB_BORDER_FEATHER = new ArrayList<>();
     @SuppressWarnings("unchecked")
     private static final List<BlockSpan>[] DIVIDER_BLOCKS_CACHE = new List[9];
     private static final int[][] SECTOR_TEXT_OFFSETS = new int[9][];
@@ -92,24 +95,34 @@ public final class AutoGGRadialScreen extends Screen {
     private static final Text WATERMARK_NORMAL = Text.literal("§7ТГ канал автора модов - §b@virionDEV");
     private static final Text WATERMARK_HOVERED = Text.literal("§b§nТГ канал автора модов - @virionDEV");
 
-    private static List<BlockSpan> generateCircleBorder(int r) {
+    private static List<BlockSpan> generateSmoothCircleBorder(int r, double dMin, double dMax) {
         List<Span> spans = new ArrayList<>();
-        int r2 = r * r;
-        for (int y = -r; y <= r; y++) {
-            int x = (int) Math.round(Math.sqrt(Math.max(0, r2 - y * y)));
-            spans.add(new Span(y, -x, -x + 1));
-            spans.add(new Span(y, x, x + 1));
-        }
-        for (int x = -r; x <= r; x++) {
-            int y = (int) Math.round(Math.sqrt(Math.max(0, r2 - x * x)));
-            spans.add(new Span(-y, x, x + 1));
-            spans.add(new Span(y, x, x + 1));
+        int maxDim = r + 3;
+        for (int y = -maxDim; y <= maxDim; y++) {
+            int y2 = y * y;
+            int spanStart = Integer.MIN_VALUE;
+            for (int x = -maxDim; x <= maxDim; x++) {
+                double d = Math.abs(Math.hypot(x, y) - r);
+                if (d >= dMin && d <= dMax) {
+                    if (spanStart == Integer.MIN_VALUE) {
+                        spanStart = x;
+                    }
+                } else {
+                    if (spanStart != Integer.MIN_VALUE) {
+                        spans.add(new Span(y, spanStart, x));
+                        spanStart = Integer.MIN_VALUE;
+                    }
+                }
+            }
+            if (spanStart != Integer.MIN_VALUE) {
+                spans.add(new Span(y, spanStart, maxDim + 1));
+            }
         }
         return coalesceSpans(optimizeSpans(spans), 1);
     }
 
     static {
-        // 1. Sector fills & Dividers (smooth 1px resolution)
+        // 1. Sector fills & Dividers (mathematically continuous, gap-free)
         int inner2 = INNER_RADIUS * INNER_RADIUS;
         int outer2 = OUTER_RADIUS * OUTER_RADIUS;
         int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
@@ -126,10 +139,9 @@ public final class AutoGGRadialScreen extends Screen {
                 List<Span> list = new ArrayList<>();
                 for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
                     int y2 = y * y;
-                    int maxOuterX = (int) Math.sqrt(Math.max(0, outer2 - y2));
                     int spanStart = Integer.MIN_VALUE;
 
-                    for (int x = -maxOuterX; x <= maxOuterX; x++) {
+                    for (int x = -OUTER_RADIUS; x <= OUTER_RADIUS; x++) {
                         int dist2 = x * x + y2;
                         boolean inRadial = dist2 >= inner2 && dist2 <= outer2;
                         boolean inSector = false;
@@ -152,13 +164,13 @@ public final class AutoGGRadialScreen extends Screen {
                         }
                     }
                     if (spanStart != Integer.MIN_VALUE) {
-                        list.add(new Span(y, spanStart, maxOuterX + 1));
+                        list.add(new Span(y, spanStart, OUTER_RADIUS + 1));
                     }
                 }
                 SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 1);
             }
 
-            // Divider spans for count > 1
+            // Continuous radial divider spans for count > 1 (stepped at 0.35 to guarantee no gaps)
             DIVIDER_BLOCKS_CACHE[count] = new ArrayList<>();
             if (count > 1) {
                 List<Span> divSpans = new ArrayList<>();
@@ -166,7 +178,7 @@ public final class AutoGGRadialScreen extends Screen {
                     double a = i * sectorAngle - Math.PI / 2.0;
                     double cosA = Math.cos(a);
                     double sinA = Math.sin(a);
-                    for (int r = INNER_RADIUS + 1; r < OUTER_RADIUS; r++) {
+                    for (double r = INNER_RADIUS + 0.5; r < OUTER_RADIUS - 0.5; r += 0.35) {
                         int px = (int) Math.round(cosA * r);
                         int py = (int) Math.round(sinA * r);
                         divSpans.add(new Span(py, px, px + 1));
@@ -176,18 +188,26 @@ public final class AutoGGRadialScreen extends Screen {
             }
         }
 
-        // 2. Base Ring
+        // 2. Base Ring (100% symmetric, matches sector fills exactly)
         List<Span> rawRing = new ArrayList<>();
         for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
             int y2 = y * y;
-            if (y2 > outer2) continue;
-            int maxOuterX = (int) Math.round(Math.sqrt(outer2 - y2));
-            int maxInnerX = (y2 < inner2) ? (int) Math.round(Math.sqrt(inner2 - y2)) : 0;
-            if (maxInnerX > 0) {
-                rawRing.add(new Span(y, -maxOuterX, -maxInnerX));
-                rawRing.add(new Span(y, maxInnerX, maxOuterX + 1));
-            } else {
-                rawRing.add(new Span(y, -maxOuterX, maxOuterX + 1));
+            int spanStart = Integer.MIN_VALUE;
+            for (int x = -OUTER_RADIUS; x <= OUTER_RADIUS; x++) {
+                int dist2 = x * x + y2;
+                if (dist2 >= inner2 && dist2 <= outer2) {
+                    if (spanStart == Integer.MIN_VALUE) {
+                        spanStart = x;
+                    }
+                } else {
+                    if (spanStart != Integer.MIN_VALUE) {
+                        rawRing.add(new Span(y, spanStart, x));
+                        spanStart = Integer.MIN_VALUE;
+                    }
+                }
+            }
+            if (spanStart != Integer.MIN_VALUE) {
+                rawRing.add(new Span(y, spanStart, OUTER_RADIUS + 1));
             }
         }
         RING_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawRing), 1));
@@ -196,15 +216,33 @@ public final class AutoGGRadialScreen extends Screen {
         List<Span> rawHub = new ArrayList<>();
         int hub2 = HUB_RADIUS * HUB_RADIUS;
         for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y++) {
-            int maxHubX = (int) Math.round(Math.sqrt(Math.max(0, hub2 - y * y)));
-            rawHub.add(new Span(y, -maxHubX, maxHubX + 1));
+            int y2 = y * y;
+            int spanStart = Integer.MIN_VALUE;
+            for (int x = -HUB_RADIUS; x <= HUB_RADIUS; x++) {
+                if (x * x + y2 <= hub2) {
+                    if (spanStart == Integer.MIN_VALUE) {
+                        spanStart = x;
+                    }
+                } else {
+                    if (spanStart != Integer.MIN_VALUE) {
+                        rawHub.add(new Span(y, spanStart, x));
+                        spanStart = Integer.MIN_VALUE;
+                    }
+                }
+            }
+            if (spanStart != Integer.MIN_VALUE) {
+                rawHub.add(new Span(y, spanStart, HUB_RADIUS + 1));
+            }
         }
         HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 1));
 
-        // 4. Precomputed crisp border rings
-        OUTER_BORDER_BLOCKS.addAll(generateCircleBorder(OUTER_RADIUS));
-        INNER_BORDER_BLOCKS.addAll(generateCircleBorder(INNER_RADIUS));
-        HUB_BORDER_BLOCKS.addAll(generateCircleBorder(HUB_RADIUS));
+        // 4. Precomputed smooth anti-aliased border rings
+        OUTER_BORDER_CORE.addAll(generateSmoothCircleBorder(OUTER_RADIUS, 0.0, 0.65));
+        OUTER_BORDER_FEATHER.addAll(generateSmoothCircleBorder(OUTER_RADIUS, 0.65, 1.35));
+        INNER_BORDER_CORE.addAll(generateSmoothCircleBorder(INNER_RADIUS, 0.0, 0.65));
+        INNER_BORDER_FEATHER.addAll(generateSmoothCircleBorder(INNER_RADIUS, 0.65, 1.35));
+        HUB_BORDER_CORE.addAll(generateSmoothCircleBorder(HUB_RADIUS, 0.0, 0.65));
+        HUB_BORDER_FEATHER.addAll(generateSmoothCircleBorder(HUB_RADIUS, 0.65, 1.35));
     }
 
     public static List<Span> optimizeSpans(List<Span> raw) {
@@ -365,9 +403,11 @@ public final class AutoGGRadialScreen extends Screen {
         // Base dark ring
         drawBlockList(context, cx, cy, RING_BLOCKS, 0xD00E1015);
 
-        // Outer and inner crisp border rings
-        drawBlockList(context, cx, cy, OUTER_BORDER_BLOCKS, 0x55353B49);
-        drawBlockList(context, cx, cy, INNER_BORDER_BLOCKS, 0x55353B49);
+        // Outer and inner smooth anti-aliased border rings
+        drawBlockList(context, cx, cy, OUTER_BORDER_FEATHER, 0x22353B49);
+        drawBlockList(context, cx, cy, OUTER_BORDER_CORE, 0x66353B49);
+        drawBlockList(context, cx, cy, INNER_BORDER_FEATHER, 0x22353B49);
+        drawBlockList(context, cx, cy, INNER_BORDER_CORE, 0x66353B49);
 
         // Hovered sector highlight
         if (count > 0 && this.hoveredSector >= 0 && this.hoveredSector < count) {
@@ -379,14 +419,16 @@ public final class AutoGGRadialScreen extends Screen {
 
         // Radial dividers between sectors
         if (count > 1 && DIVIDER_BLOCKS_CACHE[count] != null) {
-            drawBlockList(context, cx, cy, DIVIDER_BLOCKS_CACHE[count], 0x55353B49);
+            drawBlockList(context, cx, cy, DIVIDER_BLOCKS_CACHE[count], 0x66353B49);
         }
 
         // Central Hub
         int hubBgColor = hubHovered ? 0xF2152835 : 0xF20A0C10;
         drawBlockList(context, cx, cy, HUB_BLOCKS, hubBgColor);
-        int hubBorderColor = hubHovered ? 0x8800D2FF : 0x55353B49;
-        drawBlockList(context, cx, cy, HUB_BORDER_BLOCKS, hubBorderColor);
+        int hubBorderCore = hubHovered ? 0xAA00D2FF : 0x66353B49;
+        int hubBorderFeather = hubHovered ? 0x4400D2FF : 0x22353B49;
+        drawBlockList(context, cx, cy, HUB_BORDER_FEATHER, hubBorderFeather);
+        drawBlockList(context, cx, cy, HUB_BORDER_CORE, hubBorderCore);
 
         // 3. Sector text labels
         String defaultPhrase = AutoGGClient.CONFIG.currentPhrase();

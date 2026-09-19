@@ -167,30 +167,22 @@ public class AutoGGModule extends NivoratModule {
         int count = currentPhrases != null ? currentPhrases.size() : 0;
         String activeSelected = AutoGGClient.CONFIG.currentPhrase();
 
-        // 0. Informative footnote: 3 clean lines fitting inside innerRowW
-        activity.client.gui.component.ActivityLabel note1 = new activity.client.gui.component.ActivityLabel(
-                startX, curY,
-                Text.literal("§bℹ Сноска: §fМод отправляет GG только при победе на дуэлях")
-        );
-        note1.setMaxWidth(innerRowW);
-        if (tab != null) tab.addControl(container, note1); else container.addChild(note1);
-        curY += 12;
-
-        activity.client.gui.component.ActivityLabel note2 = new activity.client.gui.component.ActivityLabel(
-                startX, curY,
-                Text.literal("§7(на FFA отключена отправка за чужих, чтобы не писать GG ошибочно)")
-        );
-        note2.setMaxWidth(innerRowW);
-        if (tab != null) tab.addControl(container, note2); else container.addChild(note2);
-        curY += 12;
-
-        activity.client.gui.component.ActivityLabel note3 = new activity.client.gui.component.ActivityLabel(
-                startX, curY,
-                Text.literal("§a✔ §7Отправка при собственной смерти работает везде.")
-        );
-        note3.setMaxWidth(innerRowW);
-        if (tab != null) tab.addControl(container, note3); else container.addChild(note3);
-        curY += 16;
+        // 0. Informative callout card: blue icon without "Сноска:" label, neatly boxed
+        int calloutH = 28;
+        activity.client.gui.component.ActivityComponent callout = new activity.client.gui.component.ActivityComponent(startX, curY, innerRowW, calloutH) {
+            @Override
+            protected void renderComponent(net.minecraft.client.gui.DrawContext context, int mouseX, int mouseY, float delta) {
+                activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, 0x182B79C2, 0x332B79C2, true);
+                net.minecraft.client.font.TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+                if (tr != null) {
+                    context.drawTextWithShadow(tr, activity.client.gui.font.FontManager.wrap(Text.literal("§bℹ")), this.x + 8, this.y + 6, 0xFF3EA4E8);
+                    context.drawTextWithShadow(tr, activity.client.gui.font.FontManager.wrap(Text.literal("Мод отправляет GG только на дуэльных серверах.")), this.x + 20, this.y + 5, activity.client.gui.theme.ActivityColors.TEXT_PRIMARY);
+                    context.drawTextWithShadow(tr, activity.client.gui.font.FontManager.wrap(Text.literal("Автоотправка при своей смерти работает корректно на всех.")), this.x + 20, this.y + 16, activity.client.gui.theme.ActivityColors.TEXT_MUTED);
+                }
+            }
+        };
+        if (tab != null) tab.addControl(container, callout); else container.addChild(callout);
+        curY += calloutH + 8;
 
         // 1. Header Label: Phrases Count / Limit (max 8)
         activity.client.gui.component.ActivityLabel headerLabel = new activity.client.gui.component.ActivityLabel(

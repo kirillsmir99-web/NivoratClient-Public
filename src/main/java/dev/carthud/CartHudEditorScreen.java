@@ -1,5 +1,6 @@
 package dev.carthud;
 
+import activity.client.gui.font.UiTextRenderer;
 import activity.client.gui.render.ActivityGuiRenderer;
 import activity.client.gui.sound.SoundManager;
 import activity.client.gui.theme.ActivityColors;
@@ -345,9 +346,10 @@ public final class CartHudEditorScreen extends Screen {
 
         renderCapsulePulse(context, haloX, haloY, haloX + haloW, haloY + haloH, peakAlpha);
 
-        int boxBg = isDragging ? 0x442B79C2 : (isHovered ? 0x2A2B79C2 : 0x1A0E1015);
-        int boxBorder = isDragging ? ActivityColors.ACCENT_LIGHT : (isHovered ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER_LIGHT);
-        ActivityGuiRenderer.drawPanel(context, haloX, haloY, haloW, haloH, boxBg, boxBorder, true);
+        if (isHovered || isDragging) {
+            int borderColor = isDragging ? 0x99FFFFFF : 0x44FFFFFF;
+            ActivityGuiRenderer.drawBorder(context, haloX, haloY, haloW, haloH, borderColor);
+        }
 
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc != null) {
@@ -366,7 +368,7 @@ public final class CartHudEditorScreen extends Screen {
             ActivityGuiRenderer.drawPanel(context, chipX, chipY, chipW, chipH, ActivityColors.PANEL_INNER_BG, ActivityColors.BORDER, true);
             ActivityGuiRenderer.fill(context, chipX + 5, chipY + 5, 4, 4, ActivityColors.ACCENT_PRIMARY);
             if (textRenderer != null) {
-                context.drawTextWithShadow(textRenderer, Text.literal("X: " + currentX + "  Y: " + currentY), chipX + 13, chipY + 4, ActivityColors.TEXT_PRIMARY);
+                UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("X: " + currentX + "  Y: " + currentY), chipX + 13, chipY + 4, ActivityColors.TEXT_PRIMARY);
             }
         }
 
@@ -379,14 +381,13 @@ public final class CartHudEditorScreen extends Screen {
 
         if (textRenderer != null) {
             ActivityGuiRenderer.fill(context, panelX + 8, panelY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
-            context.drawTextWithShadow(textRenderer, Text.literal("CART HUD"), panelX + 18, panelY + 7, ActivityColors.TEXT_PRIMARY);
-            context.drawTextWithShadow(textRenderer, Text.literal("Настройка HUD"), panelX + 18, panelY + 18, ActivityColors.TEXT_MUTED);
+            UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("CART HUD"), panelX + 18, panelY + 7, ActivityColors.TEXT_PRIMARY);
+            UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Настройка HUD"), panelX + 18, panelY + 18, ActivityColors.TEXT_MUTED);
 
             ActivityGuiRenderer.drawHorizontalLine(context, panelX + 6, panelY + 31, PANEL_W - 12, 0x44353B49);
 
             String posStr = (CartHudConfig.customX < 0 && CartHudConfig.customY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
-            int posW = textRenderer.getWidth(posStr);
-            context.drawTextWithShadow(textRenderer, Text.literal(posStr), panelX + (PANEL_W - posW) / 2, panelY + 37, ActivityColors.TEXT_ACCENT);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(posStr), panelX + PANEL_W / 2, panelY + 37, ActivityColors.ACCENT_LIGHT);
         }
 
         btnResetW = PANEL_W - 20;
@@ -413,25 +414,22 @@ public final class CartHudEditorScreen extends Screen {
         ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, resetBg, (hoveredBtn == 1) ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER, true);
         if (textRenderer != null) {
             String rstText = "Сбросить";
-            int rw = textRenderer.getWidth(rstText);
-            context.drawTextWithShadow(textRenderer, Text.literal(rstText), btnResetX + (btnResetW - rw) / 2, btnResetY + 6, ActivityColors.TEXT_PRIMARY);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(rstText), btnResetX + btnResetW / 2, btnResetY + 6, 0xFFFFFFFF);
         }
 
         // 2. Done button
-        int doneBg = (hoveredBtn == 2) ? 0xFF33DCFF : ActivityColors.ACCENT_PRIMARY;
-        ActivityGuiRenderer.fill(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg);
-        ActivityGuiRenderer.drawBorder(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, (hoveredBtn == 2) ? 0xFFFFFFFF : ActivityColors.BORDER);
+        int doneBg = (hoveredBtn == 2) ? ActivityColors.BUTTON_PRIMARY_HOVER : ActivityColors.BUTTON_PRIMARY_BG;
+        int doneBorder = (hoveredBtn == 2) ? ActivityColors.ACCENT_LIGHT : ActivityColors.ACCENT_PRIMARY;
+        ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg, doneBorder, true);
         if (textRenderer != null) {
             String dnText = "Готово";
-            int dw = textRenderer.getWidth(dnText);
-            context.drawTextWithShadow(textRenderer, Text.literal(dnText), btnDoneX + (btnDoneW - dw) / 2, btnDoneY + 7, 0xFF0E1015);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(dnText), btnDoneX + btnDoneW / 2, btnDoneY + 7, 0xFFFFFFFF);
         }
 
         // Subtle bottom hint bar
         if (textRenderer != null) {
             String hint = "ЛКМ — перемещение • ПКМ / R — сброс • Стрелки — подгонка (+Shift x5)";
-            int hintW = textRenderer.getWidth(hint);
-            context.drawTextWithShadow(textRenderer, Text.literal(hint), (width - hintW) / 2, height - 16, ActivityColors.TEXT_MUTED);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(hint), width / 2, height - 16, ActivityColors.TEXT_MUTED);
         }
 
         super.render(context, mouseX, mouseY, delta);
