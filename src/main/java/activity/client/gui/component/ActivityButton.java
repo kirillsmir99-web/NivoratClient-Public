@@ -153,14 +153,15 @@ public class ActivityButton extends ActivityComponent {
     private void drawButtonIcon(DrawContext context, int x, int y, int size, int color) {
         if (this.customTexture != null) {
             try {
+                int textureColor = this.enabled ? 0xFFFFFFFF : 0x80FFFFFF;
                 context.drawTexture(
                     net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                     this.customTexture,
                     x, y,
                     0.0f, 0.0f,
                     size, size,
-                    24, 24,
-                    color
+                    size, size,
+                    textureColor
                 );
                 return;
             } catch (Throwable ignored) {}
@@ -171,9 +172,11 @@ public class ActivityButton extends ActivityComponent {
     }
 
     private void drawButtonIconCentered(DrawContext context, int boxX, int boxY, int boxW, int boxH, int color) {
-        int size = this.icon != null ? this.icon.getWidth() : 16;
+        int size = (this.customTexture != null)
+            ? (boxH >= 24 ? 16 : 14)
+            : (this.icon != null ? this.icon.getWidth() : 16);
         int x = boxX + (boxW - size) / 2;
-        int y = boxY + (boxH - (this.icon != null ? this.icon.getHeight() : 16)) / 2;
+        int y = boxY + (boxH - size) / 2;
         drawButtonIcon(context, x, y, size, color);
     }
 
@@ -213,13 +216,17 @@ public class ActivityButton extends ActivityComponent {
             }
         }
 
+        // Brand hover highlight effect
+        if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
+            borderColor = ActivityColors.interpolateColor(borderColor, this.brandHoverColor, this.hoverProgress);
+            textColor = ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress);
+        }
+
         // Draw background and 1px border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bgColor, borderColor);
 
         // Hover highlight overlay with brand color or default secondary subtle fade
         if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
-            borderColor = ActivityColors.interpolateColor(borderColor, this.brandHoverColor, this.hoverProgress);
-            textColor = ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress);
             int overlayAlpha = (int) (0x28 * this.hoverProgress);
             int overlayColor = (overlayAlpha << 24) | (this.brandHoverColor & 0x00FFFFFF);
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, this.height - 2, overlayColor);
@@ -247,8 +254,10 @@ public class ActivityButton extends ActivityComponent {
         try {
             boolean hasIcon = (this.icon != null || this.customTexture != null);
             if (hasIcon && this.message != null) {
-                int iconSize = this.icon != null ? this.icon.getWidth() : 16;
-                int gap = 4;
+                int iconSize = (this.customTexture != null)
+                    ? (this.height >= 24 ? 16 : 14)
+                    : (this.icon != null ? this.icon.getWidth() : 16);
+                int gap = 5;
                 if (this.width < iconSize + 16) {
                     // Ultra-narrow: show icon only
                     drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor);
@@ -272,7 +281,7 @@ public class ActivityButton extends ActivityComponent {
                     }
                     int totalContentWidth = iconSize + gap + this.cachedDisplayWidth;
                     int startX = Math.max(this.x + 3, this.x + (this.width - totalContentWidth) / 2);
-                    int iconY = this.y + (this.height - (this.icon != null ? this.icon.getHeight() : iconSize)) / 2;
+                    int iconY = this.y + (this.height - iconSize) / 2;
                     drawButtonIcon(context, startX, iconY, iconSize, iconColor);
                     activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, this.cachedDisplayText, startX + iconSize + gap, textY, textColor);
                 }

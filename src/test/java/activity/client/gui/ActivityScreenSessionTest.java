@@ -117,4 +117,28 @@ public class ActivityScreenSessionTest {
         btn.setCustomTexture(AboutTab.TEXTURE_DISCORD);
         assertEquals(AboutTab.TEXTURE_DISCORD, btn.getCustomTexture());
     }
+
+    @Test
+    void testSocialIconResourceFilesExist() {
+        String[] icons = {"telegram.png", "donate.png", "youtube.png", "tiktok.png", "discord.png"};
+        for (String iconName : icons) {
+            String path = "/assets/nivoratclient/textures/gui/social/" + iconName;
+            java.io.InputStream is = getClass().getResourceAsStream(path);
+            assertNotNull(is, "Texture resource must exist: " + path);
+            try {
+                byte[] header = new byte[8];
+                int read = is.read(header);
+                assertEquals(8, read, "Must be able to read 8 byte PNG header for " + iconName);
+                // Verify standard PNG magic bytes: 0x89 'P' 'N' 'G' 0x0D 0x0A 0x1A 0x0A
+                assertEquals((byte) 0x89, header[0], iconName + " must have valid PNG magic byte 0");
+                assertEquals((byte) 'P', header[1], iconName + " must have valid PNG magic byte 1");
+                assertEquals((byte) 'N', header[2], iconName + " must have valid PNG magic byte 2");
+                assertEquals((byte) 'G', header[3], iconName + " must have valid PNG magic byte 3");
+                is.close();
+            } catch (Exception e) {
+                org.junit.jupiter.api.Assertions.fail("Failed to verify texture " + iconName + ": " + e.getMessage());
+            }
+        }
+    }
 }
+
