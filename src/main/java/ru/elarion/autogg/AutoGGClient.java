@@ -1,5 +1,6 @@
 package ru.elarion.autogg;
 
+import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -8,7 +9,7 @@ import net.minecraft.util.math.Vec3d;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class AutoGGClient {
+public final class AutoGGClient implements ClientModInitializer {
     public static final AutoGGConfig CONFIG = AutoGGConfig.load();
     private static final long SEND_COOLDOWN_MS = 8_000L;
     private static final Map<Integer, Long> recentAttacks = new ConcurrentHashMap<>();
@@ -20,6 +21,13 @@ public final class AutoGGClient {
     private static String pendingPhrase = null;
 
     private boolean localDiedThisRound;
+
+    public AutoGGClient() {}
+
+    @Override
+    public void onInitializeClient() {
+        ensureActive();
+    }
 
     public static void ensureActive() {
         if (active == null) {
