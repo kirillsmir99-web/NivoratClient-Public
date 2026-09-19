@@ -305,8 +305,8 @@ public class ModuleSettingsView extends Screen {
 
         // Metric calculations for consistent header alignment
         int toggleW = ActivityMetrics.TOGGLE_WIDTH;
-        int gap = ActivityMetrics.COLUMN_GAP;
-        int keybindBtnW = innerRowW < 200 ? 55 : (innerRowW < 240 ? 70 : 85);
+        int gap = innerRowW < 220 ? ActivityMetrics.COLUMN_GAP_COMPACT : ActivityMetrics.COLUMN_GAP;
+        int keybindBtnW = innerRowW < 170 ? 44 : (innerRowW < 200 ? 54 : (innerRowW < 240 ? 70 : 85));
         int aboutBtnW = 20;
 
         int toggleX = innerStartX + innerRowW - toggleW;

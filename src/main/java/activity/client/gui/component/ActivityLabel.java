@@ -20,6 +20,19 @@ public class ActivityLabel extends ActivityComponent {
     private Text cachedDisplayText = null;
     private int cachedDisplayWidth = -1;
     private int lastCalculatedMaxWidth = -2;
+    private boolean wordWrap = false;
+    private java.util.List<net.minecraft.text.OrderedText> cachedWrappedLines = null;
+
+    public boolean isWordWrap() {
+        return wordWrap;
+    }
+
+    public ActivityLabel setWordWrap(boolean wordWrap) {
+        this.wordWrap = wordWrap;
+        this.cachedDisplayText = null;
+        this.cachedWrappedLines = null;
+        return this;
+    }
 
     public Text getTooltip() {
         return tooltip;
@@ -40,6 +53,7 @@ public class ActivityLabel extends ActivityComponent {
             this.maxWidth = maxWidth;
             this.cachedDisplayText = null;
             this.cachedDisplayWidth = -1;
+            this.cachedWrappedLines = null;
         }
         return this;
     }
@@ -68,6 +82,7 @@ public class ActivityLabel extends ActivityComponent {
         this.text = text;
         this.cachedDisplayText = null;
         this.cachedDisplayWidth = -1;
+        this.cachedWrappedLines = null;
         updateDimensions();
     }
 
@@ -115,6 +130,7 @@ public class ActivityLabel extends ActivityComponent {
         this.width = 0;
         this.cachedDisplayText = null;
         this.cachedDisplayWidth = -1;
+        this.cachedWrappedLines = null;
         updateDimensions();
     }
 
@@ -122,9 +138,28 @@ public class ActivityLabel extends ActivityComponent {
     protected void renderComponent(DrawContext context, int mouseX, int mouseY, float delta) {
         if (this.text == null) return;
 
-        TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+        MinecraftClient client = MinecraftClient.getInstance();
+        TextRenderer tr = client != null ? client.textRenderer : null;
+        if (tr == null) return;
         int renderColor = this.enabled ? this.color : ActivityColors.TEXT_DISABLED;
         int fontH = activity.client.gui.font.UiTextRenderer.getFontHeight(tr);
+
+        if (this.wordWrap && this.maxWidth > 0) {
+            if (this.cachedWrappedLines == null || this.lastCalculatedMaxWidth != this.maxWidth) {
+                this.cachedWrappedLines = activity.client.gui.font.UiTextRenderer.wrapLines(tr, this.text, this.maxWidth);
+                this.lastCalculatedMaxWidth = this.maxWidth;
+                int lineH = fontH + 2;
+                this.height = Math.max(fontH, this.cachedWrappedLines.size() * lineH);
+            }
+            int lineH = fontH + 2;
+            int curY = this.y;
+            for (net.minecraft.text.OrderedText line : this.cachedWrappedLines) {
+                activity.client.gui.font.UiTextRenderer.drawOrderedText(context, tr, line, this.x, curY, renderColor, this.shadow);
+                curY += lineH;
+            }
+            return;
+        }
+
         int textY = this.y + (this.height - fontH) / 2;
 
         if (this.cachedDisplayText == null || this.lastCalculatedMaxWidth != this.maxWidth) {

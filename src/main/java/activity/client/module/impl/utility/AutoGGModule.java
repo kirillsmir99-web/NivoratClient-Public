@@ -167,17 +167,46 @@ public class AutoGGModule extends NivoratModule {
         int count = currentPhrases != null ? currentPhrases.size() : 0;
         String activeSelected = AutoGGClient.CONFIG.currentPhrase();
 
-        // 0. Informative callout card: blue icon without "Сноска:" label, neatly boxed
-        int calloutH = 28;
+        // 0. Informative callout card: blue icon without "Сноска:" label, neatly boxed and adaptively wrapped
+        MinecraftClient client = MinecraftClient.getInstance();
+        net.minecraft.client.font.TextRenderer fontTr = client != null ? client.textRenderer : null;
+        int textMaxW = Math.max(50, innerRowW - 24);
+        List<net.minecraft.text.OrderedText> preLines1 = fontTr != null
+                ? activity.client.gui.font.UiTextRenderer.wrapLines(fontTr, Text.literal("Мод отправляет GG только на дуэльных серверах."), textMaxW)
+                : List.of();
+        List<net.minecraft.text.OrderedText> preLines2 = fontTr != null
+                ? activity.client.gui.font.UiTextRenderer.wrapLines(fontTr, Text.literal("Автоотправка при своей смерти работает корректно на всех."), textMaxW)
+                : List.of();
+        int fontH = fontTr != null ? activity.client.gui.font.UiTextRenderer.getFontHeight(fontTr) : 9;
+        int lineH = fontH + 2;
+        int totalLines = Math.max(2, preLines1.size() + preLines2.size());
+        int padY = 5;
+        int calloutH = padY * 2 + totalLines * lineH;
+
         activity.client.gui.component.ActivityComponent callout = new activity.client.gui.component.ActivityComponent(startX, curY, innerRowW, calloutH) {
             @Override
             protected void renderComponent(net.minecraft.client.gui.DrawContext context, int mouseX, int mouseY, float delta) {
                 activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, 0x182B79C2, 0x332B79C2, true);
-                net.minecraft.client.font.TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+                MinecraftClient renderMc = MinecraftClient.getInstance();
+                net.minecraft.client.font.TextRenderer tr = renderMc != null ? renderMc.textRenderer : null;
                 if (tr != null) {
-                    context.drawTextWithShadow(tr, activity.client.gui.font.FontManager.wrap(Text.literal("§bℹ")), this.x + 8, this.y + 6, 0xFF3EA4E8);
-                    context.drawTextWithShadow(tr, activity.client.gui.font.FontManager.wrap(Text.literal("Мод отправляет GG только на дуэльных серверах.")), this.x + 20, this.y + 5, activity.client.gui.theme.ActivityColors.TEXT_PRIMARY);
-                    context.drawTextWithShadow(tr, activity.client.gui.font.FontManager.wrap(Text.literal("Автоотправка при своей смерти работает корректно на всех.")), this.x + 20, this.y + 16, activity.client.gui.theme.ActivityColors.TEXT_MUTED);
+                    activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, Text.literal("§bℹ"), this.x + 7, this.y + padY + 1, 0xFF3EA4E8);
+                    int textW = Math.max(50, this.width - 24);
+                    List<net.minecraft.text.OrderedText> l1 = activity.client.gui.font.UiTextRenderer.wrapLines(tr, Text.literal("Мод отправляет GG только на дуэльных серверах."), textW);
+                    List<net.minecraft.text.OrderedText> l2 = activity.client.gui.font.UiTextRenderer.wrapLines(tr, Text.literal("Автоотправка при своей смерти работает корректно на всех."), textW);
+                    int curLineY = this.y + padY;
+                    for (net.minecraft.text.OrderedText l : l1) {
+                        activity.client.gui.font.UiTextRenderer.drawOrderedText(context, tr, l, this.x + 20, curLineY, activity.client.gui.theme.ActivityColors.TEXT_PRIMARY, true);
+                        curLineY += lineH;
+                    }
+                    for (net.minecraft.text.OrderedText l : l2) {
+                        activity.client.gui.font.UiTextRenderer.drawOrderedText(context, tr, l, this.x + 20, curLineY, activity.client.gui.theme.ActivityColors.TEXT_MUTED, true);
+                        curLineY += lineH;
+                    }
+                    int dynamicH = (curLineY - this.y) + padY;
+                    if (this.height != dynamicH) {
+                        this.height = dynamicH;
+                    }
                 }
             }
         };
@@ -364,9 +393,11 @@ public class AutoGGModule extends NivoratModule {
                     startX, curY + 3,
                     Text.literal("Достигнут лимит 8/8 слов. Удалите слово для добавления нового.")
             );
+            limitLabel.setMaxWidth(innerRowW);
+            limitLabel.setWordWrap(true);
             limitLabel.setColor(activity.client.gui.theme.ActivityColors.WARNING);
             if (tab != null) tab.addControl(container, limitLabel); else container.addChild(limitLabel);
-            curY += rowH + gap;
+            curY += limitLabel.getHeight() + gap;
         }
 
         return curY - startY;

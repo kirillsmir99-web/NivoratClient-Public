@@ -13,8 +13,8 @@ import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
 public final class HpHudEditorScreen extends Screen {
-    private static final int[] SHELL_RADII = { 16, 14, 12, 10, 8, 6, 4, 2 };
-    private static final float[] SHELL_WEIGHTS = { 0.0381f, 0.1084f, 0.1622f, 0.1913f, 0.1913f, 0.1622f, 0.1084f, 0.0381f };
+    private static final int[] SHELL_RADII = { 8, 6, 4, 2 };
+    private static final float[] SHELL_WEIGHTS = { 0.12f, 0.22f, 0.32f, 0.34f };
     private static final int[][] PRECOMPUTED_DX;
 
     static {
@@ -155,17 +155,17 @@ public final class HpHudEditorScreen extends Screen {
         btnModeW = PANEL_W - 20;
         btnModeH = 20;
         btnModeX = panelX + 10;
-        btnModeY = panelY + 54;
+        btnModeY = panelY + 52;
 
         btnResetW = PANEL_W - 20;
         btnResetH = 20;
         btnResetX = panelX + 10;
-        btnResetY = panelY + 78;
+        btnResetY = panelY + 76;
 
         btnDoneW = PANEL_W - 20;
         btnDoneH = 22;
         btnDoneX = panelX + 10;
-        btnDoneY = panelY + 104;
+        btnDoneY = panelY + 102;
 
         // 1. Floating panel buttons or dragging
         if (button == 0) {
@@ -324,39 +324,34 @@ public final class HpHudEditorScreen extends Screen {
         // Snap guide lines
         if (isDragging) {
             if (Math.abs(currentX - 14) <= 1) {
-                ActivityGuiRenderer.drawVerticalLine(context, 14, 0, height, 0x5000D2FF);
+                ActivityGuiRenderer.drawVerticalLine(context, 14, 0, height, 0x40FFFFFF);
             }
             if (Math.abs(currentX + elementW / 2 - width / 2) <= 1) {
-                ActivityGuiRenderer.drawVerticalLine(context, width / 2, 0, height, 0x5000D2FF);
+                ActivityGuiRenderer.drawVerticalLine(context, width / 2, 0, height, 0x40FFFFFF);
             }
             if (Math.abs(currentY + elementH / 2 - height / 2) <= 1) {
-                ActivityGuiRenderer.drawHorizontalLine(context, 0, height / 2, width, 0x5000D2FF);
+                ActivityGuiRenderer.drawHorizontalLine(context, 0, height / 2, width, 0x40FFFFFF);
             }
         }
 
-        // Preview card highlight & halo
-        int padX = 6;
-        int padY = 4;
+        // Preview card highlight & soft compact halo
+        int padX = 3;
+        int padY = 2;
         int haloX = currentX - padX;
         int haloY = currentY - padY;
         int haloW = elementW + padX * 2;
         int haloH = elementH + padY * 2;
 
-        boolean isHovered = mouseX >= currentX - 10 && mouseX <= currentX + elementW + 10 && mouseY >= currentY - 10 && mouseY <= currentY + elementH + 10;
+        boolean isHovered = mouseX >= currentX - 8 && mouseX <= currentX + elementW + 8 && mouseY >= currentY - 8 && mouseY <= currentY + elementH + 8;
 
         long timeMs = System.currentTimeMillis();
         double phase = (timeMs % 2400L) / 2400.0 * 2.0 * Math.PI;
         float pulse = (float) (0.5 + 0.5 * Math.sin(phase));
 
-        float stateMultiplier = isDragging ? 1.30f : (isHovered ? 1.15f : 1.00f);
-        float peakAlpha = (0.12f + 0.08f * pulse) * stateMultiplier;
+        float stateMultiplier = isDragging ? 1.25f : (isHovered ? 1.12f : 1.00f);
+        float peakAlpha = (0.10f + 0.08f * pulse) * stateMultiplier;
 
         renderCapsulePulse(context, haloX, haloY, haloX + haloW, haloY + haloH, peakAlpha);
-
-        if (isHovered || isDragging) {
-            int borderColor = isDragging ? 0x99FFFFFF : 0x44FFFFFF;
-            ActivityGuiRenderer.drawBorder(context, haloX, haloY, haloW, haloH, borderColor);
-        }
 
         // Render actual vertical HUD preview element
         MinecraftClient mc = MinecraftClient.getInstance();
@@ -370,7 +365,7 @@ public final class HpHudEditorScreen extends Screen {
             int chipH = 15;
             int chipX = currentX + (elementW - chipW) / 2;
             chipX = Math.max(4, Math.min(width - chipW - 4, chipX));
-            int chipY = (haloY - chipH - 4 >= 4) ? (haloY - chipH - 4) : (haloY + haloH + 4);
+            int chipY = (currentY - chipH - 6 >= 4) ? (currentY - chipH - 6) : (currentY + elementH + 6);
 
             ActivityGuiRenderer.drawPanel(context, chipX, chipY, chipW, chipH, ActivityColors.PANEL_INNER_BG, ActivityColors.BORDER, true);
             ActivityGuiRenderer.fill(context, chipX + 5, chipY + 5, 4, 4, ActivityColors.ACCENT_PRIMARY);

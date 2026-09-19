@@ -318,38 +318,29 @@ public final class CartHudEditorScreen extends Screen {
 
         if (isDragging) {
             if (Math.abs(currentX - 14) <= 1) {
-                ActivityGuiRenderer.drawVerticalLine(context, 14, 0, height, 0x5000D2FF);
+                ActivityGuiRenderer.drawVerticalLine(context, 14, 0, height, 0x40FFFFFF);
             }
             if (Math.abs(currentX + boxW / 2 - width / 2) <= 1) {
-                ActivityGuiRenderer.drawVerticalLine(context, width / 2, 0, height, 0x5000D2FF);
+                ActivityGuiRenderer.drawVerticalLine(context, width / 2, 0, height, 0x40FFFFFF);
             }
             if (Math.abs(currentY + boxH / 2 - height / 2) <= 1) {
-                ActivityGuiRenderer.drawHorizontalLine(context, 0, height / 2, width, 0x5000D2FF);
+                ActivityGuiRenderer.drawHorizontalLine(context, 0, height / 2, width, 0x40FFFFFF);
             }
         }
 
-        int padX = 6;
-        int padY = 4;
-        int haloX = currentX - padX;
-        int haloY = currentY - padY;
-        int haloW = boxW + padX * 2;
-        int haloH = boxH + padY * 2;
-
-        boolean isHovered = mouseX >= currentX - 10 && mouseX <= currentX + boxW + 10 && mouseY >= currentY - 10 && mouseY <= currentY + boxH + 10;
+        boolean isHovered = mouseX >= currentX - 8 && mouseX <= currentX + boxW + 8 && mouseY >= currentY - 8 && mouseY <= currentY + boxH + 8;
 
         long timeMs = System.currentTimeMillis();
         double phase = (timeMs % 2400L) / 2400.0 * 2.0 * Math.PI;
         float pulse = (float) (0.5 + 0.5 * Math.sin(phase));
 
-        float stateMultiplier = isDragging ? 1.30f : (isHovered ? 1.15f : 1.00f);
-        float peakAlpha = (0.12f + 0.08f * pulse) * stateMultiplier;
+        float stateMultiplier = isDragging ? 1.25f : (isHovered ? 1.12f : 1.00f);
+        float peakAlpha = (0.10f + 0.08f * pulse) * stateMultiplier;
 
-        renderCapsulePulse(context, haloX, haloY, haloX + haloW, haloY + haloH, peakAlpha);
+        int cartCenterX = currentX + 8;
+        int cartCenterY = currentY + 4;
 
-        if (isHovered || isDragging) {
-            int borderColor = isDragging ? 0x99FFFFFF : 0x44FFFFFF;
-            ActivityGuiRenderer.drawBorder(context, haloX, haloY, haloW, haloH, borderColor);
-        }
+        renderCircularPulse(context, cartCenterX, cartCenterY, peakAlpha);
 
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc != null) {
@@ -363,7 +354,7 @@ public final class CartHudEditorScreen extends Screen {
             int chipH = 15;
             int chipX = currentX + (boxW - chipW) / 2;
             chipX = Math.max(4, Math.min(width - chipW - 4, chipX));
-            int chipY = (haloY - chipH - 4 >= 4) ? (haloY - chipH - 4) : (haloY + haloH + 4);
+            int chipY = (currentY - chipH - 8 >= 4) ? (currentY - chipH - 8) : (currentY + boxH + 8);
 
             ActivityGuiRenderer.drawPanel(context, chipX, chipY, chipW, chipH, ActivityColors.PANEL_INNER_BG, ActivityColors.BORDER, true);
             ActivityGuiRenderer.fill(context, chipX + 5, chipY + 5, 4, 4, ActivityColors.ACCENT_PRIMARY);
@@ -435,28 +426,17 @@ public final class CartHudEditorScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
     }
 
-    private void renderCapsulePulse(DrawContext context, int x1, int y1, int x2, int y2, float peakAlpha) {
+    private void renderCircularPulse(DrawContext context, int cx, int cy, float peakAlpha) {
         for (int i = 0; i < SHELL_RADII.length; i++) {
             int r = SHELL_RADII[i];
             int a = Math.max(0, Math.min(255, Math.round(SHELL_WEIGHTS[i] * peakAlpha * 255.0f)));
-            if (a <= 0) {
-                continue;
-            }
-            int color = (a << 24) | 0x00FFFFFF;
-            int[] dxTable = PRECOMPUTED_DX[i];
-
-            for (int dy = -r; dy < 0; dy++) {
-                int y = y1 + dy;
-                int dx = dxTable[dy + r];
-                context.fill(x1 - dx, y, x2 + dx, y + 1, color);
-            }
-            for (int y = y1; y <= y2; y++) {
-                context.fill(x1 - r, y, x2 + r, y + 1, color);
-            }
-            for (int dy = 1; dy <= r; dy++) {
-                int y = y2 + dy;
-                int dx = dxTable[dy + r];
-                context.fill(x1 - dx, y, x2 + dx, y + 1, color);
+            if (a > 0) {
+                int color = (a << 24) | 0x00FFFFFF;
+                int[] dxTable = PRECOMPUTED_DX[i];
+                for (int dy = -r; dy <= r; dy++) {
+                    int dx = dxTable[dy + r];
+                    context.fill(cx - dx, cy + dy, cx + dx + 1, cy + dy + 1, color);
+                }
             }
         }
     }
