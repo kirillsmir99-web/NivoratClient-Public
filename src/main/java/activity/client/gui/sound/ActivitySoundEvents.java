@@ -239,18 +239,8 @@ public final class ActivitySoundEvents {
     }
 
     private static void registerSafe(Identifier id, SoundEvent event) {
-        try {
-            if (Registries.SOUND_EVENT != null && !Registries.SOUND_EVENT.containsId(id)) {
-                Registry.register(Registries.SOUND_EVENT, id, event);
-            }
-            if (id != null && !ALT_MOD_ID.equals(id.getNamespace())) {
-                Identifier altId = Identifier.of(ALT_MOD_ID, id.getPath());
-                if (Registries.SOUND_EVENT != null && !Registries.SOUND_EVENT.containsId(altId)) {
-                    Registry.register(Registries.SOUND_EVENT, altId, SoundEvent.of(altId));
-                }
-            }
-        } catch (Throwable ignored) {
-            // Guard in unit-test or mock environments
-        }
+        // Intentionally no-op to prevent polluting Minecraft's vanilla Registries.SOUND_EVENT.
+        // Client UI sounds are played via PositionedSoundInstance.ui(SoundEvent.of(id), ...)
+        // which resolves directly through assets/activity/sounds.json without global registry exposure.
     }
 }

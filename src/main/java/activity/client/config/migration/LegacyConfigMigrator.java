@@ -204,6 +204,9 @@ public final class LegacyConfigMigrator {
      * Marks migration as successfully completed by setting config flags and writing marker file.
      */
     public static void markMigrated(ActivityConfig config, Path configDir) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         if (config != null) {
             config.legacyMigrationDone = true;
             config.legacyMigrationVersion = CURRENT_MIGRATION_VERSION;

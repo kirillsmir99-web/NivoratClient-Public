@@ -68,7 +68,10 @@ public class ActivityClient implements ClientModInitializer {
 
             if (isDown && !menuKeyDown) {
                 menuKeyDown = true;
-                client.setScreen(new ActivityScreen());
+                try {
+                    client.setScreen(new ActivityScreen());
+                } catch (Throwable ignored) {
+                }
             } else if (!isDown && menuKeyDown) {
                 menuKeyDown = false;
             }

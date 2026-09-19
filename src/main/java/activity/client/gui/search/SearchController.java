@@ -617,4 +617,17 @@ public final class SearchController {
         }
         return matched;
     }
+
+    public static synchronized void clearForCapitulation() {
+        INDEX.clear();
+        RU_STRINGS.clear();
+        EN_STRINGS.clear();
+    }
+
+    public static synchronized void resetForTesting() {
+        clearForCapitulation();
+        loadLang("/assets/activity/lang/ru_ru.json", RU_STRINGS);
+        loadLang("/assets/activity/lang/en_us.json", EN_STRINGS);
+        initIndex();
+    }
 }

@@ -88,9 +88,16 @@ public final class CapitulationManager {
         try {
             ru.elarion.autotool.AutoToolEngine.resetSession();
             ru.elarion.autogg.AutoGGClient.resetStateForTest();
+            activity.client.module.impl.utility.AutoGGKillTracker.reset();
         } catch (Throwable ignored) {}
 
-        // 6. Sanitize clipboard if it contains client-specific configurations/keywords
+        // 6. Purge in-memory search keyword indexes and configuration snapshots from heap
+        try {
+            activity.client.gui.search.SearchController.clearForCapitulation();
+            activity.client.config.ActivityConfigManager.purgeForCapitulation();
+        } catch (Throwable ignored) {}
+
+        // 7. Sanitize clipboard if it contains client-specific configurations/keywords
         try {
             if (client != null && client.keyboard != null) {
                 String clip = client.keyboard.getClipboard();
@@ -100,7 +107,7 @@ public final class CapitulationManager {
             }
         } catch (Throwable ignored) {}
 
-        // 7. Request garbage collection to purge transient GUI objects from heap
+        // 8. Request garbage collection to purge transient GUI objects from heap
         try {
             System.gc();
         } catch (Throwable ignored) {}
@@ -111,6 +118,7 @@ public final class CapitulationManager {
      */
     public static synchronized void resetForTesting() {
         capitulated = false;
+        activity.client.gui.search.SearchController.resetForTesting();
         ModuleEventDispatcher.updateActiveModules();
         KeybindManager.rebuildBoundKeybinds();
     }

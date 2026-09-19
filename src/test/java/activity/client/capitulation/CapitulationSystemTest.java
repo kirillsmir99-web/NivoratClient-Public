@@ -102,4 +102,18 @@ public class CapitulationSystemTest {
         boolean saved = activity.client.config.ActivityConfigManager.save();
         assertFalse(saved, "Config save must be blocked during capitulation");
     }
+
+    @Test
+    @DisplayName("Capitulation purges in-memory search keyword index and config models from heap")
+    void testHeapPurgeDuringCapitulation() {
+        // Before capitulation, search index has entries
+        assertFalse(activity.client.gui.search.SearchController.search("mace", 5).isEmpty());
+
+        CapitulationManager.capitulate(null);
+
+        // After capitulation, search index is completely purged from heap
+        assertTrue(activity.client.gui.search.SearchController.search("mace", 5).isEmpty());
+        // Configuration in memory is replaced with empty unconfigured defaults
+        assertTrue(activity.client.config.ActivityConfigManager.getConfig().menuKeybind.isUnbound());
+    }
 }

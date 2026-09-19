@@ -308,4 +308,11 @@ public final class ActivityConfigManager {
     public static Path getConfigPath() {
         return CONFIG_PATH;
     }
+
+    public static synchronized void purgeForCapitulation() {
+        currentConfig = new ActivityConfig();
+        currentConfig.menuKeybind = new activity.client.module.keybind.Keybind();
+        savedSnapshot = null;
+        manualDirty = false;
+    }
 }

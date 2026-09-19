@@ -34,6 +34,9 @@ public final class TickBoundScheduler {
     }
 
     public static void runAfterTicks(int delayTicks, Runnable action) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         init();
         if (delayTicks <= 0) {
             action.run();
@@ -52,6 +55,10 @@ public final class TickBoundScheduler {
     }
 
     public static void onTick(MinecraftClient client) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            TASKS.clear();
+            return;
+        }
         tickCounter++;
         if (TASKS.isEmpty()) return;
         Iterator<ScheduledTask> it = TASKS.iterator();
