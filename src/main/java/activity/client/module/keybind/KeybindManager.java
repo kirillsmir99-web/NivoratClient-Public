@@ -67,6 +67,13 @@ public final class KeybindManager {
      * Called whenever modules are registered, configurations loaded, or keybind settings modified.
      */
     public static synchronized void rebuildBoundKeybinds() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            boundPrimaries = new BoundPrimary[0];
+            boundSecondaries = new BoundSecondary[0];
+            KEY_STATES.clear();
+            return;
+        }
+
         java.util.List<BoundPrimary> primaries = new java.util.ArrayList<>();
         java.util.List<BoundSecondary> secondaries = new java.util.ArrayList<>();
 
@@ -93,10 +100,24 @@ public final class KeybindManager {
     }
 
     /**
+     * Clears all cached keybind bindings and input states during emergency capitulation.
+     */
+    public static synchronized void clearAllForCapitulation() {
+        boundPrimaries = new BoundPrimary[0];
+        boundSecondaries = new BoundSecondary[0];
+        KEY_STATES.clear();
+    }
+
+    /**
      * Evaluates all active bound module keybinds on each client tick outside screens.
      * Fast-path: exits immediately with zero GLFW queries if no keybinds are bound.
      */
     public static void handleTick(MinecraftClient client) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            KEY_STATES.clear();
+            return;
+        }
+
         if (client == null || client.player == null) {
             KEY_STATES.clear();
             return;

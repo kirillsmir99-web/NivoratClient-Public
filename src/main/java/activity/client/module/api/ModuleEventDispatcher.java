@@ -81,6 +81,14 @@ public final class ModuleEventDispatcher {
      * Rebuilds fast-path arrays of enabled modules categorized by capability.
      */
     public static synchronized void updateActiveModules() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            activeTickModules = new IModule[0];
+            activeAttackModules = new IModule[0];
+            activeHudModules = new IModule[0];
+            KeybindManager.clearAllForCapitulation();
+            return;
+        }
+
         List<IModule> all = ModuleRegistry.getAll();
         List<IModule> tickList = new ArrayList<>();
         List<IModule> attackList = new ArrayList<>();
@@ -111,6 +119,10 @@ public final class ModuleEventDispatcher {
      * Internal tick dispatch called on every Minecraft client tick.
      */
     public static void onClientTick(MinecraftClient client) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
+
         if (client == null || client.player == null) {
             PlayerStateService.reset();
             TargetCacheService.reset();
@@ -147,6 +159,10 @@ public final class ModuleEventDispatcher {
      * Internal attack entity dispatch called on player entity attacks.
      */
     public static ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return ActionResult.PASS;
+        }
+
         IModule[] modules = activeAttackModules;
         if (modules.length == 0) return ActionResult.PASS;
 
@@ -165,6 +181,10 @@ public final class ModuleEventDispatcher {
      * Internal HUD render dispatch called on each render frame.
      */
     public static void onRenderHud(DrawContext context, RenderTickCounter tickCounter) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
+
         IModule[] modules = activeHudModules;
         if (modules.length == 0) return;
 

@@ -646,9 +646,11 @@ public class SettingsTab extends ActivityTab {
         int innerStartX4 = card4X + ActivityMetrics.PADDING_PANEL;
         int curY4 = twoColumns ? col2Y : col1Y;
 
-        int card4Height = 22 + ActivityMetrics.CONTROL_HEIGHT + 8;
+        int card4Rows = 2;
+        int card4Height = 22 + card4Rows * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         ActivityPanel card4 = createCard(container, card4X, curY4, cardW, card4Height, Text.translatable("activity.card.settings.actions"));
         registerModuleCard("config_actions", card4);
+        registerCardAlias("capitulate", card4);
 
         rowY = curY4 + 22;
         int actionBtnW = (innerRowW - btnGap) / 2;
@@ -684,5 +686,30 @@ public class SettingsTab extends ActivityTab {
         btnReset.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnRecenter);
         addControl(container, btnReset);
+
+        // Row 4.2: Capitulation (Emergency deactivation) Button
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        ActivityButton btnCapitulate = new ActivityButton(
+            innerStartX4, rowY, innerRowW, ActivityMetrics.CONTROL_HEIGHT,
+            ActivityIcon.WARNING,
+            Text.translatable("activity.button.capitulate"),
+            ActivityButton.Variant.DANGER,
+            btn -> {
+                screen.getModalManager().showConfirmation(
+                    Text.translatable("activity.modal.capitulate.title"),
+                    Text.translatable("activity.modal.capitulate.desc"),
+                    Text.translatable("activity.button.capitulate.confirm"),
+                    Text.translatable("activity.button.cancel"),
+                    true,
+                    () -> {
+                        activity.client.capitulation.CapitulationManager.capitulate(MinecraftClient.getInstance());
+                    },
+                    null
+                );
+            }
+        );
+        btnCapitulate.setBrandHoverColor(0xFFFF4757);
+        btnCapitulate.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
+        addControl(container, btnCapitulate);
     }
 }

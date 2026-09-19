@@ -350,6 +350,11 @@ public final class AutoGGRadialScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            if (this.client != null) this.client.setScreen(null);
+            else super.close();
+            return;
+        }
         loadPhrases();
         SoundManager.playOpen();
     }

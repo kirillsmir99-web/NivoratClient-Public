@@ -554,5 +554,10 @@
   "activity.sheet.telegram_notice": "Все обновления модификаций: @virionDEV",
   "activity.sheet.button_telegram": "Telegram",
   "activity.sheet.button_settings": "Открыть настройки",
-  "activity.sheet.close": "Закрыть"
+  "activity.sheet.close": "Закрыть",
+  "activity.button.capitulate": "Капитуляция",
+  "activity.button.capitulate.tooltip": "Экстренное отключение и полное скрытие мода до перезапуска игры",
+  "activity.modal.capitulate.title": "Капитуляция мода",
+  "activity.modal.capitulate.desc": "Вы уверены? Все модификации, интерфейс и бинды будут отключены. Мод перестанет реагировать на любые клавиши до полного перезапуска игры.",
+  "activity.button.capitulate.confirm": "Подтвердить капитуляцию"
 }

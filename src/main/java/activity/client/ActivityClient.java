@@ -29,6 +29,11 @@ public class ActivityClient implements ClientModInitializer {
         activity.client.gui.sound.ActivitySoundEvents.register();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+                menuKeyDown = false;
+                return;
+            }
+
             if (client == null || client.player == null) {
                 menuKeyDown = false;
                 return;

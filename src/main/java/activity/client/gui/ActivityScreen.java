@@ -246,6 +246,10 @@ public class ActivityScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            this.close();
+            return;
+        }
         AnimationClock.reset();
         this.searchBar.clear();
         this.searchBar.setFocused(false);
@@ -690,6 +694,10 @@ public class ActivityScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            this.close();
+            return;
+        }
         AnimationClock.tick();
         this.renderBackground(context, mouseX, mouseY, delta);
 
@@ -1208,6 +1216,11 @@ public class ActivityScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyInput input) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            finishClose();
+            return true;
+        }
+
         if (this.closing) {
             if (input.isEscape()) {
                 finishClose();

@@ -112,6 +112,10 @@ public class ModuleSettingsView extends Screen {
     @Override
     protected void init() {
         super.init();
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            this.close();
+            return;
+        }
         if (this.module == null) return;
         this.overlayManager.clear();
 
@@ -139,6 +143,11 @@ public class ModuleSettingsView extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            this.close();
+            return;
+        }
+
         // Subtle dark translucent background
         context.fill(0, 0, this.width, this.height, 0xD00A0D14);
 

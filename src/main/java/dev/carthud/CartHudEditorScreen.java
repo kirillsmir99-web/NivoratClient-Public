@@ -77,6 +77,11 @@ public final class CartHudEditorScreen extends Screen {
 
     @Override
     protected void init() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            if (this.client != null) this.client.setScreen(null);
+            else super.close();
+            return;
+        }
         isDragging = false;
         isPanelDragging = false;
         this.clearChildren();
