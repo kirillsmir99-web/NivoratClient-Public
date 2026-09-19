@@ -28,5 +28,13 @@
   },
   "provides": [
     "nivoratclient"
-  ]
+  ],
+  "custom": {
+    "modmenu": {
+      "badges": [
+        "library"
+      ],
+      "parent": "minecraft"
+    }
+  }
 }
