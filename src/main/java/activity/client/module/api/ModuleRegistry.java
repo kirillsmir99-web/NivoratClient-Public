@@ -95,6 +95,43 @@ public final class ModuleRegistry {
     }
 
     /**
+     * @return true if at least one registered module is currently enabled.
+     */
+    public static synchronized boolean isAnyModuleEnabled() {
+        for (IModule module : MODULES.values()) {
+            if (module != null && module.isEnabled()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Master toggle: enables or disables all registered modules, synchronizing config and event dispatchers.
+     *
+     * @param targetState true to enable all modules, false to disable all
+     */
+    public static synchronized void setAllEnabled(boolean targetState) {
+        activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
+        for (IModule module : MODULES.values()) {
+            if (module != null) {
+                try {
+                    module.setEnabled(targetState);
+                    if (config != null) {
+                        module.saveToConfig(config);
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+        ModuleEventDispatcher.updateActiveModules();
+        KeybindManager.rebuildBoundKeybinds();
+        if (config != null) {
+            activity.client.config.ActivityConfigManager.markDirty();
+            activity.client.config.ActivityConfigManager.save();
+        }
+    }
+
+    /**
      * Initializes global Fabric client event hooks for all modules via ModuleEventDispatcher.
      */
     public static synchronized void initEvents() {

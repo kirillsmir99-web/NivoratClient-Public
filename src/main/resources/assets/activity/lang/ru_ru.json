@@ -559,5 +559,9 @@
   "activity.button.capitulate.tooltip": "Экстренное отключение и полное скрытие мода до перезапуска игры",
   "activity.modal.capitulate.title": "Капитуляция мода",
   "activity.modal.capitulate.desc": "Вы уверены? Все модификации, интерфейс и бинды будут отключены. Мод перестанет реагировать на любые клавиши до полного перезапуска игры.",
-  "activity.button.capitulate.confirm": "Подтвердить капитуляцию"
+  "activity.button.capitulate.confirm": "Подтвердить капитуляцию",
+  "activity.button.disable_all_modules": "Отключить все модификации",
+  "activity.button.enable_all_modules": "Включить все модификации",
+  "activity.toast.all_modules_disabled": "Все модификации отключены",
+  "activity.toast.all_modules_enabled": "Все модификации включены"
 }

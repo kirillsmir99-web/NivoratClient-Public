@@ -559,5 +559,9 @@
   "activity.button.capitulate.tooltip": "Emergency shutdown and complete hiding of the mod until game restart",
   "activity.modal.capitulate.title": "Mod Capitulation",
   "activity.modal.capitulate.desc": "Are you sure? All modifications, interface, and keybinds will be disabled. The mod will not respond to any keys until Minecraft is fully restarted.",
-  "activity.button.capitulate.confirm": "Confirm Capitulation"
+  "activity.button.capitulate.confirm": "Confirm Capitulation",
+  "activity.button.disable_all_modules": "Disable All Modules",
+  "activity.button.enable_all_modules": "Enable All Modules",
+  "activity.toast.all_modules_disabled": "All modules disabled",
+  "activity.toast.all_modules_enabled": "All modules enabled"
 }

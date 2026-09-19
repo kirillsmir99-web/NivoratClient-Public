@@ -7,6 +7,7 @@ import activity.client.config.preset.PresetManager;
 import activity.client.config.preset.PresetSerializer;
 import activity.client.gui.ActivityScreen;
 import activity.client.gui.component.ActivityButton;
+import activity.client.module.api.ModuleRegistry;
 import activity.client.gui.component.ActivityDropdown;
 import activity.client.gui.component.ActivityKeybindButton;
 import activity.client.gui.component.ActivityLabel;
@@ -646,11 +647,13 @@ public class SettingsTab extends ActivityTab {
         int innerStartX4 = card4X + ActivityMetrics.PADDING_PANEL;
         int curY4 = twoColumns ? col2Y : col1Y;
 
-        int card4Rows = 2;
+        int card4Rows = 3;
         int card4Height = 22 + card4Rows * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         ActivityPanel card4 = createCard(container, card4X, curY4, cardW, card4Height, Text.translatable("activity.card.settings.actions"));
         registerModuleCard("config_actions", card4);
         registerCardAlias("capitulate", card4);
+        registerCardAlias("toggle_all", card4);
+        registerCardAlias("modules", card4);
 
         rowY = curY4 + 22;
         int actionBtnW = (innerRowW - btnGap) / 2;
@@ -687,7 +690,33 @@ public class SettingsTab extends ActivityTab {
         addControl(container, btnRecenter);
         addControl(container, btnReset);
 
-        // Row 4.2: Capitulation (Emergency deactivation) Button
+        // Row 4.2: Master Module Toggle Button ("Отключить все модули" / "Включить все модули")
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        boolean anyModuleEnabled = ModuleRegistry.isAnyModuleEnabled();
+        ActivityButton btnToggleAllModules = new ActivityButton(
+            innerStartX4, rowY, innerRowW, ActivityMetrics.CONTROL_HEIGHT,
+            anyModuleEnabled ? ActivityIcon.DISABLED : ActivityIcon.ENABLED,
+            anyModuleEnabled ? Text.translatable("activity.button.disable_all_modules") : Text.translatable("activity.button.enable_all_modules"),
+            anyModuleEnabled ? ActivityButton.Variant.SECONDARY : ActivityButton.Variant.PRIMARY,
+            btn -> {
+                if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+                    return;
+                }
+                boolean target = !ModuleRegistry.isAnyModuleEnabled();
+                ModuleRegistry.setAllEnabled(target);
+                activity.client.gui.sound.SoundManager.playToggle(target);
+                screen.showToast(
+                    Text.translatable(target ? "activity.toast.all_modules_enabled" : "activity.toast.all_modules_disabled"),
+                    null,
+                    null
+                );
+                screen.reloadCurrentTab();
+            }
+        );
+        btnToggleAllModules.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
+        addControl(container, btnToggleAllModules);
+
+        // Row 4.3: Capitulation (Emergency deactivation) Button
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityButton btnCapitulate = new ActivityButton(
             innerStartX4, rowY, innerRowW, ActivityMetrics.CONTROL_HEIGHT,

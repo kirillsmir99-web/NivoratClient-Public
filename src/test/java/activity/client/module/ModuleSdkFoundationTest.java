@@ -334,4 +334,26 @@ public class ModuleSdkFoundationTest {
         assertTrue(example.hasCustomSection(), "ExampleModule must demonstrate custom section extension point");
         assertTrue(example.getSettings().size() >= 6, "Must register various setting types");
     }
+
+    @Test
+    @DisplayName("ModuleRegistry.setAllEnabled toggles all modules and updates state")
+    void testMasterToggleAllModules() {
+        // Disable all
+        ModuleRegistry.setAllEnabled(false);
+        assertFalse(ModuleRegistry.isAnyModuleEnabled(), "No modules should be enabled");
+        for (IModule module : ModuleRegistry.getAll()) {
+            assertFalse(module.isEnabled(), "Module " + module.getId() + " should be disabled");
+        }
+
+        // Enable all
+        ModuleRegistry.setAllEnabled(true);
+        assertTrue(ModuleRegistry.isAnyModuleEnabled(), "Modules should be enabled");
+        for (IModule module : ModuleRegistry.getAll()) {
+            assertTrue(module.isEnabled(), "Module " + module.getId() + " should be enabled");
+        }
+
+        // Reset to disabled for clean state
+        ModuleRegistry.setAllEnabled(false);
+        assertFalse(ModuleRegistry.isAnyModuleEnabled());
+    }
 }
