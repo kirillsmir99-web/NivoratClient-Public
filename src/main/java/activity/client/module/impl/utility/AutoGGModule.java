@@ -167,15 +167,30 @@ public class AutoGGModule extends NivoratModule {
         int count = currentPhrases != null ? currentPhrases.size() : 0;
         String activeSelected = AutoGGClient.CONFIG.currentPhrase();
 
-        // 0. Informative footnote: Duels only for foreign kills, own death works everywhere
-        activity.client.gui.component.ActivityLabel infoNote = new activity.client.gui.component.ActivityLabel(
-                startX, curY + 3,
-                Text.literal("ℹ Сноска: Мод работает только на дуэлях")
+        // 0. Informative footnote: 3 clean lines fitting inside innerRowW
+        activity.client.gui.component.ActivityLabel note1 = new activity.client.gui.component.ActivityLabel(
+                startX, curY,
+                Text.literal("§bℹ Сноска: §fМод отправляет GG только при победе на дуэлях")
         );
-        infoNote.setColor(activity.client.gui.theme.ActivityColors.TEXT_ACCENT);
-        infoNote.setTooltip(Text.literal("На серверах и режимах не-дуэлей (FFA и других) автоотправка за чужие смерти отключена во избежание ложных срабатываний. Отправка сообщений после собственной смерти работает везде без каких-либо проблем."));
-        if (tab != null) tab.addControl(container, infoNote); else container.addChild(infoNote);
-        curY += rowH + gap;
+        note1.setMaxWidth(innerRowW);
+        if (tab != null) tab.addControl(container, note1); else container.addChild(note1);
+        curY += 12;
+
+        activity.client.gui.component.ActivityLabel note2 = new activity.client.gui.component.ActivityLabel(
+                startX, curY,
+                Text.literal("§7(на FFA отключена отправка за чужих, чтобы не писать GG ошибочно)")
+        );
+        note2.setMaxWidth(innerRowW);
+        if (tab != null) tab.addControl(container, note2); else container.addChild(note2);
+        curY += 12;
+
+        activity.client.gui.component.ActivityLabel note3 = new activity.client.gui.component.ActivityLabel(
+                startX, curY,
+                Text.literal("§a✔ §7Отправка при собственной смерти работает везде.")
+        );
+        note3.setMaxWidth(innerRowW);
+        if (tab != null) tab.addControl(container, note3); else container.addChild(note3);
+        curY += 16;
 
         // 1. Header Label: Phrases Count / Limit (max 8)
         activity.client.gui.component.ActivityLabel headerLabel = new activity.client.gui.component.ActivityLabel(

@@ -114,10 +114,8 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     public static void onPlayerRespawnPacket() {
-        ensureActive();
-        if (active != null) {
-            active.handleOwnDeath();
-        }
+        // PlayerRespawnS2CPacket is sent on world/dimension change and commands like /spawn, /hub.
+        // It does not mean the player died; do not trigger own death here.
     }
 
     public static void onPotentialFfaVictimDestroyed(Entity victim) {

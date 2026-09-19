@@ -238,15 +238,15 @@ public final class HealthHudOverlay {
     }
 
     public static int getDefaultX(int screenWidth, int elementWidth) {
-        return 14;
+        return screenWidth / 2 + 82 - elementWidth;
     }
 
     public static int getDefaultY(int screenHeight, int elementHeight) {
-        return Math.max(4, (screenHeight - elementHeight) / 2);
+        return screenHeight - HUD_Y_OFFSET;
     }
 
     public static int getDefaultY(int screenHeight) {
-        return Math.max(4, (screenHeight - 34) / 2);
+        return screenHeight - HUD_Y_OFFSET;
     }
 
     public static int getEffectiveX(DisplayMode mode, int screenWidth, int elementWidth) {
@@ -262,7 +262,7 @@ public final class HealthHudOverlay {
         if (customY >= 0) {
             return Math.max(4, Math.min(screenHeight - elementHeight - 2, customY));
         }
-        return getDefaultY(screenHeight, elementHeight);
+        return getDefaultY(screenHeight);
     }
 
     public static int getEffectiveX(int screenWidth, int elementWidth) {
@@ -274,14 +274,19 @@ public final class HealthHudOverlay {
     }
 
     public static int getPreviewWidth(TextRenderer textRenderer, DisplayMode mode) {
-        return 54;
+        if (textRenderer == null) {
+            return 24;
+        }
+        return switch (mode) {
+            case OWN_HEALTH -> textRenderer.getWidth("20.0");
+            case CROSSHAIR_AND_TARGET, TARGET_HEALTH -> textRenderer.getWidth("18.5");
+            case OWN_TARGET_AND_DIFFERENCE, DISABLED ->
+                textRenderer.getWidth("20.0") + textRenderer.getWidth(SEPARATOR) * 2 + textRenderer.getWidth("18.5") + textRenderer.getWidth("+1.5");
+        };
     }
 
     public static int getPreviewHeight(DisplayMode mode) {
-        return switch (mode) {
-            case OWN_HEALTH, TARGET_HEALTH, CROSSHAIR_AND_TARGET -> 42;
-            case OWN_TARGET_AND_DIFFERENCE, DISABLED -> 68;
-        };
+        return 10;
     }
 
     public static void renderPreview(DrawContext context, MinecraftClient client, int x, int y, DisplayMode mode) {
@@ -299,75 +304,35 @@ public final class HealthHudOverlay {
         TextRenderer tr = client.textRenderer;
         if (tr == null) return;
 
-        int w = getPreviewWidth(tr, mode);
-        int h = getPreviewHeight(mode);
-
         switch (mode) {
-            case OWN_HEALTH -> {
-                activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
-                activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFF00D2FF);
-                activity.client.gui.render.ActivityGuiRenderer.drawGlassHighlight(context, x, y, w, h, 0.7f);
-
-                int lblW = tr.getWidth("ВЫ");
-                context.drawTextWithShadow(tr, Text.literal("ВЫ"), x + (w - lblW) / 2, y + 5, 0xFF8D94A3);
-                activity.client.gui.render.ActivityGuiRenderer.drawHorizontalLine(context, x + 6, y + 17, w - 12, 0x44353B49);
-                int valW = tr.getWidth(ownText);
-                context.drawTextWithShadow(tr, Text.literal(ownText), x + (w - valW) / 2, y + 24, ownColor);
-            }
+            case OWN_HEALTH -> context.drawTextWithShadow(tr, ownText, x, y, ownColor);
             case CROSSHAIR_AND_TARGET -> {
-                boolean hasTarget = (targetText != null);
-                String label = hasTarget ? "ЦЕЛЬ" : "ВЫ";
-                String val = hasTarget ? targetText : ownText;
-                int valColor = hasTarget ? targetColor : ownColor;
-                int accent = hasTarget ? 0xFFFF7A18 : 0xFF00D2FF;
-
-                activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
-                activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, accent);
-                activity.client.gui.render.ActivityGuiRenderer.drawGlassHighlight(context, x, y, w, h, 0.7f);
-
-                int lblW = tr.getWidth(label);
-                context.drawTextWithShadow(tr, Text.literal(label), x + (w - lblW) / 2, y + 5, 0xFF8D94A3);
-                activity.client.gui.render.ActivityGuiRenderer.drawHorizontalLine(context, x + 6, y + 17, w - 12, 0x44353B49);
-                int valW = tr.getWidth(val);
-                context.drawTextWithShadow(tr, Text.literal(val), x + (w - valW) / 2, y + 24, valColor);
+                if (targetText != null) {
+                    context.drawTextWithShadow(tr, targetText, x, y, targetColor);
+                } else {
+                    context.drawTextWithShadow(tr, ownText, x, y, ownColor);
+                }
             }
             case TARGET_HEALTH -> {
-                if (targetText == null) return;
-                activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
-                activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFFFF7A18);
-                activity.client.gui.render.ActivityGuiRenderer.drawGlassHighlight(context, x, y, w, h, 0.7f);
-
-                int lblW = tr.getWidth("ЦЕЛЬ");
-                context.drawTextWithShadow(tr, Text.literal("ЦЕЛЬ"), x + (w - lblW) / 2, y + 5, 0xFF8D94A3);
-                activity.client.gui.render.ActivityGuiRenderer.drawHorizontalLine(context, x + 6, y + 17, w - 12, 0x44353B49);
-                int valW = tr.getWidth(targetText);
-                context.drawTextWithShadow(tr, Text.literal(targetText), x + (w - valW) / 2, y + 24, targetColor);
+                if (targetText != null) {
+                    context.drawTextWithShadow(tr, targetText, x, y, targetColor);
+                }
             }
             case OWN_TARGET_AND_DIFFERENCE -> {
-                activity.client.gui.render.ActivityGuiRenderer.drawPanel(context, x, y, w, h, 0xDD0E1015, 0xFF262A34, true);
-                activity.client.gui.render.ActivityGuiRenderer.fill(context, x, y + 2, 2, h - 4, 0xFF00D2FF);
-                activity.client.gui.render.ActivityGuiRenderer.drawGlassHighlight(context, x, y, w, h, 0.7f);
-
-                // Row 1: Own HP
-                context.drawTextWithShadow(tr, Text.literal("ВЫ"), x + 6, y + 5, 0xFF8D94A3);
-                int ownW = tr.getWidth(ownText);
-                context.drawTextWithShadow(tr, Text.literal(ownText), x + w - 6 - ownW, y + 5, ownColor);
-                activity.client.gui.render.ActivityGuiRenderer.drawHorizontalLine(context, x + 6, y + 19, w - 12, 0x44353B49);
-
-                // Row 2: Target HP
-                String tgtStr = (targetText != null) ? targetText : "—";
-                int tgtColor = (targetText != null) ? targetColor : 0xFF555B68;
-                context.drawTextWithShadow(tr, Text.literal("ЦЕЛЬ"), x + 6, y + 25, 0xFF8D94A3);
-                int tgtW = tr.getWidth(tgtStr);
-                context.drawTextWithShadow(tr, Text.literal(tgtStr), x + w - 6 - tgtW, y + 25, tgtColor);
-                activity.client.gui.render.ActivityGuiRenderer.drawHorizontalLine(context, x + 6, y + 39, w - 12, 0x44353B49);
-
-                // Row 3: Difference
-                String dStr = (diffText != null) ? diffText : "—";
-                int dColor = (diffText != null) ? diffColor : 0xFF555B68;
-                context.drawTextWithShadow(tr, Text.literal("РАЗН"), x + 6, y + 45, 0xFF8D94A3);
-                int dW = tr.getWidth(dStr);
-                context.drawTextWithShadow(tr, Text.literal(dStr), x + w - 6 - dW, y + 45, dColor);
+                if (targetText != null && diffText != null) {
+                    int curX = x;
+                    context.drawTextWithShadow(tr, ownText, curX, y, ownColor);
+                    curX += tr.getWidth(ownText);
+                    context.drawTextWithShadow(tr, SEPARATOR, curX, y, COLOR_MARKER);
+                    curX += tr.getWidth(SEPARATOR);
+                    context.drawTextWithShadow(tr, targetText, curX, y, targetColor);
+                    curX += tr.getWidth(targetText);
+                    context.drawTextWithShadow(tr, SEPARATOR, curX, y, COLOR_MARKER);
+                    curX += tr.getWidth(SEPARATOR);
+                    context.drawTextWithShadow(tr, diffText, curX, y, diffColor);
+                } else {
+                    context.drawTextWithShadow(tr, ownText, x, y, ownColor);
+                }
             }
             case DISABLED -> {}
         }

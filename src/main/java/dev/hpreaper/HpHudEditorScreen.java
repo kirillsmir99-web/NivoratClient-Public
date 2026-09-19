@@ -32,7 +32,16 @@ public final class HpHudEditorScreen extends Screen {
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
 
-    // Interactive button bounds in the top banner
+    // Draggable vertical floating card widget
+    private int panelX = -1;
+    private int panelY = -1;
+    private static final int PANEL_W = 140;
+    private static final int PANEL_H = 138;
+    private boolean isPanelDragging = false;
+    private int panelDragOffsetX = 0;
+    private int panelDragOffsetY = 0;
+
+    // Interactive button bounds inside floating panel
     private int btnModeX, btnModeY, btnModeW, btnModeH;
     private int btnResetX, btnResetY, btnResetW, btnResetH;
     private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
@@ -51,6 +60,7 @@ public final class HpHudEditorScreen extends Screen {
     @Override
     public void close() {
         isDragging = false;
+        isPanelDragging = false;
         SoundManager.playClose();
         VitalityConfig.save();
         activity.client.config.ActivityConfig c = activity.client.config.ActivityConfigManager.getConfig();
@@ -75,7 +85,12 @@ public final class HpHudEditorScreen extends Screen {
     @Override
     protected void init() {
         isDragging = false;
+        isPanelDragging = false;
         this.clearChildren();
+        if (panelX < 0 || panelY < 0) {
+            panelX = 16;
+            panelY = Math.max(16, (height - PANEL_H) / 2);
+        }
         SoundManager.playOpen();
     }
 
@@ -136,7 +151,22 @@ public final class HpHudEditorScreen extends Screen {
         double my = click.y();
         int button = click.buttonInfo().button();
 
-        // 1. Top banner buttons
+        btnModeW = PANEL_W - 20;
+        btnModeH = 20;
+        btnModeX = panelX + 10;
+        btnModeY = panelY + 54;
+
+        btnResetW = PANEL_W - 20;
+        btnResetH = 20;
+        btnResetX = panelX + 10;
+        btnResetY = panelY + 78;
+
+        btnDoneW = PANEL_W - 20;
+        btnDoneH = 22;
+        btnDoneX = panelX + 10;
+        btnDoneY = panelY + 104;
+
+        // 1. Floating panel buttons or dragging
         if (button == 0) {
             if (mx >= btnModeX && mx <= btnModeX + btnModeW && my >= btnModeY && my <= btnModeY + btnModeH) {
                 HealthHudOverlay.cycleDisplayMode();
@@ -155,6 +185,12 @@ public final class HpHudEditorScreen extends Screen {
                 close();
                 return true;
             }
+            if (mx >= panelX && mx <= panelX + PANEL_W && my >= panelY && my <= panelY + PANEL_H) {
+                isPanelDragging = true;
+                panelDragOffsetX = (int) Math.round(mx - panelX);
+                panelDragOffsetY = (int) Math.round(my - panelY);
+                return true;
+            }
         }
 
         // 2. Draggable preview card
@@ -163,7 +199,7 @@ public final class HpHudEditorScreen extends Screen {
         int currentX = HealthHudOverlay.getEffectiveX(VitalityConfig.displayMode, width, elementW);
         int currentY = HealthHudOverlay.getEffectiveY(VitalityConfig.displayMode, height, elementH);
 
-        boolean inside = mx >= currentX - 16 && mx <= currentX + elementW + 16 && my >= currentY - 16 && my <= currentY + elementH + 16;
+        boolean inside = mx >= currentX - 10 && mx <= currentX + elementW + 10 && my >= currentY - 10 && my <= currentY + elementH + 10;
 
         if (button == 0 && inside) {
             isDragging = true;
@@ -183,16 +219,29 @@ public final class HpHudEditorScreen extends Screen {
 
     @Override
     public boolean mouseReleased(Click click) {
-        if (click.buttonInfo().button() == 0 && isDragging) {
-            isDragging = false;
-            VitalityConfig.save();
-            return true;
+        if (click.buttonInfo().button() == 0) {
+            if (isPanelDragging) {
+                isPanelDragging = false;
+                return true;
+            }
+            if (isDragging) {
+                isDragging = false;
+                VitalityConfig.save();
+                return true;
+            }
         }
         return super.mouseReleased(click);
     }
 
     @Override
     public boolean mouseDragged(Click click, double offsetX, double offsetY) {
+        if (isPanelDragging) {
+            int newPX = (int) Math.round(click.x() - panelDragOffsetX);
+            int newPY = (int) Math.round(click.y() - panelDragOffsetY);
+            panelX = Math.max(2, Math.min(width - PANEL_W - 2, newPX));
+            panelY = Math.max(2, Math.min(height - PANEL_H - 2, newPY));
+            return true;
+        }
         if (isDragging) {
             int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
             int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
@@ -230,6 +279,18 @@ public final class HpHudEditorScreen extends Screen {
 
         int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
         int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
+
+        if (panelX < 0 || panelY < 0) {
+            panelX = 16;
+            panelY = Math.max(16, (height - PANEL_H) / 2);
+        }
+
+        if (isPanelDragging) {
+            int newPX = (int) Math.round(mouseX - panelDragOffsetX);
+            int newPY = (int) Math.round(mouseY - panelDragOffsetY);
+            panelX = Math.max(2, Math.min(width - PANEL_W - 2, newPX));
+            panelY = Math.max(2, Math.min(height - PANEL_H - 2, newPY));
+        }
 
         if (isDragging) {
             int newX = (int) Math.round(mouseX - dragOffsetX);
@@ -273,14 +334,14 @@ public final class HpHudEditorScreen extends Screen {
         }
 
         // Preview card highlight & halo
-        int padX = 5;
-        int padY = 5;
+        int padX = 6;
+        int padY = 4;
         int haloX = currentX - padX;
         int haloY = currentY - padY;
         int haloW = elementW + padX * 2;
         int haloH = elementH + padY * 2;
 
-        boolean isHovered = mouseX >= currentX - 16 && mouseX <= currentX + elementW + 16 && mouseY >= currentY - 16 && mouseY <= currentY + elementH + 16;
+        boolean isHovered = mouseX >= currentX - 10 && mouseX <= currentX + elementW + 10 && mouseY >= currentY - 10 && mouseY <= currentY + elementH + 10;
 
         long timeMs = System.currentTimeMillis();
         double phase = (timeMs % 2400L) / 2400.0 * 2.0 * Math.PI;
@@ -317,41 +378,39 @@ public final class HpHudEditorScreen extends Screen {
         }
 
         // ==========================================
-        // TOP LAUNCHER BANNER (SLEEK & COMPACT)
+        // FLOATING DRAGGABLE CONTROL CARD (LEFT DOCKED)
         // ==========================================
-        int bannerW = Math.min(540, width - 20);
-        int bannerH = 34;
-        int bannerX = (width - bannerW) / 2;
-        int bannerY = 10;
-
-        ActivityGuiRenderer.drawWindowFrame(context, bannerX, bannerY, bannerW, bannerH, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
-        ActivityGuiRenderer.fill(context, bannerX + 1, bannerY + 1, bannerW - 2, bannerH - 2, ActivityColors.HEADER_BACKGROUND);
-        ActivityGuiRenderer.drawGlassHighlight(context, bannerX, bannerY, bannerW, bannerH, 1.0f);
+        ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
+        ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
+        ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
 
         if (textRenderer != null) {
-            ActivityGuiRenderer.fill(context, bannerX + 8, bannerY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
-            context.drawTextWithShadow(textRenderer, Text.literal("HP REAPER • НАСТРОЙКА HUD"), bannerX + 18, bannerY + 7, ActivityColors.TEXT_PRIMARY);
+            ActivityGuiRenderer.fill(context, panelX + 8, panelY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
+            context.drawTextWithShadow(textRenderer, Text.literal("HP REAPER"), panelX + 18, panelY + 7, ActivityColors.TEXT_PRIMARY);
+            context.drawTextWithShadow(textRenderer, Text.literal("Настройка HUD"), panelX + 18, panelY + 18, ActivityColors.TEXT_MUTED);
+
+            ActivityGuiRenderer.drawHorizontalLine(context, panelX + 6, panelY + 31, PANEL_W - 12, 0x44353B49);
 
             String posStr = (VitalityConfig.getModeX(VitalityConfig.displayMode) < 0 && VitalityConfig.getModeY(VitalityConfig.displayMode) < 0)
                     ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
-            context.drawTextWithShadow(textRenderer, Text.literal(posStr), bannerX + 18, bannerY + 19, ActivityColors.TEXT_ACCENT);
+            int posW = textRenderer.getWidth(posStr);
+            context.drawTextWithShadow(textRenderer, Text.literal(posStr), panelX + (PANEL_W - posW) / 2, panelY + 37, ActivityColors.TEXT_ACCENT);
         }
 
-        // Buttons in top bar:
-        btnDoneW = 60;
-        btnDoneH = 20;
-        btnDoneX = bannerX + bannerW - btnDoneW - 6;
-        btnDoneY = bannerY + (bannerH - btnDoneH) / 2;
-
-        btnResetW = 100;
-        btnResetH = 20;
-        btnResetX = btnDoneX - btnResetW - 4;
-        btnResetY = btnDoneY;
-
-        btnModeW = 120;
+        btnModeW = PANEL_W - 20;
         btnModeH = 20;
-        btnModeX = btnResetX - btnModeW - 4;
-        btnModeY = btnDoneY;
+        btnModeX = panelX + 10;
+        btnModeY = panelY + 52;
+
+        btnResetW = PANEL_W - 20;
+        btnResetH = 20;
+        btnResetX = panelX + 10;
+        btnResetY = panelY + 76;
+
+        btnDoneW = PANEL_W - 20;
+        btnDoneH = 22;
+        btnDoneX = panelX + 10;
+        btnDoneY = panelY + 102;
 
         int hoveredBtn = -1;
         if (mouseX >= btnModeX && mouseX <= btnModeX + btnModeW && mouseY >= btnModeY && mouseY <= btnModeY + btnModeH) hoveredBtn = 1;
@@ -388,7 +447,7 @@ public final class HpHudEditorScreen extends Screen {
         if (textRenderer != null) {
             String dnText = "Готово";
             int dw = textRenderer.getWidth(dnText);
-            context.drawTextWithShadow(textRenderer, Text.literal(dnText), btnDoneX + (btnDoneW - dw) / 2, btnDoneY + 6, 0xFF0E1015);
+            context.drawTextWithShadow(textRenderer, Text.literal(dnText), btnDoneX + (btnDoneW - dw) / 2, btnDoneY + 7, 0xFF0E1015);
         }
 
         // Subtle bottom hint bar

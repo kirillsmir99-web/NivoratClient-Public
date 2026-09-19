@@ -32,7 +32,16 @@ public final class CartHudEditorScreen extends Screen {
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
 
-    // Interactive button bounds in the top banner
+    // Draggable vertical floating card widget
+    private int panelX = -1;
+    private int panelY = -1;
+    private static final int PANEL_W = 140;
+    private static final int PANEL_H = 114;
+    private boolean isPanelDragging = false;
+    private int panelDragOffsetX = 0;
+    private int panelDragOffsetY = 0;
+
+    // Interactive button bounds inside floating panel
     private int btnResetX, btnResetY, btnResetW, btnResetH;
     private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
     private int lastHoveredBtn = -1;
@@ -49,6 +58,7 @@ public final class CartHudEditorScreen extends Screen {
     @Override
     public void close() {
         isDragging = false;
+        isPanelDragging = false;
         SoundManager.playClose();
         CartHudConfig.save();
         activity.client.config.ActivityConfig c = activity.client.config.ActivityConfigManager.getConfig();
@@ -67,7 +77,12 @@ public final class CartHudEditorScreen extends Screen {
     @Override
     protected void init() {
         isDragging = false;
+        isPanelDragging = false;
         this.clearChildren();
+        if (panelX < 0 || panelY < 0) {
+            panelX = 16;
+            panelY = Math.max(16, (height - PANEL_H) / 2);
+        }
         SoundManager.playOpen();
     }
 
@@ -130,7 +145,17 @@ public final class CartHudEditorScreen extends Screen {
         double my = click.y();
         int button = click.buttonInfo().button();
 
-        // 1. Top banner buttons
+        btnResetW = PANEL_W - 20;
+        btnResetH = 20;
+        btnResetX = panelX + 10;
+        btnResetY = panelY + 52;
+
+        btnDoneW = PANEL_W - 20;
+        btnDoneH = 22;
+        btnDoneX = panelX + 10;
+        btnDoneY = panelY + 78;
+
+        // 1. Floating panel buttons or dragging
         if (button == 0) {
             if (mx >= btnResetX && mx <= btnResetX + btnResetW && my >= btnResetY && my <= btnResetY + btnResetH) {
                 CartHudConfig.customX = -1;
@@ -150,15 +175,21 @@ public final class CartHudEditorScreen extends Screen {
                 close();
                 return true;
             }
+            if (mx >= panelX && mx <= panelX + PANEL_W && my >= panelY && my <= panelY + PANEL_H) {
+                isPanelDragging = true;
+                panelDragOffsetX = (int) Math.round(mx - panelX);
+                panelDragOffsetY = (int) Math.round(my - panelY);
+                return true;
+            }
         }
 
-        // 2. Draggable cart element (+16px generous hitbox)
+        // 2. Draggable cart element (+10px generous hitbox)
         int currentX = CartHudOverlay.getEffectiveX(width);
         int currentY = CartHudOverlay.getEffectiveY(height);
         int boxW = CartHudOverlay.ELEMENT_WIDTH;
         int boxH = CartHudOverlay.ELEMENT_HEIGHT;
 
-        boolean inside = mx >= currentX - 16 && mx <= currentX + boxW + 16 && my >= currentY - 16 && my <= currentY + boxH + 16;
+        boolean inside = mx >= currentX - 10 && mx <= currentX + boxW + 10 && my >= currentY - 10 && my <= currentY + boxH + 10;
 
         if (button == 0 && inside) {
             isDragging = true;
@@ -184,16 +215,29 @@ public final class CartHudEditorScreen extends Screen {
 
     @Override
     public boolean mouseReleased(Click click) {
-        if (click.buttonInfo().button() == 0 && isDragging) {
-            isDragging = false;
-            CartHudConfig.save();
-            return true;
+        if (click.buttonInfo().button() == 0) {
+            if (isPanelDragging) {
+                isPanelDragging = false;
+                return true;
+            }
+            if (isDragging) {
+                isDragging = false;
+                CartHudConfig.save();
+                return true;
+            }
         }
         return super.mouseReleased(click);
     }
 
     @Override
     public boolean mouseDragged(Click click, double offsetX, double offsetY) {
+        if (isPanelDragging) {
+            int newPX = (int) Math.round(click.x() - panelDragOffsetX);
+            int newPY = (int) Math.round(click.y() - panelDragOffsetY);
+            panelX = Math.max(2, Math.min(width - PANEL_W - 2, newPX));
+            panelY = Math.max(2, Math.min(height - PANEL_H - 2, newPY));
+            return true;
+        }
         if (isDragging) {
             int boxW = CartHudOverlay.ELEMENT_WIDTH;
             int boxH = CartHudOverlay.ELEMENT_HEIGHT;
@@ -233,6 +277,18 @@ public final class CartHudEditorScreen extends Screen {
         int boxW = CartHudOverlay.ELEMENT_WIDTH;
         int boxH = CartHudOverlay.ELEMENT_HEIGHT;
 
+        if (panelX < 0 || panelY < 0) {
+            panelX = 16;
+            panelY = Math.max(16, (height - PANEL_H) / 2);
+        }
+
+        if (isPanelDragging) {
+            int newPX = (int) Math.round(mouseX - panelDragOffsetX);
+            int newPY = (int) Math.round(mouseY - panelDragOffsetY);
+            panelX = Math.max(2, Math.min(width - PANEL_W - 2, newPX));
+            panelY = Math.max(2, Math.min(height - PANEL_H - 2, newPY));
+        }
+
         if (isDragging) {
             int newX = (int) Math.round(mouseX - dragOffsetX);
             int newY = (int) Math.round(mouseY - dragOffsetY);
@@ -271,14 +327,14 @@ public final class CartHudEditorScreen extends Screen {
             }
         }
 
-        int padX = 5;
-        int padY = 5;
+        int padX = 6;
+        int padY = 4;
         int haloX = currentX - padX;
         int haloY = currentY - padY;
         int haloW = boxW + padX * 2;
         int haloH = boxH + padY * 2;
 
-        boolean isHovered = mouseX >= currentX - 16 && mouseX <= currentX + boxW + 16 && mouseY >= currentY - 16 && mouseY <= currentY + boxH + 16;
+        boolean isHovered = mouseX >= currentX - 10 && mouseX <= currentX + boxW + 10 && mouseY >= currentY - 10 && mouseY <= currentY + boxH + 10;
 
         long timeMs = System.currentTimeMillis();
         double phase = (timeMs % 2400L) / 2400.0 * 2.0 * Math.PI;
@@ -315,34 +371,33 @@ public final class CartHudEditorScreen extends Screen {
         }
 
         // ==========================================
-        // TOP LAUNCHER BANNER (SLEEK & COMPACT)
+        // FLOATING DRAGGABLE CONTROL CARD (LEFT DOCKED)
         // ==========================================
-        int bannerW = Math.min(500, width - 20);
-        int bannerH = 34;
-        int bannerX = (width - bannerW) / 2;
-        int bannerY = 10;
-
-        ActivityGuiRenderer.drawWindowFrame(context, bannerX, bannerY, bannerW, bannerH, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
-        ActivityGuiRenderer.fill(context, bannerX + 1, bannerY + 1, bannerW - 2, bannerH - 2, ActivityColors.HEADER_BACKGROUND);
-        ActivityGuiRenderer.drawGlassHighlight(context, bannerX, bannerY, bannerW, bannerH, 1.0f);
+        ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
+        ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
+        ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
 
         if (textRenderer != null) {
-            ActivityGuiRenderer.fill(context, bannerX + 8, bannerY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
-            context.drawTextWithShadow(textRenderer, Text.literal("CART HUD • НАСТРОЙКА ПОЗИЦИИ"), bannerX + 18, bannerY + 7, ActivityColors.TEXT_PRIMARY);
+            ActivityGuiRenderer.fill(context, panelX + 8, panelY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
+            context.drawTextWithShadow(textRenderer, Text.literal("CART HUD"), panelX + 18, panelY + 7, ActivityColors.TEXT_PRIMARY);
+            context.drawTextWithShadow(textRenderer, Text.literal("Настройка HUD"), panelX + 18, panelY + 18, ActivityColors.TEXT_MUTED);
+
+            ActivityGuiRenderer.drawHorizontalLine(context, panelX + 6, panelY + 31, PANEL_W - 12, 0x44353B49);
 
             String posStr = (CartHudConfig.customX < 0 && CartHudConfig.customY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
-            context.drawTextWithShadow(textRenderer, Text.literal(posStr), bannerX + 18, bannerY + 19, ActivityColors.TEXT_ACCENT);
+            int posW = textRenderer.getWidth(posStr);
+            context.drawTextWithShadow(textRenderer, Text.literal(posStr), panelX + (PANEL_W - posW) / 2, panelY + 37, ActivityColors.TEXT_ACCENT);
         }
 
-        btnDoneW = 60;
-        btnDoneH = 20;
-        btnDoneX = bannerX + bannerW - btnDoneW - 6;
-        btnDoneY = bannerY + (bannerH - btnDoneH) / 2;
-
-        btnResetW = 100;
+        btnResetW = PANEL_W - 20;
         btnResetH = 20;
-        btnResetX = btnDoneX - btnResetW - 4;
-        btnResetY = btnDoneY;
+        btnResetX = panelX + 10;
+        btnResetY = panelY + 52;
+
+        btnDoneW = PANEL_W - 20;
+        btnDoneH = 22;
+        btnDoneX = panelX + 10;
+        btnDoneY = panelY + 78;
 
         int hoveredBtn = -1;
         if (mouseX >= btnResetX && mouseX <= btnResetX + btnResetW && mouseY >= btnResetY && mouseY <= btnResetY + btnResetH) hoveredBtn = 1;
@@ -369,7 +424,7 @@ public final class CartHudEditorScreen extends Screen {
         if (textRenderer != null) {
             String dnText = "Готово";
             int dw = textRenderer.getWidth(dnText);
-            context.drawTextWithShadow(textRenderer, Text.literal(dnText), btnDoneX + (btnDoneW - dw) / 2, btnDoneY + 6, 0xFF0E1015);
+            context.drawTextWithShadow(textRenderer, Text.literal(dnText), btnDoneX + (btnDoneW - dw) / 2, btnDoneY + 7, 0xFF0E1015);
         }
 
         // Subtle bottom hint bar
