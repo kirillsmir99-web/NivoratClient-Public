@@ -95,13 +95,13 @@ public class ActivityConfig {
     public boolean autoStunSlamEnabled = true;
     public Keybind autoStunSlamKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_M, true, true, false);
     public String autoStunSlamMode = "full_auto";
-    public double autoStunSlamDistance = 2.4;
-    public double autoStunSlamChance = 75.0;
-    public double autoStunSlamAirTimeSec = 1.0;
-    public double autoStunSlamAxeDelayMs = 45.0;
-    public double autoStunSlamMaceDelayMs = 45.0;
+    public double autoStunSlamDistance = 2.85;
+    public double autoStunSlamChance = 100.0;
+    public double autoStunSlamAirTimeSec = 0.1;
+    public double autoStunSlamAxeDelayMs = 0.0;
+    public double autoStunSlamMaceDelayMs = 0.0;
     public double autoStunSlamRestoreDelayMs = 50.0;
-    public boolean autoStunSlamRandomDelay = true;
+    public boolean autoStunSlamRandomDelay = false;
     public boolean autoStunSlamLegitMode = true;
 
     // Backward-compatibility legacy alias fields for JSON deserialization
@@ -126,9 +126,17 @@ public class ActivityConfig {
     public String autoTotemMode = "main_hand";
     public double autoTotemTriggerHearts = 3.0;
     public double autoTotemRestoreHearts = 6.0;
+    public double autoTotemMainhandTriggerHearts = 3.0;
+    public double autoTotemMainhandRestoreHearts = 6.0;
+    public double autoTotemOffhandTriggerHearts = 2.0;
+    public double autoTotemOffhandRestoreHearts = 5.0;
+    public double autoTotemCrystalTriggerHearts = 3.0;
+    public double autoTotemCrystalRestoreHearts = 6.0;
     public double autoTotemChance = 100.0;
     public boolean autoTotemReturnItem = true;
     public boolean autoTotemReturnOnPop = true;
+    public boolean autoTotemAutoRefill = true;
+    public String autoTotemRefillSlot = "auto";
 
     // AutoCart
     public boolean autoCartEnabled = true;
@@ -513,13 +521,13 @@ public class ActivityConfig {
         this.autoStunSlamEnabled = true;
         this.autoStunSlamKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_M, true, true, false);
         this.autoStunSlamMode = "full_auto";
-        this.autoStunSlamDistance = 2.4;
-        this.autoStunSlamChance = 75.0;
-        this.autoStunSlamAirTimeSec = 1.0;
-        this.autoStunSlamAxeDelayMs = 45.0;
-        this.autoStunSlamMaceDelayMs = 45.0;
+        this.autoStunSlamDistance = 2.85;
+        this.autoStunSlamChance = 100.0;
+        this.autoStunSlamAirTimeSec = 0.1;
+        this.autoStunSlamAxeDelayMs = 0.0;
+        this.autoStunSlamMaceDelayMs = 0.0;
         this.autoStunSlamRestoreDelayMs = 50.0;
-        this.autoStunSlamRandomDelay = true;
+        this.autoStunSlamRandomDelay = false;
         this.autoStunSlamLegitMode = true;
 
         this.autoStunSlimeEnabled = null;
@@ -544,9 +552,17 @@ public class ActivityConfig {
         this.autoTotemMode = "main_hand";
         this.autoTotemTriggerHearts = 3.0;
         this.autoTotemRestoreHearts = 6.0;
+        this.autoTotemMainhandTriggerHearts = 3.0;
+        this.autoTotemMainhandRestoreHearts = 6.0;
+        this.autoTotemOffhandTriggerHearts = 2.0;
+        this.autoTotemOffhandRestoreHearts = 5.0;
+        this.autoTotemCrystalTriggerHearts = 3.0;
+        this.autoTotemCrystalRestoreHearts = 6.0;
         this.autoTotemChance = 100.0;
         this.autoTotemReturnItem = true;
         this.autoTotemReturnOnPop = true;
+        this.autoTotemAutoRefill = true;
+        this.autoTotemRefillSlot = "auto";
 
         this.autoCartEnabled = true;
         this.autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
@@ -875,6 +891,7 @@ public class ActivityConfig {
 
         if ("Основная рука".equals(this.autoTotemMode) || "main_hand".equals(this.autoTotemMode)) this.autoTotemMode = "main_hand";
         else if ("Вторая рука".equals(this.autoTotemMode) || "offhand".equals(this.autoTotemMode)) this.autoTotemMode = "offhand";
+        else if ("Кристаллы".equals(this.autoTotemMode) || "crystal".equals(this.autoTotemMode)) this.autoTotemMode = "crystal";
         else this.autoTotemMode = "main_hand";
 
         if ("Быстрый".equals(this.autoCartPreset) || "fast".equals(this.autoCartPreset)) this.autoCartPreset = "fast";
@@ -1146,9 +1163,17 @@ public class ActivityConfig {
         entry.settings.put("mode", this.autoTotemMode);
         entry.settings.put("trigger_hearts", this.autoTotemTriggerHearts);
         entry.settings.put("restore_hearts", this.autoTotemRestoreHearts);
+        entry.settings.put("mainhand_trigger_hearts", this.autoTotemMainhandTriggerHearts);
+        entry.settings.put("mainhand_restore_hearts", this.autoTotemMainhandRestoreHearts);
+        entry.settings.put("offhand_trigger_hearts", this.autoTotemOffhandTriggerHearts);
+        entry.settings.put("offhand_restore_hearts", this.autoTotemOffhandRestoreHearts);
+        entry.settings.put("crystal_trigger_hearts", this.autoTotemCrystalTriggerHearts);
+        entry.settings.put("crystal_restore_hearts", this.autoTotemCrystalRestoreHearts);
         entry.settings.put("chance", this.autoTotemChance);
         entry.settings.put("return_item", this.autoTotemReturnItem);
         entry.settings.put("return_on_pop", this.autoTotemReturnOnPop);
+        entry.settings.put("auto_refill", this.autoTotemAutoRefill);
+        entry.settings.put("refill_slot", this.autoTotemRefillSlot);
     }
 
     private void populateCartSettings(ModuleConfigEntry entry) {
@@ -1383,9 +1408,17 @@ public class ActivityConfig {
                 this.autoTotemMode = getSettingString(totem.settings, "mode", this.autoTotemMode);
                 this.autoTotemTriggerHearts = getSettingDouble(totem.settings, "trigger_hearts", this.autoTotemTriggerHearts);
                 this.autoTotemRestoreHearts = getSettingDouble(totem.settings, "restore_hearts", this.autoTotemRestoreHearts);
+                this.autoTotemMainhandTriggerHearts = getSettingDouble(totem.settings, "mainhand_trigger_hearts", this.autoTotemMainhandTriggerHearts);
+                this.autoTotemMainhandRestoreHearts = getSettingDouble(totem.settings, "mainhand_restore_hearts", this.autoTotemMainhandRestoreHearts);
+                this.autoTotemOffhandTriggerHearts = getSettingDouble(totem.settings, "offhand_trigger_hearts", this.autoTotemOffhandTriggerHearts);
+                this.autoTotemOffhandRestoreHearts = getSettingDouble(totem.settings, "offhand_restore_hearts", this.autoTotemOffhandRestoreHearts);
+                this.autoTotemCrystalTriggerHearts = getSettingDouble(totem.settings, "crystal_trigger_hearts", this.autoTotemCrystalTriggerHearts);
+                this.autoTotemCrystalRestoreHearts = getSettingDouble(totem.settings, "crystal_restore_hearts", this.autoTotemCrystalRestoreHearts);
                 this.autoTotemChance = getSettingDouble(totem.settings, "chance", this.autoTotemChance);
                 this.autoTotemReturnItem = getSettingBoolean(totem.settings, "return_item", this.autoTotemReturnItem);
                 this.autoTotemReturnOnPop = getSettingBoolean(totem.settings, "return_on_pop", this.autoTotemReturnOnPop);
+                this.autoTotemAutoRefill = getSettingBoolean(totem.settings, "auto_refill", this.autoTotemAutoRefill);
+                this.autoTotemRefillSlot = getSettingString(totem.settings, "refill_slot", this.autoTotemRefillSlot);
             }
         }
         ModuleConfigEntry cart = getModuleEntry("auto_cart");
@@ -1567,9 +1600,17 @@ public class ActivityConfig {
         copy.autoTotemMode = this.autoTotemMode;
         copy.autoTotemTriggerHearts = this.autoTotemTriggerHearts;
         copy.autoTotemRestoreHearts = this.autoTotemRestoreHearts;
+        copy.autoTotemMainhandTriggerHearts = this.autoTotemMainhandTriggerHearts;
+        copy.autoTotemMainhandRestoreHearts = this.autoTotemMainhandRestoreHearts;
+        copy.autoTotemOffhandTriggerHearts = this.autoTotemOffhandTriggerHearts;
+        copy.autoTotemOffhandRestoreHearts = this.autoTotemOffhandRestoreHearts;
+        copy.autoTotemCrystalTriggerHearts = this.autoTotemCrystalTriggerHearts;
+        copy.autoTotemCrystalRestoreHearts = this.autoTotemCrystalRestoreHearts;
         copy.autoTotemChance = this.autoTotemChance;
         copy.autoTotemReturnItem = this.autoTotemReturnItem;
         copy.autoTotemReturnOnPop = this.autoTotemReturnOnPop;
+        copy.autoTotemAutoRefill = this.autoTotemAutoRefill;
+        copy.autoTotemRefillSlot = this.autoTotemRefillSlot;
 
         copy.autoCartEnabled = this.autoCartEnabled;
         copy.autoCartKeybind.copyFrom(this.autoCartKeybind);
@@ -1772,6 +1813,8 @@ public class ActivityConfig {
                 this.autoTotemReturnOnPop == that.autoTotemReturnOnPop &&
                 Double.compare(this.autoTotemTriggerHearts, that.autoTotemTriggerHearts) == 0 &&
                 Double.compare(this.autoTotemRestoreHearts, that.autoTotemRestoreHearts) == 0 &&
+                Double.compare(this.autoTotemCrystalTriggerHearts, that.autoTotemCrystalTriggerHearts) == 0 &&
+                Double.compare(this.autoTotemCrystalRestoreHearts, that.autoTotemCrystalRestoreHearts) == 0 &&
                 Double.compare(this.autoTotemChance, that.autoTotemChance) == 0 &&
                 Objects.equals(this.autoTotemKeybind, that.autoTotemKeybind) &&
                 Objects.equals(this.autoTotemMode, that.autoTotemMode) &&
@@ -1930,7 +1973,7 @@ public class ActivityConfig {
         result = 31 * result + Objects.hash(
             autoStunSlamAirTimeSec, autoStunSlamAxeDelayMs, autoStunSlamMaceDelayMs, autoStunSlamRestoreDelayMs, autoStunSlamRandomDelay, autoStunSlamLegitMode,
             // Defense
-            autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
+            autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemCrystalTriggerHearts, autoTotemCrystalRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
             autoCartEnabled, autoCartKeybind, autoCartPreset, autoCartPlacementChance, autoCartMaxDistance, autoCartMinDelayMs, autoCartMaxDelayMs,
             autoCartAllowSelfCart, autoCartAllowPitPlacement, autoCartRandomDelay, autoCartRailDelay, autoCartCartDelay, autoCartRestoreDelay, autoCartLegitMode,
             autoAnchorEnabled, autoAnchorKeybind, autoAnchorPreset, autoAnchorAutoExplode, autoAnchorAutoReturn, autoAnchorChargeDelay, autoAnchorExplodeDelay, autoAnchorChance, autoAnchorTargetCharges, autoAnchorLegitMode,

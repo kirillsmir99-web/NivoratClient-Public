@@ -51,7 +51,6 @@ public final class ModuleEventDispatcher {
 
     private static boolean eventsRegistered = false;
     private static long clientTickCounter = 0L;
-    private static boolean inventoryPhysicalDown = false;
 
     private ModuleEventDispatcher() {}
 
@@ -121,12 +120,10 @@ public final class ModuleEventDispatcher {
      */
     public static void onClientTick(MinecraftClient client) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            inventoryPhysicalDown = false;
             return;
         }
 
         if (client == null || client.player == null) {
-            inventoryPhysicalDown = false;
             PlayerStateService.reset();
             TargetCacheService.reset();
             InventoryScanService.invalidate();
@@ -145,37 +142,6 @@ public final class ModuleEventDispatcher {
 
         // Tick scheduler
         TickBoundScheduler.onTick(client);
-
-        // Guaranteed Inventory Screen Opener & Closer (KeyBinding + GLFW hardware fallback)
-        if (client.player != null && client.options != null && client.options.inventoryKey != null) {
-            boolean invPressed = false;
-            while (client.options.inventoryKey.wasPressed()) {
-                invPressed = true;
-            }
-
-            // Direct GLFW hardware check (catches physical key presses even if KeyBinding was consumed)
-            if (client.getWindow() != null && client.getWindow().getHandle() != 0L) {
-                int invKeyCode = org.lwjgl.glfw.GLFW.GLFW_KEY_E;
-                try {
-                    invKeyCode = client.options.inventoryKey.getDefaultKey().getCode();
-                } catch (Throwable ignored) {}
-                boolean isPhysicallyDown = net.minecraft.client.util.InputUtil.isKeyPressed(client.getWindow(), invKeyCode);
-                if (isPhysicallyDown && !inventoryPhysicalDown) {
-                    inventoryPhysicalDown = true;
-                    invPressed = true;
-                } else if (!isPhysicallyDown && inventoryPhysicalDown) {
-                    inventoryPhysicalDown = false;
-                }
-            }
-
-            if (invPressed && client.currentScreen == null) {
-                if (client.interactionManager != null && client.interactionManager.hasRidingInventory()) {
-                    client.player.openRidingInventory();
-                } else {
-                    client.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(client.player));
-                }
-            }
-        }
 
         // Keybind evaluation
         KeybindManager.handleTick(client);

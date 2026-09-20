@@ -10,6 +10,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -30,12 +31,43 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class SunderController {
     private static final int MIN_AXE_DURABILITY = 4;
-    private static final Map<UUID, Long> SHIELD_DISABLED_TARGETS = new ConcurrentHashMap<>();
     private static final double MAX_COMBAT_REACH = 2.85D;
+
+    private static java.lang.reflect.Field lastAttackedTicksField;
+
+    static {
+        try {
+            for (java.lang.reflect.Field f : PlayerEntity.class.getDeclaredFields()) {
+                if (f.getType() == int.class) {
+                    String name = f.getName().toLowerCase(java.util.Locale.ROOT);
+                    if ("lastattackedticks".equals(name) || "field_6273".equals(name) || name.contains("lastattackedticks")) {
+                        f.setAccessible(true);
+                        lastAttackedTicksField = f;
+                        break;
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static void ensureFullAttackCharge(ClientPlayerEntity player) {
+        if (player == null) return;
+        try {
+            if (lastAttackedTicksField != null) {
+                float needed = player.getAttackCooldownProgressPerTick();
+                int minNeeded = (int) Math.ceil(needed) + 2;
+                int current = lastAttackedTicksField.getInt(player);
+                if (current < minNeeded) {
+                    lastAttackedTicksField.setInt(player, minNeeded);
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
 
     private boolean enabled = true;
     private Stage stage = Stage.IDLE;
     private UUID targetId;
+    private int targetEntityId = -1;
     private int initialSlot = -1;
     private int maceSlot = -1;
     private int axeSlot = -1;
@@ -58,7 +90,7 @@ public final class SunderController {
     }
 
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-        if (!world.isClient() || !(entity instanceof PlayerEntity target)) {
+        if (!world.isClient() || !(entity instanceof net.minecraft.entity.LivingEntity target)) {
             return ActionResult.PASS;
         }
 
@@ -67,19 +99,27 @@ public final class SunderController {
             return ActionResult.PASS;
         }
 
+        boolean isTarget = (targetEntityId != -1 && target.getId() == targetEntityId)
+                || (targetId != null && target.getUuid().equals(targetId))
+                || targetId == null;
+
         if (stage == Stage.SEMI_AWAIT_AXE_HIT) {
-            if (targetId == null || target.getUuid().equals(targetId)) {
-                markShieldDisabled(target.getUuid());
-                stage = Stage.SEMI_SELECT_MACE;
-                timer = 1;
+            if (isTarget) {
+                if (maceSlot >= 0) {
+                    stage = Stage.SEMI_SELECT_MACE;
+                    timer = 1;
+                } else {
+                    stage = Stage.WAITING_RESTORE;
+                    timer = Math.max(1, getRestoreDelayTicks());
+                }
             }
             return ActionResult.PASS;
         }
 
-        if (stage == Stage.SEMI_AWAIT_MACE_HIT) {
-            if (targetId == null || target.getUuid().equals(targetId)) {
+        if (stage == Stage.SEMI_AWAIT_MACE_HIT || stage == Stage.WAITING_MACE_STRIKE) {
+            if (isTarget) {
                 stage = Stage.WAITING_RESTORE;
-                timer = Math.max(2, getRestoreDelayTicks());
+                timer = Math.max(1, getRestoreDelayTicks());
             }
             return ActionResult.PASS;
         }
@@ -96,6 +136,11 @@ public final class SunderController {
 
         if (client.player.isOnGround() || client.player.isTouchingWater() || client.player.isClimbing() || client.player.hasVehicle()) {
             airTicks = 0;
+            if (stage != Stage.IDLE && stage != Stage.WAITING_RESTORE && stage != Stage.RESTORE_SLOT) {
+                restoreInitialSlot(client);
+                finishCombo(3);
+                return;
+            }
         } else {
             airTicks = Math.max(airTicks + 1, activity.client.module.service.PlayerStateService.getAirTicks());
         }
@@ -112,42 +157,93 @@ public final class SunderController {
             cooldownTimer--;
         }
 
+        if (stage != Stage.IDLE) {
+            int currentSlot = client.player.getInventory().getSelectedSlot();
+            if (stage == Stage.WAITING_AXE_STRIKE || stage == Stage.SEMI_AWAIT_AXE_HIT) {
+                if (axeSlot >= 0 && currentSlot != axeSlot && currentSlot != initialSlot) {
+                    restoreInitialSlot(client);
+                    finishCombo(3);
+                    return;
+                }
+            } else if (stage == Stage.WAITING_MACE_STRIKE || stage == Stage.SEMI_AWAIT_MACE_HIT) {
+                if (maceSlot >= 0 && currentSlot != maceSlot && currentSlot != initialSlot) {
+                    restoreInitialSlot(client);
+                    finishCombo(3);
+                    return;
+                }
+            }
+        }
+
         switch (stage) {
             case IDLE -> handleIdle(client);
             case SELECT_AXE -> {
                 if (axeSlot < 0 || axeSlot >= 9) {
-                    finishCombo();
+                    finishCombo(2);
                     return;
                 }
                 selectSlot(client, axeSlot);
-                stage = Stage.WAITING_AXE_STRIKE;
-                timer = Math.max(2, getAxeDelayTicks());
+                ensureFullAttackCharge(client.player);
+                int axeDelay = getAxeDelayTicks();
+                if (axeDelay <= 0) {
+                    executeAutoStrikeAxe(client);
+                } else {
+                    stage = Stage.WAITING_AXE_STRIKE;
+                    timer = axeDelay;
+                }
             }
             case WAITING_AXE_STRIKE -> {
                 if (timer > 0) {
                     timer--;
-                    return;
+                    if (timer > 0) return;
                 }
                 executeAutoStrikeAxe(client);
             }
-            case SELECT_MACE -> {
+            case WAITING_MACE_SWAP -> {
+                if (timer > 0) {
+                    timer--;
+                    if (timer > 0) return;
+                }
                 if (maceSlot < 0 || maceSlot >= 9) {
-                    finishCombo();
+                    stage = Stage.WAITING_RESTORE;
+                    timer = Math.max(1, getRestoreDelayTicks());
                     return;
                 }
                 selectSlot(client, maceSlot);
-                stage = Stage.WAITING_MACE_STRIKE;
-                timer = Math.max(2, getMaceDelayTicks());
+                ensureFullAttackCharge(client.player);
+                int maceDelay = getMaceDelayTicks();
+                if (maceDelay <= 0) {
+                    executeAutoStrikeMace(client);
+                } else {
+                    stage = Stage.WAITING_MACE_STRIKE;
+                    timer = maceDelay;
+                }
+            }
+            case SELECT_MACE -> {
+                if (maceSlot < 0 || maceSlot >= 9) {
+                    stage = Stage.WAITING_RESTORE;
+                    timer = Math.max(1, getRestoreDelayTicks());
+                    return;
+                }
+                selectSlot(client, maceSlot);
+                ensureFullAttackCharge(client.player);
+                int maceDelay = getMaceDelayTicks();
+                if (maceDelay <= 0) {
+                    executeAutoStrikeMace(client);
+                } else {
+                    stage = Stage.WAITING_MACE_STRIKE;
+                    timer = maceDelay;
+                }
             }
             case WAITING_MACE_STRIKE -> {
                 if (timer > 0) {
                     timer--;
-                    return;
+                    if (timer > 0) return;
                 }
                 executeAutoStrikeMace(client);
             }
             case SEMI_SELECT_AXE -> {
                 selectSlot(client, axeSlot);
+                ensureFullAttackCharge(client.player);
                 stage = Stage.SEMI_AWAIT_AXE_HIT;
                 timer = 30;
             }
@@ -156,40 +252,49 @@ public final class SunderController {
                     timer--;
                 } else {
                     restoreInitialSlot(client);
-                    finishCombo();
+                    finishCombo(2);
                     return;
                 }
-                PlayerEntity target = getTarget(client);
+                LivingEntity target = getTarget(client);
                 if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance)) {
                     restoreInitialSlot(client);
-                    finishCombo();
+                    finishCombo(2);
+                    return;
+                }
+                if (client.options.attackKey.isPressed()) {
+                    executeAutoStrikeAxe(client);
                 }
             }
             case SEMI_SELECT_MACE -> {
+                if (timer > 0) {
+                    timer--;
+                    if (timer > 0) return;
+                }
                 selectSlot(client, maceSlot);
-                stage = Stage.SEMI_AWAIT_MACE_HIT;
-                timer = 30;
+                ensureFullAttackCharge(client.player);
+                int maceDelay = getMaceDelayTicks();
+                if (maceDelay <= 0) {
+                    executeAutoStrikeMace(client);
+                } else {
+                    stage = Stage.SEMI_AWAIT_MACE_HIT;
+                    timer = maceDelay;
+                }
             }
             case SEMI_AWAIT_MACE_HIT -> {
                 if (timer > 0) {
                     timer--;
-                } else {
-                    restoreInitialSlot(client);
-                    finishCombo();
-                    return;
+                    if (timer > 0) return;
                 }
-                PlayerEntity target = getTarget(client);
-                if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance)) {
-                    restoreInitialSlot(client);
-                    finishCombo();
-                }
+                executeAutoStrikeMace(client);
             }
             case WAITING_RESTORE -> {
                 if (timer > 0) {
                     timer--;
-                    return;
+                    if (timer > 0) return;
                 }
                 stage = Stage.RESTORE_SLOT;
+                restoreInitialSlot(client);
+                finishCombo();
             }
             case RESTORE_SLOT -> {
                 restoreInitialSlot(client);
@@ -203,7 +308,7 @@ public final class SunderController {
             return;
         }
 
-        if (isPlayerBusy(client, client.player)) {
+        if (isPlayerBusy(client.player)) {
             return;
         }
 
@@ -229,14 +334,14 @@ public final class SunderController {
             return;
         }
 
-        PlayerEntity target = findBlockingPlayer(client);
+        LivingEntity target = findBlockingTarget(client);
         if (target == null) {
             return;
         }
 
         if (SunderConfig.chance < 100) {
             if (ThreadLocalRandom.current().nextInt(100) >= SunderConfig.chance) {
-                cooldownTimer = 15;
+                cooldownTimer = 2;
                 return;
             }
         }
@@ -244,123 +349,144 @@ public final class SunderController {
         trigger(client, target, foundAxe, foundMace);
     }
 
-    private void trigger(MinecraftClient client, PlayerEntity target, int foundAxe, int foundMace) {
+    private void trigger(MinecraftClient client, LivingEntity target, int foundAxe, int foundMace) {
         initialSlot = client.player.getInventory().getSelectedSlot();
         axeSlot = foundAxe;
         maceSlot = foundMace;
+        targetEntityId = target.getId();
         targetId = target.getUuid();
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.sunder_active", true);
 
         if (SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO) {
-            stage = Stage.SEMI_SELECT_AXE;
-            timer = 1;
+            if (initialSlot != axeSlot) {
+                selectSlot(client, axeSlot);
+            }
+            ensureFullAttackCharge(client.player);
+            stage = Stage.SEMI_AWAIT_AXE_HIT;
+            timer = 30;
             return;
         }
 
-        stage = Stage.SELECT_AXE;
-        timer = 1;
+        if (initialSlot == axeSlot) {
+            ensureFullAttackCharge(client.player);
+            executeAutoStrikeAxe(client);
+            return;
+        }
+
+        selectSlot(client, axeSlot);
+        ensureFullAttackCharge(client.player);
+        int axeDelay = getAxeDelayTicks();
+        if (axeDelay <= 0) {
+            executeAutoStrikeAxe(client);
+        } else {
+            stage = Stage.WAITING_AXE_STRIKE;
+            timer = axeDelay;
+        }
     }
 
     private void executeAutoStrikeAxe(MinecraftClient client) {
-        PlayerEntity target = getTarget(client);
+        LivingEntity target = getTarget(client);
         if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance)) {
             restoreInitialSlot(client);
-            finishCombo();
+            finishCombo(2);
             return;
         }
 
         if (client.player.getInventory().getSelectedSlot() != axeSlot) {
             selectSlot(client, axeSlot);
+            ensureFullAttackCharge(client.player);
             return;
         }
 
+        ensureFullAttackCharge(client.player);
         client.interactionManager.attackEntity(client.player, target);
         client.player.swingHand(Hand.MAIN_HAND);
-        markShieldDisabled(targetId);
 
         if (maceSlot >= 0) {
-            stage = Stage.SELECT_MACE;
+            stage = SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
             timer = 1;
         } else {
             stage = Stage.WAITING_RESTORE;
-            timer = Math.max(2, getRestoreDelayTicks());
+            timer = Math.max(1, getRestoreDelayTicks());
         }
     }
 
     private void executeAutoStrikeMace(MinecraftClient client) {
-        PlayerEntity target = getTarget(client);
+        LivingEntity target = getTarget(client);
         if (target != null && target.isAlive() && canReach(client, target, SunderConfig.triggerDistance)) {
             if (client.player.getInventory().getSelectedSlot() != maceSlot) {
                 selectSlot(client, maceSlot);
+                ensureFullAttackCharge(client.player);
                 return;
             }
+            ensureFullAttackCharge(client.player);
             client.interactionManager.attackEntity(client.player, target);
             client.player.swingHand(Hand.MAIN_HAND);
+            stage = Stage.WAITING_RESTORE;
+            timer = Math.max(1, getRestoreDelayTicks());
+        } else {
+            if (stage != Stage.WAITING_MACE_STRIKE && stage != Stage.SEMI_AWAIT_MACE_HIT) {
+                stage = (SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO) ? Stage.SEMI_AWAIT_MACE_HIT : Stage.WAITING_MACE_STRIKE;
+                timer = 10;
+            } else if (timer <= 0) {
+                stage = Stage.WAITING_RESTORE;
+                timer = Math.max(1, getRestoreDelayTicks());
+            }
         }
-
-        stage = Stage.WAITING_RESTORE;
-        timer = Math.max(2, getRestoreDelayTicks());
     }
 
     private int getAxeDelayTicks() {
         if (SunderConfig.randomDelay) {
-            long randomized = GaussianTimingEngine.getDelay(140.0D, 28.0D, 80L, 240L);
-            return Math.max(2, (int) Math.round(randomized / 50.0D));
+            long randomized = GaussianTimingEngine.getShieldBreakerSwitchDelay();
+            return (int) (randomized / 50L);
         }
-        return Math.max(2, (int) Math.round(SunderConfig.axeDelayMs / 50.0D));
+        return (int) (SunderConfig.axeDelayMs / 50.0D);
     }
 
     private int getMaceDelayTicks() {
         if (SunderConfig.randomDelay) {
-            long randomized = GaussianTimingEngine.getDelay(130.0D, 28.0D, 75L, 220L);
-            return Math.max(2, (int) Math.round(randomized / 50.0D));
+            long randomized = GaussianTimingEngine.getMaceSwapDelay();
+            return (int) (randomized / 50L);
         }
-        return Math.max(2, (int) Math.round(SunderConfig.maceDelayMs / 50.0D));
+        return (int) (SunderConfig.maceDelayMs / 50.0D);
     }
 
     private int getRestoreDelayTicks() {
         if (SunderConfig.randomDelay) {
-            long randomized = GaussianTimingEngine.getDelay(135.0D, 28.0D, 80L, 230L);
-            return Math.max(2, (int) Math.round(randomized / 50.0D));
+            long randomized = GaussianTimingEngine.getShieldBreakerRestoreDelay();
+            return (int) (randomized / 50L);
         }
-        return Math.max(2, (int) Math.round(SunderConfig.restoreDelayMs / 50.0D));
+        return (int) (SunderConfig.restoreDelayMs / 50.0D);
     }
 
     private boolean isAirborneConditionMet(ClientPlayerEntity player) {
-        if (SunderConfig.airTimeSec <= 0.001D) {
-            return true;
+        if (player == null) return false;
+        if (player.isOnGround() || player.verticalCollision || player.isTouchingWater() || player.isClimbing() || player.hasVehicle()) {
+            return false;
         }
-        if (player.isGliding()) {
-            return true;
-        }
-        if (player.fallDistance > 0.6F) {
-            return true;
-        }
-        int neededTicks = (int) Math.round(SunderConfig.airTimeSec * 20.0D);
+        int neededTicks = Math.max(1, (int) Math.round(SunderConfig.airTimeSec * 20.0D));
         return airTicks >= neededTicks;
     }
 
-    private boolean isPlayerBusy(MinecraftClient client, ClientPlayerEntity player) {
+    private boolean isPlayerBusy(ClientPlayerEntity player) {
         if (player == null || !player.isAlive()) return true;
-        if (player.isUsingItem() || player.isBlocking()) return true;
-        if (client.options.useKey.isPressed()) return true;
-        return false;
+        return activity.client.module.service.PlayerStateService.isBusy(player);
     }
 
-    private PlayerEntity findBlockingPlayer(MinecraftClient client) {
-        PlayerEntity crosshair = activity.client.module.service.TargetCacheService.getCrosshairPlayerTarget(client);
+    private LivingEntity findBlockingTarget(MinecraftClient client) {
+        LivingEntity crosshair = activity.client.module.service.TargetCacheService.getCrosshairLivingTarget(client);
         if (crosshair != null && isValidTarget(client, crosshair)) {
             return crosshair;
         }
 
-        if (client.targetedEntity instanceof PlayerEntity target) {
+        if (client.targetedEntity instanceof LivingEntity target) {
             if (isValidTarget(client, target)) {
                 return target;
             }
         }
 
         if (client.crosshairTarget instanceof EntityHitResult ehr
-                && ehr.getEntity() instanceof PlayerEntity target) {
+                && ehr.getEntity() instanceof LivingEntity target) {
             if (isValidTarget(client, target)) {
                 return target;
             }
@@ -369,40 +495,35 @@ public final class SunderController {
         return findTargetAlongRay(client);
     }
 
-    private boolean isValidTarget(MinecraftClient client, PlayerEntity target) {
+    private boolean isValidTarget(MinecraftClient client, LivingEntity target) {
         if (target == null || target == client.player || !target.isAlive() || target.isSpectator()) {
             return false;
         }
-        if (!isTargetShielding(target) || isShieldDisabled(target.getUuid())) {
+        if (!isTargetShielding(target)) {
             return false;
         }
         return canReach(client, target, SunderConfig.triggerDistance);
     }
 
-    private PlayerEntity findTargetAlongRay(MinecraftClient client) {
+    private LivingEntity findTargetAlongRay(MinecraftClient client) {
         Vec3d eyePos = client.player.getEyePos();
         Vec3d lookVec = client.player.getRotationVec(1.0F);
         double maxDist = Math.min(MAX_COMBAT_REACH, SunderConfig.triggerDistance);
         Vec3d reachEnd = eyePos.add(lookVec.multiply(maxDist));
 
-        PlayerEntity best = null;
+        LivingEntity best = null;
         double closestDistSq = Double.MAX_VALUE;
 
-        for (PlayerEntity player : client.world.getPlayers()) {
-            if (!isValidTarget(client, player)) {
-                continue;
-            }
-            if (player.squaredDistanceTo(client.player) > (maxDist + 1.0) * (maxDist + 1.0)) {
-                continue;
-            }
-            Box box = player.getBoundingBox();
+        Box searchBox = client.player.getBoundingBox().expand(maxDist + 1.0D);
+        for (LivingEntity entity : client.world.getEntitiesByClass(LivingEntity.class, searchBox, e -> isValidTarget(client, e))) {
+            Box box = entity.getBoundingBox();
             var hit = box.raycast(eyePos, reachEnd);
             if (hit.isPresent()) {
                 double dSq = eyePos.squaredDistanceTo(hit.get());
                 if (dSq <= maxDist * maxDist && dSq < closestDistSq) {
-                    if (CombatRaytraceGuard.hasLineOfSight(client.player, player)) {
+                    if (CombatRaytraceGuard.hasLineOfSight(client.player, entity)) {
                         closestDistSq = dSq;
-                        best = player;
+                        best = entity;
                     }
                 }
             }
@@ -410,7 +531,7 @@ public final class SunderController {
         return best;
     }
 
-    private boolean canReach(MinecraftClient client, PlayerEntity target, double maxReach) {
+    private boolean canReach(MinecraftClient client, LivingEntity target, double maxReach) {
         if (target == null || target == client.player || !target.isAlive() || client.player == null) {
             return false;
         }
@@ -423,7 +544,7 @@ public final class SunderController {
         }
 
         if (client.targetedEntity == target) {
-            return eyePos.squaredDistanceTo(target.getEyePos()) <= cappedReach * cappedReach;
+            return client.player.squaredDistanceTo(target) <= (cappedReach + 0.6) * (cappedReach + 0.6);
         }
 
         if (client.crosshairTarget instanceof EntityHitResult ehr && ehr.getEntity() == target) {
@@ -432,7 +553,7 @@ public final class SunderController {
 
         Vec3d lookVec = client.player.getRotationVec(1.0F);
         Vec3d reachEnd = eyePos.add(lookVec.multiply(cappedReach));
-        Box box = target.getBoundingBox();
+        Box box = target.getBoundingBox().expand(0.1D);
         var hit = box.raycast(eyePos, reachEnd);
         if (hit.isPresent()) {
             return eyePos.squaredDistanceTo(hit.get()) <= cappedReach * cappedReach;
@@ -489,7 +610,7 @@ public final class SunderController {
 
     private boolean isHandledWeapon(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
-        return stack.isIn(ItemTags.SWORDS) || stack.isOf(Items.TRIDENT);
+        return stack.isIn(ItemTags.SWORDS) || stack.isIn(ItemTags.AXES) || stack.isOf(Items.TRIDENT) || stack.isOf(Items.MACE);
     }
 
     private void selectSlot(MinecraftClient client, int slot) {
@@ -503,29 +624,25 @@ public final class SunderController {
         }
     }
 
-    private PlayerEntity getTarget(MinecraftClient client) {
-        if (targetId == null || client.world == null) return null;
-        return client.world.getPlayerByUuid(targetId);
-    }
-
-    private boolean isTargetShielding(PlayerEntity target) {
-        return activity.client.module.service.TargetCacheService.isTargetShielding(target);
-    }
-
-    private void markShieldDisabled(UUID targetUuid) {
-        if (targetUuid == null) return;
-        SHIELD_DISABLED_TARGETS.put(targetUuid, System.currentTimeMillis() + 5000L);
-    }
-
-    private boolean isShieldDisabled(UUID targetUuid) {
-        if (targetUuid == null) return false;
-        Long expire = SHIELD_DISABLED_TARGETS.get(targetUuid);
-        if (expire == null) return false;
-        if (System.currentTimeMillis() > expire) {
-            SHIELD_DISABLED_TARGETS.remove(targetUuid);
-            return false;
+    private LivingEntity getTarget(MinecraftClient client) {
+        if (client.world == null) return null;
+        if (targetEntityId != -1) {
+            Entity e = client.world.getEntityById(targetEntityId);
+            if (e instanceof LivingEntity living && living.isAlive()) {
+                return living;
+            }
         }
-        return true;
+        if (targetId != null) {
+            PlayerEntity p = client.world.getPlayerByUuid(targetId);
+            if (p != null && p.isAlive()) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    private boolean isTargetShielding(LivingEntity target) {
+        return activity.client.module.service.TargetCacheService.isTargetShielding(target);
     }
 
     public void reset() {
@@ -535,6 +652,7 @@ public final class SunderController {
     private void clearState() {
         stage = Stage.IDLE;
         targetId = null;
+        targetEntityId = -1;
         initialSlot = -1;
         maceSlot = -1;
         axeSlot = -1;
@@ -543,14 +661,19 @@ public final class SunderController {
     }
 
     private void finishCombo() {
+        finishCombo(SunderConfig.cooldownTicks);
+    }
+
+    private void finishCombo(int cooldown) {
         clearState();
-        cooldownTimer = SunderConfig.cooldownTicks;
+        cooldownTimer = cooldown;
     }
 
     private enum Stage {
         IDLE,
         SELECT_AXE,
         WAITING_AXE_STRIKE,
+        WAITING_MACE_SWAP,
         SELECT_MACE,
         WAITING_MACE_STRIKE,
         SEMI_SELECT_AXE,

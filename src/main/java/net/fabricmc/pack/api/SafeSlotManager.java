@@ -68,7 +68,7 @@ public final class SafeSlotManager {
         if (cur == slot && lastSelectedSlot == slot) {
             return false;
         }
-        if (currentTick >= 0 && currentTick == lastChangeTick) {
+        if (currentTick >= 0 && currentTick == lastChangeTick && cur == slot) {
             return false;
         }
         client.player.getInventory().setSelectedSlot(slot);

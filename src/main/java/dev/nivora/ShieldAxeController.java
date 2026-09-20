@@ -62,7 +62,7 @@ public final class ShieldAxeController {
             if (targetId == null || target.getUuid().equals(targetId)) {
                 stage = Stage.WAITING_RESTORE;
                 stageTicks = 0;
-                restoreDelayTicks = Math.max(2, getRestoreDelayTicks());
+                restoreDelayTicks = Math.max(1, getRestoreDelayTicks());
             }
             return ActionResult.PASS;
         }
@@ -126,6 +126,10 @@ public final class ShieldAxeController {
             return;
         }
 
+        if (dev.sunder.SunderConfig.enabled && !client.player.isOnGround()) {
+            return;
+        }
+
         int axeSlot = findAxeHotbarSlot(client.player);
         if (axeSlot < 0) {
             return;
@@ -160,7 +164,7 @@ public final class ShieldAxeController {
         selectSlot(client, axeSlot);
         stage = Stage.SWAPPED_TO_AXE;
         stageTicks = 0;
-        targetDelayTicks = Math.max(2, getSwitchDelayTicks());
+        targetDelayTicks = Math.max(1, getSwitchDelayTicks());
     }
 
     private void handleSwappedToAxe(MinecraftClient client) {
@@ -174,7 +178,7 @@ public final class ShieldAxeController {
         PlayerEntity target = getTarget(client);
         if (target == null || !isValidTarget(client, target)) {
             restoreWeapon(client);
-            finish(2);
+            finish(1);
             return;
         }
 
@@ -194,7 +198,7 @@ public final class ShieldAxeController {
 
         stage = Stage.WAITING_RESTORE;
         stageTicks = 0;
-        restoreDelayTicks = Math.max(2, getRestoreDelayTicks());
+        restoreDelayTicks = Math.max(1, getRestoreDelayTicks());
     }
 
     private void handleWaitingRestore(MinecraftClient client) {
@@ -222,18 +226,18 @@ public final class ShieldAxeController {
 
     private int getSwitchDelayTicks() {
         if (ShieldBreakerConfig.randomDelay) {
-            long randomized = GaussianTimingEngine.getDelay(140.0D, 28.0D, 80L, 240L);
-            return Math.max(2, (int) Math.round(randomized / 50.0D));
+            long randomized = GaussianTimingEngine.getShieldBreakerSwitchDelay();
+            return Math.max(1, (int) Math.round(randomized / 50.0D));
         }
-        return Math.max(2, (int) Math.round(ShieldBreakerConfig.switchDelayMs / 50.0D));
+        return Math.max(1, (int) Math.round(ShieldBreakerConfig.switchDelayMs / 50.0D));
     }
 
     private int getRestoreDelayTicks() {
         if (ShieldBreakerConfig.randomDelay) {
-            long randomized = GaussianTimingEngine.getDelay(135.0D, 28.0D, 80L, 230L);
-            return Math.max(2, (int) Math.round(randomized / 50.0D));
+            long randomized = GaussianTimingEngine.getShieldBreakerRestoreDelay();
+            return Math.max(1, (int) Math.round(randomized / 50.0D));
         }
-        return Math.max(2, (int) Math.round(ShieldBreakerConfig.restoreDelayMs / 50.0D));
+        return Math.max(1, (int) Math.round(ShieldBreakerConfig.restoreDelayMs / 50.0D));
     }
 
     private boolean isPlayerBusy(ClientPlayerEntity player) {

@@ -103,7 +103,11 @@ public class DefenseModulesMigrationTest {
 
         // Mode enum sync
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
-        assertEquals(List.of("main_hand", "offhand"), modeSetting.getOptions());
+        assertEquals(List.of("main_hand", "offhand", "crystal"), modeSetting.getOptions());
+
+        modeSetting.set("crystal");
+        assertEquals("crystal", config.autoTotemMode);
+        assertEquals(3, AutoTotemConfig.mode);
 
         modeSetting.set("offhand");
         assertEquals("offhand", config.autoTotemMode);
@@ -125,7 +129,7 @@ public class DefenseModulesMigrationTest {
 
         // Restore hearts sync
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
-        assertEquals(4.0, restoreSetting.getMin(), 0.001);
+        assertEquals(1.0, restoreSetting.getMin(), 0.001);
         assertEquals(10.0, restoreSetting.getMax(), 0.001);
         assertEquals(1.0, restoreSetting.getStep(), 0.001);
         assertTrue(restoreSetting.isIntegerOnly());
@@ -158,6 +162,16 @@ public class DefenseModulesMigrationTest {
         returnOnPopSetting.set(true);
         assertTrue(config.autoTotemReturnOnPop);
         assertTrue(AutoTotemConfig.returnOnPop);
+
+        // Refill slot sync
+        EnumSetting refillSlotSetting = (EnumSetting) mod.getSetting("refill_slot");
+        assertNotNull(refillSlotSetting);
+        refillSlotSetting.set("3");
+        assertEquals("3", config.autoTotemRefillSlot);
+        assertEquals(2, AutoTotemConfig.refillSlot);
+        refillSlotSetting.set("auto");
+        assertEquals("auto", config.autoTotemRefillSlot);
+        assertEquals(-1, AutoTotemConfig.refillSlot);
 
         // Toggle / setEnabled sync
         totemMod.setEnabled(false);
@@ -293,23 +307,30 @@ public class DefenseModulesMigrationTest {
         presetSetting.set("fast");
         assertEquals("fast", config.autoAnchorPreset);
         assertEquals("FAST", AnchorConfig.preset);
+        assertEquals(0.0, config.autoAnchorChargeDelay, 0.001);
+        assertEquals(0.0, config.autoAnchorExplodeDelay, 0.001);
+        assertEquals(100.0, config.autoAnchorChance, 0.001);
+
+        presetSetting.set("medium");
+        assertEquals("medium", config.autoAnchorPreset);
+        assertEquals("MEDIUM", AnchorConfig.preset);
         assertEquals(1.0, config.autoAnchorChargeDelay, 0.001);
         assertEquals(1.0, config.autoAnchorExplodeDelay, 0.001);
-        assertEquals(100.0, config.autoAnchorChance, 0.001);
+        assertEquals(95.0, config.autoAnchorChance, 0.001);
 
         presetSetting.set("safe");
         assertEquals("safe", config.autoAnchorPreset);
         assertEquals("SAFE", AnchorConfig.preset);
-        assertEquals(3.0, config.autoAnchorChargeDelay, 0.001);
-        assertEquals(4.0, config.autoAnchorExplodeDelay, 0.001);
-        assertEquals(80.0, config.autoAnchorChance, 0.001);
+        assertEquals(2.0, config.autoAnchorChargeDelay, 0.001);
+        assertEquals(2.0, config.autoAnchorExplodeDelay, 0.001);
+        assertEquals(85.0, config.autoAnchorChance, 0.001);
 
         presetSetting.set("balanced");
         assertEquals("balanced", config.autoAnchorPreset);
         assertEquals("BALANCED", AnchorConfig.preset);
-        assertEquals(2.0, config.autoAnchorChargeDelay, 0.001);
-        assertEquals(3.0, config.autoAnchorExplodeDelay, 0.001);
-        assertEquals(85.0, config.autoAnchorChance, 0.001);
+        assertEquals(1.0, config.autoAnchorChargeDelay, 0.001);
+        assertEquals(1.0, config.autoAnchorExplodeDelay, 0.001);
+        assertEquals(90.0, config.autoAnchorChance, 0.001);
 
         // Auto explode
         BooleanSetting autoExplodeSetting = (BooleanSetting) mod.getSetting("auto_explode");

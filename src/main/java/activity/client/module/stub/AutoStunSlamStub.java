@@ -15,10 +15,10 @@ public class AutoStunSlamStub extends AbstractModuleStub {
     public static final String ALIAS_OLD_ID = "auto_stun_slime";
 
     public String mode = "full_auto";
-    public double triggerDistance = 2.4;
-    public double chance = 75.0;
-    public double axeDelayMs = 45.0;
-    public double maceDelayMs = 45.0;
+    public double triggerDistance = 2.85;
+    public double chance = 100.0;
+    public double axeDelayMs = 0.0;
+    public double maceDelayMs = 0.0;
     public double restoreDelayMs = 50.0;
     public boolean legitMode = true;
 

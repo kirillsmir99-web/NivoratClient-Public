@@ -45,23 +45,36 @@ public class AutoAnchorModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoAnchorPreset = val;
+                        double chargeD, explodeD, chance;
                         if ("fast".equalsIgnoreCase(val)) {
-                            c.autoAnchorChargeDelay = 1.0;
-                            c.autoAnchorExplodeDelay = 1.0;
-                            c.autoAnchorChance = 100.0;
+                            chargeD = 0.0;
+                            explodeD = 0.0;
+                            chance = 100.0;
                         } else if ("medium".equalsIgnoreCase(val)) {
-                            c.autoAnchorChargeDelay = 2.0;
-                            c.autoAnchorExplodeDelay = 2.0;
-                            c.autoAnchorChance = 95.0;
+                            chargeD = 1.0;
+                            explodeD = 1.0;
+                            chance = 95.0;
                         } else if ("balanced".equalsIgnoreCase(val)) {
-                            c.autoAnchorChargeDelay = 2.0;
-                            c.autoAnchorExplodeDelay = 3.0;
-                            c.autoAnchorChance = 85.0;
+                            chargeD = 1.0;
+                            explodeD = 1.0;
+                            chance = 90.0;
                         } else if ("safe".equalsIgnoreCase(val)) {
-                            c.autoAnchorChargeDelay = 3.0;
-                            c.autoAnchorExplodeDelay = 4.0;
-                            c.autoAnchorChance = 80.0;
+                            chargeD = 2.0;
+                            explodeD = 2.0;
+                            chance = 85.0;
+                        } else {
+                            chargeD = 1.0;
+                            explodeD = 1.0;
+                            chance = 90.0;
                         }
+                        c.autoAnchorChargeDelay = chargeD;
+                        c.autoAnchorExplodeDelay = explodeD;
+                        c.autoAnchorChance = chance;
+
+                        updateNumberSetting("charge_delay", chargeD);
+                        updateNumberSetting("explode_delay", explodeD);
+                        updateNumberSetting("chance", chance);
+
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }
@@ -250,5 +263,19 @@ public class AutoAnchorModule extends NivoratModule {
         config.autoAnchorEnabled = this.enabled;
         config.autoAnchorKeybind.copyFrom(this.keybind);
         syncControllerConfig(config);
+    }
+
+    private void updateNumberSetting(String id, double val) {
+        activity.client.module.setting.Setting<?> s = getSetting(id);
+        if (s instanceof activity.client.module.setting.NumberSetting ns) {
+            ns.set(val);
+        }
+    }
+
+    private void updateBooleanSetting(String id, boolean val) {
+        activity.client.module.setting.Setting<?> s = getSetting(id);
+        if (s instanceof activity.client.module.setting.BooleanSetting bs) {
+            bs.set(val);
+        }
     }
 }

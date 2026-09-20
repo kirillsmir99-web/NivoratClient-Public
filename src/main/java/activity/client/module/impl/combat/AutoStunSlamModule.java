@@ -61,10 +61,10 @@ public class AutoStunSlamModule extends NivoratModule {
         // 2. BEHAVIOR
         registerNumber("distance", Text.translatable("activity.setting.combat.slam_distance"),
                 Text.translatable("activity.setting.combat.slam_distance.desc"), SettingGroup.BEHAVIOR,
-                1.5, 4.0, 0.1, " бл.", false, 2.4,
+                1.5, 4.0, 0.1, " бл.", false, 2.85,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamDistance : 2.4;
+                    return c != null ? c.autoStunSlamDistance : 2.85;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -78,10 +78,10 @@ public class AutoStunSlamModule extends NivoratModule {
 
         registerNumber("chance", Text.translatable("activity.setting.combat.chance_label"),
                 Text.translatable("activity.setting.combat.chance_label.desc"), SettingGroup.BEHAVIOR,
-                10.0, 100.0, 5.0, "%", true, 75.0,
+                10.0, 100.0, 5.0, "%", true, 100.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamChance : 75.0;
+                    return c != null ? c.autoStunSlamChance : 100.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -95,10 +95,10 @@ public class AutoStunSlamModule extends NivoratModule {
 
         registerNumber("air_time", Text.translatable("activity.setting.combat.air_time"),
                 Text.translatable("activity.setting.combat.air_time.desc"), SettingGroup.BEHAVIOR,
-                0.1, 5.0, 0.1, " s", false, 1.0,
+                0.0, 3.0, 0.05, " s", false, 0.1,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamAirTimeSec : 1.0;
+                    return c != null ? c.autoStunSlamAirTimeSec : 0.1;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -112,10 +112,10 @@ public class AutoStunSlamModule extends NivoratModule {
 
         registerNumber("axe_delay", Text.translatable("activity.setting.combat.axe_delay"),
                 Text.translatable("activity.setting.combat.axe_delay.desc"), SettingGroup.BEHAVIOR,
-                10.0, 200.0, 5.0, " ms", true, 45.0,
+                0.0, 200.0, 5.0, " ms", true, 0.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamAxeDelayMs : 45.0;
+                    return c != null ? c.autoStunSlamAxeDelayMs : 0.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -129,10 +129,10 @@ public class AutoStunSlamModule extends NivoratModule {
 
         registerNumber("mace_delay", Text.translatable("activity.setting.combat.mace_delay"),
                 Text.translatable("activity.setting.combat.mace_delay.desc"), SettingGroup.BEHAVIOR,
-                10.0, 200.0, 5.0, " ms", true, 45.0,
+                0.0, 200.0, 5.0, " ms", true, 0.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamMaceDelayMs : 45.0;
+                    return c != null ? c.autoStunSlamMaceDelayMs : 0.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -146,7 +146,7 @@ public class AutoStunSlamModule extends NivoratModule {
 
         registerNumber("restore_delay", Text.translatable("activity.setting.combat.restore_delay"),
                 Text.translatable("activity.setting.combat.restore_delay.desc"), SettingGroup.BEHAVIOR,
-                10.0, 200.0, 5.0, " ms", true, 50.0,
+                0.0, 200.0, 5.0, " ms", true, 50.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     return c != null ? c.autoStunSlamRestoreDelayMs : 50.0;

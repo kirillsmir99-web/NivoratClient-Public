@@ -12,7 +12,7 @@ public final class AnchorConfig {
     public static boolean autoReturn = true;
     public static int chargeDelayTicks = 1;
     public static int explodeDelayTicks = 1;
-    public static int chance = 85;
+    public static int chance = 90;
     public static boolean legitMode = true;
     public static int targetCharges = 1;
     public static String preset = "BALANCED";
@@ -23,24 +23,24 @@ public final class AnchorConfig {
         preset = p;
         switch (p) {
             case "FAST" -> {
-                chargeDelayTicks = 1;
-                explodeDelayTicks = 1;
+                chargeDelayTicks = 0;
+                explodeDelayTicks = 0;
                 chance = 100;
             }
             case "MEDIUM" -> {
-                chargeDelayTicks = 2;
-                explodeDelayTicks = 2;
+                chargeDelayTicks = 1;
+                explodeDelayTicks = 1;
                 chance = 95;
             }
             case "BALANCED" -> {
-                chargeDelayTicks = 2;
-                explodeDelayTicks = 3;
-                chance = 85;
+                chargeDelayTicks = 1;
+                explodeDelayTicks = 1;
+                chance = 90;
             }
             case "SAFE" -> {
-                chargeDelayTicks = 3;
-                explodeDelayTicks = 4;
-                chance = 80;
+                chargeDelayTicks = 2;
+                explodeDelayTicks = 2;
+                chance = 85;
             }
         }
         save();

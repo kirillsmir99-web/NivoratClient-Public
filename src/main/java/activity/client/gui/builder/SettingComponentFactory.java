@@ -139,6 +139,11 @@ public final class SettingComponentFactory {
                     if (onModified != null) onModified.run();
                 }
         );
+        setting.addListener(val -> {
+            if (toggle.getState() != val) {
+                toggle.setState(val);
+            }
+        });
         if (setting.getId().toLowerCase(Locale.ROOT).contains("legit") && modalManager != null) {
             toggle.setConfirmTurnOff(
                     Text.translatable("activity.modal.legit_off.title"),
@@ -152,7 +157,7 @@ public final class SettingComponentFactory {
 
     public static ActivitySlider createSlider(NumberSetting setting, int x, int y, int width, int height,
                                               Runnable onModified) {
-        return new ActivitySlider(
+        ActivitySlider slider = new ActivitySlider(
                 x, y,
                 width, height,
                 setting.getMin(), setting.getMax(), setting.get(), setting.getStep(),
@@ -163,6 +168,12 @@ public final class SettingComponentFactory {
                     if (onModified != null) onModified.run();
                 }
         );
+        setting.addListener(val -> {
+            if (Double.compare(slider.getValue(), val) != 0) {
+                slider.setValue(val);
+            }
+        });
+        return slider;
     }
 
     public static ActivityDropdown<String> createDropdown(EnumSetting setting, int x, int y, int width, int height,
@@ -172,7 +183,7 @@ public final class SettingComponentFactory {
 
     public static ActivityDropdown<String> createDropdown(EnumSetting setting, int x, int y, int width, int height,
                                                          activity.client.gui.overlay.OverlayManager overlayManager, Runnable onModified) {
-        return new ActivityDropdown<>(
+        ActivityDropdown<String> dropdown = new ActivityDropdown<>(
                 x, y, width, height,
                 overlayManager,
                 setting.getOptions(), setting.get(),
@@ -182,6 +193,12 @@ public final class SettingComponentFactory {
                     if (onModified != null) onModified.run();
                 }
         );
+        setting.addListener(val -> {
+            if (!java.util.Objects.equals(dropdown.getSelectedOption(), val)) {
+                dropdown.setSelectedOption(val);
+            }
+        });
+        return dropdown;
     }
 
     public static ActivityKeybindButton createKeybindButton(KeybindSetting setting, int x, int y, int width, int height,

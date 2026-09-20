@@ -64,6 +64,23 @@ public class CartRefillModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("random_delay", Text.translatable("activity.setting.defense.random_delay"),
+                Text.translatable("activity.setting.defense.random_delay.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.cartRefillRandomDelay;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.cartRefillRandomDelay = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         // 2. EXTRA
         registerBoolean("auto_close", Text.translatable("activity.setting.defense.auto_close"),
                 Text.translatable("activity.setting.defense.auto_close.desc"), SettingGroup.EXTRA,
@@ -83,23 +100,6 @@ public class CartRefillModule extends NivoratModule {
         );
 
         // 3. ADVANCED
-        registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
-                Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.cartRefillRandomDelay;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.cartRefillRandomDelay = val;
-                        syncControllerConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        );
-
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
                 true,

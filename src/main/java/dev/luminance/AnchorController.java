@@ -11,7 +11,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.ShieldItem;
 import net.minecraft.item.consume.UseAction;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -19,9 +18,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
+import java.util.Locale;
+
 public final class AnchorController {
     private static final double REACH_SAFETY_MARGIN = 0.15D;
-    private static final long MIN_CYCLE_INTERVAL_MS = 250L;
 
     private State state = State.IDLE;
     private int originalSlot = -1;
@@ -60,11 +60,23 @@ public final class AnchorController {
             return;
         }
 
+        // When Shift is held down, auto-refill of anchor with glowstone must NOT work
+        if (isShiftPressed(client)) {
+            if (state == State.WAITING_CHARGE || state == State.SELECT_GLOW || state == State.INTERACT_GLOW) {
+                cancelState(client);
+                return;
+            }
+        }
+
         long now = System.currentTimeMillis();
 
         switch (state) {
             case WAITING_CHARGE -> {
                 if (!isLookingAtAnchor(client, targetPos)) {
+                    cancelState(client);
+                    return;
+                }
+                if (isShiftPressed(client)) {
                     cancelState(client);
                     return;
                 }
@@ -75,10 +87,13 @@ public final class AnchorController {
                 if (now < nextActionTime) {
                     return;
                 }
-                state = State.SELECT_GLOW;
+                if (client.player.getInventory().getSelectedSlot() != glowSlot) {
+                    SafeSlotManager.selectSlot(client, glowSlot);
+                }
+                interactGlowstone(client, now);
             }
             case SELECT_GLOW -> {
-                if (!isLookingAtAnchor(client, targetPos)) {
+                if (!isLookingAtAnchor(client, targetPos) || isShiftPressed(client)) {
                     cancelState(client);
                     return;
                 }
@@ -89,11 +104,10 @@ public final class AnchorController {
                 }
                 glowSlot = foundGlow;
                 SafeSlotManager.selectSlot(client, glowSlot);
-                timer = 1;
-                state = State.INTERACT_GLOW;
+                interactGlowstone(client, now);
             }
             case INTERACT_GLOW -> {
-                if (!isLookingAtAnchor(client, targetPos)) {
+                if (!isLookingAtAnchor(client, targetPos) || isShiftPressed(client)) {
                     cancelState(client);
                     return;
                 }
@@ -105,16 +119,7 @@ public final class AnchorController {
                     timer--;
                     return;
                 }
-                BlockState preState = client.world.getBlockState(targetPos);
-                lastObservedCharges = preState.isOf(Blocks.RESPAWN_ANCHOR)
-                    ? preState.get(RespawnAnchorBlock.CHARGES)
-                    : 0;
-
-                client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, lastHit);
-                client.player.swingHand(Hand.MAIN_HAND);
-                lastActionTime = now;
-                state = State.WAITING_SERVER_CHARGE;
-                timer = 8;
+                interactGlowstone(client, now);
             }
             case WAITING_SERVER_CHARGE -> {
                 if (!isLookingAtAnchor(client, targetPos)) {
@@ -129,19 +134,41 @@ public final class AnchorController {
                 int curCharges = currentAnchorState.get(RespawnAnchorBlock.CHARGES);
                 if (curCharges > lastObservedCharges || curCharges >= AnchorConfig.targetCharges) {
                     if (curCharges < AnchorConfig.targetCharges) {
-                        state = State.WAITING_CHARGE;
-                        int baseDelay = Math.max(1, AnchorConfig.chargeDelayTicks);
-                        timer = baseDelay;
-                        nextActionTime = now + GaussianTimingEngine.getDelay(baseDelay * 50.0D, 20.0D, 50L, 200L);
+                        // More charges needed
+                        if (isShiftPressed(client)) {
+                            cancelState(client);
+                            return;
+                        }
+                        int baseDelay = Math.max(0, AnchorConfig.chargeDelayTicks);
+                        if (baseDelay <= 0 || isFast()) {
+                            if (client.player.getInventory().getSelectedSlot() != glowSlot) {
+                                SafeSlotManager.selectSlot(client, glowSlot);
+                            }
+                            interactGlowstone(client, now);
+                        } else {
+                            state = State.WAITING_CHARGE;
+                            timer = baseDelay;
+                            nextActionTime = now + getJitterDelay(baseDelay);
+                        }
                     } else if (AnchorConfig.autoExplode) {
-                        state = State.WAITING_DETONATE;
-                        int baseDelay = Math.max(2, AnchorConfig.explodeDelayTicks);
-                        timer = baseDelay;
-                        nextActionTime = now + GaussianTimingEngine.getDelay(baseDelay * 50.0D, 20.0D, 80L, 300L);
+                        int baseDelay = Math.max(0, AnchorConfig.explodeDelayTicks);
+                        int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
+                        SafeSlotManager.selectSlot(client, detSlot);
+                        if (baseDelay <= 0 || isFast()) {
+                            interactDetonate(client, now);
+                        } else {
+                            state = State.WAITING_DETONATE;
+                            timer = baseDelay;
+                            nextActionTime = now + getJitterDelay(baseDelay);
+                        }
                     } else {
                         if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
                             state = State.WAITING_RETURN;
-                            timer = 2;
+                            timer = isFast() ? 0 : 1;
+                            if (timer == 0) {
+                                SafeSlotManager.selectSlot(client, originalSlot);
+                                reset(client);
+                            }
                         } else {
                             reset(client);
                         }
@@ -166,7 +193,11 @@ public final class AnchorController {
                 if (now < nextActionTime) {
                     return;
                 }
-                state = State.SELECT_DETONATE;
+                int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
+                if (client.player.getInventory().getSelectedSlot() != detSlot) {
+                    SafeSlotManager.selectSlot(client, detSlot);
+                }
+                interactDetonate(client, now);
             }
             case SELECT_DETONATE -> {
                 if (!isLookingAtAnchor(client, targetPos)) {
@@ -175,8 +206,7 @@ public final class AnchorController {
                 }
                 int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
                 SafeSlotManager.selectSlot(client, detSlot);
-                timer = 1;
-                state = State.INTERACT_DETONATE;
+                interactDetonate(client, now);
             }
             case INTERACT_DETONATE -> {
                 if (!isLookingAtAnchor(client, targetPos)) {
@@ -187,41 +217,17 @@ public final class AnchorController {
                     timer--;
                     return;
                 }
-                BlockHitResult hitToUse = lastHit;
-                if (hitToUse == null && targetPos != null) {
-                    hitToUse = new BlockHitResult(
-                        new Vec3d(targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5),
-                        net.minecraft.util.math.Direction.UP,
-                        targetPos,
-                        false
-                    );
-                }
-                if (hitToUse != null) {
-                    client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hitToUse);
-                    client.player.swingHand(Hand.MAIN_HAND);
-                    if (targetPos != null) {
-                        activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(
-                            targetPos.getX() + 0.5,
-                            targetPos.getY() + 0.5,
-                            targetPos.getZ() + 0.5,
-                            8.5
-                        );
-                    }
-                }
-                lastActionTime = now;
-                if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
-                    state = State.WAITING_RETURN;
-                    timer = 2;
-                } else {
-                    reset(client);
-                }
+                interactDetonate(client, now);
             }
             case WAITING_RETURN -> {
                 if (timer > 0) {
                     timer--;
                     return;
                 }
-                state = State.RETURN_SLOT;
+                if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
+                    SafeSlotManager.selectSlot(client, originalSlot);
+                }
+                reset(client);
             }
             case RETURN_SLOT -> {
                 if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
@@ -230,7 +236,7 @@ public final class AnchorController {
                 reset(client);
             }
             case IDLE -> {
-                if (now - lastActionTime < MIN_CYCLE_INTERVAL_MS) {
+                if (now - lastActionTime < getMinCycleIntervalMs()) {
                     return;
                 }
                 if (isBusy(client, client.player)) {
@@ -256,7 +262,7 @@ public final class AnchorController {
                 if (AnchorConfig.chance < 100) {
                     int roll = java.util.concurrent.ThreadLocalRandom.current().nextInt(100);
                     if (roll >= AnchorConfig.chance) {
-                        lastActionTime = now + 100L;
+                        lastActionTime = now + 50L;
                         return;
                     }
                 }
@@ -272,32 +278,131 @@ public final class AnchorController {
 
                 int charges = blockState.get(RespawnAnchorBlock.CHARGES);
                 if (charges < AnchorConfig.targetCharges) {
+                    // Refilling with glowstone: disabled when Shift is pressed
+                    if (isShiftPressed(client)) {
+                        return;
+                    }
                     int foundGlow = findGlowstoneSlot(client.player);
                     if (foundGlow < 0) {
                         return;
                     }
                     originalSlot = client.player.getInventory().getSelectedSlot();
+                    glowSlot = foundGlow;
                     targetPos = pos;
                     lastHit = hit;
                     net.fabricmc.pack.api.CombatLockManager.setLock("pvp.anchor_active", true);
 
-                    int baseDelay = Math.max(1, AnchorConfig.chargeDelayTicks);
-                    state = State.WAITING_CHARGE;
-                    timer = baseDelay;
-                    nextActionTime = now + GaussianTimingEngine.getDelay(baseDelay * 50.0D, 20.0D, 50L, 200L);
+                    int baseDelay = Math.max(0, AnchorConfig.chargeDelayTicks);
+                    SafeSlotManager.selectSlot(client, glowSlot);
+                    if (baseDelay <= 0 || isFast()) {
+                        interactGlowstone(client, now);
+                    } else {
+                        state = State.WAITING_CHARGE;
+                        timer = baseDelay;
+                        nextActionTime = now + getJitterDelay(baseDelay);
+                    }
                 } else if (AnchorConfig.autoExplode) {
                     originalSlot = client.player.getInventory().getSelectedSlot();
                     targetPos = pos;
                     lastHit = hit;
                     net.fabricmc.pack.api.CombatLockManager.setLock("pvp.anchor_active", true);
 
-                    int baseDelay = Math.max(2, AnchorConfig.explodeDelayTicks);
-                    state = State.WAITING_DETONATE;
-                    timer = baseDelay;
-                    nextActionTime = now + GaussianTimingEngine.getDelay(baseDelay * 50.0D, 20.0D, 80L, 300L);
+                    int baseDelay = Math.max(0, AnchorConfig.explodeDelayTicks);
+                    int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
+                    SafeSlotManager.selectSlot(client, detSlot);
+                    if (baseDelay <= 0 || isFast()) {
+                        interactDetonate(client, now);
+                    } else {
+                        state = State.WAITING_DETONATE;
+                        timer = baseDelay;
+                        nextActionTime = now + getJitterDelay(baseDelay);
+                    }
                 }
             }
         }
+    }
+
+    private void interactGlowstone(MinecraftClient client, long now) {
+        if (targetPos == null || client.world == null || client.interactionManager == null) return;
+        BlockState preState = client.world.getBlockState(targetPos);
+        lastObservedCharges = preState.isOf(Blocks.RESPAWN_ANCHOR)
+            ? preState.get(RespawnAnchorBlock.CHARGES)
+            : 0;
+
+        BlockHitResult hitToUse = lastHit;
+        if (hitToUse == null) {
+            hitToUse = new BlockHitResult(
+                new Vec3d(targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5),
+                net.minecraft.util.math.Direction.UP,
+                targetPos,
+                false
+            );
+        }
+
+        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hitToUse);
+        client.player.swingHand(Hand.MAIN_HAND);
+        lastActionTime = now;
+        state = State.WAITING_SERVER_CHARGE;
+        timer = isFast() ? 8 : 6;
+    }
+
+    private void interactDetonate(MinecraftClient client, long now) {
+        if (targetPos == null || client.world == null || client.interactionManager == null) return;
+        BlockHitResult hitToUse = lastHit;
+        if (hitToUse == null) {
+            hitToUse = new BlockHitResult(
+                new Vec3d(targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5),
+                net.minecraft.util.math.Direction.UP,
+                targetPos,
+                false
+            );
+        }
+        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hitToUse);
+        client.player.swingHand(Hand.MAIN_HAND);
+        activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(
+            targetPos.getX() + 0.5,
+            targetPos.getY() + 0.5,
+            targetPos.getZ() + 0.5,
+            8.5
+        );
+        lastActionTime = now;
+        if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
+            state = State.WAITING_RETURN;
+            timer = isFast() ? 0 : 1;
+            if (timer == 0) {
+                SafeSlotManager.selectSlot(client, originalSlot);
+                reset(client);
+            }
+        } else {
+            reset(client);
+        }
+    }
+
+    private boolean isShiftPressed(MinecraftClient client) {
+        if (client == null || client.player == null) return false;
+        return (client.options != null && client.options.sneakKey.isPressed()) || client.player.isSneaking();
+    }
+
+    private long getMinCycleIntervalMs() {
+        if (isFast()) return 0L;
+        String p = AnchorConfig.preset != null ? AnchorConfig.preset.toUpperCase(Locale.ROOT) : "BALANCED";
+        return switch (p) {
+            case "FAST" -> 0L;
+            case "MEDIUM" -> 25L;
+            case "BALANCED" -> 40L;
+            case "SAFE" -> 60L;
+            default -> 40L;
+        };
+    }
+
+    private long getJitterDelay(int baseDelayTicks) {
+        if (baseDelayTicks <= 0 || isFast()) return 0L;
+        return GaussianTimingEngine.getDelay(baseDelayTicks * 18.0D, 4.0D, 5L, 40L);
+    }
+
+    private boolean isFast() {
+        return "FAST".equalsIgnoreCase(AnchorConfig.preset)
+            || (AnchorConfig.chargeDelayTicks <= 0 && AnchorConfig.explodeDelayTicks <= 0);
     }
 
     private boolean isLookingAtAnchor(MinecraftClient client, BlockPos pos) {
@@ -344,6 +449,7 @@ public final class AnchorController {
     }
 
     private int resolveDetonateSlot(ClientPlayerEntity player, int origSlot, int gSlot) {
+        // 1. If totem in hotbar: switch to totem to detonate holding totem!
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
             ItemStack stack = player.getInventory().getStack(i);
@@ -352,13 +458,27 @@ public final class AnchorController {
             }
         }
 
-        if (origSlot >= 0 && origSlot < 9 && origSlot != gSlot) {
-            ItemStack stack = player.getInventory().getStack(origSlot);
-            if (isSafeDetonateItem(stack)) {
-                return origSlot;
+        // 2. If offhand already has totem, player is protected: prefer detonate with anchor
+        if (player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+            for (int i = 0; i < 9; i++) {
+                if (i == gSlot) continue;
+                ItemStack stack = player.getInventory().getStack(i);
+                if (stack.isOf(Items.RESPAWN_ANCHOR)) {
+                    return i;
+                }
             }
         }
 
+        // 3. If no totem, detonate with anchor!
+        for (int i = 0; i < 9; i++) {
+            if (i == gSlot) continue;
+            ItemStack stack = player.getInventory().getStack(i);
+            if (stack.isOf(Items.RESPAWN_ANCHOR)) {
+                return i;
+            }
+        }
+
+        // 4. Fallback: empty hand or safe item
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
             ItemStack stack = player.getInventory().getStack(i);
@@ -367,10 +487,17 @@ public final class AnchorController {
             }
         }
 
+        if (origSlot >= 0 && origSlot < 9 && origSlot != gSlot) {
+            ItemStack stack = player.getInventory().getStack(origSlot);
+            if (isSafeDetonateItem(stack) || stack.isOf(Items.RESPAWN_ANCHOR)) {
+                return origSlot;
+            }
+        }
+
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
             ItemStack stack = player.getInventory().getStack(i);
-            if (isSafeDetonateItem(stack)) {
+            if (isSafeDetonateItem(stack) || stack.isOf(Items.RESPAWN_ANCHOR)) {
                 return i;
             }
         }
@@ -381,7 +508,7 @@ public final class AnchorController {
     private boolean isSafeDetonateItem(ItemStack stack) {
         if (stack.isEmpty()) return true;
         if (stack.isOf(Items.GLOWSTONE)) return false;
-        if (stack.isOf(Items.RESPAWN_ANCHOR)) return false;
+        if (stack.isOf(Items.RESPAWN_ANCHOR)) return true;
         if (stack.getItem() instanceof ShieldItem) return false;
         if (stack.isOf(Items.BOW) || stack.isOf(Items.CROSSBOW) || stack.isOf(Items.TRIDENT)) return false;
         return !isActionItem(stack);
@@ -401,13 +528,7 @@ public final class AnchorController {
 
     private boolean isBusy(MinecraftClient client, ClientPlayerEntity player) {
         if (player == null) return true;
-        if (activity.client.module.service.PlayerStateService.isBusy(player)) {
-            return true;
-        }
-        if (client.options.useKey.isPressed()) {
-            return true;
-        }
-        return false;
+        return activity.client.module.service.PlayerStateService.isBusy(player);
     }
 
     private static boolean isActionItem(ItemStack stack) {

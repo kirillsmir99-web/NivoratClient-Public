@@ -169,8 +169,9 @@ public final class RedstoneTickEngine {
             return ActionResult.PASS;
         }
 
+        int curSlot = clientPlayer.getInventory().getSelectedSlot();
         long now = System.currentTimeMillis();
-        if (now - lastSwapTimeMs < 150L || (clientTick - lastSlotChangeTick < 2 && lastSlotChangeTick >= 0)) {
+        if (now - lastSwapTimeMs < 50L || (clientTick - lastSlotChangeTick < 1 && lastSlotChangeTick >= 0 && curSlot == activeMaceSlot)) {
             return ActionResult.PASS;
         }
 
@@ -191,7 +192,6 @@ public final class RedstoneTickEngine {
             return ActionResult.PASS;
         }
 
-        int curSlot = clientPlayer.getInventory().getSelectedSlot();
         ItemStack heldStack = clientPlayer.getInventory().getStack(curSlot);
 
         if (!isAllowedSourceItem(heldStack)) {
@@ -293,13 +293,13 @@ public final class RedstoneTickEngine {
         if (state == State.WAITING_RESTORE) {
             long elapsedMs = System.currentTimeMillis() - lastSwapTimeMs;
             boolean timeExpired = elapsedMs >= targetHoldDurationMs;
-            boolean minTicksPassed = (clientTick - swapStartTick) >= 2;
+            boolean minTicksPassed = (clientTick - swapStartTick) >= 1;
             boolean differentTick = (clientTick != lastSlotChangeTick);
 
             if (timeExpired && minTicksPassed && differentTick) {
                 restoreSlot(client);
                 clearState();
-                cooldownTicks = 2;
+                cooldownTicks = 1;
             }
         }
     }
@@ -310,11 +310,12 @@ public final class RedstoneTickEngine {
         activeMaceSlot = maceSlot;
         targetEntityId = -1;
 
+        long fastDelay = net.fabricmc.pack.api.GaussianTimingEngine.getMaceSwapDelay();
         int minDelay = Math.min(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
         int maxDelay = Math.max(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
-        double mean = (minDelay + maxDelay) / 2.0;
-        double stdDev = Math.max(5.0, (maxDelay - minDelay) / 4.0);
-        targetHoldDurationMs = getHumanGaussianDelay(mean, stdDev, minDelay, maxDelay);
+        double mean = Math.min(30.0, (minDelay + maxDelay) / 2.0);
+        double stdDev = Math.max(4.0, (maxDelay - minDelay) / 4.0);
+        targetHoldDurationMs = Math.min(fastDelay, getHumanGaussianDelay(mean, stdDev, Math.min(15L, minDelay), Math.min(50L, maxDelay)));
 
         swapStartTick = clientTick;
         ticksSinceAttack = 0;
@@ -335,11 +336,12 @@ public final class RedstoneTickEngine {
         activeMaceSlot = maceSlot;
         targetEntityId = target.getId();
 
-        int minDelay = Math.min(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
-        int maxDelay = Math.max(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
-        double mean = (minDelay + maxDelay) / 2.0;
-        double stdDev = Math.max(5.0, (maxDelay - minDelay) / 4.0);
-        targetHoldDurationMs = getHumanGaussianDelay(mean, stdDev, minDelay, maxDelay);
+        long fastDelaySwap = net.fabricmc.pack.api.GaussianTimingEngine.getMaceSwapDelay();
+        int minDelaySwap = Math.min(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
+        int maxDelaySwap = Math.max(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
+        double meanSwap = Math.min(30.0, (minDelaySwap + maxDelaySwap) / 2.0);
+        double stdDevSwap = Math.max(4.0, (maxDelaySwap - minDelaySwap) / 4.0);
+        targetHoldDurationMs = Math.min(fastDelaySwap, getHumanGaussianDelay(meanSwap, stdDevSwap, Math.min(15L, minDelaySwap), Math.min(50L, maxDelaySwap)));
 
         swapStartTick = clientTick;
         ticksSinceAttack = 0;

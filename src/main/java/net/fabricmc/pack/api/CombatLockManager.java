@@ -52,11 +52,10 @@ public final class CombatLockManager {
     }
 
     public static boolean hasConflictExcludingMace() {
-        if ((LOCK_MASK.get() & ~MASK_MACE) != 0) {
+        if ((LOCK_MASK.get() & ~(MASK_MACE | MASK_SHIELD_COMBO)) != 0) {
             return true;
         }
-        return Boolean.getBoolean(SHIELD_COMBO)
-                || Boolean.getBoolean(SUNDER)
+        return Boolean.getBoolean(SUNDER)
                 || Boolean.getBoolean(CART_PLACEMENT)
                 || Boolean.getBoolean(ANCHOR)
                 || Boolean.getBoolean(SPEAR)

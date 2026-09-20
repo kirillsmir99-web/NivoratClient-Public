@@ -17,11 +17,43 @@ public final class GaussianTimingEngine {
     }
 
     public static long getCombatSwapDelay() {
-        return getDelay(175.0D, 28.0D, 140L, 260L);
+        return getDelay(35.0D, 7.0D, 20L, 60L);
     }
 
     public static long getReactionDelay() {
-        return getDelay(185.0D, 30.0D, 150L, 280L);
+        return getDelay(35.0D, 7.0D, 20L, 55L);
+    }
+
+    public static long getFastSwapDelay() {
+        return getDelay(32.0D, 6.0D, 18L, 50L);
+    }
+
+    public static long getFastReactionDelay() {
+        return getDelay(35.0D, 7.0D, 20L, 55L);
+    }
+
+    public static long getRefillOpenDelay() {
+        return getDelay(28.0D, 5.0D, 15L, 45L);
+    }
+
+    public static long getRefillSwapDelay() {
+        return getDelay(30.0D, 6.0D, 18L, 48L);
+    }
+
+    public static long getRefillCloseDelay() {
+        return getDelay(25.0D, 5.0D, 15L, 40L);
+    }
+
+    public static long getShieldBreakerSwitchDelay() {
+        return getDelay(30.0D, 6.0D, 15L, 50L);
+    }
+
+    public static long getShieldBreakerRestoreDelay() {
+        return getDelay(28.0D, 5.0D, 15L, 45L);
+    }
+
+    public static long getMaceSwapDelay() {
+        return getDelay(28.0D, 5.0D, 15L, 45L);
     }
 
     public static long getChatDelay() {

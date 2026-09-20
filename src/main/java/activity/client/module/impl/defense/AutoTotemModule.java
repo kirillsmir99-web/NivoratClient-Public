@@ -34,7 +34,7 @@ public class AutoTotemModule extends NivoratModule {
         // 1. GENERAL
         registerEnum("mode", Text.translatable("activity.setting.defense.mode"),
                 Text.translatable("activity.setting.defense.mode.desc"), SettingGroup.GENERAL,
-                List.of("main_hand", "offhand"), "main_hand",
+                List.of("main_hand", "offhand", "crystal"), "main_hand",
                 opt -> Text.translatable("activity.dropdown.totem_mode." + opt),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -44,6 +44,18 @@ public class AutoTotemModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoTotemMode = val;
+                        activity.client.module.setting.NumberSetting triggerSetting = (activity.client.module.setting.NumberSetting) getSetting("trigger_hearts");
+                        activity.client.module.setting.NumberSetting restoreSetting = (activity.client.module.setting.NumberSetting) getSetting("restore_hearts");
+                        if ("crystal".equals(val)) {
+                            if (triggerSetting != null) triggerSetting.set(c.autoTotemCrystalTriggerHearts);
+                            if (restoreSetting != null) restoreSetting.set(c.autoTotemCrystalRestoreHearts);
+                        } else if ("offhand".equals(val)) {
+                            if (triggerSetting != null) triggerSetting.set(c.autoTotemOffhandTriggerHearts);
+                            if (restoreSetting != null) restoreSetting.set(c.autoTotemOffhandRestoreHearts);
+                        } else {
+                            if (triggerSetting != null) triggerSetting.set(c.autoTotemMainhandTriggerHearts);
+                            if (restoreSetting != null) restoreSetting.set(c.autoTotemMainhandRestoreHearts);
+                        }
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }
@@ -56,11 +68,21 @@ public class AutoTotemModule extends NivoratModule {
                 1.0, 9.0, 1.0, " ❤", true, 3.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoTotemTriggerHearts : 3.0;
+                    if (c == null) return 3.0;
+                    if ("crystal".equals(c.autoTotemMode)) return c.autoTotemCrystalTriggerHearts;
+                    if ("offhand".equals(c.autoTotemMode)) return c.autoTotemOffhandTriggerHearts;
+                    return c.autoTotemMainhandTriggerHearts;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
+                        if ("crystal".equals(c.autoTotemMode)) {
+                            c.autoTotemCrystalTriggerHearts = val;
+                        } else if ("offhand".equals(c.autoTotemMode)) {
+                            c.autoTotemOffhandTriggerHearts = val;
+                        } else {
+                            c.autoTotemMainhandTriggerHearts = val;
+                        }
                         c.autoTotemTriggerHearts = val;
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
@@ -70,14 +92,24 @@ public class AutoTotemModule extends NivoratModule {
 
         registerNumber("restore_hearts", Text.translatable("activity.setting.defense.restore_hearts"),
                 Text.translatable("activity.setting.defense.restore_hearts.desc"), SettingGroup.BEHAVIOR,
-                4.0, 10.0, 1.0, " ❤", true, 6.0,
+                1.0, 10.0, 1.0, " ❤", true, 6.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoTotemRestoreHearts : 6.0;
+                    if (c == null) return 6.0;
+                    if ("crystal".equals(c.autoTotemMode)) return c.autoTotemCrystalRestoreHearts;
+                    if ("offhand".equals(c.autoTotemMode)) return c.autoTotemOffhandRestoreHearts;
+                    return c.autoTotemMainhandRestoreHearts;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
+                        if ("crystal".equals(c.autoTotemMode)) {
+                            c.autoTotemCrystalRestoreHearts = val;
+                        } else if ("offhand".equals(c.autoTotemMode)) {
+                            c.autoTotemOffhandRestoreHearts = val;
+                        } else {
+                            c.autoTotemMainhandRestoreHearts = val;
+                        }
                         c.autoTotemRestoreHearts = val;
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
@@ -136,17 +168,85 @@ public class AutoTotemModule extends NivoratModule {
                     }
                 }
         );
+
+        registerBoolean("auto_refill", Text.translatable("activity.setting.defense.auto_refill"),
+                Text.translatable("activity.setting.defense.auto_refill.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemAutoRefill;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemAutoRefill = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerEnum("refill_slot", Text.translatable("activity.setting.defense.refill_slot"),
+                Text.translatable("activity.setting.defense.refill_slot.desc"), SettingGroup.EXTRA,
+                List.of("auto", "1", "2", "3", "4", "5", "6", "7", "8", "9"), "auto",
+                opt -> "auto".equals(opt)
+                        ? Text.translatable("activity.setting.defense.refill_slot.auto")
+                        : Text.translatable("activity.setting.defense.refill_slot.slot", opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemRefillSlot != null ? c.autoTotemRefillSlot : "auto";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemRefillSlot = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
     }
 
     private void syncControllerConfig(ActivityConfig c) {
         if (c == null) return;
         AutoTotemConfig.enabled = this.enabled;
-        AutoTotemConfig.mode = "offhand".equals(c.autoTotemMode) ? 2 : 1;
-        AutoTotemConfig.triggerHearts = (int) Math.round(c.autoTotemTriggerHearts);
-        AutoTotemConfig.restoreHearts = (int) Math.round(c.autoTotemRestoreHearts);
+        boolean isOffhand = "offhand".equals(c.autoTotemMode);
+        boolean isCrystal = "crystal".equals(c.autoTotemMode);
+        AutoTotemConfig.mode = isCrystal ? 3 : (isOffhand ? 2 : 1);
+        AutoTotemConfig.mainhandTriggerHearts = (int) Math.round(c.autoTotemMainhandTriggerHearts);
+        AutoTotemConfig.mainhandRestoreHearts = (int) Math.round(c.autoTotemMainhandRestoreHearts);
+        AutoTotemConfig.offhandTriggerHearts = (int) Math.round(c.autoTotemOffhandTriggerHearts);
+        AutoTotemConfig.offhandRestoreHearts = (int) Math.round(c.autoTotemOffhandRestoreHearts);
+        AutoTotemConfig.crystalTriggerHearts = (int) Math.round(c.autoTotemCrystalTriggerHearts);
+        AutoTotemConfig.crystalRestoreHearts = (int) Math.round(c.autoTotemCrystalRestoreHearts);
+        if (isCrystal) {
+            AutoTotemConfig.triggerHearts = AutoTotemConfig.crystalTriggerHearts;
+            AutoTotemConfig.restoreHearts = AutoTotemConfig.crystalRestoreHearts;
+        } else if (isOffhand) {
+            AutoTotemConfig.triggerHearts = AutoTotemConfig.offhandTriggerHearts;
+            AutoTotemConfig.restoreHearts = AutoTotemConfig.offhandRestoreHearts;
+        } else {
+            AutoTotemConfig.triggerHearts = AutoTotemConfig.mainhandTriggerHearts;
+            AutoTotemConfig.restoreHearts = AutoTotemConfig.mainhandRestoreHearts;
+        }
         AutoTotemConfig.chance = (int) c.autoTotemChance;
         AutoTotemConfig.returnItem = c.autoTotemReturnItem;
         AutoTotemConfig.returnOnPop = c.autoTotemReturnOnPop;
+        AutoTotemConfig.autoRefill = c.autoTotemAutoRefill;
+        AutoTotemConfig.refillSlot = parseRefillSlot(c.autoTotemRefillSlot);
+    }
+
+    private static int parseRefillSlot(String slotStr) {
+        if (slotStr == null || "auto".equalsIgnoreCase(slotStr)) {
+            return -1;
+        }
+        try {
+            int slotNum = Integer.parseInt(slotStr.trim());
+            if (slotNum >= 1 && slotNum <= 9) {
+                return slotNum - 1; // convert 1..9 to 0..8
+            }
+        } catch (Exception ignored) {}
+        return -1;
     }
 
     public AutoTotemController getController() {
@@ -187,6 +287,18 @@ public class AutoTotemModule extends NivoratModule {
         if (controller.isEnabled() != this.enabled) {
             controller.toggle();
         }
+        activity.client.module.setting.NumberSetting triggerSetting = (activity.client.module.setting.NumberSetting) getSetting("trigger_hearts");
+        activity.client.module.setting.NumberSetting restoreSetting = (activity.client.module.setting.NumberSetting) getSetting("restore_hearts");
+        if ("crystal".equals(config.autoTotemMode)) {
+            if (triggerSetting != null) triggerSetting.set(config.autoTotemCrystalTriggerHearts);
+            if (restoreSetting != null) restoreSetting.set(config.autoTotemCrystalRestoreHearts);
+        } else if ("offhand".equals(config.autoTotemMode)) {
+            if (triggerSetting != null) triggerSetting.set(config.autoTotemOffhandTriggerHearts);
+            if (restoreSetting != null) restoreSetting.set(config.autoTotemOffhandRestoreHearts);
+        } else {
+            if (triggerSetting != null) triggerSetting.set(config.autoTotemMainhandTriggerHearts);
+            if (restoreSetting != null) restoreSetting.set(config.autoTotemMainhandRestoreHearts);
+        }
         syncControllerConfig(config);
     }
 
@@ -196,5 +308,12 @@ public class AutoTotemModule extends NivoratModule {
         config.autoTotemEnabled = this.enabled;
         config.autoTotemKeybind.copyFrom(this.keybind);
         syncControllerConfig(config);
+    }
+
+    public static void onTotemPop() {
+        activity.client.module.api.IModule mod = activity.client.module.api.ModuleRegistry.get(ID);
+        if (mod instanceof AutoTotemModule atm && atm.isEnabled()) {
+            atm.getController().onTotemPop();
+        }
     }
 }

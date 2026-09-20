@@ -621,6 +621,10 @@ public final class VirionArcController {
     }
 
     private boolean hasLineOfSight(MinecraftClient client, BlockPos target) {
+        if (client == null || client.player == null || client.world == null || target == null) {
+            return false;
+        }
+
         Vec3d eyePos = client.player.getEyePos();
         BlockPos supportPos = target.down();
 

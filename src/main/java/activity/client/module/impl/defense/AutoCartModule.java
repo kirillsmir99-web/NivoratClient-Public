@@ -45,31 +45,45 @@ public class AutoCartModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoCartPreset = val;
+                        double minD, maxD, chance, maxDist;
+                        boolean pit, legit;
                         if ("fast".equalsIgnoreCase(val)) {
-                            c.autoCartMinDelayMs = 40.0;
-                            c.autoCartMaxDelayMs = 60.0;
-                            c.autoCartPlacementChance = 100.0;
-                            c.autoCartMaxDistance = 4.5;
-                            c.autoCartAllowPitPlacement = true;
-                            c.autoCartRandomDelay = true;
-                            c.autoCartLegitMode = false;
-                        } else if ("medium".equalsIgnoreCase(val)) {
-                            c.autoCartMinDelayMs = 70.0;
-                            c.autoCartMaxDelayMs = 110.0;
-                            c.autoCartPlacementChance = 100.0;
-                            c.autoCartMaxDistance = 4.4;
-                            c.autoCartAllowPitPlacement = true;
-                            c.autoCartRandomDelay = true;
-                            c.autoCartLegitMode = true;
+                            minD = 40.0;
+                            maxD = 60.0;
+                            chance = 100.0;
+                            maxDist = 4.5;
+                            pit = true;
+                            legit = false;
                         } else if ("safe".equalsIgnoreCase(val)) {
-                            c.autoCartMinDelayMs = 120.0;
-                            c.autoCartMaxDelayMs = 180.0;
-                            c.autoCartPlacementChance = 100.0;
-                            c.autoCartMaxDistance = 4.2;
-                            c.autoCartAllowPitPlacement = true;
-                            c.autoCartRandomDelay = true;
-                            c.autoCartLegitMode = true;
+                            minD = 120.0;
+                            maxD = 180.0;
+                            chance = 100.0;
+                            maxDist = 4.2;
+                            pit = true;
+                            legit = true;
+                        } else {
+                            minD = 70.0;
+                            maxD = 110.0;
+                            chance = 100.0;
+                            maxDist = 4.4;
+                            pit = true;
+                            legit = true;
                         }
+                        c.autoCartMinDelayMs = minD;
+                        c.autoCartMaxDelayMs = maxD;
+                        c.autoCartPlacementChance = chance;
+                        c.autoCartMaxDistance = maxDist;
+                        c.autoCartAllowPitPlacement = pit;
+                        c.autoCartRandomDelay = true;
+                        c.autoCartLegitMode = legit;
+
+                        updateNumberSetting("min_delay", minD);
+                        updateNumberSetting("max_delay", maxD);
+                        updateNumberSetting("placement_chance", chance);
+                        updateNumberSetting("max_distance", maxDist);
+                        updateBooleanSetting("allow_pit_placement", pit);
+                        updateBooleanSetting("legit_mode", legit);
+
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }
@@ -145,6 +159,23 @@ public class AutoCartModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("random_delay", Text.translatable("activity.setting.defense.random_delay"),
+                Text.translatable("activity.setting.defense.random_delay.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoCartRandomDelay;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartRandomDelay = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         // 3. EXTRA
         registerBoolean("allow_self_cart", Text.translatable("activity.setting.defense.allow_self_cart"),
                 Text.translatable("activity.setting.defense.allow_self_cart.desc"), SettingGroup.EXTRA,
@@ -181,23 +212,6 @@ public class AutoCartModule extends NivoratModule {
         );
 
         // 4. ADVANCED
-        registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
-                Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoCartRandomDelay;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoCartRandomDelay = val;
-                        syncControllerConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        );
-
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
                 true,
@@ -282,5 +296,19 @@ public class AutoCartModule extends NivoratModule {
         config.autoCartEnabled = this.enabled;
         config.autoCartKeybind.copyFrom(this.keybind);
         syncControllerConfig(config);
+    }
+
+    private void updateNumberSetting(String id, double val) {
+        activity.client.module.setting.Setting<?> s = getSetting(id);
+        if (s instanceof activity.client.module.setting.NumberSetting ns) {
+            ns.set(val);
+        }
+    }
+
+    private void updateBooleanSetting(String id, boolean val) {
+        activity.client.module.setting.Setting<?> s = getSetting(id);
+        if (s instanceof activity.client.module.setting.BooleanSetting bs) {
+            bs.set(val);
+        }
     }
 }

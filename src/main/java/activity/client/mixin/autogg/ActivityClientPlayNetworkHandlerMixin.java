@@ -23,12 +23,17 @@ import ru.elarion.autogg.AutoGGClient;
 public final class ActivityClientPlayNetworkHandlerMixin {
     @Inject(method = "onEntityStatus", at = @At("TAIL"))
     private void activity$autogg$ownDeath(EntityStatusS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled || packet.getStatus() != 3) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
         Entity entity = packet.getEntity(client.world);
         if (entity == client.player) {
-            AutoGGClient.markOwnDeath();
+            byte status = packet.getStatus();
+            if (status == 3 && AutoGGClient.CONFIG.enabled) {
+                AutoGGClient.markOwnDeath();
+            } else if (status == 35) {
+                activity.client.module.impl.defense.AutoTotemModule.onTotemPop();
+            }
         }
     }
 

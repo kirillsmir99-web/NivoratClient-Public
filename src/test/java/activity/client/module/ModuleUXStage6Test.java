@@ -56,10 +56,10 @@ public class ModuleUXStage6Test {
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
         assertTrue(config.autoStunSlamEnabled);
-        assertEquals(2.4, config.autoStunSlamDistance, 0.001);
-        assertEquals(75.0, config.autoStunSlamChance, 0.001);
-        assertEquals(45.0, config.autoStunSlamAxeDelayMs, 0.001);
-        assertEquals(45.0, config.autoStunSlamMaceDelayMs, 0.001);
+        assertEquals(2.85, config.autoStunSlamDistance, 0.001);
+        assertEquals(100.0, config.autoStunSlamChance, 0.001);
+        assertEquals(0.0, config.autoStunSlamAxeDelayMs, 0.001);
+        assertEquals(0.0, config.autoStunSlamMaceDelayMs, 0.001);
         assertEquals(50.0, config.autoStunSlamRestoreDelayMs, 0.001);
         assertTrue(config.autoStunSlamLegitMode);
     }

@@ -38,3 +38,8 @@ config/*.properties
 
 # Local helper scripts
 build_run.ps1
+
+# Agent working files
+.agents/
+ORIGINAL_REQUEST.md
+PROJECT.md
