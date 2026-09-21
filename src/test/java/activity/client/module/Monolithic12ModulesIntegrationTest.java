@@ -34,7 +34,8 @@ public class Monolithic12ModulesIntegrationTest {
         "hp_reaper",
         "auto_tool",
         "auto_gg",
-        "cart_hud"
+        "cart_hud",
+        "auto_pearl_catch"
     );
 
     @BeforeAll
@@ -49,7 +50,7 @@ public class Monolithic12ModulesIntegrationTest {
 
     @Test
     void testAllTwelveModulesRegistered() {
-        assertEquals(12, EXPECTED_MODULE_IDS.size(), "Should verify exactly 12 modules");
+        assertEquals(13, EXPECTED_MODULE_IDS.size(), "Should verify exactly 13 modules");
         for (String id : EXPECTED_MODULE_IDS) {
             IModule module = ModuleRegistry.get(id);
             assertNotNull(module, "Module " + id + " must be present in ModuleRegistry");
@@ -73,7 +74,7 @@ public class Monolithic12ModulesIntegrationTest {
         List<IModule> defenseModules = ModuleRegistry.getByCategory(ModuleCategory.DEFENSE);
         List<IModule> utilityModules = ModuleRegistry.getByCategory(ModuleCategory.UTILITY);
 
-        assertEquals(4, combatModules.size(), "Combat should have exactly 4 modules (Mace, Spear, Shieldbreaker, StunSlam)");
+        assertEquals(5, combatModules.size(), "Combat should have exactly 5 modules (Mace, Spear, Shieldbreaker, StunSlam, PearlCatch)");
         assertEquals(4, defenseModules.size(), "Defense should have exactly 4 modules (Totem, Cart, Anchor, Refill)");
         assertEquals(4, utilityModules.size(), "Utility should have exactly 4 modules (HPReaper, AutoTool, AutoGG, CartHUD)");
     }

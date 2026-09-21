@@ -384,7 +384,7 @@ public class ModuleUXStage6Test {
 
         tree.rebuildNodes();
         assertEquals(4, tree.getCategories().size());
-        assertEquals(4, tree.getCategories().get(0).getChildren().size());
+        assertEquals(5, tree.getCategories().get(0).getChildren().size());
         assertEquals(4, tree.getCategories().get(1).getChildren().size());
         assertEquals(5, tree.getCategories().get(2).getChildren().size());
     }

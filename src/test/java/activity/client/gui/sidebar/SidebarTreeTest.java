@@ -30,7 +30,7 @@ public class SidebarTreeTest {
         assertEquals("combat", combat.getId());
         assertEquals(0, combat.getTabIndex());
         assertEquals(ActivityIcon.COMBAT, combat.getIcon());
-        assertEquals(4, combat.getChildren().size());
+        assertEquals(5, combat.getChildren().size());
         assertTrue(combat.isExpanded()); // Default open
 
         // Category 1: Defense

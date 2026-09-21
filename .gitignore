@@ -39,7 +39,12 @@ config/*.properties
 # Local helper scripts
 build_run.ps1
 
+# Local backups
+.backups/
+
 # Agent working files
 .agents/
 ORIGINAL_REQUEST.md
 PROJECT.md
+TEST_INFRA.md
+TEST_READY.md

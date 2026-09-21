@@ -64,6 +64,33 @@
   "autoStunSlamRestoreDelayMs": 50.0,
   "autoStunSlamRandomDelay": false,
   "autoStunSlamLegitMode": true,
+  "autoPearlCatchEnabled": true,
+  "autoPearlCatchKeybind": {
+    "keyCode": -1,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
+  "autoPearlCatchActionKeybind": {
+    "keyCode": 86,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
+  "autoPearlCatchHorizontalKeybind": {
+    "keyCode": 67,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
+  "autoPearlCatchMode": "semi_auto",
+  "autoPearlCatchDirection": "vertical",
+  "autoPearlCatchThrowDelay": 2.0,
+  "autoPearlCatchRestoreSlot": true,
+  "autoPearlCatchRestoreCamera": false,
+  "autoPearlCatchRotationTimeMs": 135.0,
+  "autoPearlCatchLegitMode": true,
+  "autoPearlCatchHorizontalOffset": 8.0,
   "autoTotemEnabled": true,
   "autoTotemKeybind": {
     "keyCode": -1,
@@ -332,6 +359,37 @@
         "restore_delay": 50.0,
         "random_delay": false,
         "legit_mode": true
+      }
+    },
+    "auto_pearl_catch": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "mode": "semi_auto",
+        "direction": "vertical",
+        "action_keybind": {
+          "keyCode": 86,
+          "ctrl": false,
+          "shift": false,
+          "alt": false
+        },
+        "horizontal_keybind": {
+          "keyCode": 67,
+          "ctrl": false,
+          "shift": false,
+          "alt": false
+        },
+        "throw_delay": 2.0,
+        "restore_slot": true,
+        "restore_camera": false,
+        "rotation_time_ms": 135.0,
+        "legit_mode": true,
+        "horizontal_offset": 8.0
       }
     },
     "auto_totem": {

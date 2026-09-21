@@ -58,6 +58,15 @@ public final class ModuleRegistry {
                 return entry.getValue();
             }
         }
+        for (IModule module : MODULES.values()) {
+            if (module.getMetadata() != null && module.getMetadata().getAliases() != null) {
+                for (String alias : module.getMetadata().getAliases()) {
+                    if (alias.equalsIgnoreCase(id) || alias.replace("_", "").equalsIgnoreCase(clean)) {
+                        return module;
+                    }
+                }
+            }
+        }
         return null;
     }
 

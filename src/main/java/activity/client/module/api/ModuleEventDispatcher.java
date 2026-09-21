@@ -74,6 +74,15 @@ public final class ModuleEventDispatcher {
         // 3. Single Consolidated HUD Render dispatch
         HudElementRegistry.addLast(Identifier.of("activity", "modules_hud"), ModuleEventDispatcher::onRenderHud);
 
+        // 4. World Render Event for Camera Interpolation (AutoPearlCatch smooth rotation)
+        net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.START_MAIN.register(context -> {
+            if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client != null) {
+                dev.kinetictweaks.controller.PearlCatchController.getInstance().onRender(client);
+            }
+        });
+
         updateActiveModules();
     }
 

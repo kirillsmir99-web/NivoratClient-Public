@@ -92,6 +92,19 @@ public class CombatTab extends ActivityTab {
             config.autoStunSlamRandomDelay = true;
             config.autoStunSlamLegitMode = true;
 
+            config.autoPearlCatchEnabled = true;
+            config.autoPearlCatchKeybind = new Keybind();
+            config.autoPearlCatchActionKeybind = new Keybind(GLFW.GLFW_KEY_V, false, false, false);
+            config.autoPearlCatchHorizontalKeybind = new Keybind(GLFW.GLFW_KEY_C, false, false, false);
+            config.autoPearlCatchMode = "semi_auto";
+            config.autoPearlCatchDirection = "vertical";
+            config.autoPearlCatchThrowDelay = 2.0;
+            config.autoPearlCatchRestoreSlot = true;
+            config.autoPearlCatchRestoreCamera = false;
+            config.autoPearlCatchRotationTimeMs = 135.0;
+            config.autoPearlCatchLegitMode = true;
+            config.autoPearlCatchHorizontalOffset = 9.2;
+
             for (IModule mod : ModuleRegistry.getByCategory(getCategory())) {
                 mod.loadFromConfig(config);
                 for (Setting<?> s : mod.getSettings()) {

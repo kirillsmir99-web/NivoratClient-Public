@@ -104,6 +104,20 @@ public class ActivityConfig {
     public boolean autoStunSlamRandomDelay = false;
     public boolean autoStunSlamLegitMode = true;
 
+    // AutoPearlCatch (Авто Пёрл Кэтч)
+    public boolean autoPearlCatchEnabled = true;
+    public Keybind autoPearlCatchKeybind = new Keybind();
+    public Keybind autoPearlCatchActionKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+    public Keybind autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
+    public String autoPearlCatchMode = "semi_auto";
+    public String autoPearlCatchDirection = "vertical";
+    public double autoPearlCatchThrowDelay = 2.0;
+    public boolean autoPearlCatchRestoreSlot = true;
+    public boolean autoPearlCatchRestoreCamera = false;
+    public double autoPearlCatchRotationTimeMs = 135.0;
+    public boolean autoPearlCatchLegitMode = true;
+    public double autoPearlCatchHorizontalOffset = 8.0;
+
     // Backward-compatibility legacy alias fields for JSON deserialization
     public Boolean autoStunSlimeEnabled = null;
     public Keybind autoStunSlimeKeybind = null;
@@ -530,6 +544,19 @@ public class ActivityConfig {
         this.autoStunSlamRandomDelay = false;
         this.autoStunSlamLegitMode = true;
 
+        this.autoPearlCatchEnabled = true;
+        this.autoPearlCatchKeybind = new Keybind();
+        this.autoPearlCatchActionKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+        this.autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
+        this.autoPearlCatchMode = "semi_auto";
+        this.autoPearlCatchDirection = "vertical";
+        this.autoPearlCatchThrowDelay = 2.0;
+        this.autoPearlCatchRestoreSlot = true;
+        this.autoPearlCatchRestoreCamera = false;
+        this.autoPearlCatchRotationTimeMs = 135.0;
+        this.autoPearlCatchLegitMode = true;
+        this.autoPearlCatchHorizontalOffset = 8.0;
+
         this.autoStunSlimeEnabled = null;
         this.autoStunSlimeKeybind = null;
         this.autoStunSlimeMode = null;
@@ -746,6 +773,9 @@ public class ActivityConfig {
         if (this.hpReaperKeybind == null) this.hpReaperKeybind = new Keybind();
         if (this.autoToolKeybind == null) this.autoToolKeybind = new Keybind();
         if (this.autoGGKeybind == null) this.autoGGKeybind = new Keybind();
+        if (this.autoPearlCatchKeybind == null) this.autoPearlCatchKeybind = new Keybind();
+        if (this.autoPearlCatchActionKeybind == null) this.autoPearlCatchActionKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+        if (this.autoPearlCatchHorizontalKeybind == null) this.autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
         if (this.autoGGMenuKeybind == null) this.autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
         if (this.cartHudKeybind == null) this.cartHudKeybind = new Keybind();
         if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
@@ -826,6 +856,10 @@ public class ActivityConfig {
         this.autoStunSlamMaceDelayMs = clampSanitize(this.autoStunSlamMaceDelayMs, 10.0, 200.0, 45.0);
         this.autoStunSlamRestoreDelayMs = clampSanitize(this.autoStunSlamRestoreDelayMs, 10.0, 200.0, 50.0);
 
+        this.autoPearlCatchThrowDelay = clampSanitize(this.autoPearlCatchThrowDelay, 1.0, 20.0, 2.0);
+        this.autoPearlCatchRotationTimeMs = clampSanitize(this.autoPearlCatchRotationTimeMs, 50.0, 500.0, 135.0);
+        this.autoPearlCatchHorizontalOffset = clampSanitize(this.autoPearlCatchHorizontalOffset, 0.0, 25.0, 8.0);
+
         this.autoTotemTriggerHearts = clampSanitize(this.autoTotemTriggerHearts, 1.0, 9.0, 3.0);
         this.autoTotemRestoreHearts = clampSanitize(this.autoTotemRestoreHearts, 4.0, 10.0, 6.0);
         this.autoTotemChance = clampSanitize(this.autoTotemChance, 10.0, 100.0, 100.0);
@@ -888,6 +922,14 @@ public class ActivityConfig {
         if ("Полный авто".equals(this.autoStunSlamMode) || "full_auto".equals(this.autoStunSlamMode)) this.autoStunSlamMode = "full_auto";
         else if ("Полу-авто".equals(this.autoStunSlamMode) || "semi_auto".equals(this.autoStunSlamMode)) this.autoStunSlamMode = "semi_auto";
         else this.autoStunSlamMode = "full_auto";
+
+        if ("Полный авто".equals(this.autoPearlCatchMode) || "full_auto".equals(this.autoPearlCatchMode)) this.autoPearlCatchMode = "full_auto";
+        else if ("Полу-авто".equals(this.autoPearlCatchMode) || "semi_auto".equals(this.autoPearlCatchMode)) this.autoPearlCatchMode = "semi_auto";
+        else this.autoPearlCatchMode = "semi_auto";
+
+        if ("Горизонтальный".equals(this.autoPearlCatchDirection) || "horizontal".equals(this.autoPearlCatchDirection)) this.autoPearlCatchDirection = "horizontal";
+        else if ("Вертикальный".equals(this.autoPearlCatchDirection) || "vertical".equals(this.autoPearlCatchDirection)) this.autoPearlCatchDirection = "vertical";
+        else this.autoPearlCatchDirection = "vertical";
 
         if ("Основная рука".equals(this.autoTotemMode) || "main_hand".equals(this.autoTotemMode)) this.autoTotemMode = "main_hand";
         else if ("Вторая рука".equals(this.autoTotemMode) || "offhand".equals(this.autoTotemMode)) this.autoTotemMode = "offhand";
@@ -1075,6 +1117,9 @@ public class ActivityConfig {
         syncModuleEntry("auto_stun_slam", this.autoStunSlamEnabled, this.autoStunSlamKeybind);
         populateStunSlamSettings(this.modules.get("auto_stun_slam"));
 
+        syncModuleEntry("auto_pearl_catch", this.autoPearlCatchEnabled, this.autoPearlCatchKeybind);
+        populatePearlCatchSettings(this.modules.get("auto_pearl_catch"));
+
         syncModuleEntry("auto_totem", this.autoTotemEnabled, this.autoTotemKeybind);
         populateTotemSettings(this.modules.get("auto_totem"));
 
@@ -1156,6 +1201,20 @@ public class ActivityConfig {
         entry.settings.put("restore_delay", this.autoStunSlamRestoreDelayMs);
         entry.settings.put("random_delay", this.autoStunSlamRandomDelay);
         entry.settings.put("legit_mode", this.autoStunSlamLegitMode);
+    }
+
+    private void populatePearlCatchSettings(ModuleConfigEntry entry) {
+        if (entry == null) return;
+        entry.settings.put("mode", this.autoPearlCatchMode);
+        entry.settings.put("direction", this.autoPearlCatchDirection);
+        entry.settings.put("action_keybind", this.autoPearlCatchActionKeybind);
+        entry.settings.put("horizontal_keybind", this.autoPearlCatchHorizontalKeybind);
+        entry.settings.put("throw_delay", this.autoPearlCatchThrowDelay);
+        entry.settings.put("restore_slot", this.autoPearlCatchRestoreSlot);
+        entry.settings.put("restore_camera", this.autoPearlCatchRestoreCamera);
+        entry.settings.put("rotation_time_ms", this.autoPearlCatchRotationTimeMs);
+        entry.settings.put("legit_mode", this.autoPearlCatchLegitMode);
+        entry.settings.put("horizontal_offset", this.autoPearlCatchHorizontalOffset);
     }
 
     private void populateTotemSettings(ModuleConfigEntry entry) {
@@ -1400,6 +1459,25 @@ public class ActivityConfig {
                 this.autoStunSlamLegitMode = getSettingBoolean(slam.settings, "legit_mode", this.autoStunSlamLegitMode);
             }
         }
+        ModuleConfigEntry pearlCatch = getModuleEntry("auto_pearl_catch");
+        if (pearlCatch != null) {
+            this.autoPearlCatchEnabled = pearlCatch.enabled;
+            if (pearlCatch.keybind != null) this.autoPearlCatchKeybind.copyFrom(pearlCatch.keybind);
+            if (pearlCatch.settings != null && !pearlCatch.settings.isEmpty()) {
+                this.autoPearlCatchMode = getSettingString(pearlCatch.settings, "mode", this.autoPearlCatchMode);
+                this.autoPearlCatchDirection = getSettingString(pearlCatch.settings, "direction", this.autoPearlCatchDirection);
+                Keybind actKb = getSettingKeybind(pearlCatch.settings, "action_keybind", null);
+                if (actKb != null) this.autoPearlCatchActionKeybind.copyFrom(actKb);
+                Keybind horKb = getSettingKeybind(pearlCatch.settings, "horizontal_keybind", null);
+                if (horKb != null) this.autoPearlCatchHorizontalKeybind.copyFrom(horKb);
+                this.autoPearlCatchThrowDelay = getSettingDouble(pearlCatch.settings, "throw_delay", this.autoPearlCatchThrowDelay);
+                this.autoPearlCatchRestoreSlot = getSettingBoolean(pearlCatch.settings, "restore_slot", this.autoPearlCatchRestoreSlot);
+                this.autoPearlCatchRestoreCamera = getSettingBoolean(pearlCatch.settings, "restore_camera", this.autoPearlCatchRestoreCamera);
+                this.autoPearlCatchRotationTimeMs = getSettingDouble(pearlCatch.settings, "rotation_time_ms", this.autoPearlCatchRotationTimeMs);
+                this.autoPearlCatchLegitMode = getSettingBoolean(pearlCatch.settings, "legit_mode", this.autoPearlCatchLegitMode);
+                this.autoPearlCatchHorizontalOffset = getSettingDouble(pearlCatch.settings, "horizontal_offset", this.autoPearlCatchHorizontalOffset);
+            }
+        }
         ModuleConfigEntry totem = getModuleEntry("auto_totem");
         if (totem != null) {
             this.autoTotemEnabled = totem.enabled;
@@ -1593,6 +1671,19 @@ public class ActivityConfig {
         copy.autoStunSlamRestoreDelayMs = this.autoStunSlamRestoreDelayMs;
         copy.autoStunSlamRandomDelay = this.autoStunSlamRandomDelay;
         copy.autoStunSlamLegitMode = this.autoStunSlamLegitMode;
+
+        copy.autoPearlCatchEnabled = this.autoPearlCatchEnabled;
+        copy.autoPearlCatchKeybind.copyFrom(this.autoPearlCatchKeybind);
+        copy.autoPearlCatchActionKeybind.copyFrom(this.autoPearlCatchActionKeybind);
+        copy.autoPearlCatchHorizontalKeybind.copyFrom(this.autoPearlCatchHorizontalKeybind);
+        copy.autoPearlCatchMode = this.autoPearlCatchMode;
+        copy.autoPearlCatchDirection = this.autoPearlCatchDirection;
+        copy.autoPearlCatchThrowDelay = this.autoPearlCatchThrowDelay;
+        copy.autoPearlCatchRestoreSlot = this.autoPearlCatchRestoreSlot;
+        copy.autoPearlCatchRestoreCamera = this.autoPearlCatchRestoreCamera;
+        copy.autoPearlCatchRotationTimeMs = this.autoPearlCatchRotationTimeMs;
+        copy.autoPearlCatchLegitMode = this.autoPearlCatchLegitMode;
+        copy.autoPearlCatchHorizontalOffset = this.autoPearlCatchHorizontalOffset;
 
         // Defense
         copy.autoTotemEnabled = this.autoTotemEnabled;
@@ -1807,7 +1898,20 @@ public class ActivityConfig {
                Objects.equals(this.autoStunSlamKeybind, that.autoStunSlamKeybind) &&
                Objects.equals(this.autoStunSlamMode, that.autoStunSlamMode) &&
 
-                // Defense
+                this.autoPearlCatchEnabled == that.autoPearlCatchEnabled &&
+                this.autoPearlCatchLegitMode == that.autoPearlCatchLegitMode &&
+                this.autoPearlCatchRestoreSlot == that.autoPearlCatchRestoreSlot &&
+                this.autoPearlCatchRestoreCamera == that.autoPearlCatchRestoreCamera &&
+                Double.compare(this.autoPearlCatchThrowDelay, that.autoPearlCatchThrowDelay) == 0 &&
+                Double.compare(this.autoPearlCatchRotationTimeMs, that.autoPearlCatchRotationTimeMs) == 0 &&
+                Double.compare(this.autoPearlCatchHorizontalOffset, that.autoPearlCatchHorizontalOffset) == 0 &&
+                Objects.equals(this.autoPearlCatchKeybind, that.autoPearlCatchKeybind) &&
+                Objects.equals(this.autoPearlCatchActionKeybind, that.autoPearlCatchActionKeybind) &&
+                Objects.equals(this.autoPearlCatchHorizontalKeybind, that.autoPearlCatchHorizontalKeybind) &&
+                Objects.equals(this.autoPearlCatchMode, that.autoPearlCatchMode) &&
+                Objects.equals(this.autoPearlCatchDirection, that.autoPearlCatchDirection) &&
+
+                 // Defense
                 this.autoTotemEnabled == that.autoTotemEnabled &&
                 this.autoTotemReturnItem == that.autoTotemReturnItem &&
                 this.autoTotemReturnOnPop == that.autoTotemReturnOnPop &&
@@ -1972,6 +2076,9 @@ public class ActivityConfig {
         );
         result = 31 * result + Objects.hash(
             autoStunSlamAirTimeSec, autoStunSlamAxeDelayMs, autoStunSlamMaceDelayMs, autoStunSlamRestoreDelayMs, autoStunSlamRandomDelay, autoStunSlamLegitMode,
+            autoPearlCatchEnabled, autoPearlCatchKeybind, autoPearlCatchActionKeybind, autoPearlCatchHorizontalKeybind,
+            autoPearlCatchMode, autoPearlCatchDirection, autoPearlCatchThrowDelay, autoPearlCatchRestoreSlot,
+            autoPearlCatchRestoreCamera, autoPearlCatchRotationTimeMs, autoPearlCatchLegitMode, autoPearlCatchHorizontalOffset,
             // Defense
             autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemCrystalTriggerHearts, autoTotemCrystalRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
             autoCartEnabled, autoCartKeybind, autoCartPreset, autoCartPlacementChance, autoCartMaxDistance, autoCartMinDelayMs, autoCartMaxDelayMs,

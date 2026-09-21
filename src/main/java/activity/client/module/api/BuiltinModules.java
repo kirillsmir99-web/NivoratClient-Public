@@ -1,6 +1,7 @@
 package activity.client.module.api;
 
 import activity.client.module.impl.combat.AutoMaceModule;
+import activity.client.module.impl.combat.AutoPearlCatchModule;
 import activity.client.module.impl.combat.AutoShieldbreakerModule;
 import activity.client.module.impl.combat.AutoSpearModule;
 import activity.client.module.impl.combat.AutoStunSlamModule;
@@ -14,7 +15,7 @@ import activity.client.module.impl.utility.CartHudModule;
 import activity.client.module.impl.utility.HPReaperModule;
 
 /**
- * Registry bootstrapper for all 12 built-in NivoratClient modules.
+ * Registry bootstrapper for all 13 built-in NivoratClient modules.
  */
 public final class BuiltinModules {
 
@@ -26,6 +27,7 @@ public final class BuiltinModules {
         ModuleRegistry.register(new AutoSpearModule());
         ModuleRegistry.register(new AutoShieldbreakerModule());
         ModuleRegistry.register(new AutoStunSlamModule());
+        ModuleRegistry.register(new AutoPearlCatchModule());
 
         // 2. Defense
         ModuleRegistry.register(new AutoTotemModule());

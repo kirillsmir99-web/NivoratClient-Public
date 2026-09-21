@@ -89,7 +89,8 @@ public class ReleaseVerificationTest {
             "hp_reaper",
             "auto_tool",
             "auto_gg",
-            "cart_hud"
+            "cart_hud",
+            "auto_pearl_catch"
     );
 
     private static final Map<String, String> RUSSIAN_SEARCH_KEYWORDS = Map.ofEntries(
@@ -104,7 +105,8 @@ public class ReleaseVerificationTest {
             Map.entry("hp_reaper", "хп"),
             Map.entry("auto_tool", "инструмент"),
             Map.entry("auto_gg", "гг"),
-            Map.entry("cart_hud", "хад")
+            Map.entry("cart_hud", "хад"),
+            Map.entry("auto_pearl_catch", "перл")
     );
 
     @BeforeAll
@@ -184,11 +186,11 @@ public class ReleaseVerificationTest {
     }
 
     @Test
-    @DisplayName("Clean Install: Exactly 12 built-in modules registered, zero external legacy stubs")
+    @DisplayName("Clean Install: Exactly 13 built-in modules registered, zero external legacy stubs")
     void testCleanInstallBuiltinModuleCountAndReadiness() {
-        assertEquals(12, ALL_TWELVE_MODULE_IDS.size(), "Must track exactly 12 modules");
+        assertEquals(13, ALL_TWELVE_MODULE_IDS.size(), "Must track exactly 13 modules");
         List<IModule> allModules = ModuleRegistry.getAll();
-        assertTrue(allModules.size() >= 12, "ModuleRegistry must have at least 12 modules");
+        assertTrue(allModules.size() >= 13, "ModuleRegistry must have at least 13 modules");
 
         for (String id : ALL_TWELVE_MODULE_IDS) {
             IModule mod = ModuleRegistry.get(id);
@@ -200,7 +202,7 @@ public class ReleaseVerificationTest {
     }
 
     @Test
-    @DisplayName("Clean Install: Isolated environment initializes clean default config with all 12 modules")
+    @DisplayName("Clean Install: Isolated environment initializes clean default config with all 13 modules")
     void testCleanInstallIsolatedConfigInitialization() {
         ActivityConfig freshConfig = new ActivityConfig();
         freshConfig.sanitize();
@@ -211,6 +213,7 @@ public class ReleaseVerificationTest {
         assertTrue(freshConfig.autoSpearEnabled, "AutoSpear must be enabled by default");
         assertTrue(freshConfig.autoShieldbreakerEnabled, "AutoShieldbreaker must be enabled by default");
         assertTrue(freshConfig.autoStunSlamEnabled, "AutoStunSlam must be enabled by default");
+        assertTrue(freshConfig.autoPearlCatchEnabled, "AutoPearlCatch must be enabled by default");
         assertTrue(freshConfig.autoTotemEnabled, "AutoTotem must be enabled by default");
         assertTrue(freshConfig.autoCartEnabled, "AutoCart must be enabled by default");
         assertTrue(freshConfig.autoAnchorEnabled, "AutoAnchor must be enabled by default");
@@ -274,7 +277,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleUIExists(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);
@@ -328,7 +331,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleEnableDisableWorks(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);
@@ -366,7 +369,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleKeybindWorks(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);
@@ -421,7 +424,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleSettingsWork(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);
@@ -485,7 +488,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleConfigPersists(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);
@@ -539,7 +542,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModulePresetRestores(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);
@@ -578,7 +581,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleSearchFindsIt(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);
@@ -613,7 +616,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModulePinWorks(String moduleId) {
         ActivityConfig config = ActivityConfigManager.getConfig();
@@ -634,7 +637,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleQuickAccessWorks(String moduleId) {
         ActivityConfig config = ActivityConfigManager.getConfig();
@@ -654,7 +657,7 @@ public class ReleaseVerificationTest {
     @ValueSource(strings = {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
-            "hp_reaper", "auto_tool", "auto_gg", "cart_hud"
+            "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch"
     })
     void testModuleAboutSheetWorks(String moduleId) {
         AboutModuleSheet sheet = new AboutModuleSheet(null, moduleId);
