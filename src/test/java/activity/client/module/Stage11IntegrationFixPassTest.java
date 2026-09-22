@@ -173,13 +173,13 @@ public class Stage11IntegrationFixPassTest {
     // =========================================================================
 
     @Test
-    @DisplayName("Regression: All 13 built-in modules are registered and correctly categorized")
+    @DisplayName("Regression: All 14 built-in modules are registered and correctly categorized")
     void testAll12ModulesRegression() {
         List<String> expectedCombat = List.of("auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam", "auto_pearl_catch");
         List<String> expectedDefense = List.of("auto_totem", "auto_cart", "auto_anchor", "cart_refill");
-        List<String> expectedUtility = List.of("hp_reaper", "auto_tool", "auto_gg", "cart_hud");
+        List<String> expectedUtility = List.of("hp_reaper", "auto_tool", "auto_gg", "cart_hud", "cooldown_hud");
 
-        assertEquals(13, ModuleRegistry.getAll().size(), "Total built-in modules count must be 13");
+        assertEquals(14, ModuleRegistry.getAll().size(), "Total built-in modules count must be 14");
 
         for (String id : expectedCombat) {
             IModule mod = ModuleRegistry.get(id);

@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "activity.client.mixin.cooldown",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MixinItemCooldownManager"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -19,7 +19,8 @@
   "mixins": [
     "activity.autotool.mixins.json",
     "activity.autogg.mixins.json",
-    "activity.dev.mixins.json"
+    "activity.dev.mixins.json",
+    "activity.cooldown.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",

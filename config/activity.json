@@ -225,6 +225,17 @@
   },
   "cartHudCustomX": -1,
   "cartHudCustomY": -1,
+  "cooldownHudEnabled": true,
+  "cooldownHudKeybind": {
+    "keyCode": -1,
+    "ctrl": false,
+    "shift": false,
+    "alt": false
+  },
+  "cooldownHudCustomX": -1,
+  "cooldownHudCustomY": -1,
+  "cooldownHudVertical": false,
+  "cooldownHudMinDuration": 2.5,
   "overlayEnabled": true,
   "darkThemeEnabled": true,
   "hudPosition": "top_right",
@@ -566,6 +577,21 @@
       "settings": {
         "custom_x": -1,
         "custom_y": -1
+      }
+    },
+    "cooldown_hud": {
+      "enabled": true,
+      "keybind": {
+        "keyCode": -1,
+        "ctrl": false,
+        "shift": false,
+        "alt": false
+      },
+      "settings": {
+        "custom_x": -1,
+        "custom_y": -1,
+        "vertical": false,
+        "min_duration": 2.5
       }
     }
   },

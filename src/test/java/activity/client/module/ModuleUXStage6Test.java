@@ -386,7 +386,7 @@ public class ModuleUXStage6Test {
         assertEquals(4, tree.getCategories().size());
         assertEquals(5, tree.getCategories().get(0).getChildren().size());
         assertEquals(4, tree.getCategories().get(1).getChildren().size());
-        assertEquals(5, tree.getCategories().get(2).getChildren().size());
+        assertEquals(6, tree.getCategories().get(2).getChildren().size());
     }
 
     private static class TestConditionalModule extends NivoratModule {

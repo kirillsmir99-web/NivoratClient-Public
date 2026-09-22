@@ -35,5 +35,6 @@ public final class BuiltinModules {
         ModuleRegistry.register(new AutoToolModule());
         ModuleRegistry.register(new AutoGGModule());
         ModuleRegistry.register(new CartHudModule());
+        ModuleRegistry.register(new activity.client.module.impl.utility.CooldownHudModule());
     }
 }

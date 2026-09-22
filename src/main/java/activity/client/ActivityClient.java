@@ -30,12 +30,15 @@ public class ActivityClient implements ClientModInitializer {
         activity.client.presence.DevPeerTracker.start();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            activity.client.module.service.CooldownTrackerService.tick(client);
+
             if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
                 menuKeyDown = false;
                 return;
             }
 
             if (client == null || client.player == null) {
+                activity.client.module.service.CooldownTrackerService.clear();
                 menuKeyDown = false;
                 return;
             }
@@ -80,6 +83,7 @@ public class ActivityClient implements ClientModInitializer {
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             activity.client.presence.PresenceHeartbeatService.stop();
             activity.client.presence.DevPeerTracker.stop();
+            activity.client.module.service.CooldownTrackerService.clear();
             if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
                 return;
             }

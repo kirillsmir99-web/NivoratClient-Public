@@ -209,6 +209,13 @@ public class ActivityConfig {
     public int cartHudCustomX = -1;
     public int cartHudCustomY = -1;
 
+    public boolean cooldownHudEnabled = true;
+    public Keybind cooldownHudKeybind = new Keybind();
+    public int cooldownHudCustomX = -1;
+    public int cooldownHudCustomY = -1;
+    public boolean cooldownHudVertical = false;
+    public double cooldownHudMinDuration = 2.5;
+
     public boolean overlayEnabled = true;
     public boolean darkThemeEnabled = true;
     public String hudPosition = "top_right";
@@ -626,6 +633,13 @@ public class ActivityConfig {
         this.cartHudKeybind.clear();
         this.cartHudCustomX = -1;
         this.cartHudCustomY = -1;
+
+        this.cooldownHudEnabled = true;
+        this.cooldownHudKeybind.clear();
+        this.cooldownHudCustomX = -1;
+        this.cooldownHudCustomY = -1;
+        this.cooldownHudVertical = false;
+        this.cooldownHudMinDuration = 2.5;
 
         this.overlayEnabled = true;
         this.darkThemeEnabled = true;
@@ -1114,6 +1128,9 @@ public class ActivityConfig {
 
         syncModuleEntry("cart_hud", this.cartHudEnabled, this.cartHudKeybind);
         populateCartHudSettings(this.modules.get("cart_hud"));
+
+        syncModuleEntry("cooldown_hud", this.cooldownHudEnabled, this.cooldownHudKeybind);
+        populateCooldownHudSettings(this.modules.get("cooldown_hud"));
     }
 
     private void syncModuleEntry(String id, boolean enabled, Keybind keybind) {
@@ -1291,6 +1308,14 @@ public class ActivityConfig {
         if (entry == null) return;
         entry.settings.put("custom_x", this.cartHudCustomX);
         entry.settings.put("custom_y", this.cartHudCustomY);
+    }
+
+    private void populateCooldownHudSettings(ModuleConfigEntry entry) {
+        if (entry == null) return;
+        entry.settings.put("custom_x", this.cooldownHudCustomX);
+        entry.settings.put("custom_y", this.cooldownHudCustomY);
+        entry.settings.put("vertical", this.cooldownHudVertical);
+        entry.settings.put("min_duration", this.cooldownHudMinDuration);
     }
 
     private static String getSettingString(java.util.Map<String, Object> map, String key, String def) {
@@ -1580,6 +1605,17 @@ public class ActivityConfig {
                 this.cartHudCustomY = getSettingInt(hud.settings, "custom_y", this.cartHudCustomY);
             }
         }
+        ModuleConfigEntry cd = getModuleEntry("cooldown_hud");
+        if (cd != null) {
+            this.cooldownHudEnabled = cd.enabled;
+            if (cd.keybind != null) this.cooldownHudKeybind.copyFrom(cd.keybind);
+            if (cd.settings != null && !cd.settings.isEmpty()) {
+                this.cooldownHudCustomX = getSettingInt(cd.settings, "custom_x", this.cooldownHudCustomX);
+                this.cooldownHudCustomY = getSettingInt(cd.settings, "custom_y", this.cooldownHudCustomY);
+                this.cooldownHudVertical = getSettingBoolean(cd.settings, "vertical", this.cooldownHudVertical);
+                this.cooldownHudMinDuration = getSettingDouble(cd.settings, "min_duration", this.cooldownHudMinDuration);
+            }
+        }
     }
 
     private static double clampSanitize(double val, double min, double max, double def) {
@@ -1754,6 +1790,13 @@ public class ActivityConfig {
         copy.cartHudKeybind.copyFrom(this.cartHudKeybind);
         copy.cartHudCustomX = this.cartHudCustomX;
         copy.cartHudCustomY = this.cartHudCustomY;
+
+        copy.cooldownHudEnabled = this.cooldownHudEnabled;
+        copy.cooldownHudKeybind.copyFrom(this.cooldownHudKeybind);
+        copy.cooldownHudCustomX = this.cooldownHudCustomX;
+        copy.cooldownHudCustomY = this.cooldownHudCustomY;
+        copy.cooldownHudVertical = this.cooldownHudVertical;
+        copy.cooldownHudMinDuration = this.cooldownHudMinDuration;
 
         copy.overlayEnabled = this.overlayEnabled;
         copy.darkThemeEnabled = this.darkThemeEnabled;
@@ -1985,6 +2028,13 @@ public class ActivityConfig {
                this.cartHudCustomY == that.cartHudCustomY &&
                Objects.equals(this.cartHudKeybind, that.cartHudKeybind) &&
 
+                this.cooldownHudEnabled == that.cooldownHudEnabled &&
+                this.cooldownHudCustomX == that.cooldownHudCustomX &&
+                this.cooldownHudCustomY == that.cooldownHudCustomY &&
+                this.cooldownHudVertical == that.cooldownHudVertical &&
+                Double.compare(this.cooldownHudMinDuration, that.cooldownHudMinDuration) == 0 &&
+                Objects.equals(this.cooldownHudKeybind, that.cooldownHudKeybind) &&
+
                this.overlayEnabled == that.overlayEnabled &&
                this.darkThemeEnabled == that.darkThemeEnabled &&
                this.autoHideOnChat == that.autoHideOnChat &&
@@ -2083,6 +2133,7 @@ public class ActivityConfig {
             autoToolEnabled, autoToolKeybind, autoToolCombatGuard, autoToolDurabilitySaver, autoToolDurabilityThreshold, autoToolPreferSilkTouch, autoToolRestorePrevious, autoToolLegitMode, autoToolSingleSlotMode, autoToolSingleSlot, autoToolIgnoreInstantBreak, autoToolLockWhileMining,
             autoGGEnabled, autoGGKeybind, autoGGMenuKeybind, autoGGPhrase, autoGGSendOnKill, autoGGSendOnOwnDeath, autoGGRandomOrder, autoGGDelayMs,
             cartHudEnabled, cartHudKeybind, cartHudCustomX, cartHudCustomY,
+            cooldownHudEnabled, cooldownHudKeybind, cooldownHudCustomX, cooldownHudCustomY, cooldownHudVertical, cooldownHudMinDuration,
 
             overlayEnabled, darkThemeEnabled, hudPosition, overlayOpacity, autoHideOnChat, hideInF3, searchFilter, filterCategory, matchCase
         );

@@ -9,7 +9,8 @@ public enum NumberUnit {
     PERCENT("%", "%"),
     HP("HP", " HP"),
     BLOCKS("blocks", " bl"),
-    CPS("CPS", " CPS");
+    CPS("CPS", " CPS"),
+    SECONDS("s", " s");
 
     private final String id;
     private final String suffix;
@@ -37,6 +38,7 @@ public enum NumberUnit {
             case "hp", "хп", "hearts", "heart", "сердец" -> HP;
             case "blocks", "block", "bl", "блоки", "блоков", "б" -> BLOCKS;
             case "cps", "кпс" -> CPS;
+            case "s", "sec", "second", "seconds", "сек", "секунды", "секунд" -> SECONDS;
             default -> NONE;
         };
     }

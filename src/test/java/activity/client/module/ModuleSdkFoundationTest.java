@@ -44,9 +44,9 @@ public class ModuleSdkFoundationTest {
     }
 
     @Test
-    @DisplayName("BuiltinModules registers all 13 canonical modules")
+    @DisplayName("BuiltinModules registers all 14 canonical modules")
     void testBuiltinModulesRegistration() {
-        assertEquals(13, ModuleRegistry.getAll().size(), "Must register all 13 modules");
+        assertEquals(14, ModuleRegistry.getAll().size(), "Must register all 14 modules");
 
         // Verify Combat modules
         assertNotNull(ModuleRegistry.get("auto_mace"));
@@ -67,10 +67,11 @@ public class ModuleSdkFoundationTest {
         assertNotNull(ModuleRegistry.get("auto_tool"));
         assertNotNull(ModuleRegistry.get("auto_gg"));
         assertNotNull(ModuleRegistry.get("cart_hud"));
+        assertNotNull(ModuleRegistry.get("cooldown_hud"));
 
         assertEquals(5, ModuleRegistry.getByCategory(ModuleCategory.COMBAT).size());
         assertEquals(4, ModuleRegistry.getByCategory(ModuleCategory.DEFENSE).size());
-        assertEquals(4, ModuleRegistry.getByCategory(ModuleCategory.UTILITY).size());
+        assertEquals(5, ModuleRegistry.getByCategory(ModuleCategory.UTILITY).size());
     }
 
     @Test
