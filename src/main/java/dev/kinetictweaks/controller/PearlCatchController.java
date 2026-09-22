@@ -2,6 +2,7 @@ package dev.kinetictweaks.controller;
 
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
+import dev.kinetictweaks.trajectory.PearlCatchTrajectory;
 import net.fabricmc.pack.api.CombatLockManager;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.minecraft.client.MinecraftClient;
@@ -60,7 +61,7 @@ public final class PearlCatchController {
     private long pearlThrowTimeMs = 0L;
     private long windThrowTimeMs = 0L;
     private long lastTriggerTime = 0L;
-    private static final long COOLDOWN_MS = 300L;
+    public static final long COOLDOWN_MS = 0L;
 
     public static PearlCatchController getInstance() {
         return INSTANCE;
@@ -99,7 +100,12 @@ public final class PearlCatchController {
         }
 
         ActivityConfig config = ActivityConfigManager.getConfig();
-        if (config == null || !config.autoPearlCatchEnabled || state != State.IDLE) {
+        if (config == null || !config.autoPearlCatchEnabled) {
+            return;
+        }
+
+        boolean isCleanupState = (state == State.POST_THROW_HOLD || state == State.ROTATING_BACK || state == State.RESTORE_SLOT);
+        if (state != State.IDLE && !isCleanupState) {
             return;
         }
 
@@ -147,9 +153,20 @@ public final class PearlCatchController {
         CombatLockManager.setLock(CombatLockManager.PEARL_CATCH, true);
         lastTriggerTime = now;
         currentMode = mode;
-        initialSlot = client.player.getInventory().getSelectedSlot();
+
+        if (cameraInterpolator.isActive()) {
+            cameraInterpolator.reset();
+        }
+
+        if (!isCleanupState || initialSlot < 0) {
+            initialSlot = client.player.getInventory().getSelectedSlot();
+        }
         initialPitch = client.player.getPitch();
         initialYaw = client.player.getYaw();
+
+        holdTicksRemaining = 0;
+        pearlThrowTimeMs = 0L;
+        windThrowTimeMs = 0L;
 
         boolean fullAuto = "full_auto".equalsIgnoreCase(config.autoPearlCatchMode);
         boolean legit = config.autoPearlCatchLegitMode;
@@ -197,7 +214,9 @@ public final class PearlCatchController {
     }
 
     public void onRender(MinecraftClient client) {
-        if (cameraInterpolator.isActive()) {
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        boolean fullAuto = config != null && "full_auto".equalsIgnoreCase(config.autoPearlCatchMode);
+        if (fullAuto && cameraInterpolator.isActive()) {
             cameraInterpolator.onRender(client);
         }
     }
@@ -428,6 +447,29 @@ public final class PearlCatchController {
 
     public int getActiveEffectiveDelay() {
         return activeEffectiveDelay;
+    }
+
+    public int getInitialSlot() {
+        return initialSlot;
+    }
+
+    public boolean canInterruptCurrentState() {
+        return state == State.IDLE || state == State.POST_THROW_HOLD || state == State.ROTATING_BACK || state == State.RESTORE_SLOT;
+    }
+
+    public void setStateForTest(State state, int initialSlot) {
+        this.state = state;
+        this.initialSlot = initialSlot;
+    }
+
+    public void startThrowForTest(int currentSelectedSlot, boolean isCleanup) {
+        if (cameraInterpolator.isActive()) {
+            cameraInterpolator.reset();
+        }
+        if (!isCleanup || initialSlot < 0) {
+            initialSlot = currentSelectedSlot;
+        }
+        this.state = State.THROW_PEARL;
     }
 
     public void reset() {

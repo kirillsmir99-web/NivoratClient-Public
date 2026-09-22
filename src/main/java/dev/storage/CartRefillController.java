@@ -22,7 +22,7 @@ import net.minecraft.screen.slot.SlotActionType;
 public final class CartRefillController {
     private static final long COOLDOWN_MS = 250L;
 
-    private enum State {
+    public enum State {
         IDLE,
         WAITING_OPEN,
         WAITING_SWAP,
@@ -34,8 +34,6 @@ public final class CartRefillController {
     private int targetSlot = -1;
     private int invCartSlot = -1;
     private int timer = 0;
-    private int calculatedSwapTicks = 0;
-    private int calculatedCloseTicks = 0;
     private boolean openedByRefill = false;
     private long lastRefillTime = 0L;
 
@@ -59,8 +57,6 @@ public final class CartRefillController {
         targetSlot = -1;
         invCartSlot = -1;
         timer = 0;
-        calculatedSwapTicks = 0;
-        calculatedCloseTicks = 0;
         openedByRefill = false;
         for (int i = 0; i < 9; i++) {
             hadCartInHotbar[i] = false;
@@ -151,33 +147,16 @@ public final class CartRefillController {
         targetSlot = hotbarSlot;
         invCartSlot = foundInvSlot;
 
-        int baseDelay = Math.max(1, RefillConfig.refillDelayTicks);
-
-        long openMs;
-        long swapMs;
-        long closeMs;
-        if (RefillConfig.randomDelay) {
-            openMs = GaussianTimingEngine.getDelay(baseDelay * 45.0D, 20.0D, 35L, 250L);
-            swapMs = GaussianTimingEngine.getDelay((baseDelay + 1) * 50.0D, 25.0D, 50L, 300L);
-            closeMs = GaussianTimingEngine.getDelay(baseDelay * 40.0D, 15.0D, 30L, 200L);
-        } else {
-            openMs = baseDelay * 50L;
-            swapMs = (baseDelay + 1) * 50L;
-            closeMs = baseDelay * 50L;
-        }
-
-        int openTicks = Math.max(1, (int) Math.round(openMs / 50.0D));
-        calculatedSwapTicks = Math.max(2, (int) Math.round(swapMs / 50.0D));
-        calculatedCloseTicks = Math.max(1, (int) Math.round(closeMs / 50.0D));
-
         if (client.currentScreen instanceof InventoryScreen) {
-            // Screen is already open by player! Skip opening and proceed directly to swap delay
+            // Screen is already open by player! Skip opening and proceed directly to swap delay.
+            // Retain screen safety: since the player opened this inventory, openedByRefill MUST remain false.
             openedByRefill = false;
-            timer = calculatedSwapTicks;
+            timer = sampleSwapDelayTicks();
             state = State.WAITING_SWAP;
         } else {
-            // Need to physically open screen after reaction delay
-            timer = openTicks;
+            // Need to physically open screen after reaction delay.
+            openedByRefill = false;
+            timer = sampleOpenDelayTicks();
             state = State.WAITING_OPEN;
         }
     }
@@ -207,7 +186,8 @@ public final class CartRefillController {
             openedByRefill = false;
         }
 
-        timer = calculatedSwapTicks;
+        // Independently sample swap delay upon transitioning to WAITING_SWAP
+        timer = sampleSwapDelayTicks();
         state = State.WAITING_SWAP;
     }
 
@@ -284,7 +264,8 @@ public final class CartRefillController {
         lastRefillTime = System.currentTimeMillis();
         activity.client.module.service.CartStateService.notifyCartRefilled(targetSlot);
 
-        timer = calculatedCloseTicks;
+        // Independently sample close delay upon transitioning to WAITING_CLOSE
+        timer = sampleCloseDelayTicks();
         state = State.WAITING_CLOSE;
     }
 
@@ -297,9 +278,10 @@ public final class CartRefillController {
         finishRefill(client);
     }
 
-    private void finishRefill(MinecraftClient client) {
-        // Only close if it was opened by this controller and autoClose is enabled
-        if (openedByRefill && RefillConfig.autoClose && client.currentScreen instanceof InventoryScreen) {
+    void finishRefill(MinecraftClient client) {
+        // Only close if it was opened by this controller and autoClose is enabled.
+        // Screen safety: player's manually opened inventory (openedByRefill == false) is NEVER closed!
+        if (openedByRefill && RefillConfig.autoClose && client != null && client.currentScreen instanceof InventoryScreen) {
             if (client.player != null) {
                 client.player.closeHandledScreen();
             }
@@ -310,9 +292,82 @@ public final class CartRefillController {
         targetSlot = -1;
         invCartSlot = -1;
         timer = 0;
-        calculatedSwapTicks = 0;
-        calculatedCloseTicks = 0;
         openedByRefill = false;
+    }
+
+    public boolean shouldCloseScreen(net.minecraft.client.gui.screen.Screen screen, boolean openedByRefill) {
+        return openedByRefill && RefillConfig.autoClose && (screen instanceof InventoryScreen);
+    }
+
+    public boolean shouldCloseScreen(net.minecraft.client.gui.screen.Screen screen) {
+        return shouldCloseScreen(screen, this.openedByRefill);
+    }
+
+    public int sampleOpenDelayTicks() {
+        if (!RefillConfig.randomDelay) {
+            return Math.max(2, Math.min(4, RefillConfig.refillDelayTicks));
+        }
+        return GaussianTimingEngine.getFastLegitRefillOpenDelayTicks();
+    }
+
+    public long sampleOpenDelayMs() {
+        if (!RefillConfig.randomDelay) {
+            return Math.max(GaussianTimingEngine.FAST_LEGIT_MIN_MS,
+                Math.min(GaussianTimingEngine.FAST_LEGIT_MAX_MS, RefillConfig.refillDelayTicks * 50L));
+        }
+        return GaussianTimingEngine.getFastLegitRefillOpenDelayMs();
+    }
+
+    public int sampleSwapDelayTicks() {
+        if (!RefillConfig.randomDelay) {
+            return Math.max(2, Math.min(4, RefillConfig.refillDelayTicks));
+        }
+        return GaussianTimingEngine.getFastLegitRefillSwapDelayTicks();
+    }
+
+    public long sampleSwapDelayMs() {
+        if (!RefillConfig.randomDelay) {
+            return Math.max(GaussianTimingEngine.FAST_LEGIT_MIN_MS,
+                Math.min(GaussianTimingEngine.FAST_LEGIT_MAX_MS, (RefillConfig.refillDelayTicks + 1) * 50L));
+        }
+        return GaussianTimingEngine.getFastLegitRefillSwapDelayMs();
+    }
+
+    public int sampleCloseDelayTicks() {
+        if (!RefillConfig.randomDelay) {
+            return Math.max(2, Math.min(4, RefillConfig.refillDelayTicks));
+        }
+        return GaussianTimingEngine.getFastLegitRefillCloseDelayTicks();
+    }
+
+    public long sampleCloseDelayMs() {
+        if (!RefillConfig.randomDelay) {
+            return Math.max(GaussianTimingEngine.FAST_LEGIT_MIN_MS,
+                Math.min(GaussianTimingEngine.FAST_LEGIT_MAX_MS, RefillConfig.refillDelayTicks * 50L));
+        }
+        return GaussianTimingEngine.getFastLegitRefillCloseDelayMs();
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public int getTimer() {
+        return timer;
+    }
+
+    public boolean isOpenedByRefill() {
+        return openedByRefill;
+    }
+
+    public int getTargetSlot() {
+        return targetSlot;
+    }
+
+    public void setStateForTest(State state, int timer, boolean openedByRefill) {
+        this.state = state;
+        this.timer = timer;
+        this.openedByRefill = openedByRefill;
     }
 
     private int findInventoryCart(ClientPlayerEntity player) {
