@@ -21,38 +21,12 @@ import net.minecraft.text.Text;
 
 import java.util.Locale;
 
-/**
- * Universal component factory that automatically maps typed {@link Setting} instances
- * to interactive Activity GUI components.
- *
- * <p>Standard Type Mappings:
- * <ul>
- *   <li>{@link BooleanSetting} &rarr; {@link ActivityToggle}</li>
- *   <li>{@link NumberSetting} &rarr; {@link ActivitySlider}</li>
- *   <li>{@link EnumSetting} &rarr; {@link ActivityDropdown}</li>
- *   <li>{@link KeybindSetting} &rarr; {@link ActivityKeybindButton}</li>
- *   <li>{@link StringSetting} &rarr; {@link ActivityTextField}</li>
- *   <li>{@link ActionSetting} &rarr; {@link ActivityButton}</li>
- * </ul>
- */
 public final class SettingComponentFactory {
 
     private SettingComponentFactory() {}
 
     public record SettingRow(ActivityLabel label, ActivityComponent control) {}
 
-    /**
-     * Creates a standardized setting row containing a descriptive label on the left
-     * and the appropriate interactive control on the right.
-     *
-     * @param setting    the typed setting to render
-     * @param startX     left padding X
-     * @param rowY       top row Y
-     * @param innerRowW  total available row width inside card
-     * @param screen     parent screen (for modals and overlays)
-     * @param onModified callback triggered when setting value changes
-     * @return paired label and control components
-     */
     public static SettingRow createRow(Setting<?> setting, int startX, int rowY, int innerRowW,
                                        ActivityScreen screen, Runnable onModified) {
         return createRow(setting, startX, rowY, innerRowW,

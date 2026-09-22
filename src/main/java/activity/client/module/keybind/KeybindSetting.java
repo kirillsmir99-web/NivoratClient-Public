@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-/**
- * Observable setting binding for a {@link Keybind} configuration entry.
- */
 public class KeybindSetting {
 
     private final String id;

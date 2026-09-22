@@ -60,7 +60,6 @@ public final class AnchorController {
             return;
         }
 
-        // When Shift is held down, auto-refill of anchor with glowstone must NOT work
         if (isShiftPressed(client)) {
             if (state == State.WAITING_CHARGE || state == State.SELECT_GLOW || state == State.INTERACT_GLOW) {
                 cancelState(client);
@@ -134,7 +133,7 @@ public final class AnchorController {
                 int curCharges = currentAnchorState.get(RespawnAnchorBlock.CHARGES);
                 if (curCharges > lastObservedCharges || curCharges >= AnchorConfig.targetCharges) {
                     if (curCharges < AnchorConfig.targetCharges) {
-                        // More charges needed
+
                         if (isShiftPressed(client)) {
                             cancelState(client);
                             return;
@@ -278,7 +277,7 @@ public final class AnchorController {
 
                 int charges = blockState.get(RespawnAnchorBlock.CHARGES);
                 if (charges < AnchorConfig.targetCharges) {
-                    // Refilling with glowstone: disabled when Shift is pressed
+
                     if (isShiftPressed(client)) {
                         return;
                     }
@@ -449,7 +448,7 @@ public final class AnchorController {
     }
 
     private int resolveDetonateSlot(ClientPlayerEntity player, int origSlot, int gSlot) {
-        // 1. If totem in hotbar: switch to totem to detonate holding totem!
+
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
             ItemStack stack = player.getInventory().getStack(i);
@@ -458,7 +457,6 @@ public final class AnchorController {
             }
         }
 
-        // 2. If offhand already has totem, player is protected: prefer detonate with anchor
         if (player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
             for (int i = 0; i < 9; i++) {
                 if (i == gSlot) continue;
@@ -469,7 +467,6 @@ public final class AnchorController {
             }
         }
 
-        // 3. If no totem, detonate with anchor!
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
             ItemStack stack = player.getInventory().getStack(i);
@@ -478,7 +475,6 @@ public final class AnchorController {
             }
         }
 
-        // 4. Fallback: empty hand or safe item
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
             ItemStack stack = player.getInventory().getStack(i);

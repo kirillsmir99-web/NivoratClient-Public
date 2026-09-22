@@ -17,11 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Non-intrusive floating toast notification component adhering to the NivoratClient acrylic design system.
- * Renders on top (Z=7 Layer) without blocking clicks outside its bounds.
- * Supports informative icon, message, optional interactive action button (e.g. copy link), and auto-dismiss timer.
- */
 public class ToastOverlay implements Overlay {
 
     private final Text message;
@@ -72,12 +67,6 @@ public class ToastOverlay implements Overlay {
         updateLayout();
     }
 
-    /**
-     * Creates a toast notification for browser link opening failure with a copy-to-clipboard action.
-     *
-     * @param url the link that failed to open
-     * @return initialized ToastOverlay
-     */
     public static ToastOverlay forUrlError(String url) {
         Text message = Text.translatable("activity.toast.open_url_failed");
         Text action = Text.translatable("activity.toast.copy_url");
@@ -97,9 +86,6 @@ public class ToastOverlay implements Overlay {
         return toast;
     }
 
-    /**
-     * Updates action button state upon successful execution (e.g. copied to clipboard).
-     */
     public void setActionSuccess(Text successLabel) {
         if (this.actionButton != null) {
             this.actionButton.setMessage(successLabel);
@@ -199,7 +185,6 @@ public class ToastOverlay implements Overlay {
         float eased = AnimationClock.smoothStep(this.animProgress);
         this.y = (int) (startY + (targetY - startY) * eased);
 
-        // Position children
         int curX = this.x + this.width - pad - closeBtnW;
         int btnY = this.y + (this.height - 18) / 2;
         this.closeButton.setX(curX);
@@ -271,7 +256,6 @@ public class ToastOverlay implements Overlay {
             }
         }
 
-        // Auto-dismiss countdown (paused when mouse is hovering the toast)
         this.hovered = contains(mouseX, mouseY);
         if (!this.hovered && !this.closing) {
             this.remainingTime -= AnimationClock.getDeltaTime();
@@ -292,18 +276,14 @@ public class ToastOverlay implements Overlay {
         int panelBg = ActivityColors.withAlpha(0x12141A, Math.round(242 * alphaFactor));
         int borderColor = ActivityColors.withAlpha(ActivityColors.WARNING, Math.round(225 * alphaFactor));
 
-        // Acrylic Glass Panel
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, panelBg, borderColor, true);
 
-        // Specular top highlight
         int glintColor = ActivityColors.withAlpha(0xFFFFFF, Math.round(40 * alphaFactor));
         ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, 1, glintColor);
 
-        // Warning Icon
         int iconColor = ActivityColors.withAlpha(ActivityColors.WARNING, Math.round(255 * alphaFactor));
         ActivityIconRenderer.drawCenteredSized(context, ActivityIcon.WARNING, this.x + pad, this.y, iconW + 2, this.height, 10, iconColor);
 
-        // Message Text
         if (tr != null && this.message != null) {
             int textX = this.x + pad + iconW + gap;
             int textY = this.y + (this.height - tr.fontHeight) / 2;
@@ -319,12 +299,10 @@ public class ToastOverlay implements Overlay {
             }
         }
 
-        // Render Action Button
         if (this.actionButton != null) {
             this.actionButton.render(context, mouseX, mouseY, delta);
         }
 
-        // Render Close Button
         this.closeButton.render(context, mouseX, mouseY, delta);
     }
 

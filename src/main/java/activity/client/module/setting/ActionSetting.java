@@ -2,9 +2,6 @@ package activity.client.module.setting;
 
 import net.minecraft.text.Text;
 
-/**
- * Action button setting that executes a command, opens a modal, or triggers an editor.
- */
 public class ActionSetting extends Setting<Runnable> {
 
     public ActionSetting(String id, Text name, Text description, SettingGroup group, Runnable action) {
@@ -22,7 +19,7 @@ public class ActionSetting extends Setting<Runnable> {
 
     @Override
     public void set(Runnable value) {
-        // No-op for action buttons
+
     }
 
     public void execute() {

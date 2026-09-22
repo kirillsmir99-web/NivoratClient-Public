@@ -22,9 +22,6 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-/**
- * Profiles, global configuration persistence, and honest module integration status tab.
- */
 public class ConfigTab extends ActivityTab {
 
     private static final Text SUBTITLE = Text.translatable("activity.tab.config.subtitle");
@@ -79,9 +76,6 @@ public class ConfigTab extends ActivityTab {
 
         int dropdownW = Math.min(150, innerRowW / 2);
 
-        // ==========================================
-        // CARD 1: ПРОФИЛИ НАСТРОЕК И ПРЕСЕТЫ
-        // ==========================================
         List<Preset> presets = PresetManager.getPresets();
         Preset currentPreset = PresetManager.getPresetById(config.activeProfile);
         if (currentPreset == null) currentPreset = PresetManager.getPresetByName(config.activeProfile);
@@ -100,7 +94,6 @@ public class ConfigTab extends ActivityTab {
 
         int rowY = curY1 + 22;
 
-        // Row 1.1: Profile selector dropdown + Trash button (for custom presets)
         ActivityLabel labelProfile = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.config.active_profile"));
         int trashBtnW = ActivityMetrics.CONTROL_HEIGHT;
         int activeDropdownW = isCustom ? (dropdownW - trashBtnW - 4) : dropdownW;
@@ -149,7 +142,6 @@ public class ConfigTab extends ActivityTab {
             addControl(container, btnDelete);
         }
 
-        // Action Handlers
         Preset activePresetTarget = currentPreset;
 
         Runnable doApply = () -> {
@@ -283,7 +275,6 @@ public class ConfigTab extends ActivityTab {
             }
         };
 
-        // Row 1.2 & 1.3: Action buttons
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         int btnGap = ActivityMetrics.COLUMN_GAP;
 
@@ -348,7 +339,6 @@ public class ConfigTab extends ActivityTab {
             addControl(container, btnImport);
         }
 
-        // Row 1.4: Master Toggle & Factory Reset Buttons
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         int actionBtnW = (innerRowW - ActivityMetrics.COLUMN_GAP) / 2;
         boolean anyModuleEnabled = ModuleRegistry.isAnyModuleEnabled();
@@ -401,7 +391,6 @@ public class ConfigTab extends ActivityTab {
         btnReset.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnReset);
 
-        // Row 1.5: Dynamic Feedback Status Label
         if (hasStatus) {
             rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
             ActivityLabel statusLbl = new ActivityLabel(innerStartX1 + 2, rowY + 3, this.presetStatusText, this.presetStatusColor);
@@ -411,9 +400,6 @@ public class ConfigTab extends ActivityTab {
 
         col1Y += profileHeight + 10;
 
-        // ==========================================
-        // CARD 2: СТАТУС ИНТЕГРАЦИИ МОДУЛЕЙ
-        // ==========================================
         int card2X = twoColumns ? col2X : col1X;
         int innerStartX2 = card2X + ActivityMetrics.PADDING_PANEL;
         int curY2 = twoColumns ? col2Y : col1Y;

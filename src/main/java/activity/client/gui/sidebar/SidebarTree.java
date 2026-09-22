@@ -24,17 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
-/**
- * Hierarchical collapsible sidebar navigation tree.
- * Supports animated accordion category expansion, status dots, module navigation,
- * and pinned bottom footer blocks for Settings and About.
- */
 public class SidebarTree {
 
-    public static final int ITEM_HEIGHT = ActivityMetrics.SIDEBAR_ITEM_HEIGHT; // 20px
-    public static final int ITEM_GAP = ActivityMetrics.SIDEBAR_ITEM_GAP;       // 2px
-    public static final int CHILD_ITEM_HEIGHT = ActivityMetrics.SIDEBAR_CHILD_HEIGHT; // 16px
-    public static final int CHILD_GAP = ActivityMetrics.SIDEBAR_CHILD_GAP;           // 2px
+    public static final int ITEM_HEIGHT = ActivityMetrics.SIDEBAR_ITEM_HEIGHT;
+    public static final int ITEM_GAP = ActivityMetrics.SIDEBAR_ITEM_GAP;
+    public static final int CHILD_ITEM_HEIGHT = ActivityMetrics.SIDEBAR_CHILD_HEIGHT;
+    public static final int CHILD_GAP = ActivityMetrics.SIDEBAR_CHILD_GAP;
 
     public static class ModuleItem {
         private final String id;
@@ -219,10 +214,8 @@ public class SidebarTree {
                 return;
             }
 
-            // Smooth accordion animation (~140ms duration)
             this.expandProgress = AnimationClock.approach(this.expandProgress, targetExpand, AnimationClock.DURATION_EXPAND, dt);
 
-            // Smooth row and chevron hover animations (~100ms)
             this.hoverProgress = AnimationClock.approach(this.hoverProgress, targetHover, AnimationClock.DURATION_HOVER, dt);
             this.chevronHoverProgress = AnimationClock.approach(this.chevronHoverProgress, targetChevron, AnimationClock.DURATION_HOVER, dt);
         }
@@ -464,19 +457,17 @@ public class SidebarTree {
     }
 
     private void initNodes() {
-        // Category 0: Combat
+
         CategoryNode combat = new CategoryNode("combat", 0, Text.translatable("activity.tab.combat"), ActivityIcon.COMBAT);
         populateCategoryFromRegistry(combat, activity.client.module.api.ModuleCategory.COMBAT);
-        combat.setExpanded(true); // default open for immediate UX visibility
+        combat.setExpanded(true);
         combat.setUserExpanded(true);
         this.categories.add(combat);
 
-        // Category 1: Defense
         CategoryNode defense = new CategoryNode("defense", 1, Text.translatable("activity.tab.defense"), ActivityIcon.DEFENSE);
         populateCategoryFromRegistry(defense, activity.client.module.api.ModuleCategory.DEFENSE);
         this.categories.add(defense);
 
-        // Category 2: Utility & HUD
         CategoryNode utility = new CategoryNode("utility", 2, Text.translatable("activity.tab.utility"), ActivityIcon.UTILITY);
         populateCategoryFromRegistry(utility, activity.client.module.api.ModuleCategory.UTILITY);
         utility.addChild("hud_activity", Text.translatable("activity.module.hud_activity.name"), () -> {
@@ -485,13 +476,11 @@ public class SidebarTree {
         });
         this.categories.add(utility);
 
-        // Category 3: Config & Binds
         CategoryNode config = new CategoryNode("config", 3, Text.translatable("activity.tab.config"), ActivityIcon.CONFIG);
         config.addChild("profiles", Text.translatable("activity.card.config.profiles"), () -> true);
         config.addChild("status", Text.translatable("activity.card.config.status"), () -> true);
         this.categories.add(config);
 
-        // Fixed Footer Items
         this.footerItems.add(new FooterNode("settings", 4, Text.translatable("activity.tab.settings"), ActivityIcon.SETTINGS));
         this.footerItems.add(new FooterNode("about", 5, Text.translatable("activity.tab.about"), ActivityIcon.ABOUT));
     }
@@ -599,7 +588,6 @@ public class SidebarTree {
         int sidebarW = layout.sidebarWidth;
         int sidebarH = layout.sidebarHeight;
 
-        // Footer Dimensions
         int footerHeight = getFooterHeight(layout);
         int footerY = Math.max(sidebarY + 18, sidebarY + sidebarH - footerHeight);
         int itemH = getFooterItemHeight(layout);
@@ -612,7 +600,6 @@ public class SidebarTree {
         List<String> pinnedList = config != null ? config.getPinnedModules() : List.of();
         int qaHeight = getQuickAccessHeight(pinnedList);
 
-        // Synchronized Pre-Pass: update all category & child animations and hover states BEFORE computing tree height
         int simY = categoryAreaY - (int) Math.round(this.scrollOffset);
         simY += qaHeight;
         for (CategoryNode cat : this.categories) {
@@ -638,7 +625,6 @@ public class SidebarTree {
             }
         }
 
-        // Calculate total tree height for scrolling bounds with 100% synchronized state
         int totalContentHeight = qaHeight;
         for (CategoryNode cat : this.categories) {
             totalContentHeight += ITEM_HEIGHT + ITEM_GAP;
@@ -651,7 +637,6 @@ public class SidebarTree {
         double maxScroll = Math.max(0, totalContentHeight - categoryAreaH);
         this.scrollOffset = Math.clamp(this.scrollOffset, 0, maxScroll);
 
-        // Render scrollable categories inside Scissor viewport
         ScissorHelper.pushScissor(context, sidebarX, categoryAreaY, sidebarW, categoryAreaH);
         try {
             int curY = categoryAreaY - (int) Math.round(this.scrollOffset);
@@ -668,11 +653,9 @@ public class SidebarTree {
 
                 boolean isSelected = (cat.getTabIndex() == selectedTab);
 
-                // Render Category Header Row
                 renderCategoryRow(context, rowX, rowY, rowW, ITEM_HEIGHT, cat, isSelected, textRenderer, layout, alphaFactor);
                 curY += ITEM_HEIGHT + ITEM_GAP;
 
-                // Render Children if expanding or expanded
                 if (cat.getExpandProgress() > 0.001f && cat.hasChildren()) {
                     float eased = AnimationClock.smoothStep(cat.getExpandProgress());
                     int childrenHeight = cat.getChildren().size() * (CHILD_ITEM_HEIGHT + CHILD_GAP);
@@ -696,7 +679,6 @@ public class SidebarTree {
             ScissorHelper.popScissor(context);
         }
 
-        // Render Fixed Footer Block inside Scissor viewport
         ActivityGuiRenderer.drawHorizontalLine(context, sidebarX, footerY, sidebarW, ActivityColors.scaleAlpha(ActivityColors.BORDER, alphaFactor));
 
         ScissorHelper.pushScissor(context, sidebarX, footerY, sidebarW, footerHeight);
@@ -713,7 +695,6 @@ public class SidebarTree {
                 itemY += itemH + itemGap;
             }
 
-            // Watermark & version text
             if (layout.sidebarHeight >= 160) {
                 int waterY = itemY + 3;
                 int waterX = sidebarX + (layout.isCompact() ? 4 : 8);
@@ -762,7 +743,7 @@ public class SidebarTree {
         int categoryAreaH,
         float alphaFactor
     ) {
-        // Section Header: "БЫСТРЫЙ ДОСТУП"
+
         if (textRenderer != null) {
             int headerY = curY;
             Text qaTitle = Text.translatable("activity.sidebar.quick_access");
@@ -781,7 +762,6 @@ public class SidebarTree {
             itemY += ITEM_HEIGHT + ITEM_GAP;
         }
 
-        // 1px Divider
         int divColor = ActivityColors.scaleAlpha(ActivityColors.BORDER_DIVIDER, alphaFactor);
         ActivityGuiRenderer.drawHorizontalLine(context, sidebarX + 4, itemY + 1, sidebarW - 8, divColor);
     }
@@ -819,7 +799,6 @@ public class SidebarTree {
         IModule module = ModuleRegistry.get(moduleId);
         boolean isEnabled = module != null && module.isEnabled();
 
-        // 1. Icon
         ActivityIcon icon = meta != null ? meta.getIcon() : ActivityIcon.INFO;
         int iconColor = isEnabled ? ActivityColors.TEXT_PRIMARY : ActivityColors.TEXT_MUTED;
         iconColor = ActivityColors.scaleAlpha(iconColor, alphaFactor);
@@ -828,7 +807,6 @@ public class SidebarTree {
             ActivityIconRenderer.draw(context, icon, x + 4, iconY, iconColor);
         }
 
-        // 2. Toggle Switch on the far right (16x9px)
         int toggleW = 16;
         int toggleH = 9;
         int toggleX = x + width - toggleW - 4;
@@ -845,7 +823,6 @@ public class SidebarTree {
         int knobColor = ActivityColors.scaleAlpha(ActivityColors.TOGGLE_KNOB, alphaFactor);
         ActivityGuiRenderer.fill(context, knobX, knobY, 5, toggleH - 2, knobColor);
 
-        // 3. Keybind badge
         int rightBound = toggleX - 4;
         if (module != null && textRenderer != null) {
             String kbStr = (module.getKeybind() != null && !module.getKeybind().isUnbound())
@@ -862,7 +839,6 @@ public class SidebarTree {
             }
         }
 
-        // 4. Module Name
         if (textRenderer != null) {
             int nameX = x + 4 + (icon != null ? icon.getWidth() : 12) + 4;
             int maxNameW = Math.max(0, rightBound - nameX);
@@ -924,7 +900,6 @@ public class SidebarTree {
             activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, textRenderer, displayTitle, textX, textY, textColor);
         }
 
-        // Chevron icon on the right: smooth cross-fade between CHEVRON_RIGHT and CHEVRON_DOWN
         if (cat.hasChildren() && width >= 40) {
             float eased = AnimationClock.smoothStep(cat.getExpandProgress());
             int chevronY = y + (height - ActivityIcon.CHEVRON_RIGHT.getHeight()) / 2;
@@ -970,7 +945,6 @@ public class SidebarTree {
             ActivityGuiRenderer.fill(context, x, y, width, height, hoverColor);
         }
 
-        // Active indicator status dot (4x4)
         int dotX = x + 3;
         int dotY = y + (height - 4) / 2;
         boolean isSearchMatched = !this.activeSearchQuery.isEmpty() &&
@@ -987,7 +961,6 @@ public class SidebarTree {
         dotColor = ActivityColors.scaleAlpha(dotColor, alphaFactor);
         ActivityGuiRenderer.fill(context, dotX, dotY, 4, 4, dotColor);
 
-        // Module name text
         int textX = dotX + 7;
         int textColor;
         if (selected) {
@@ -1066,7 +1039,6 @@ public class SidebarTree {
         int itemH = getFooterItemHeight(layout);
         int itemGap = getFooterItemGap(layout);
 
-        // Check Footer Items (only on LMB)
         if (mouseY >= footerY) {
             if (button != 0) return true;
             int itemY = footerY + (layout.isCompact() ? 3 : 5);
@@ -1090,7 +1062,6 @@ public class SidebarTree {
             return true;
         }
 
-        // Check Categories and Child Modules
         int categoryAreaY = sidebarY + (layout.isCompact() ? ActivityMetrics.PADDING_WINDOW_COMPACT : ActivityMetrics.PADDING_WINDOW);
         int categoryAreaH = Math.max(16, footerY - categoryAreaY - 2);
 
@@ -1100,9 +1071,8 @@ public class SidebarTree {
             ActivityConfig config = ActivityConfigManager.getConfig();
             List<String> pinnedList = config != null ? config.getPinnedModules() : List.of();
 
-            // 1. Quick Access Clicks
             if (!pinnedList.isEmpty()) {
-                int qaItemY = curY + 16; // skip header
+                int qaItemY = curY + 16;
                 for (String pinnedId : pinnedList) {
                     int rowX = sidebarX + 2;
                     int rowW = sidebarW - 4;
@@ -1110,12 +1080,12 @@ public class SidebarTree {
 
                     if (mouseX >= rowX && mouseX < rowX + rowW && mouseY >= rowY && mouseY < rowY + ITEM_HEIGHT) {
                         if (button == 1) {
-                            // Right click -> context menu
+
                             screen.openContextMenu(pinnedId, mouseX, mouseY);
                             activity.client.gui.sound.SoundManager.playClick();
                             return true;
                         } else if (button == 0) {
-                            // Left click -> check toggle switch vs row
+
                             int toggleAreaX = rowX + rowW - ((layout.isCompact() || layout.isSmallScreen()) ? 28 : 24);
                             if (mouseX >= toggleAreaX) {
                                 IModule mod = ModuleRegistry.get(pinnedId);
@@ -1141,16 +1111,14 @@ public class SidebarTree {
                 curY += getQuickAccessHeight(pinnedList);
             }
 
-            // 2. Categories and Child Modules
             for (CategoryNode cat : this.categories) {
                 int rowX = sidebarX + 2;
                 int rowW = sidebarW - 4;
                 int rowY = curY;
 
-                // Category row click (only on LMB)
                 int catTouchPad = (layout.isCompact() || layout.isSmallScreen()) ? 2 : 0;
                 if (button == 0 && mouseY >= rowY - catTouchPad && mouseY < rowY + ITEM_HEIGHT + catTouchPad) {
-                    // Right chevron area toggles expand
+
                     int chevronHitbox = (layout.isCompact() || layout.isSmallScreen()) ? 26 : 22;
                     if (cat.hasChildren() && mouseX >= rowX + rowW - chevronHitbox) {
                         cat.toggleExpanded();
@@ -1163,7 +1131,7 @@ public class SidebarTree {
                         }
                         return true;
                     }
-                    // Main category area: if already selected, toggles expand; else selects and expands
+
                     if (screen.getSelectedTab() == cat.getTabIndex() && cat.hasChildren()) {
                         cat.toggleExpanded();
                         cat.setUserExpanded(cat.isExpanded());
@@ -1192,7 +1160,6 @@ public class SidebarTree {
 
                 curY += ITEM_HEIGHT + ITEM_GAP;
 
-                // Child module rows click with frame-synchronized clipHeight
                 if (cat.getExpandProgress() > 0.001f && cat.hasChildren()) {
                     float eased = AnimationClock.smoothStep(cat.getExpandProgress());
                     int childrenHeight = cat.getChildren().size() * (CHILD_ITEM_HEIGHT + CHILD_GAP);
@@ -1204,7 +1171,7 @@ public class SidebarTree {
                         if (canClickChildren && mouseY >= childY - touchChildPad && mouseY < childY + CHILD_ITEM_HEIGHT + touchChildPad && mouseY < curY + clipHeight
                                 && mouseX >= rowX + 4 && mouseX < rowX + rowW) {
                             if (button == 1) {
-                                // Right-click on child module -> context menu
+
                                 screen.openContextMenu(child.getId(), mouseX, mouseY);
                                 activity.client.gui.sound.SoundManager.playClick();
                                 return true;

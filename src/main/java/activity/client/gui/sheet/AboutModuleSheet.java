@@ -23,23 +23,6 @@ import net.minecraft.util.Util;
 
 import java.util.List;
 
-/**
- * Animated right-side sheet displaying comprehensive module information.
- *
- * <p>Content includes:
- * <ul>
- *   <li>Title & Icon</li>
- *   <li>Status badge (Включен / Выключен)</li>
- *   <li>Author (Nivorat)</li>
- *   <li>Version (1.0.0)</li>
- *   <li>Last updated date (2026-09-16)</li>
- *   <li>Keybind display</li>
- *   <li>Multi-line wrapped description</li>
- *   <li>Channel notice (@virionDEV)</li>
- *   <li>Telegram action button (opens t.me/virionDEV)</li>
- *   <li>Open Settings action button (navigates to module in tab)</li>
- * </ul>
- */
 public class AboutModuleSheet implements Overlay {
 
     public static final int SHEET_WIDTH = 260;
@@ -51,7 +34,6 @@ public class AboutModuleSheet implements Overlay {
     private boolean closed = false;
     private float slideProgress = 0.0f;
 
-    // Hover states
     private boolean closeHovered = false;
     private boolean telegramHovered = false;
     private boolean settingsHovered = false;
@@ -169,19 +151,15 @@ public class AboutModuleSheet implements Overlay {
         int width = getEffectiveWidth();
         int renderX = screenW - (int) Math.round(width * eased);
 
-        // 1. Semi-transparent backdrop to the left
         int backdropColor = ActivityColors.scaleAlpha(0x66000000, eased);
         ActivityGuiRenderer.fill(context, 0, 0, renderX, screenH, backdropColor);
 
-        // 2. Sheet Panel Body
         int panelBg = ActivityColors.scaleAlpha(ActivityColors.WINDOW_BACKGROUND, eased);
         int borderColor = ActivityColors.scaleAlpha(ActivityColors.BORDER_LIGHT, eased);
         ActivityGuiRenderer.fill(context, renderX, 0, width, screenH, panelBg);
 
-        // 1px left border
         ActivityGuiRenderer.fill(context, renderX, 0, 1, screenH, borderColor);
 
-        // Glass highlight along left rim
         if (eased > 0.1f) {
             int highlightColor = ActivityColors.scaleAlpha(ActivityColors.GLASS_HIGHLIGHT_PRIMARY, eased);
             ActivityGuiRenderer.fill(context, renderX + 1, 0, 1, screenH, highlightColor);
@@ -190,13 +168,11 @@ public class AboutModuleSheet implements Overlay {
         MinecraftClient mc = MinecraftClient.getInstance();
         TextRenderer textRenderer = mc != null ? mc.textRenderer : null;
 
-        // 3. Header Bar (28px height)
         int headerH = 28;
         int headerBg = ActivityColors.scaleAlpha(ActivityColors.HEADER_BACKGROUND, eased);
         ActivityGuiRenderer.fill(context, renderX + 1, 0, width - 1, headerH, headerBg);
         ActivityGuiRenderer.drawHorizontalLine(context, renderX, headerH, width, ActivityColors.scaleAlpha(ActivityColors.BORDER_DIVIDER, eased));
 
-        // Header Title
         if (textRenderer != null) {
             Text headerTitle = Text.translatable("activity.sheet.about_title");
             Text wrappedHeader = FontManager.wrap(headerTitle);
@@ -204,7 +180,6 @@ public class AboutModuleSheet implements Overlay {
             context.drawTextWithShadow(textRenderer, wrappedHeader, renderX + 12, titleY, ActivityColors.scaleAlpha(ActivityColors.TEXT_MUTED, eased));
         }
 
-        // Close Button (18x18)
         int closeX = renderX + width - 22;
         int closeY = (headerH - 14) / 2;
         this.closeHovered = mouseX >= closeX - 2 && mouseX < closeX + 16 && mouseY >= closeY - 2 && mouseY < closeY + 16;
@@ -215,12 +190,10 @@ public class AboutModuleSheet implements Overlay {
         }
         ActivityIconRenderer.draw(context, ActivityIcon.CLOSE, closeX, closeY, closeColor);
 
-        // 4. Content Area
         int curY = headerH + 12;
         int innerX = renderX + 12;
         int innerW = width - 24;
 
-        // Module Icon + Display Name
         ActivityIcon icon = this.metadata.getIcon();
         if (icon != null) {
             int iconY = curY + 1;
@@ -236,7 +209,6 @@ public class AboutModuleSheet implements Overlay {
         }
         curY += 24;
 
-        // Status Badge (Включен / Выключен)
         IModule module = ModuleRegistry.get(this.moduleId);
         boolean isEnabled = module != null && module.isEnabled();
 
@@ -252,11 +224,9 @@ public class AboutModuleSheet implements Overlay {
         }
         curY += 18;
 
-        // Divider
         ActivityGuiRenderer.drawHorizontalLine(context, innerX, curY, innerW, ActivityColors.scaleAlpha(ActivityColors.BORDER_DIVIDER, eased));
         curY += 8;
 
-        // Metadata rows
         curY = renderMetaRow(context, textRenderer, innerX, curY, innerW, Text.translatable("activity.sheet.author"), Text.literal(this.metadata.getAuthor()), eased);
         curY = renderMetaRow(context, textRenderer, innerX, curY, innerW, Text.translatable("activity.sheet.version"), Text.literal(this.metadata.getVersion()), eased);
         curY = renderMetaRow(context, textRenderer, innerX, curY, innerW, Text.translatable("activity.sheet.last_updated"), Text.literal(this.metadata.getLastUpdated()), eased);
@@ -266,7 +236,6 @@ public class AboutModuleSheet implements Overlay {
         ActivityGuiRenderer.drawHorizontalLine(context, innerX, curY, innerW, ActivityColors.scaleAlpha(ActivityColors.BORDER_DIVIDER, eased));
         curY += 8;
 
-        // Description
         if (textRenderer != null) {
             Text descLabel = Text.translatable("activity.sheet.description");
             context.drawTextWithShadow(textRenderer, FontManager.wrap(descLabel), innerX, curY, ActivityColors.scaleAlpha(ActivityColors.TEXT_SECONDARY, eased));
@@ -285,7 +254,6 @@ public class AboutModuleSheet implements Overlay {
             }
         }
 
-        // Channel notice: "Все обновления модификаций: @virionDEV"
         int noticeY = screenH - 74;
         if (textRenderer != null && noticeY > curY) {
             if (this.cachedNoticeText == null || this.lastNoticeInnerW != innerW) {
@@ -298,11 +266,9 @@ public class AboutModuleSheet implements Overlay {
             context.drawTextWithShadow(textRenderer, this.cachedNoticeText, innerX, noticeY, ActivityColors.scaleAlpha(ActivityColors.ACCENT_LIGHT, eased));
         }
 
-        // Action Buttons at bottom
         int btnW = innerW;
         int btnH = 20;
 
-        // Button 1: Telegram
         int btnTgY = screenH - 50;
         this.telegramHovered = mouseX >= innerX && mouseX < innerX + btnW && mouseY >= btnTgY && mouseY < btnTgY + btnH;
         int tgBg = ActivityColors.scaleAlpha(this.telegramHovered ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG, eased);
@@ -318,7 +284,6 @@ public class AboutModuleSheet implements Overlay {
             context.drawTextWithShadow(textRenderer, tgLabel, labelX, labelY, tgColor);
         }
 
-        // Button 2: Open Settings
         int btnSettingsY = screenH - 26;
         this.settingsHovered = mouseX >= innerX && mouseX < innerX + btnW && mouseY >= btnSettingsY && mouseY < btnSettingsY + btnH;
         int setBg = ActivityColors.scaleAlpha(this.settingsHovered ? ActivityColors.BUTTON_PRIMARY_HOVER : ActivityColors.BUTTON_PRIMARY_BG, eased);
@@ -359,7 +324,6 @@ public class AboutModuleSheet implements Overlay {
         int screenW = getScreenWidth();
         int screenH = getScreenHeight();
 
-        // Clicking outside the sheet dismisses it
         if (click.x() < renderX || click.x() > screenW || click.y() < 0 || click.y() > screenH) {
             close();
             return true;
@@ -368,7 +332,6 @@ public class AboutModuleSheet implements Overlay {
         int width = getEffectiveWidth();
         int headerH = 28;
 
-        // Close Button
         int closeX = renderX + width - 22;
         int closeY = (headerH - 14) / 2;
         if (click.x() >= closeX - 5 && click.x() < closeX + 19 && click.y() >= closeY - 5 && click.y() < closeY + 19) {
@@ -381,16 +344,14 @@ public class AboutModuleSheet implements Overlay {
         int innerW = width - 24;
         int btnW = innerW;
         int btnH = 20;
-        int touchPadY = 2; // Expands 20px button to 24px touch hitbox
+        int touchPadY = 2;
 
-        // Button 1: Telegram
         int btnTgY = screenH - 50;
         if (click.x() >= innerX && click.x() < innerX + btnW && click.y() >= btnTgY - touchPadY && click.y() < btnTgY + btnH + touchPadY) {
             activity.client.gui.tab.AboutTab.openUrl(this.metadata.getTelegramUrl(), this.screen);
             return true;
         }
 
-        // Button 2: Open Settings
         int btnSettingsY = screenH - 26;
         if (click.x() >= innerX && click.x() < innerX + btnW && click.y() >= btnSettingsY - touchPadY && click.y() < btnSettingsY + btnH + touchPadY) {
             SoundManager.playClick();
@@ -401,7 +362,6 @@ public class AboutModuleSheet implements Overlay {
             return true;
         }
 
-        // Any click inside the sheet is consumed
         return true;
     }
 }

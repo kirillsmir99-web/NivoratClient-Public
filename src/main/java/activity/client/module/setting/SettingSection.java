@@ -2,17 +2,6 @@ package activity.client.module.setting;
 
 import net.minecraft.text.Text;
 
-/**
- * Standardized unified sections for NivoratClient module settings.
- *
- * Enforces clean, logical separation of options across all module configuration views:
- * <ul>
- *     <li>GENERAL: Primary switches, source modes, target selectors</li>
- *     <li>BEHAVIOR: Operational timings, delays, distances, chances</li>
- *     <li>ADVANCED: Anti-cheat tolerances, safety modes, fine tuning</li>
- *     <li>HUD: Visual overlays, indicators, screen editors</li>
- * </ul>
- */
 public enum SettingSection {
     GENERAL("activity.group.general", "Основные"),
     BEHAVIOR("activity.group.behavior", "Поведение"),

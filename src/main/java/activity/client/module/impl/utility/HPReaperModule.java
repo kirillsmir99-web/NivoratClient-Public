@@ -46,7 +46,6 @@ public class HPReaperModule extends NivoratModule {
                 .aliases("hpreaper", "reaper", "хп", "hp", "жнец hp", "жнец", "хпреапер", "здоровье", "индикатор", "цель", "target", "урон", "damage")
                 .build();
 
-        // 1. GENERAL (ordinal 0)
         registerEnum("mode", Text.translatable("activity.setting.utility.hpreaper_mode"),
                 Text.translatable("activity.setting.utility.hpreaper_mode.desc"), SettingGroup.GENERAL,
                 List.of("target_hp", "own_hp", "damage_diff", "compact"), "target_hp",
@@ -83,7 +82,6 @@ public class HPReaperModule extends NivoratModule {
                 }
         );
 
-        // 2. EXTRA (ordinal 2)
         registerAction("open_editor", Text.translatable("activity.setting.utility.open_editor"),
                 Text.translatable("activity.setting.utility.open_editor.desc"), SettingGroup.EXTRA,
                 () -> {

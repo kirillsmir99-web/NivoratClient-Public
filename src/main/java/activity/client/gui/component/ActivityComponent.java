@@ -7,12 +7,6 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
 
-/**
- * Base abstract class for all custom UI components in the Activity framework.
- *
- * <p>Encapsulates layout geometry (x, y, width, height), visibility, enabled state,
- * focus, hover detection, and lifecycle hooks for rendering and event handling.
- */
 public abstract class ActivityComponent implements Element, Drawable {
 
     protected int x;
@@ -46,8 +40,6 @@ public abstract class ActivityComponent implements Element, Drawable {
     public ActivityComponent() {
         this(0, 0, 0, 0);
     }
-
-    // --- Geometry ---
 
     public int getX() {
         return this.x;
@@ -98,8 +90,6 @@ public abstract class ActivityComponent implements Element, Drawable {
         this.height = height;
     }
 
-    // --- State flags ---
-
     public boolean isVisible() {
         return this.visible;
     }
@@ -144,8 +134,6 @@ public abstract class ActivityComponent implements Element, Drawable {
         this.alpha = Math.clamp(alpha, 0.0f, 1.0f);
     }
 
-    // --- Render Lifecycle ---
-
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!this.visible) return;
@@ -154,18 +142,7 @@ public abstract class ActivityComponent implements Element, Drawable {
         renderComponent(context, mouseX, mouseY, delta);
     }
 
-    /**
-     * Procedurally renders the component contents.
-     * Called by {@link #render(DrawContext, int, int, float)} only when {@link #isVisible()} is true.
-     *
-     * @param context draw context
-     * @param mouseX  mouse X position
-     * @param mouseY  mouse Y position
-     * @param delta   frame delta time
-     */
     protected abstract void renderComponent(DrawContext context, int mouseX, int mouseY, float delta);
-
-    // --- Input Handling Hooks ---
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
@@ -205,22 +182,9 @@ public abstract class ActivityComponent implements Element, Drawable {
     @Override
     public void mouseMoved(double mouseX, double mouseY) {}
 
-    /**
-     * Periodic tick callback for animations, timers, and state transitions.
-     */
     public void tick() {}
 
-    /**
-     * Called when the active font changes, allowing components to invalidate
-     * cached text measurements and re-measure bounds.
-     */
     public void onFontChanged() {}
 
-    /**
-     * Called when the parent container or screen layout bounds change.
-     *
-     * @param parentWidth  new parent width
-     * @param parentHeight new parent height
-     */
     public void onLayoutResized(int parentWidth, int parentHeight) {}
 }

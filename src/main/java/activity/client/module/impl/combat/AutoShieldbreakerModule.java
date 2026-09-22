@@ -38,7 +38,6 @@ public class AutoShieldbreakerModule extends NivoratModule {
                 .aliases("autoshieldbreaker", "shieldbreaker", "shield", "breaker", "сбив щита", "автосбив щита", "авто-щит", "щит", "топор", "ломатель", "axe", "дистанция", "distance", "шанс", "chance")
                 .build();
 
-        // 1. GENERAL
         registerEnum("mode", Text.translatable("activity.setting.combat.breaker_mode"),
                 Text.translatable("activity.setting.combat.breaker_mode.desc"), SettingGroup.GENERAL,
                 List.of("full_auto", "semi_auto"), "full_auto",
@@ -57,7 +56,6 @@ public class AutoShieldbreakerModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR
         registerNumber("distance", Text.translatable("activity.setting.combat.breaker_distance"),
                 Text.translatable("activity.setting.combat.breaker_distance.desc"), SettingGroup.BEHAVIOR,
                 1.5, 4.5, 0.05, " бл.", false, 2.85,
@@ -143,7 +141,6 @@ public class AutoShieldbreakerModule extends NivoratModule {
                 }
         );
 
-        // 3. ADVANCED
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
                 true,

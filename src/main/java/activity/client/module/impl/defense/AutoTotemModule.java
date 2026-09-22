@@ -31,7 +31,6 @@ public class AutoTotemModule extends NivoratModule {
                 .aliases("autototem", "totem", "тотем", "автототем", "авто-тотем", "hearts", "сердца", "поп", "pop", "здоровье", "хп", "hp", "chance", "шанс")
                 .build();
 
-        // 1. GENERAL
         registerEnum("mode", Text.translatable("activity.setting.defense.mode"),
                 Text.translatable("activity.setting.defense.mode.desc"), SettingGroup.GENERAL,
                 List.of("main_hand", "offhand", "crystal"), "main_hand",
@@ -62,7 +61,6 @@ public class AutoTotemModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR
         registerNumber("trigger_hearts", Text.translatable("activity.setting.defense.trigger_hearts"),
                 Text.translatable("activity.setting.defense.trigger_hearts.desc"), SettingGroup.BEHAVIOR,
                 0.5, 10.0, 0.5, " ❤", false, 3.0,
@@ -134,7 +132,6 @@ public class AutoTotemModule extends NivoratModule {
                 }
         );
 
-        // 3. EXTRA
         registerBoolean("return_item", Text.translatable("activity.setting.defense.return_item"),
                 Text.translatable("activity.setting.defense.return_item.desc"), SettingGroup.EXTRA,
                 true,
@@ -243,7 +240,7 @@ public class AutoTotemModule extends NivoratModule {
         try {
             int slotNum = Integer.parseInt(slotStr.trim());
             if (slotNum >= 1 && slotNum <= 9) {
-                return slotNum - 1; // convert 1..9 to 0..8
+                return slotNum - 1;
             }
         } catch (Exception ignored) {}
         return -1;

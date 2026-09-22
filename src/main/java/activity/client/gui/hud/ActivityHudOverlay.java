@@ -14,12 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Standard in-game HUD overlay for Activity / NivoratClient.
- * Renders the client title watermark badge and active modules list,
- * respecting overlayEnabled, hudPosition, hudCustomX/Y, hudShowActiveModules,
- * overlayOpacity, hideInF3, and autoHideOnChat.
- */
 public final class ActivityHudOverlay {
 
     public static final String DEFAULT_TITLE = "NivoratClient";
@@ -151,26 +145,20 @@ public final class ActivityHudOverlay {
 
         boolean rightAligned = (x + totalWidth / 2) > (windowWidth / 2);
 
-        // 1. Watermark badge
         int wmX = rightAligned ? (x + totalWidth - watermarkWidth) : x;
         int wmY = y;
 
-        // Background well
         context.fill(wmX, wmY, wmX + watermarkWidth, wmY + PILL_HEIGHT, bgColor);
 
-        // 1px accent border
         context.fill(wmX, wmY, wmX + watermarkWidth, wmY + 1, borderColor);
         context.fill(wmX, wmY + PILL_HEIGHT - 1, wmX + watermarkWidth, wmY + PILL_HEIGHT, borderColor);
         context.fill(wmX, wmY + 1, wmX + 1, wmY + PILL_HEIGHT - 1, borderColor);
         context.fill(wmX + watermarkWidth - 1, wmY + 1, wmX + watermarkWidth, wmY + PILL_HEIGHT - 1, borderColor);
 
-        // Cyan indicator dot
         context.fill(wmX + 4, wmY + 5, wmX + 8, wmY + 9, dotColor);
 
-        // Watermark text
         context.drawTextWithShadow(client.textRenderer, titleText, wmX + 11, wmY + 3, textColor);
 
-        // 2. Active modules list
         if (config != null && config.hudShowActiveModules) {
             List<IModule> active = getActiveModules();
             if (!active.isEmpty()) {
@@ -186,10 +174,8 @@ public final class ActivityHudOverlay {
                     int modW = modTextW + 10;
                     int modX = rightAligned ? (x + totalWidth - modW) : x;
 
-                    // Background fill
                     context.fill(modX, curY, modX + modW, curY + MODULE_ROW_HEIGHT, modBgColor);
 
-                    // Outer edge accent line (2px)
                     if (rightAligned) {
                         context.fill(modX + modW - 2, curY, modX + modW, curY + MODULE_ROW_HEIGHT, accentColor);
                         context.drawTextWithShadow(client.textRenderer, name, modX + 3, curY + 2, modTextColor);

@@ -14,18 +14,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Intelligent kill attribution engine for AutoGG.
- *
- * <p>Solves false triggers on FFA arenas and in crowded team fights by enforcing strict
- * attribution criteria:
- * <ul>
- *   <li>Direct melee/combat hit tracking with strict 900ms window and 7.0 block combat reach.</li>
- *   <li>Player-initiated explosion tracking (TNT carts and Respawn Anchors) within 1500ms and 8.5m radius.</li>
- *   <li>Server chat kill feed regex parsing across Russian and English server formats.</li>
- *   <li>Hard rejection of distant or unrelated death packets.</li>
- * </ul>
- */
 public final class AutoGGKillTracker {
 
     public static final long ATTACK_WINDOW_MS = 900L;
@@ -50,13 +38,11 @@ public final class AutoGGKillTracker {
     private static final Map<Integer, Long> lastAttributedKills = new ConcurrentHashMap<>();
     private static final Map<String, Long> lastAttributedKillNames = new ConcurrentHashMap<>();
 
-    // Direct kill notice patterns where group 1 is victim (e.g. server says "Вы убили <Victim>")
     private static final Pattern[] DIRECT_YOU_KILLED_PATTERNS = new Pattern[] {
         Pattern.compile("(?:Вы|Вы\\s+успешно)\\s+(?:убили|уничтожили|одолели|победили|казнили)\\s+(?:игрока\\s+)?([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
         Pattern.compile("(?:You\\s+killed|You\\s+slayed|You\\s+defeated)\\s+([\\w]+)", Pattern.CASE_INSENSITIVE)
     };
 
-    // Killer-Victim patterns where group 1 is killer, group 2 is victim
     private static final Pattern[] KILLER_VICTIM_PATTERNS = new Pattern[] {
         Pattern.compile("([\\w\\u0400-\\u04FF]+)\\s+(?:убил|зарубил|взорвал|расстрелял|уничтожил)\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
         Pattern.compile("\\[.*?\\]\\s*([\\w\\u0400-\\u04FF]+)\\s+(?:убил|зарубил|взорвал)\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
@@ -65,7 +51,7 @@ public final class AutoGGKillTracker {
     };
 
     private static final Pattern[] KILL_PATTERNS = new Pattern[] {
-        // Russian patterns:
+
         Pattern.compile("([\\w\\u0400-\\u04FF]+)\\s+был\\s+убит\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
         Pattern.compile("([\\w\\u0400-\\u04FF]+)\\s+погиб\\s+от\\s+взрыва\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
         Pattern.compile("([\\w\\u0400-\\u04FF]+)\\s+пал\\s+от\\s+руки\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
@@ -78,7 +64,6 @@ public final class AutoGGKillTracker {
         Pattern.compile("([\\w\\u0400-\\u04FF]+).*\\bутонул.*пытаясь\\s+сбежать\\s+от\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
         Pattern.compile("([\\w\\u0400-\\u04FF]+).*\\bразбился.*спасаясь\\s+от\\s+([\\w\\u0400-\\u04FF]+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
 
-        // English patterns:
         Pattern.compile("([\\w]+)\\s+was\\s+slain\\s+by\\s+([\\w]+)", Pattern.CASE_INSENSITIVE),
         Pattern.compile("([\\w]+)\\s+was\\s+blown\\s+up\\s+by\\s+([\\w]+)", Pattern.CASE_INSENSITIVE),
         Pattern.compile("([\\w]+)\\s+was\\s+shot\\s+by\\s+([\\w]+)", Pattern.CASE_INSENSITIVE),
@@ -98,58 +83,34 @@ public final class AutoGGKillTracker {
 
     private AutoGGKillTracker() {}
 
-    /**
-     * Records a direct hit on a target entity with specified coordinates and timestamp.
-     */
     public static void recordAttack(int entityId, Vec3d pos, long timestampMs) {
         recentAttacks.put(entityId, new AttackRecord(entityId, timestampMs, pos));
     }
 
-    /**
-     * Records a direct hit on a target entity with current coordinates and timestamp.
-     */
     public static void recordAttack(int entityId, Vec3d pos) {
         recordAttack(entityId, pos, System.currentTimeMillis());
     }
 
-    /**
-     * Convenience method to record attack without known position.
-     */
     public static void recordAttack(int entityId) {
         recordAttack(entityId, Vec3d.ZERO);
     }
 
-    /**
-     * Records a player-initiated explosion with specified timestamp.
-     */
     public static void recordExplosion(double x, double y, double z, double radius, long timestampMs) {
         recentExplosions.add(new ExplosionRecord(x, y, z, radius > 0 ? radius : DEFAULT_EXPLOSION_RADIUS, timestampMs));
     }
 
-    /**
-     * Records a player-initiated explosion (TNT minecart, respawn anchor, end crystal).
-     */
     public static void recordExplosion(double x, double y, double z, double radius) {
         recordExplosion(x, y, z, radius, System.currentTimeMillis());
     }
 
-    /**
-     * Records a player-initiated explosion at default 8.5m radius.
-     */
     public static void recordExplosion(double x, double y, double z) {
         recordExplosion(x, y, z, DEFAULT_EXPLOSION_RADIUS);
     }
 
-    /**
-     * Records placement of a minecart/TNT cart by the local player.
-     */
     public static void recordCartPlacement(double x, double y, double z) {
         recentCartPlacements.add(new CartPlacementRecord(x, y, z, System.currentTimeMillis()));
     }
 
-    /**
-     * Checks if a position is within maxDist of a cart placed by the local player within window.
-     */
     public static boolean isNearbyPlacedCart(double x, double y, double z, double maxDist) {
         long now = System.currentTimeMillis();
         for (CartPlacementRecord rec : recentCartPlacements) {
@@ -177,9 +138,6 @@ public final class AutoGGKillTracker {
         return attack != null && (now - attack.timestampMs()) <= FFA_COMBAT_WINDOW_MS;
     }
 
-    /**
-     * Cleans up attack records, explosions, and attribution debounce caches past expiration.
-     */
     public static void cleanExpired(long now) {
         recentAttacks.entrySet().removeIf(e -> (now - e.getValue().timestampMs()) > FFA_COMBAT_WINDOW_MS);
         recentExplosions.removeIf(e -> (now - e.timestampMs()) > FFA_EXPLOSION_WINDOW_MS);
@@ -188,9 +146,6 @@ public final class AutoGGKillTracker {
         lastAttributedKillNames.entrySet().removeIf(e -> (now - e.getValue()) > 8000L);
     }
 
-    /**
-     * Evaluates whether an observed death of a PlayerEntity can be strictly attributed to our player.
-     */
     public static boolean shouldAttributeKill(Entity victim, MinecraftClient client) {
         if (victim == null || client == null || client.player == null) {
             return false;
@@ -208,7 +163,6 @@ public final class AutoGGKillTracker {
         int victimId = victim.getId();
         Vec3d victimPos = new Vec3d(victim.getX(), victim.getY(), victim.getZ());
 
-        // 1. Direct hit check (extended for FFA tick latency and combos)
         AttackRecord attack = recentAttacks.get(victimId);
         if (attack != null) {
             long diff = now - attack.timestampMs();
@@ -224,7 +178,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 2. Player-initiated explosion check (TNT carts, respawn anchors, end crystals)
         if (victimPos != null) {
             for (ExplosionRecord exp : recentExplosions) {
                 long diff = now - exp.timestampMs();
@@ -233,7 +186,7 @@ public final class AutoGGKillTracker {
                     double dy = victimPos.y - exp.y();
                     double dz = victimPos.z - exp.z();
                     double distSq = dx * dx + dy * dy + dz * dz;
-                    double r = exp.radius() + 2.5; // generous blast reach margin for knockback/hitboxes
+                    double r = exp.radius() + 2.5;
                     if (distSq <= r * r) {
                         recentExplosions.remove(exp);
                         return true;
@@ -242,7 +195,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 3. HP Reaper Integration: Check if victim was the active crosshair/combat target
         try {
             if (victim instanceof net.minecraft.entity.LivingEntity living) {
                 net.minecraft.entity.LivingEntity activeTarget = dev.hpreaper.HealthHudOverlay.getActiveTarget(client.player, System.nanoTime());
@@ -258,9 +210,6 @@ public final class AutoGGKillTracker {
         return false;
     }
 
-    /**
-     * Real-time tick evaluation for FFA arenas where standard death packets are withheld by server plugins.
-     */
     public static boolean shouldAttributeFfaKill(PlayerEntity victim, MinecraftClient client, long now) {
         if (victim == null || client == null || client.player == null) return false;
         if (victim == client.player) return false;
@@ -268,7 +217,6 @@ public final class AutoGGKillTracker {
         int victimId = victim.getId();
         String victimName = victim.getName().getString();
 
-        // Check if recently attributed within 4000ms
         Long lastKill = lastAttributedKills.get(victimId);
         if (lastKill != null && (now - lastKill) < 4000L) {
             return false;
@@ -281,7 +229,6 @@ public final class AutoGGKillTracker {
         Vec3d currentPos = new Vec3d(victim.getX(), victim.getY(), victim.getZ());
         Vec3d prevPos = lastKnownTargetPositions.get(victimId);
 
-        // 1. Check if in combat window (direct sword/melee attack, cart/crystal explosion, or HP Reaper active target)
         boolean inCombat = false;
         AttackRecord attack = recentAttacks.get(victimId);
         if (attack != null && (now - attack.timestampMs()) <= FFA_COMBAT_WINDOW_MS) {
@@ -293,7 +240,7 @@ public final class AutoGGKillTracker {
                 if ((now - exp.timestampMs()) <= FFA_EXPLOSION_WINDOW_MS) {
                     double r = exp.radius() + 3.5;
                     double rSq = r * r;
-                    // Check current position
+
                     double dx = currentPos.x - exp.x();
                     double dy = currentPos.y - exp.y();
                     double dz = currentPos.z - exp.z();
@@ -301,7 +248,7 @@ public final class AutoGGKillTracker {
                         inCombat = true;
                         break;
                     }
-                    // Check previous position before teleport
+
                     if (prevPos != null) {
                         double px = prevPos.x - exp.x();
                         double py = prevPos.y - exp.y();
@@ -329,7 +276,6 @@ public final class AutoGGKillTracker {
             return false;
         }
 
-        // 2. Combat verified. Check if victim died / reached 0 HP / removed / teleported to spawn
         boolean dead = false;
         if (victim.isDead() || victim.getHealth() <= 0.0F || victim.isRemoved() || !victim.isAlive()) {
             dead = true;
@@ -344,7 +290,6 @@ public final class AutoGGKillTracker {
             } catch (Throwable ignored) {}
         }
 
-        // 3. FFA instant respawn teleport check: victim was close (< 16m) and suddenly jumped > 20m away in 1 tick
         if (!dead && prevPos != null) {
             double distMovedSq = prevPos.squaredDistanceTo(currentPos);
             double distToPlayerSq = client.player.squaredDistanceTo(prevPos);
@@ -373,18 +318,13 @@ public final class AutoGGKillTracker {
         }
     }
 
-    /**
-     * Parses server chat death messages to confirm if our player scored a kill.
-     */
     public static String parseChatKill(String rawMessage, String localPlayerName) {
         if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
             return null;
         }
 
-        // Clean formatting codes (§a, §c, §r, etc.)
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
 
-        // 1. Direct "Вы убили <Victim>" notices
         for (Pattern pattern : DIRECT_YOU_KILLED_PATTERNS) {
             Matcher matcher = pattern.matcher(clean);
             if (matcher.find()) {
@@ -395,7 +335,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 2. <Killer> убил <Victim> patterns
         for (Pattern pattern : KILLER_VICTIM_PATTERNS) {
             Matcher matcher = pattern.matcher(clean);
             if (matcher.find()) {
@@ -407,7 +346,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 3. <Victim> был убит <Killer> patterns
         for (Pattern pattern : KILL_PATTERNS) {
             Matcher matcher = pattern.matcher(clean);
             if (matcher.find()) {
@@ -438,7 +376,7 @@ public final class AutoGGKillTracker {
 
     private static boolean isPlayerChatMessage(String clean) {
         if (clean == null || clean.isBlank()) return false;
-        // Standard vanilla/server player chat format: <PlayerName> ...
+
         if (clean.startsWith("<") && clean.contains(">")) {
             return true;
         }
@@ -467,9 +405,6 @@ public final class AutoGGKillTracker {
         return false;
     }
 
-    /**
-     * Checks if a server chat message indicates our player died.
-     */
     public static boolean isOwnDeathMessage(String rawMessage, String localPlayerName) {
         if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
             return false;
@@ -481,12 +416,10 @@ public final class AutoGGKillTracker {
         }
         String lower = clean.toLowerCase(Locale.ROOT);
 
-        // If this message confirms a kill scored BY our player, it is definitely NOT own death
         if (parseChatKill(rawMessage, localPlayerName) != null) {
             return false;
         }
 
-        // 1. Direct "Вы погибли", "Вас убил ...", "Вы умерли" notices
         if (lower.contains("вы погибли") || lower.contains("вы умерли") || lower.contains("вас убил")
                 || lower.contains("вы были убиты") || lower.contains("вы разбились") || lower.contains("вы сгорели")
                 || lower.contains("вы утонули") || lower.contains("вы подорвались") || lower.contains("вы взорвались")
@@ -494,7 +427,6 @@ public final class AutoGGKillTracker {
             return true;
         }
 
-        // 2. Standard victim patterns where localPlayer is victim (group 1)
         for (Pattern pattern : KILL_PATTERNS) {
             Matcher matcher = pattern.matcher(clean);
             if (matcher.find()) {
@@ -505,7 +437,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 3. Killer-victim patterns where localPlayer is victim (group 2)
         for (Pattern pattern : KILLER_VICTIM_PATTERNS) {
             Matcher matcher = pattern.matcher(clean);
             if (matcher.find()) {
@@ -516,7 +447,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 4. Fallback check for messages containing player name (strict word boundary) and death keywords
         Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
         if (namePattern.matcher(clean).find()) {
             if (lower.contains("умер") || lower.contains("погиб") || lower.contains("разбился")
@@ -530,9 +460,6 @@ public final class AutoGGKillTracker {
         return false;
     }
 
-    /**
-     * Parses direct private kill notices where the server informs our player ('Вы убили <Player>', etc.).
-     */
     public static String parseDirectKill(String rawMessage, String localPlayerName) {
         if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
             return null;
@@ -553,9 +480,6 @@ public final class AutoGGKillTracker {
         return null;
     }
 
-    /**
-     * Checks if a message represents an explicit Duel / PvP victory announcement for the local player.
-     */
     public static boolean isDuelWinMessage(String rawMessage, String localPlayerName) {
         if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
             return false;
@@ -566,12 +490,10 @@ public final class AutoGGKillTracker {
         }
         String lower = clean.toLowerCase(Locale.ROOT);
 
-        // Exact Title / Subtitle wins
         if (clean.equalsIgnoreCase("победа") || clean.equalsIgnoreCase("победа!") || clean.equalsIgnoreCase("victory") || clean.equalsIgnoreCase("victory!")) {
             return true;
         }
 
-        // 1. Direct "Вы победили" notices
         if (lower.contains("вы победили") || lower.contains("вы выиграли") || lower.contains("вы одержали победу")
                 || lower.contains("ваша победа") || lower.contains("you won") || lower.contains("victory!")) {
             return true;
@@ -579,7 +501,6 @@ public final class AutoGGKillTracker {
 
         Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
 
-        // 2. Structured duel format: "Победил: <Winner> ... Проиграл: <Loser>"
         int winnerIdx = lower.indexOf("победил:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("winner:");
@@ -613,7 +534,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 3. Pattern: "[Префикс] <Winner> победил/выиграл/одолел/разгромил/одержал победу [игрока/игроком] <Loser>" or "<Winner> won the duel"
         Matcher m = DUEL_WIN_REGEX_PATTERN.matcher(clean);
         if (m.find()) {
             String winner = m.group(1).trim();
@@ -622,7 +542,6 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // 4. Extracted winner check across Russian/English server formats
         String winner = extractDuelWinner(clean);
         if (winner != null && winner.equalsIgnoreCase(localPlayerName)) {
             return true;
@@ -631,27 +550,21 @@ public final class AutoGGKillTracker {
         return false;
     }
 
-    /**
-     * Extracts declared duel winner name from chat message if present.
-     */
     public static String extractDuelWinner(String clean) {
         if (clean == null || clean.isBlank()) return null;
 
-        // 1. "победитель[: -—] <Winner>" / "winner[: -—] <Winner>"
         Pattern p1 = Pattern.compile("(?i)(?u)(?:победител[ьяе]|winner)\\s*(?:дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
         Matcher m1 = p1.matcher(clean);
         if (m1.find()) {
             return m1.group(1).trim();
         }
 
-        // 2. "победил[: -—] <Winner>" / "выиграл[: -—] <Winner>" / "победу одержал: <Winner>"
         Pattern p2 = Pattern.compile("(?i)(?u)(?:победил|выиграл|одержал\\s+победу)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
         Matcher m2 = p2.matcher(clean);
         if (m2.find()) {
             return m2.group(1).trim();
         }
 
-        // 3. "<Winner> победил/выиграл/одолел/разгромил/одержал победу/won/defeated"
         Matcher m3 = DUEL_WIN_REGEX_PATTERN.matcher(clean);
         if (m3.find()) {
             return m3.group(1).trim();
@@ -660,13 +573,9 @@ public final class AutoGGKillTracker {
         return null;
     }
 
-    /**
-     * Extracts declared duel loser name from chat message if present.
-     */
     public static String extractDuelLoser(String clean) {
         if (clean == null || clean.isBlank()) return null;
 
-        // "проиграл[: -—] <Loser>" / "проигравший[: -—] <Loser>" / "loser[: -—] <Loser>"
         Pattern p1 = Pattern.compile("(?i)(?u)(?:проигравш[ийея]|проиграл|потерпел\\s+поражение|loser)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
         Matcher m1 = p1.matcher(clean);
         if (m1.find()) {
@@ -681,9 +590,6 @@ public final class AutoGGKillTracker {
         return null;
     }
 
-    /**
-     * Checks if a message represents an explicit Duel / PvP loss announcement for the local player.
-     */
     public static boolean isDuelLossMessage(String rawMessage, String localPlayerName) {
         if (rawMessage == null || rawMessage.isBlank() || localPlayerName == null || localPlayerName.isBlank()) {
             return false;
@@ -694,12 +600,10 @@ public final class AutoGGKillTracker {
         }
         String lower = clean.toLowerCase(Locale.ROOT);
 
-        // Exact Title / Subtitle loss
         if (clean.equalsIgnoreCase("поражение") || clean.equalsIgnoreCase("поражение!") || clean.equalsIgnoreCase("defeat") || clean.equalsIgnoreCase("defeat!")) {
             return true;
         }
 
-        // Direct "Вы проиграли" notices
         if (lower.contains("вы проиграли") || lower.contains("вы потерпели поражение") || lower.contains("you lost") || lower.contains("defeat!")) {
             return true;
         }
@@ -745,13 +649,11 @@ public final class AutoGGKillTracker {
             }
         }
 
-        // Extracted loser check
         String loser = extractDuelLoser(clean);
         if (loser != null && loser.equalsIgnoreCase(localPlayerName)) {
             return true;
         }
 
-        // When a duel completion notice declares someone else as the winner
         String winner = extractDuelWinner(clean);
         if (winner != null && !winner.equalsIgnoreCase(localPlayerName) && isSystemDuelMessage(clean)) {
             return true;
@@ -760,9 +662,6 @@ public final class AutoGGKillTracker {
         return false;
     }
 
-    /**
-     * Test helper for validating direct hit attribution logic.
-     */
     public static boolean isAttributedDirectHit(int entityId, double distance, long now) {
         AttackRecord attack = recentAttacks.get(entityId);
         if (attack != null) {
@@ -774,9 +673,6 @@ public final class AutoGGKillTracker {
         return false;
     }
 
-    /**
-     * Test helper for validating explosion attribution logic.
-     */
     public static boolean isAttributedExplosion(Vec3d victimPos, long now) {
         if (victimPos == null) return false;
         for (ExplosionRecord exp : recentExplosions) {
@@ -795,9 +691,6 @@ public final class AutoGGKillTracker {
         return false;
     }
 
-    /**
-     * Clears all state caches.
-     */
     public static void reset() {
         recentAttacks.clear();
         recentExplosions.clear();

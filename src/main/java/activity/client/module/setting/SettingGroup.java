@@ -2,18 +2,6 @@ package activity.client.module.setting;
 
 import net.minecraft.text.Text;
 
-/**
- * Standardized logical grouping for module settings.
- *
- * <p>Enforces a consistent vertical order across all module cards:
- * <ol>
- *     <li>Status & Keybind (header)</li>
- *     <li>GENERAL (Основные настройки)</li>
- *     <li>BEHAVIOR (Поведение и боевые тайминги)</li>
- *     <li>EXTRA (Дополнительно, фильтры и визуал)</li>
- *     <li>ADVANCED (Опасные / расширенные настройки)</li>
- * </ol>
- */
 public enum SettingGroup {
     GENERAL("activity.group.general", "Основные"),
     BEHAVIOR("activity.group.behavior", "Поведение"),

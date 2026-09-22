@@ -76,7 +76,7 @@ public final class AutoGGClient implements ClientModInitializer {
                         || (client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen);
                 long waitTime = System.currentTimeMillis() - (scheduledSendTime - Math.max(50L, (long) customDelayMs));
                 if (currentlyDead && waitTime < 1800L) {
-                    // Briefly hold phrase until player respawns so the packet is accepted by server
+
                     return;
                 }
                 if (CONFIG.enabled && !pendingPhrase.isBlank()) {
@@ -114,20 +114,19 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     public static void onPlayerRespawnPacket() {
-        // PlayerRespawnS2CPacket is sent on world/dimension change and commands like /spawn, /hub.
-        // It does not mean the player died; do not trigger own death here.
+
     }
 
     public static void onPotentialFfaVictimDestroyed(Entity victim) {
-        // Disabled: Speculative FFA victim destroyed attribution disabled to prevent false triggers on third-party deaths
+
     }
 
     public static void onPotentialFfaVictimDestroyed(int entityId) {
-        // Disabled: Speculative FFA victim destroyed attribution disabled to prevent false triggers on third-party deaths
+
     }
 
     public static void onServerExplosion(double x, double y, double z, float radius) {
-        // Disabled: Speculative explosion proximity attacks disabled to prevent false triggers on third-party deaths
+
     }
 
     public void handleOwnDeath() {
@@ -156,11 +155,11 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     public static void onEntityDeath(Entity entity) {
-        // Speculative proximity entity deaths disabled to prevent false triggers on FFA
+
     }
 
     private void handleEntityDeath(Entity entity) {
-        // Speculative proximity entity deaths disabled to prevent false triggers on FFA
+
     }
 
     public static void onRoundResult(MinecraftClient client, String message) {
@@ -171,7 +170,6 @@ public final class AutoGGClient implements ClientModInitializer {
     private void handleRoundResult(MinecraftClient client, String message) {
         if (client == null || client.player == null || message == null || !CONFIG.enabled) return;
 
-        // Fast keyword check before performing regex operations
         String lower = message.toLowerCase(java.util.Locale.ROOT);
         if (!lower.contains("побед") && !lower.contains("выигр") && !lower.contains("won") && !lower.contains("victor")
                 && !lower.contains("убил") && !lower.contains("умер") && !lower.contains("погиб") && !lower.contains("died")
@@ -183,13 +181,11 @@ public final class AutoGGClient implements ClientModInitializer {
 
         String playerName = client.player.getName().getString();
 
-        // 1. Check if our player died via server chat death message
         if (activity.client.module.impl.utility.AutoGGKillTracker.isOwnDeathMessage(message, playerName)) {
             handleOwnDeath();
             return;
         }
 
-        // 2. Check direct private kill notice ("Вы убили <Игрок>")
         if (CONFIG.sendOnKill) {
             String directVictim = activity.client.module.impl.utility.AutoGGKillTracker.parseDirectKill(message, playerName);
             if (directVictim != null) {
@@ -198,7 +194,6 @@ public final class AutoGGClient implements ClientModInitializer {
             }
         }
 
-        // 3. Check round results (Duel / Arena win-loss)
         boolean playerWon = activity.client.module.impl.utility.AutoGGKillTracker.isDuelWinMessage(message, playerName);
         boolean playerLost = activity.client.module.impl.utility.AutoGGKillTracker.isDuelLossMessage(message, playerName);
 

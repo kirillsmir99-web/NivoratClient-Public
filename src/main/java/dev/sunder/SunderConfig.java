@@ -1,10 +1,5 @@
 package dev.sunder;
 
-/**
- * In-memory runtime state for AutoStunSlam (AutoStunSlime) combat controller.
- * Bound to NivoratClient unified configuration ({@link activity.client.config.ActivityConfig}).
- * Independent file I/O has been removed in favor of NivoratConfigManager.
- */
 public final class SunderConfig {
     public static final int MODE_FULL_AUTO = 0;
     public static final int MODE_SEMI_AUTO = 1;
@@ -27,10 +22,10 @@ public final class SunderConfig {
     private SunderConfig() {}
 
     public static void load() {
-        // Bound to NivoratClient ActivityConfig — no independent file I/O
+
     }
 
     public static void save() {
-        // Bound to NivoratClient ActivityConfig — no independent file I/O
+
     }
 }

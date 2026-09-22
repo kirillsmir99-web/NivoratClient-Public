@@ -15,10 +15,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Developer-only tracker that polls the presence backend for players currently using NivoratClient.
- * In public releases, this remains completely dormant and isPeer always returns false.
- */
 public final class DevPeerTracker {
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
@@ -106,10 +102,6 @@ public final class DevPeerTracker {
         }
     }
 
-    /**
-     * Checks if the specified player is currently identified as running NivoratClient.
-     * Always returns false in public builds.
-     */
     public static boolean isPeer(String playerName) {
         if (!NivoratDev.IS_DEV || playerName == null || playerName.isBlank()) {
             return false;
@@ -117,9 +109,6 @@ public final class DevPeerTracker {
         return ACTIVE_PEERS.contains(playerName.toLowerCase(Locale.ROOT));
     }
 
-    /**
-     * Test helper to register or mock a peer during automated tests.
-     */
     public static void setMockPeer(String playerName, boolean active) {
         if (playerName == null) return;
         String key = playerName.toLowerCase(Locale.ROOT);

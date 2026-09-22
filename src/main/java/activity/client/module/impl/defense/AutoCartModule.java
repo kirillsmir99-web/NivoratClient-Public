@@ -32,7 +32,6 @@ public class AutoCartModule extends NivoratModule {
                 .aliases("autocart", "cart", "вагонетка", "вагонетки", "автовагонетка", "авто-вагонетка", "автокарт", "авто-карт", "подрыв вагонеток", "подрыв", "тнт", "tnt", "delay", "задержка", "дистанция", "distance", "яма", "pit", "рельсы", "rails")
                 .build();
 
-        // 1. GENERAL
         registerEnum("preset", Text.translatable("activity.setting.defense.cart_preset"),
                 Text.translatable("activity.setting.defense.cart_preset.desc"), SettingGroup.GENERAL,
                 List.of("fast", "medium", "safe"), "medium",
@@ -90,7 +89,6 @@ public class AutoCartModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR
         registerNumber("placement_chance", Text.translatable("activity.setting.defense.cart_chance"),
                 Text.translatable("activity.setting.defense.cart_chance.desc"), SettingGroup.BEHAVIOR,
                 0.0, 100.0, 5.0, "%", true, 100.0,
@@ -176,7 +174,6 @@ public class AutoCartModule extends NivoratModule {
                 }
         );
 
-        // 3. EXTRA
         registerBoolean("allow_self_cart", Text.translatable("activity.setting.defense.allow_self_cart"),
                 Text.translatable("activity.setting.defense.allow_self_cart.desc"), SettingGroup.EXTRA,
                 false,
@@ -228,7 +225,6 @@ public class AutoCartModule extends NivoratModule {
                 }
         );
 
-        // 4. ADVANCED
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
                 true,

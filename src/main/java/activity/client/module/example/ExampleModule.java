@@ -34,19 +34,11 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
-/**
- * Reference implementation demonstrating how to build a complete feature module
- * using the Nivorat Module SDK.
- *
- * <p><b>NOTE:</b> This is an educational template for developers and is NOT registered
- * in production {@code BuiltinModules}.
- */
 @SuppressWarnings("unused")
 public class ExampleModule extends NivoratModule {
 
     public static final String ID = "example_module";
 
-    // Runtime state variables (Single Source of Truth)
     private boolean sampleSwitch = true;
     private double delayMs = 120.0;
     private int burstCount = 3;
@@ -55,7 +47,6 @@ public class ExampleModule extends NivoratModule {
     private String customMessage = "Hello Nivorat!";
     private final Keybind secondaryKeybind = new Keybind(GLFW.GLFW_KEY_V);
 
-    // Typed Setting references
     private BooleanSetting switchSetting;
     private NumberSetting delaySetting;
     private IntegerSetting burstSetting;
@@ -72,7 +63,6 @@ public class ExampleModule extends NivoratModule {
                 ModuleCategory.COMBAT
         );
 
-        // 1. Metadata Configuration
         this.metadata = ModuleMetadata.builder(ID)
                 .displayName(name)
                 .description(description)
@@ -84,9 +74,6 @@ public class ExampleModule extends NivoratModule {
                 .keybind(keybind)
                 .build();
 
-        // 2. Settings Registration (Automatic UI Binding & Categorization)
-
-        // General Section: Main Mode Selector & Primary Toggle
         this.switchSetting = registerBoolean(
                 "sample_switch",
                 Text.literal("Включить фильтрацию"),
@@ -113,7 +100,6 @@ public class ExampleModule extends NivoratModule {
                 val -> triggerMode = val
         );
 
-        // Behavior Section: Numbers & Timings with Units
         this.delaySetting = registerNumber(
                 "delay_ms",
                 Text.literal("Задержка срабатывания"),
@@ -136,7 +122,6 @@ public class ExampleModule extends NivoratModule {
                 val -> reachDistance = val
         );
 
-        // Advanced Section: Integers, Keys, and Visibility Conditions
         this.burstSetting = registerInteger(
                 "burst_count",
                 Text.literal("Число повторений"),
@@ -147,7 +132,7 @@ public class ExampleModule extends NivoratModule {
                 () -> burstCount,
                 val -> burstCount = val
         );
-        // Setting can be made conditionally visible
+
         this.burstSetting.visibleWhen(() -> sampleSwitch);
 
         this.messageSetting = registerString(
@@ -170,7 +155,6 @@ public class ExampleModule extends NivoratModule {
                 kb -> secondaryKeybind.copyFrom(kb)
         );
 
-        // Action Setting: Button trigger
         registerAction(
                 "trigger_action",
                 Text.literal("Сбросить параметры"),
@@ -180,47 +164,39 @@ public class ExampleModule extends NivoratModule {
         );
     }
 
-    // ==========================================
-    // LIFECYCLE HOOKS
-    // ==========================================
-
     @Override
     public void onInitialize() {
-        // Called once when module is registered
+
     }
 
     @Override
     public void onEnable() {
-        // Called when module is toggled ON
+
     }
 
     @Override
     public void onDisable() {
-        // Called when module is toggled OFF
+
     }
 
     @Override
     public void onTick(MinecraftClient client) {
         if (!isEnabled() || client.player == null) return;
-        // Periodic per-tick logic
+
     }
 
     @Override
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (!isEnabled()) return ActionResult.PASS;
-        // Combat entity attack hook
+
         return ActionResult.PASS;
     }
 
     @Override
     public void onRenderHud(DrawContext context, RenderTickCounter tickCounter) {
         if (!isEnabled()) return;
-        // In-game HUD rendering hook
-    }
 
-    // ==========================================
-    // EXTENSION POINT (Optional Custom Section)
-    // ==========================================
+    }
 
     @Override
     public boolean hasCustomSection() {
@@ -230,7 +206,7 @@ public class ExampleModule extends NivoratModule {
     @Override
     public int buildCustomSection(ActivityTab tab, ActivityScreen screen, ScrollContainer container,
                                   int startX, int startY, int innerRowW) {
-        // Example custom UI widget embedded inside the module card
+
         ActivityLabel customInfo = new ActivityLabel(
                 startX, startY + 3,
                 Text.literal("§7[Custom Section] Индивидуальный компонент модуля")
@@ -244,21 +220,13 @@ public class ExampleModule extends NivoratModule {
         return ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
     }
 
-    // ==========================================
-    // CONFIG PERSISTENCE
-    // ==========================================
-
     @Override
     public void loadFromConfig(ActivityConfig config) {
-        // If the module has dedicated fields in ActivityConfig:
-        // this.enabled = config.exampleEnabled;
-        // this.keybind.copyFrom(config.exampleKeybind);
+
     }
 
     @Override
     public void saveToConfig(ActivityConfig config) {
-        // If the module has dedicated fields in ActivityConfig:
-        // config.exampleEnabled = this.enabled;
-        // config.exampleKeybind.copyFrom(this.keybind);
+
     }
 }

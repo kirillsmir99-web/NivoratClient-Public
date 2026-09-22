@@ -16,21 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
-/**
- * Thread-safe configuration manager for the Activity mod.
- *
- * <p>Key Invariants:
- * <ul>
- *   <li><b>Atomic disk writes</b>: Configuration is written to a temporary file before being atomically
- *       swapped, preventing zero-byte files and corruption during unexpected shutdowns.</li>
- *   <li><b>Corrupted JSON recovery</b>: When syntax corruption is detected, creates a timestamped backup
- *       copy and safely falls back to factory defaults without crashing the game.</li>
- *   <li><b>Dirty-state tracking</b>: Avoids redundant disk writes; persists only upon explicit user
- *       actions (Save / Apply / Reset All), screen exit, or shutdown. Zero frame-by-frame disk operations.</li>
- *   <li><b>Module synchronization</b>: Automatically synchronizes settings with {@link ModuleRegistry}
- *       on load, save, reset, and setConfig.</li>
- * </ul>
- */
 public final class ActivityConfigManager {
 
     private static final Gson GSON = new GsonBuilder()
@@ -58,18 +43,10 @@ public final class ActivityConfigManager {
 
     private ActivityConfigManager() {}
 
-    /**
-     * @return the active in-memory configuration object
-     */
     public static synchronized ActivityConfig getConfig() {
         return currentConfig;
     }
 
-    /**
-     * Replaces the in-memory configuration and synchronizes with registered modules.
-     *
-     * @param config new configuration
-     */
     public static synchronized void setConfig(ActivityConfig config) {
         if (config == null) return;
         config.sanitize();
@@ -81,31 +58,19 @@ public final class ActivityConfigManager {
         checkDirty();
     }
 
-    /**
-     * @return true if there are unsaved in-memory changes compared to the last disk snapshot
-     */
     public static synchronized boolean isDirty() {
         return manualDirty || !currentConfig.equals(savedSnapshot);
     }
 
-    /**
-     * Marks the configuration as dirty, indicating unsaved changes exist.
-     */
     public static synchronized void markDirty() {
         manualDirty = true;
     }
 
-    /**
-     * Clears the dirty flag.
-     */
     public static synchronized void clearDirty() {
         manualDirty = false;
         savedSnapshot = currentConfig.copy();
     }
 
-    /**
-     * Resets the active configuration to factory defaults and synchronizes all modules.
-     */
     public static synchronized void resetDefaults() {
         currentConfig.resetToDefaults();
         ModuleRegistry.loadAll(currentConfig);
@@ -113,11 +78,6 @@ public final class ActivityConfigManager {
         checkDirty();
     }
 
-    /**
-     * Applies a named preset, updates module registry, and saves configuration.
-     *
-     * @param presetName name of preset ("default", "legit", "rage", "utility")
-     */
     public static synchronized void applyPreset(String presetName) {
         if (presetName == null || presetName.isBlank()) return;
         currentConfig.applyPreset(presetName);
@@ -126,29 +86,17 @@ public final class ActivityConfigManager {
         save();
     }
 
-    /**
-     * Exports the active configuration as a formatted JSON string.
-     */
     public static synchronized String exportPresetString() {
         currentConfig.syncModuleConfigEntries();
         currentConfig.sanitize();
         return GSON.toJson(currentConfig);
     }
 
-    /**
-     * Exports the active configuration as a compact Base64 encoded string for easy sharing.
-     */
     public static synchronized String exportPresetCompact() {
         String json = exportPresetString();
         return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * Imports configuration from a JSON or Base64 string.
-     *
-     * @param data JSON or Base64 string
-     * @return true if successfully imported and applied
-     */
     public static synchronized boolean importPresetString(String data) {
         if (data == null || data.isBlank()) return false;
         String trimmed = data.trim();
@@ -189,14 +137,6 @@ public final class ActivityConfigManager {
         manualDirty = !currentConfig.equals(savedSnapshot);
     }
 
-    /**
-     * Loads the configuration from disk into memory.
-     *
-     * <p>If the configuration file does not exist, a default file is created atomically.
-     * If the file is corrupted, an emergency timestamped backup is made and defaults are restored.
-     *
-     * @return the loaded or restored configuration
-     */
     public static synchronized ActivityConfig load() {
         if (!Files.exists(CONFIG_PATH)) {
             ActivityClient.LOGGER.debug("[Activity] Config file not found at {}. Generating default configuration.", CONFIG_PATH);
@@ -242,11 +182,6 @@ public final class ActivityConfigManager {
         }
     }
 
-    /**
-     * Atomically saves the current in-memory configuration to disk.
-     *
-     * @return true if saved successfully, false otherwise
-     */
     public static synchronized boolean save() {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return false;
@@ -269,7 +204,7 @@ public final class ActivityConfigManager {
             try {
                 Files.move(tempPath, CONFIG_PATH, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             } catch (AtomicMoveNotSupportedException moveEx) {
-                // Fallback for filesystems that do not support atomic move
+
                 Files.move(tempPath, CONFIG_PATH, StandardCopyOption.REPLACE_EXISTING);
             }
 
@@ -283,10 +218,6 @@ public final class ActivityConfigManager {
         }
     }
 
-    /**
-     * Emergency handler for corrupted configuration files.
-     * Preserves user data by making a backup copy before resetting to clean defaults.
-     */
     private static void handleCorruptedConfig(Exception cause) {
         try {
             long timestamp = System.currentTimeMillis();

@@ -33,7 +33,6 @@ public final class HpHudEditorScreen extends Screen {
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
 
-    // Draggable vertical floating card widget
     private int panelX = -1;
     private int panelY = -1;
     private static final int PANEL_W = 140;
@@ -42,7 +41,6 @@ public final class HpHudEditorScreen extends Screen {
     private int panelDragOffsetX = 0;
     private int panelDragOffsetY = 0;
 
-    // Interactive button bounds inside floating panel
     private int btnModeX, btnModeY, btnModeW, btnModeH;
     private int btnResetX, btnResetY, btnResetW, btnResetH;
     private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
@@ -172,7 +170,6 @@ public final class HpHudEditorScreen extends Screen {
         btnDoneX = panelX + 10;
         btnDoneY = panelY + 102;
 
-        // 1. Floating panel buttons or dragging
         if (button == 0) {
             if (mx >= btnModeX && mx <= btnModeX + btnModeW && my >= btnModeY && my <= btnModeY + btnModeH) {
                 HealthHudOverlay.cycleDisplayMode();
@@ -199,7 +196,6 @@ public final class HpHudEditorScreen extends Screen {
             }
         }
 
-        // 2. Draggable preview card
         int elementW = HealthHudOverlay.getPreviewWidth(textRenderer, VitalityConfig.displayMode);
         int elementH = HealthHudOverlay.getPreviewHeight(VitalityConfig.displayMode);
         int currentX = HealthHudOverlay.getEffectiveX(VitalityConfig.displayMode, width, elementW);
@@ -323,10 +319,8 @@ public final class HpHudEditorScreen extends Screen {
         int currentX = HealthHudOverlay.getEffectiveX(VitalityConfig.displayMode, width, elementW);
         int currentY = HealthHudOverlay.getEffectiveY(VitalityConfig.displayMode, height, elementH);
 
-        // Dark dim background
         ActivityGuiRenderer.fill(context, 0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
-        // Snap guide lines
         if (isDragging) {
             if (Math.abs(currentX - 14) <= 1) {
                 ActivityGuiRenderer.drawVerticalLine(context, 14, 0, height, 0x40FFFFFF);
@@ -339,7 +333,6 @@ public final class HpHudEditorScreen extends Screen {
             }
         }
 
-        // Preview card highlight & soft compact halo
         int padX = 3;
         int padY = 2;
         int haloX = currentX - padX;
@@ -358,13 +351,11 @@ public final class HpHudEditorScreen extends Screen {
 
         renderCapsulePulse(context, haloX, haloY, haloX + haloW, haloY + haloH, peakAlpha);
 
-        // Render actual vertical HUD preview element
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc != null) {
             HealthHudOverlay.renderPreview(context, mc, currentX, currentY, VitalityConfig.displayMode);
         }
 
-        // Coordinate tooltip chip
         if (isHovered || isDragging) {
             int chipW = 96;
             int chipH = 15;
@@ -379,9 +370,6 @@ public final class HpHudEditorScreen extends Screen {
             }
         }
 
-        // ==========================================
-        // FLOATING DRAGGABLE CONTROL CARD (LEFT DOCKED)
-        // ==========================================
         ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
         ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
         ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
@@ -423,7 +411,6 @@ public final class HpHudEditorScreen extends Screen {
             lastHoveredBtn = hoveredBtn;
         }
 
-        // 1. Mode Button
         int modeBg = (hoveredBtn == 1) ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
         ActivityGuiRenderer.drawPanel(context, btnModeX, btnModeY, btnModeW, btnModeH, modeBg, (hoveredBtn == 1) ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER, true);
         if (textRenderer != null) {
@@ -431,7 +418,6 @@ public final class HpHudEditorScreen extends Screen {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(modeName), btnModeX + btnModeW / 2, btnModeY + 6, 0xFFFFFFFF);
         }
 
-        // 2. Reset Button
         int resetBg = (hoveredBtn == 2) ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
         ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, resetBg, (hoveredBtn == 2) ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER, true);
         if (textRenderer != null) {
@@ -439,7 +425,6 @@ public final class HpHudEditorScreen extends Screen {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(rstText), btnResetX + btnResetW / 2, btnResetY + 6, 0xFFFFFFFF);
         }
 
-        // 3. Done Button
         int doneBg = (hoveredBtn == 3) ? ActivityColors.BUTTON_PRIMARY_HOVER : ActivityColors.BUTTON_PRIMARY_BG;
         int doneBorder = (hoveredBtn == 3) ? ActivityColors.ACCENT_LIGHT : ActivityColors.ACCENT_PRIMARY;
         ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg, doneBorder, true);
@@ -448,7 +433,6 @@ public final class HpHudEditorScreen extends Screen {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(dnText), btnDoneX + btnDoneW / 2, btnDoneY + 7, 0xFFFFFFFF);
         }
 
-        // Subtle bottom hint bar
         if (textRenderer != null) {
             String hint = "ЛКМ — перемещение • ПКМ — сброс • TAB — режим • Стрелки — подгонка (+Shift x5)";
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(hint), width / 2, height - 16, ActivityColors.TEXT_MUTED);

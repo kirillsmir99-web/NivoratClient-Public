@@ -25,19 +25,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Centralized manager and repository for custom presets in NivoratClient.
- *
- * <p>Key Guarantees:
- * <ul>
- *   <li>Single built-in preset: "По умолчанию" ("default"), which always exists, cannot be deleted,
- *       and resets all module parameters to factory defaults.</li>
- *   <li>Safe atomic disk persistence: presets are stored in {@code activity_presets.json} using
- *       temporary swap files to prevent corruption.</li>
- *   <li>Zero per-frame disk operations: files are written only when creating, overwriting, deleting,
- *       or importing a preset.</li>
- * </ul>
- */
 public final class PresetManager {
 
     private static final Gson GSON = new GsonBuilder()
@@ -70,16 +57,10 @@ public final class PresetManager {
 
     private PresetManager() {}
 
-    /**
-     * Returns the immutable built-in default preset.
-     */
     public static Preset getDefaultPreset() {
         return DEFAULT_PRESET;
     }
 
-    /**
-     * Returns an unmodifiable list of all presets, with "По умолчанию" always at index 0.
-     */
     public static synchronized List<Preset> getPresets() {
         ensureInitialized();
         List<Preset> all = new ArrayList<>();
@@ -88,9 +69,6 @@ public final class PresetManager {
         return Collections.unmodifiableList(all);
     }
 
-    /**
-     * Looks up a preset by its unique ID.
-     */
     public static synchronized Preset getPresetById(String id) {
         if (id == null || id.isBlank() || Preset.DEFAULT_PRESET_ID.equalsIgnoreCase(id) || "По умолчанию".equalsIgnoreCase(id)) {
             return DEFAULT_PRESET;
@@ -101,13 +79,10 @@ public final class PresetManager {
                 return p;
             }
         }
-        // Fallback: lookup by name
+
         return getPresetByName(id);
     }
 
-    /**
-     * Looks up a preset by its display name.
-     */
     public static synchronized Preset getPresetByName(String name) {
         if (name == null || name.isBlank() || Preset.DEFAULT_PRESET_NAME.equalsIgnoreCase(name) || "default".equalsIgnoreCase(name)) {
             return DEFAULT_PRESET;
@@ -121,9 +96,6 @@ public final class PresetManager {
         return null;
     }
 
-    /**
-     * @return true if a preset with the given name already exists (including default).
-     */
     public static synchronized boolean hasPresetNamed(String name) {
         if (name == null) return false;
         String trimmed = name.trim();
@@ -139,14 +111,6 @@ public final class PresetManager {
         return false;
     }
 
-    /**
-     * Creates and persists a new custom preset from the current configuration.
-     *
-     * @param name   preset display name
-     * @param config source configuration to snapshot
-     * @return newly created preset
-     * @throws IllegalArgumentException if name is empty, too long, or contains control characters
-     */
     public static synchronized Preset createPreset(String name, ActivityConfig config) {
         String cleanName = validatePresetName(name);
         JsonObject snapshot = PresetSerializer.extractSettingsSnapshot(config != null ? config : ActivityConfigManager.getConfig());
@@ -157,9 +121,6 @@ public final class PresetManager {
         return preset;
     }
 
-    /**
-     * Overwrites an existing custom preset's settings with the current configuration snapshot.
-     */
     public static synchronized void overwritePreset(Preset existing, ActivityConfig config) {
         if (existing == null || existing.isBuiltin()) return;
         JsonObject snapshot = PresetSerializer.extractSettingsSnapshot(config != null ? config : ActivityConfigManager.getConfig());
@@ -168,9 +129,6 @@ public final class PresetManager {
         saveAll();
     }
 
-    /**
-     * Overwrites an existing custom preset's settings with a specific JsonObject snapshot.
-     */
     public static synchronized void overwritePresetWithSettings(Preset existing, JsonObject settings) {
         if (existing == null || existing.isBuiltin()) return;
         existing.setSettings(settings);
@@ -178,10 +136,6 @@ public final class PresetManager {
         saveAll();
     }
 
-    /**
-     * Adds an imported preset. If a preset with the same name exists and overwrite is false,
-     * generates a unique name (e.g., "Name (1)").
-     */
     public static synchronized Preset addOrOverwriteImported(Preset imported, boolean overwrite) {
         if (imported == null) return DEFAULT_PRESET;
 
@@ -208,12 +162,6 @@ public final class PresetManager {
         return newPreset;
     }
 
-    /**
-     * Deletes a custom preset by ID. Built-in default preset cannot be deleted.
-     *
-     * @param presetId ID of preset to delete
-     * @return true if deleted, false if not found or if built-in
-     */
     public static synchronized boolean deletePreset(String presetId) {
         if (presetId == null || Preset.DEFAULT_PRESET_ID.equalsIgnoreCase(presetId)) {
             return false;
@@ -222,7 +170,7 @@ public final class PresetManager {
         boolean removed = customPresets.removeIf(p -> p.getId().equalsIgnoreCase(presetId));
         if (removed) {
             saveAll();
-            // If active profile matches deleted preset, revert to default
+
             ActivityConfig cfg = ActivityConfigManager.getConfig();
             if (cfg != null && (presetId.equalsIgnoreCase(cfg.activeProfile) || !hasPresetNamed(cfg.activeProfile))) {
                 cfg.activeProfile = Preset.DEFAULT_PRESET_ID;
@@ -233,15 +181,11 @@ public final class PresetManager {
         return removed;
     }
 
-    /**
-     * Applies a preset to the given configuration instance.
-     * Synchronizes module registry and saves to disk.
-     */
     public static synchronized void applyPreset(Preset preset, ActivityConfig target) {
         if (preset == null || target == null) return;
 
         if (preset.isBuiltin()) {
-            // Restore factory defaults while keeping window coordinates and maximize state
+
             int origX = target.windowPosX;
             int origY = target.windowPosY;
             int origW = target.windowWidth;
@@ -273,9 +217,6 @@ public final class PresetManager {
         ActivityConfigManager.save();
     }
 
-    /**
-     * Applies a preset by name or ID to the active global configuration.
-     */
     public static synchronized void applyPresetByName(String nameOrId, ActivityConfig target) {
         Preset preset = getPresetById(nameOrId);
         if (preset == null) {
@@ -287,9 +228,6 @@ public final class PresetManager {
         applyPreset(preset, target);
     }
 
-    /**
-     * Validates a candidate preset name.
-     */
     public static String validatePresetName(String raw) {
         if (raw == null || raw.isBlank()) {
             throw new IllegalArgumentException("Название пресета не может быть пустым");
@@ -391,9 +329,6 @@ public final class PresetManager {
         }
     }
 
-    /**
-     * Clears custom presets in memory and optionally on disk (used in tests).
-     */
     public static synchronized void resetToDefaults() {
         customPresets.clear();
         saveAll();

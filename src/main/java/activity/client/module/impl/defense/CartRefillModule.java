@@ -29,7 +29,6 @@ public class CartRefillModule extends NivoratModule {
                 .aliases("cartrefill", "refill", "рефилл", "пополнение", "пополнение хотбара", "пополнение хотбар", "картрефилл", "хотбар", "сундук", "delay", "задержка", "закуп", "инвентарь")
                 .build();
 
-        // 1. BEHAVIOR
         registerNumber("delay_ticks", Text.translatable("activity.setting.defense.delay_ticks"),
                 Text.translatable("activity.setting.defense.delay_ticks.desc"), SettingGroup.BEHAVIOR,
                 0.0, 10.0, 1.0, " t", true, 2.0,
@@ -98,7 +97,6 @@ public class CartRefillModule extends NivoratModule {
                 }
         );
 
-        // 2. EXTRA
         registerBoolean("auto_close", Text.translatable("activity.setting.defense.auto_close"),
                 Text.translatable("activity.setting.defense.auto_close.desc"), SettingGroup.EXTRA,
                 true,
@@ -116,7 +114,6 @@ public class CartRefillModule extends NivoratModule {
                 }
         );
 
-        // 3. ADVANCED
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
                 true,

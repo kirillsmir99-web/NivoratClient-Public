@@ -16,12 +16,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/**
- * Reusable modal dialog with validated single-line text input field.
- *
- * <p>Ideal for naming presets, renaming profiles, search queries, or entering custom string values.
- * Automatically focuses the input field on open and supports keyboard submission via Enter.
- */
 public class TextInputModal extends BaseModal {
 
     private final Text description;
@@ -76,7 +70,6 @@ public class TextInputModal extends BaseModal {
         this.addChild(this.cancelButton);
         this.addChild(this.confirmButton);
 
-        // Initial validation check
         boolean valid = this.validator.test(this.inputField.getText());
         this.confirmButton.setEnabled(valid);
     }

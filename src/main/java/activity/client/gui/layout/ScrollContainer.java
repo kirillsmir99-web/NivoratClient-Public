@@ -19,25 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Modern scrollable container component for the Activity GUI framework.
- *
- * <p>Key Features:
- * <ul>
- *   <li>Viewport clipping via {@link ScissorHelper} using native DrawContext scissors.</li>
- *   <li>Axis-Aligned Bounding Box (AABB) culling of off-screen children during render and input dispatch.</li>
- *   <li>Smooth scrolling interpolation (configurable lerp factor adhering to 80-150ms animation budget).</li>
- *   <li>Draggable scrollbar thumb with continuous mouse capture and hover feedback.</li>
- *   <li>Mouse wheel scrolling with configurable step size.</li>
- *   <li>Keyboard navigation support (Page Up, Page Down, Home, End, Tab auto-scroll to focused child).</li>
- *   <li>Overlay isolation: automatically dismisses detached floating dropdown popups upon container scrolling.</li>
- * </ul>
- */
 public class ScrollContainer extends ActivityComponent {
 
-    /**
-     * Internal metadata entry pairing a component with its relative layout coordinates.
-     */
     public static final class ScrollEntry {
         private final ActivityComponent component;
         private final int relX;
@@ -103,19 +86,11 @@ public class ScrollContainer extends ActivityComponent {
         this(0, 0, 0, 0);
     }
 
-    // --- Component Management ---
-
-    /**
-     * Adds a child component, calculating its relative coordinates automatically from its current position.
-     */
     public <T extends ActivityComponent> T addChild(T component) {
         if (component == null) return null;
         return addChild(component, component.getX() - this.x, component.getY() - this.y);
     }
 
-    /**
-     * Adds a child component with explicit relative layout coordinates.
-     */
     public <T extends ActivityComponent> T addChild(T component, int relX, int relY) {
         if (component == null) return null;
         this.entries.add(new ScrollEntry(component, relX, relY));
@@ -233,9 +208,6 @@ public class ScrollContainer extends ActivityComponent {
         return Collections.unmodifiableList(this.entries);
     }
 
-    /**
-     * Computes the total scrollable content height based on child positions and heights.
-     */
     public int computeContentHeight() {
         int maxBottom = 0;
         for (ScrollEntry entry : this.entries) {
@@ -262,8 +234,6 @@ public class ScrollContainer extends ActivityComponent {
         this.contentHeight = contentHeight;
         clampScroll();
     }
-
-    // --- Geometry Overrides ---
 
     @Override
     public void setX(int x) {
@@ -307,8 +277,6 @@ public class ScrollContainer extends ActivityComponent {
         }
     }
 
-    // --- Scrolling Mechanics ---
-
     public int getMaxScroll() {
         return Math.max(0, this.contentHeight - this.height);
     }
@@ -344,9 +312,6 @@ public class ScrollContainer extends ActivityComponent {
         scrollTo(this.targetScrollAmount + delta);
     }
 
-    /**
-     * Automatically scrolls the viewport to reveal the specified child component if it is out of view.
-     */
     public void scrollToVisible(ActivityComponent component) {
         if (component == null) return;
         for (ScrollEntry entry : this.entries) {
@@ -416,8 +381,6 @@ public class ScrollContainer extends ActivityComponent {
         this.borderColor = borderColor;
     }
 
-    // --- Focus Management ---
-
     @Nullable
     public ActivityComponent getFocusedChild() {
         if (this.focusedChild != null && !this.focusedChild.isFocused()) {
@@ -460,8 +423,6 @@ public class ScrollContainer extends ActivityComponent {
         return focusable;
     }
 
-    // --- Tick Lifecycle ---
-
     @Override
     public void tick() {
         super.tick();
@@ -470,13 +431,10 @@ public class ScrollContainer extends ActivityComponent {
         }
     }
 
-    // --- Rendering Lifecycle ---
-
     @Override
     protected void renderComponent(DrawContext context, int mouseX, int mouseY, float delta) {
         if (this.width <= 2 || this.height <= 2) return;
 
-        // Smooth scroll interpolation via centralized AnimationClock (~120ms exponential response)
         if (this.smoothScrolling) {
             double diff = this.targetScrollAmount - this.scrollAmount;
             if (Math.abs(diff) > 0.02) {
@@ -498,7 +456,6 @@ public class ScrollContainer extends ActivityComponent {
             ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, this.backgroundColor, this.borderColor);
         }
 
-        // Viewport Scissor Clipping
         ScissorHelper.pushScissor(context, this.x, this.y, this.width, this.height);
 
         try {
@@ -513,7 +470,6 @@ public class ScrollContainer extends ActivityComponent {
             ScissorHelper.popScissor(context);
         }
 
-        // Render scrollbar outside scissor clipping
         renderScrollbar(context, mouseX, mouseY);
     }
 
@@ -527,10 +483,8 @@ public class ScrollContainer extends ActivityComponent {
         int trackH = this.height - 4;
         if (trackH <= 4) return;
 
-        // Draw track
         ActivityGuiRenderer.fill(context, trackX, trackY, scrollbarW, trackH, ActivityColors.SCROLLBAR_TRACK);
 
-        // Compute thumb height and Y
         int thumbH = Math.max(ActivityMetrics.SCROLLBAR_MIN_THUMB, (int) Math.round((double) this.height / this.contentHeight * trackH));
         int availableH = trackH - thumbH;
         int thumbY = trackY + (int) Math.round(availableH * (this.scrollAmount / maxScroll));
@@ -544,8 +498,6 @@ public class ScrollContainer extends ActivityComponent {
         ActivityGuiRenderer.fill(context, trackX, thumbY, scrollbarW, thumbH, thumbColor);
     }
 
-    // --- Input Handling ---
-
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
         if (!this.visible || !this.enabled) return false;
@@ -556,7 +508,6 @@ public class ScrollContainer extends ActivityComponent {
         int trackY = this.y + 2;
         int trackH = this.height - 4;
 
-        // Priority 1: Click on scrollbar track or thumb
         if (maxScroll > 0 && click.button() == 0 && trackH > 4 &&
             click.x() >= trackX - 2 && click.x() <= trackX + scrollbarW + 2 &&
             click.y() >= trackY && click.y() <= trackY + trackH) {
@@ -570,7 +521,7 @@ public class ScrollContainer extends ActivityComponent {
                 this.dragClickOffsetY = (int) click.y() - thumbY;
                 return true;
             } else {
-                // Click on track above or below thumb
+
                 if (click.y() < thumbY) {
                     scrollBy(-this.height * 0.75);
                 } else {
@@ -580,7 +531,6 @@ public class ScrollContainer extends ActivityComponent {
             }
         }
 
-        // Priority 2: Interactive children within viewport
         if (isMouseOver(click.x(), click.y())) {
             for (int i = this.entries.size() - 1; i >= 0; i--) {
                 ActivityComponent comp = this.entries.get(i).component;
@@ -597,7 +547,6 @@ public class ScrollContainer extends ActivityComponent {
                 }
             }
 
-            // Click landed in empty container area: clear child focus and consume event
             clearFocus();
             return true;
         }
@@ -673,7 +622,6 @@ public class ScrollContainer extends ActivityComponent {
             this.focusedChild = null;
         }
 
-        // First forward to focused child
         if (this.focusedChild != null && this.focusedChild.isVisible() && this.focusedChild.isEnabled()) {
             if (this.focusedChild.keyPressed(input)) {
                 if (!this.focusedChild.isFocused()) {
@@ -686,7 +634,6 @@ public class ScrollContainer extends ActivityComponent {
             this.focusedChild = null;
         }
 
-        // Forward to other interactive children
         for (int i = this.entries.size() - 1; i >= 0; i--) {
             ActivityComponent comp = this.entries.get(i).component;
             if (comp != this.focusedChild && comp.isVisible() && comp.isEnabled() && comp.keyPressed(input)) {
@@ -694,7 +641,6 @@ public class ScrollContainer extends ActivityComponent {
             }
         }
 
-        // Keyboard scrolling navigation
         int key = input.key();
         if (key == GLFW.GLFW_KEY_PAGE_UP) {
             scrollBy(-this.height * 0.8);

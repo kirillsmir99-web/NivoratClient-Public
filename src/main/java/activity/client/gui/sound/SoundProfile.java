@@ -2,15 +2,6 @@ package activity.client.gui.sound;
 
 import net.minecraft.text.Text;
 
-/**
- * Sound profiles supported by NivoratClient.
- *
- * <ul>
- *   <li>{@link #SERENE}: Modern calm haptic UI audio designed for NivoratClient (default).</li>
- *   <li>{@link #CLASSIC}: Legacy punchy UI sound pack.</li>
- *   <li>{@link #MINECRAFT}: Native vanilla Minecraft sound events (clicks, plings, bass, books).</li>
- * </ul>
- */
 public enum SoundProfile {
     SERENE("serene", "activity.sound_profile.serene", "Nivorat Serene"),
     CLASSIC("classic", "activity.sound_profile.classic", "Nivorat Classic"),

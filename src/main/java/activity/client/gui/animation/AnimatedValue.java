@@ -1,11 +1,5 @@
 package activity.client.gui.animation;
 
-/**
- * Reusable animated float value supporting easing curves, time-based delta updates,
- * and automatic instant snapping when animations are disabled in configuration.
- *
- * <p>Prevents scattered, inconsistent interpolation logic across UI components.
- */
 public class AnimatedValue {
 
     private float current;
@@ -32,9 +26,6 @@ public class AnimatedValue {
         this(initialValue, AnimationClock.DURATION_HOVER, Easing.EASE_OUT_QUAD);
     }
 
-    /**
-     * Sets a new animation target. If animations are disabled, immediately snaps to target.
-     */
     public void setTarget(float newTarget) {
         if (Math.abs(this.target - newTarget) < 0.0001f) {
             return;
@@ -51,9 +42,6 @@ public class AnimatedValue {
         this.elapsed = 0.0f;
     }
 
-    /**
-     * Immediately snaps the current and target value without transition.
-     */
     public void snap(float value) {
         this.current = value;
         this.target = value;
@@ -61,9 +49,6 @@ public class AnimatedValue {
         this.elapsed = this.duration;
     }
 
-    /**
-     * Advances the animation by delta time (in seconds).
-     */
     public void update(float dt) {
         if (!AnimationClock.isAnimationsEnabled()) {
             this.current = this.target;
@@ -81,9 +66,6 @@ public class AnimatedValue {
         }
     }
 
-    /**
-     * Advances the animation using the centralized AnimationClock delta time.
-     */
     public void update() {
         this.update(AnimationClock.getDeltaTime());
     }

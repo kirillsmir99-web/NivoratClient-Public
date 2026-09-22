@@ -1,10 +1,5 @@
 package net.redstone.optimizer.config;
 
-/**
- * In-memory runtime state for AutoMace combat engine.
- * Bound to NivoratClient unified configuration ({@link activity.client.config.ActivityConfig}).
- * Independent file I/O has been removed in favor of NivoratConfigManager.
- */
 public final class RedstoneOptimizerConfig {
     public static final int MODE_SWORD_ONLY = 0;
     public static final int MODE_AXE_ONLY = 1;
@@ -30,10 +25,10 @@ public final class RedstoneOptimizerConfig {
     private RedstoneOptimizerConfig() {}
 
     public static void load() {
-        // Bound to NivoratClient ActivityConfig — no independent file I/O
+
     }
 
     public static void save() {
-        // Bound to NivoratClient ActivityConfig — no independent file I/O
+
     }
 }

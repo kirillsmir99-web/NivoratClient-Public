@@ -5,9 +5,6 @@ import net.minecraft.text.Text;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Boolean toggle setting bound directly to the config model and runtime controller.
- */
 public class BooleanSetting extends Setting<Boolean> {
 
     private final Supplier<Boolean> getter;

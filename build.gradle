@@ -71,10 +71,6 @@ task updateDevConstants {
 		def devKey = isDev ? "nc_dev_8f29c4a17e0b65d3a912e847c1b50d9f" : ""
 		devFile.text = """package activity.client.presence;
 
-/**
- * Developer Edition configuration and identity tokens for NivoratClient.
- * Generated automatically by Gradle build system.
- */
 public final class NivoratDev {
 
     private NivoratDev() {}
@@ -109,10 +105,6 @@ tasks.register("buildDev") {
 		def devFile = file("src/main/java/activity/client/presence/NivoratDev.java")
 		devFile.text = """package activity.client.presence;
 
-/**
- * Developer Edition configuration and identity tokens for NivoratClient.
- * Generated automatically by Gradle build system.
- */
 public final class NivoratDev {
 
     private NivoratDev() {}

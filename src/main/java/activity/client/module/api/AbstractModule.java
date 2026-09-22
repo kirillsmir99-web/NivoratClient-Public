@@ -22,12 +22,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Foundation class for all built-in and extensible NivoratClient modules.
- *
- * <p>Handles lifecycle state, metadata, keybinds, and typed settings registration
- * with zero boilerplate.
- */
 public abstract class AbstractModule implements IModule {
 
     protected final String id;
@@ -132,10 +126,6 @@ public abstract class AbstractModule implements IModule {
     public void onEnable() {}
 
     public void onDisable() {}
-
-    // ==========================================
-    // SETTING REGISTRATION HELPERS
-    // ==========================================
 
     public <S extends Setting<?>> S registerSetting(S setting) {
         if (setting != null && !settings.contains(setting)) {

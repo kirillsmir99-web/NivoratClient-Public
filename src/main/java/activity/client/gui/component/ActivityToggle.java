@@ -10,12 +10,6 @@ import net.minecraft.client.input.KeyInput;
 
 import java.util.function.Consumer;
 
-/**
- * Pixel-accurate toggle switch component inspired by the reference UI.
- * Dimensions: 28x14px with crisp 1px border.
- * Features frame-rate independent animated slide of the knob (~110ms ease-out)
- * and smooth track color blending between OFF (#382224) and ON (#26D95F).
- */
 public class ActivityToggle extends ActivityComponent {
 
     private boolean state = false;
@@ -88,15 +82,7 @@ public class ActivityToggle extends ActivityComponent {
 
     @FunctionalInterface
     public interface ToggleConfirmHandler {
-        /**
-         * Intercepts toggle state change.
-         *
-         * @param currentState current state of the toggle
-         * @param targetState  new state intended by the user
-         * @param proceed      callback to apply new state
-         * @param cancel       callback if cancelled
-         * @return true if intercepted (confirmation requested), false to proceed immediately
-         */
+
         boolean interceptToggle(boolean currentState, boolean targetState, Runnable proceed, Runnable cancel);
     }
 
@@ -110,10 +96,6 @@ public class ActivityToggle extends ActivityComponent {
         return this.confirmHandler;
     }
 
-    /**
-     * Attaches confirmation dialog for when the toggle transitions from ON to OFF.
-     * Transitioning from OFF to ON proceeds immediately without prompt.
-     */
     public void setConfirmTurnOff(java.util.function.BiFunction<Runnable, Runnable, activity.client.gui.modal.BaseModal> modalFactory, activity.client.gui.modal.ModalManager modalManager) {
         this.setConfirmHandler((currentState, targetState, proceed, cancel) -> {
             if (currentState && !targetState) {
@@ -127,9 +109,6 @@ public class ActivityToggle extends ActivityComponent {
         });
     }
 
-    /**
-     * Convenience helper to attach standard confirmation dialog when switching toggle from ON to OFF.
-     */
     public void setConfirmTurnOff(net.minecraft.text.Text title, net.minecraft.text.Text desc, net.minecraft.text.Text confirmText, activity.client.gui.modal.ModalManager modalManager) {
         this.setConfirmHandler((currentState, targetState, proceed, cancel) -> {
             if (currentState && !targetState) {
@@ -179,25 +158,20 @@ public class ActivityToggle extends ActivityComponent {
             this.hoverProgress = AnimationClock.approach(this.hoverProgress, targetHover, AnimationClock.DURATION_HOVER);
         }
 
-        // Hermite smoothstep interpolation for organic acceleration & deceleration
         float eased = AnimationClock.smoothStep(this.animationProgress);
 
-        // Smooth track color blend between OFF (#382224) and ON (#26D95F)
         int trackColor = ActivityColors.interpolateColor(ActivityColors.STATE_OFF_BG, ActivityColors.STATE_ON_BG, eased);
         if (this.hoverProgress > 0.001f && this.enabled) {
             trackColor = ActivityColors.interpolateColor(trackColor, ActivityColors.withAlpha(0xFFFFFFFF, 30), this.hoverProgress * 0.25f);
         }
 
-        // Smooth border color blending between default, active state, and hover
         int normalBorder = ActivityColors.BORDER_INPUT;
         int activeBorder = ActivityColors.interpolateColor(normalBorder, 0xFF35D96B, eased * 0.55f);
         int hoverBorder = ActivityColors.BORDER_HOVER;
         int borderColor = ActivityColors.interpolateColor(activeBorder, hoverBorder, this.hoverProgress);
 
-        // Draw track fill and 1px outer border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, trackColor, borderColor);
 
-        // Subtle recessed cavity depth and active inner glow
         if (this.width > 4 && this.height > 4) {
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, 1, 0x22000000);
             if (eased > 0.01f && this.enabled) {
@@ -206,14 +180,12 @@ public class ActivityToggle extends ActivityComponent {
             }
         }
 
-        // Draw focus indicator if focused
         if (this.focused && this.enabled) {
             ActivityGuiRenderer.drawBorder(context, this.x - 1, this.y - 1, this.width + 2, this.height + 2, ActivityColors.ACCENT_PRIMARY);
         }
 
-        // Rectangular knob (11x10px inside 28x14px) with smooth slide and organic micro-stretch during motion
         int knobBaseWidth = 11;
-        int knobHeight = this.height - 4; // 10px
+        int knobHeight = this.height - 4;
         int knobY = this.y + 2;
         int minKnobX = this.x + 2;
         int maxKnobX = this.x + this.width - knobBaseWidth - 2;
@@ -233,7 +205,6 @@ public class ActivityToggle extends ActivityComponent {
         int knobColor = this.enabled ? ActivityColors.TOGGLE_KNOB : ActivityColors.TEXT_DISABLED;
         ActivityGuiRenderer.fill(context, knobX, knobY, knobWidth, knobHeight, knobColor);
 
-        // Tactile depth: 1px top specular highlight, 1px bottom shadow, and active border tint
         if (this.enabled) {
             int topGlint = this.hoverProgress > 0.001f ? 0x60FFFFFF : 0x48FFFFFF;
             ActivityGuiRenderer.fill(context, knobX, knobY, knobWidth, 1, topGlint);

@@ -21,9 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Modern interactive search bar component with autocomplete dropdown and keyboard navigation.
- */
 public class ActivitySearchBar extends ActivityComponent {
 
     private static final Text PLACEHOLDER = Text.translatable("activity.gui.search_placeholder");
@@ -104,10 +101,8 @@ public class ActivitySearchBar extends ActivityComponent {
         int baseBorder = ActivityColors.interpolateColor(ActivityColors.BORDER, ActivityColors.ACCENT_PRIMARY, this.focusAnimation);
         int border = ActivityColors.scaleAlpha(baseBorder, this.alpha);
 
-        // Background and border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bg, border, false);
 
-        // Search icon on the left (12 logical px, centered vertically, left padding 7px)
         int iconSize = 12;
         int iconLeftPad = 7;
         int iconX = this.x + iconLeftPad;
@@ -115,7 +110,6 @@ public class ActivitySearchBar extends ActivityComponent {
         int iconColor = ActivityColors.scaleAlpha(this.focused ? ActivityColors.ACCENT_LIGHT : ActivityColors.TEXT_MUTED, this.alpha);
         ActivityIconRenderer.drawSized(context, ActivityIcon.SEARCH, iconX, iconY, iconSize, iconColor);
 
-        // Input text clipping area
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
         int textX = iconX + iconSize + 6;
         int clearBtnSize = 10;
@@ -133,7 +127,6 @@ public class ActivitySearchBar extends ActivityComponent {
                 int txtColor = ActivityColors.scaleAlpha(ActivityColors.TEXT_PRIMARY, this.alpha);
                 ActivityGuiRenderer.drawText(context, textRenderer, FontManager.wrap(Text.literal(this.text)), textX, textY, txtColor);
 
-                // Cursor rendering
                 if (this.focused && AnimationClock.isCursorBlinkVisible()) {
                     int cursorX = textX + textRenderer.getWidth(this.text.substring(0, this.cursor));
                     int curColor = ActivityColors.scaleAlpha(ActivityColors.TEXT_PRIMARY, this.alpha);
@@ -144,7 +137,6 @@ public class ActivitySearchBar extends ActivityComponent {
             ScissorHelper.popScissor(context);
         }
 
-        // Clear icon on the right (if text is not empty)
         if (!this.text.isEmpty()) {
             int clearY = this.y + (this.height - clearBtnSize) / 2;
             boolean clearHovered = (mouseX >= clearX - 2 && mouseX < clearX + clearBtnSize + 2 && mouseY >= this.y && mouseY < this.y + this.height);
@@ -205,9 +197,6 @@ public class ActivitySearchBar extends ActivityComponent {
         return Math.max(1, Math.min(6, availableH / rowHeight));
     }
 
-    /**
-     * Renders the floating search results popup overlay.
-     */
     public void renderPopup(DrawContext context, int mouseX, int mouseY) {
         if (!this.popupOpen || this.searchResults.isEmpty() || !this.focused) return;
 
@@ -218,7 +207,6 @@ public class ActivitySearchBar extends ActivityComponent {
         int popupX = getPopupX();
         int popupY = getPopupY();
 
-        // Dark glass popup background
         int popupBg = ActivityColors.scaleAlphaPercent(ActivityColors.PANEL_BACKGROUND, 95.0);
         ActivityGuiRenderer.drawWindowFrame(context, popupX, popupY, popupW, popupH, popupBg, ActivityColors.BORDER, true);
 
@@ -237,12 +225,10 @@ public class ActivitySearchBar extends ActivityComponent {
                 }
             }
 
-            // Icon
             int itemIconY = curY + (rowHeight - 10) / 2;
             int itemIconColor = isSelected ? ActivityColors.ACCENT_LIGHT : ActivityColors.TEXT_SECONDARY;
             ActivityIconRenderer.draw(context, res.entry().icon(), popupX + 6, itemIconY, itemIconColor);
 
-            // Title & breadcrumb
             int titleY = curY + 3;
             int breadcrumbY = curY + 12;
             int textLeft = popupX + 20;
@@ -280,7 +266,6 @@ public class ActivitySearchBar extends ActivityComponent {
         double mx = click.x();
         double my = click.y();
 
-        // Check clear button click
         if (!this.text.isEmpty()) {
             int clearX = this.x + this.width - 18;
             if (mx >= clearX && mx <= this.x + this.width && my >= this.y && my < this.y + this.height) {
@@ -289,7 +274,6 @@ public class ActivitySearchBar extends ActivityComponent {
             }
         }
 
-        // Check popup click
         if (isMouseOverPopup(mx, my)) {
             int rowHeight = 22;
             int popupY = getPopupY();
@@ -300,7 +284,6 @@ public class ActivitySearchBar extends ActivityComponent {
             return true;
         }
 
-        // Check search bar click
         if (isMouseOver(mx, my)) {
             setFocused(true);
             return true;
@@ -407,8 +390,6 @@ public class ActivitySearchBar extends ActivityComponent {
         }
         return false;
     }
-
-
 
     public void closePopup() {
         this.popupOpen = false;

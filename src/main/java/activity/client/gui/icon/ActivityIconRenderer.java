@@ -5,18 +5,6 @@ import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 
-/**
- * Renderer for NivoratClient icons.
- *
- * <p>Supports:
- * <ul>
- *   <li>Atlas texture rendering from {@code nivorat_icons_atlas.png} (192x96, cell 24x24).</li>
- *   <li>Procedural pixel-art fallback for headless unit tests and procedural icons.</li>
- *   <li>Custom position (x, y), custom size (12px, 14px, 16px etc.), tint, alpha transparency.</li>
- *   <li>State resolution: hover, selected (active), disabled.</li>
- *   <li>Zero per-frame {@link Identifier} allocations (cached constant {@link #ATLAS_ID}).</li>
- * </ul>
- */
 public final class ActivityIconRenderer {
 
     public static final Identifier ATLAS_ID = Identifier.of("nivoratclient", "textures/gui/nivorat_icons_atlas.png");
@@ -25,9 +13,6 @@ public final class ActivityIconRenderer {
 
     private ActivityIconRenderer() {}
 
-    /**
-     * Applies an alpha multiplier [0.0f .. 1.0f] to an ARGB color.
-     */
     public static int applyAlpha(int argb, float alpha) {
         if (alpha >= 1.0f) return argb;
         if (alpha <= 0.0f) return 0;
@@ -36,9 +21,6 @@ public final class ActivityIconRenderer {
         return (newA << 24) | (argb & 0x00FFFFFF);
     }
 
-    /**
-     * Resolves effective icon color considering state.
-     */
     public static int resolveColor(int baseTint, boolean hover, boolean selected, boolean disabled) {
         if (disabled) {
             return ActivityColors.TEXT_DISABLED;
@@ -56,9 +38,6 @@ public final class ActivityIconRenderer {
         return resolveColor(0, hovered, active, !enabled);
     }
 
-    /**
-     * Universal icon render method supporting position, size, tint, alpha factor, and states.
-     */
     public static void drawIcon(DrawContext context, ActivityIcon icon, int x, int y, int size, int tint, float alpha,
                                 boolean hover, boolean selected, boolean disabled) {
         if (icon == null || context == null || size <= 0) return;
@@ -66,9 +45,6 @@ public final class ActivityIconRenderer {
         draw(context, icon, x, y, size, effectiveColor, alpha);
     }
 
-    /**
-     * Renders an icon with custom size and alpha factor.
-     */
     public static void draw(DrawContext context, ActivityIcon icon, int x, int y, int size, int color, float alphaFactor) {
         if (icon == null || context == null || size <= 0) return;
         int argb = applyAlpha(color, alphaFactor);
@@ -88,16 +64,13 @@ public final class ActivityIconRenderer {
                 );
                 return;
             } catch (Throwable ignored) {
-                // Headless test fallback or GL uninitialized
+
             }
         }
 
         drawSpansSized(context, icon, x, y, size, argb);
     }
 
-    /**
-     * Renders an icon with base size and alpha factor.
-     */
     public static void draw(DrawContext context, ActivityIcon icon, int x, int y, int color, float alphaFactor) {
         draw(context, icon, x, y, (icon != null ? icon.getWidth() : 10), color, alphaFactor);
     }

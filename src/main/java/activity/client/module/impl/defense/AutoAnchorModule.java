@@ -32,7 +32,6 @@ public class AutoAnchorModule extends NivoratModule {
                 .aliases("autoanchor", "anchor", "якорь", "автоякорь", "авто-якорь", "взрыв якоря", "взрыв якорей", "незер", "взрыв", "задержка", "delay", "заряд", "charge", "chance", "шанс", "подрыв якоря")
                 .build();
 
-        // 1. GENERAL
         registerEnum("preset", Text.translatable("activity.setting.defense.anchor_preset"),
                 Text.translatable("activity.setting.defense.anchor_preset.desc"), SettingGroup.GENERAL,
                 List.of("fast", "medium", "balanced", "safe"), "balanced",
@@ -115,7 +114,6 @@ public class AutoAnchorModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR
         registerNumber("charge_delay", Text.translatable("activity.setting.defense.charge_delay"),
                 Text.translatable("activity.setting.defense.charge_delay.desc"), SettingGroup.BEHAVIOR,
                 0.0, 10.0, 1.0, " t", true, 1.0,
@@ -184,7 +182,6 @@ public class AutoAnchorModule extends NivoratModule {
                 }
         );
 
-        // 3. ADVANCED
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
                 true,

@@ -3,17 +3,6 @@ package activity.client.module.service;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 
-/**
- * Shared per-tick player state cache for NivoratClient.
- *
- * <p>Consolidates duplicate per-tick queries across combat, defense, and utility modules:
- * <ul>
- *   <li>Player busy / in-use state (prevents redundant component and vehicle inspections)</li>
- *   <li>Airborne status and air ticks counter (shared by AutoMace and AutoStunSlam)</li>
- *   <li>Health and absorption status (shared by AutoTotem and HPReaper)</li>
- *   <li>Selected hotbar slot memoization</li>
- * </ul>
- */
 public final class PlayerStateService {
 
     private static long lastTickId = -1L;
@@ -27,9 +16,6 @@ public final class PlayerStateService {
 
     private PlayerStateService() {}
 
-    /**
-     * Updates player state cache once per client tick.
-     */
     public static void onTick(MinecraftClient client, long tickId) {
         if (client == null || client.player == null) {
             reset();

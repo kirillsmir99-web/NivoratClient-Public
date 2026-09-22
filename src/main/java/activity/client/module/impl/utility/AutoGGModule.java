@@ -44,7 +44,6 @@ public class AutoGGModule extends NivoratModule {
                 .aliases("autogg", "gg", "гг", "автогг", "авто-гг", "авто-gg", "авто gg", "ggwp", "чат", "поздравление", "сообщение", "смерть", "килл", "kill")
                 .build();
 
-        // 1. GENERAL (ordinal 0)
         registerKeybind("menu_keybind", Text.translatable("activity.setting.utility.menu_keybind"),
                 Text.translatable("activity.setting.utility.menu_keybind.desc"), SettingGroup.GENERAL,
                 new activity.client.module.keybind.Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G),
@@ -95,7 +94,6 @@ public class AutoGGModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR (ordinal 1)
         registerNumber("delay_ms", Text.translatable("activity.setting.utility.delay_ms"),
                 Text.translatable("activity.setting.utility.delay_ms.desc"), SettingGroup.BEHAVIOR,
                 100.0, 3000.0, 50.0, " ms", true, 950.0,
@@ -113,7 +111,6 @@ public class AutoGGModule extends NivoratModule {
                 }
         );
 
-        // 3. EXTRA (ordinal 2)
         registerBoolean("send_on_kill", Text.translatable("activity.setting.utility.send_on_kill"),
                 Text.translatable("activity.setting.utility.send_on_kill.desc"), SettingGroup.EXTRA,
                 true,
@@ -167,7 +164,6 @@ public class AutoGGModule extends NivoratModule {
         int count = currentPhrases != null ? currentPhrases.size() : 0;
         String activeSelected = AutoGGClient.CONFIG.currentPhrase();
 
-        // 0. Informative callout card: blue icon without "Сноска:" label, neatly boxed and adaptively wrapped
         MinecraftClient client = MinecraftClient.getInstance();
         net.minecraft.client.font.TextRenderer fontTr = client != null ? client.textRenderer : null;
         int textMaxW = Math.max(50, innerRowW - 24);
@@ -213,7 +209,6 @@ public class AutoGGModule extends NivoratModule {
         if (tab != null) tab.addControl(container, callout); else container.addChild(callout);
         curY += calloutH + 8;
 
-        // 1. Header Label: Phrases Count / Limit (max 8)
         activity.client.gui.component.ActivityLabel headerLabel = new activity.client.gui.component.ActivityLabel(
                 startX, curY + 3,
                 Text.literal("Фразы AutoGG (" + count + "/8):")
@@ -222,7 +217,6 @@ public class AutoGGModule extends NivoratModule {
         if (tab != null) tab.addControl(container, headerLabel); else container.addChild(headerLabel);
         curY += rowH + gap;
 
-        // 2. Existing phrases list: star button + inline editable text field + delete button
         if (currentPhrases != null) {
             for (int i = 0; i < currentPhrases.size(); i++) {
                 String phrase = currentPhrases.get(i);
@@ -234,7 +228,6 @@ public class AutoGGModule extends NivoratModule {
 
                 final int phraseIdx = i;
 
-                // Star button: lights up gold (★) when default, otherwise dim (☆)
                 activity.client.gui.component.ActivityButton btnStar = new activity.client.gui.component.ActivityButton(
                         startX, curY, starBtnW, rowH,
                         Text.literal(isDefault ? "§6★" : "§7☆"),
@@ -253,7 +246,6 @@ public class AutoGGModule extends NivoratModule {
                 );
                 btnStar.setTooltip(Text.literal(isDefault ? "Выбрано по умолчанию" : "Сделать по умолчанию"));
 
-                // Inline editable phrase field
                 activity.client.gui.component.ActivityTextField phraseField = new activity.client.gui.component.ActivityTextField(
                         startX + starBtnW + 4, curY, phraseFieldW, rowH
                 );
@@ -274,7 +266,6 @@ public class AutoGGModule extends NivoratModule {
                     }
                 });
 
-                // Delete button
                 activity.client.gui.component.ActivityButton btnDelete = new activity.client.gui.component.ActivityButton(
                         startX + starBtnW + 4 + phraseFieldW + 4, curY, deleteBtnW, rowH,
                         Text.literal("✕"),
@@ -314,7 +305,6 @@ public class AutoGGModule extends NivoratModule {
             }
         }
 
-        // 3. Add Phrase Input Row (if < 8 words)
         if (count < 8) {
             int addBtnW = 72;
             int inputW = innerRowW - addBtnW - 4;
@@ -335,7 +325,7 @@ public class AutoGGModule extends NivoratModule {
                     if (!exists && AutoGGClient.CONFIG.phrases.size() < 8) {
                         String currentDefault = AutoGGClient.CONFIG.currentPhrase();
                         AutoGGClient.CONFIG.phrases.add(text);
-                        // Keep current default phrase selected (do not automatically shift star)
+
                         int prevIdx = -1;
                         for (int j = 0; j < AutoGGClient.CONFIG.phrases.size(); j++) {
                             if (AutoGGClient.CONFIG.phrases.get(j).equalsIgnoreCase(currentDefault)) {

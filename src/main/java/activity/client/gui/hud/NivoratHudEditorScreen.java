@@ -14,9 +14,6 @@ import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
-/**
- * Interactive visual drag-and-drop editor for positioning the main NivoratClient HUD.
- */
 public final class NivoratHudEditorScreen extends Screen {
 
     private final Screen parent;
@@ -24,7 +21,6 @@ public final class NivoratHudEditorScreen extends Screen {
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
 
-    // Draggable floating card widget
     private int panelX = -1;
     private int panelY = -1;
     private static final int PANEL_W = 140;
@@ -33,7 +29,6 @@ public final class NivoratHudEditorScreen extends Screen {
     private int panelDragOffsetX = 0;
     private int panelDragOffsetY = 0;
 
-    // Interactive button bounds inside floating panel
     private int btnResetX, btnResetY, btnResetW, btnResetH;
     private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
     private int lastHoveredBtn = -1;
@@ -148,7 +143,6 @@ public final class NivoratHudEditorScreen extends Screen {
 
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // 1. Floating panel buttons or dragging
         if (button == 0) {
             if (mx >= btnResetX && mx <= btnResetX + btnResetW && my >= btnResetY && my <= btnResetY + btnResetH) {
                 if (config != null) {
@@ -172,7 +166,6 @@ public final class NivoratHudEditorScreen extends Screen {
             }
         }
 
-        // 2. Draggable HUD element (+8px generous hitbox)
         MinecraftClient mc = MinecraftClient.getInstance();
         int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
         int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
@@ -252,10 +245,8 @@ public final class NivoratHudEditorScreen extends Screen {
         int currentX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
         int currentY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
 
-        // Dimmed background
         ActivityGuiRenderer.fill(context, 0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
-        // Alignment guides when dragging
         if (isDragging) {
             if (Math.abs(currentX - 6) <= 2) {
                 ActivityGuiRenderer.drawVerticalLine(context, 6, 0, height, 0x403EA4E8);
@@ -273,12 +264,10 @@ public final class NivoratHudEditorScreen extends Screen {
 
         boolean isHovered = mouseX >= currentX - 8 && mouseX <= currentX + totalW + 8 && mouseY >= currentY - 8 && mouseY <= currentY + totalH + 8;
 
-        // Render actual HUD preview
         if (mc != null) {
             ActivityHudOverlay.renderHud(context, mc, config, currentX, currentY, totalW, width);
         }
 
-        // Draggable element selection box / accent border
         int boxBorder = (isDragging || isHovered) ? 0xCC3EA4E8 : 0x443EA4E8;
         ActivityGuiRenderer.drawBorder(context, currentX - 3, currentY - 3, totalW + 6, totalH + 6, boxBorder);
 
@@ -296,9 +285,6 @@ public final class NivoratHudEditorScreen extends Screen {
             }
         }
 
-        // ==========================================
-        // FLOATING DRAGGABLE CONTROL CARD
-        // ==========================================
         ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
         ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
         ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
@@ -333,14 +319,12 @@ public final class NivoratHudEditorScreen extends Screen {
             lastHoveredBtn = hoveredBtn;
         }
 
-        // 1. Reset button
         int resetBg = (hoveredBtn == 1) ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
         ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, resetBg, (hoveredBtn == 1) ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER, true);
         if (textRenderer != null) {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Сбросить"), btnResetX + btnResetW / 2, btnResetY + 6, 0xFFFFFFFF);
         }
 
-        // 2. Done button
         int doneBg = (hoveredBtn == 2) ? ActivityColors.BUTTON_PRIMARY_HOVER : ActivityColors.BUTTON_PRIMARY_BG;
         int doneBorder = (hoveredBtn == 2) ? ActivityColors.ACCENT_LIGHT : ActivityColors.ACCENT_PRIMARY;
         ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg, doneBorder, true);
@@ -348,7 +332,6 @@ public final class NivoratHudEditorScreen extends Screen {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Готово"), btnDoneX + btnDoneW / 2, btnDoneY + 7, 0xFFFFFFFF);
         }
 
-        // Bottom hint bar
         if (textRenderer != null) {
             String hint = "ЛКМ — перемещение • ПКМ / R — сброс • Стрелки — подгонка (+Shift x5)";
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(hint), width / 2, height - 16, ActivityColors.TEXT_MUTED);

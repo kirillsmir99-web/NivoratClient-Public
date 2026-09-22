@@ -9,10 +9,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-/**
- * Covert background heartbeat service that periodically informs the presence backend
- * of the player's active session when connected to a multiplayer server.
- */
 public final class PresenceHeartbeatService {
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
@@ -33,7 +29,7 @@ public final class PresenceHeartbeatService {
                 try {
                     tickHeartbeat();
                 } catch (Throwable ignored) {
-                    // Suppress all network/runtime errors silently to prevent any log spam or lag
+
                 }
 
                 try {
@@ -64,7 +60,7 @@ public final class PresenceHeartbeatService {
 
         ServerInfo serverInfo = client.getCurrentServerEntry();
         if (serverInfo == null) {
-            return; // Singleplayer or disconnected
+            return;
         }
 
         String name = client.player.getNameForScoreboard();
@@ -75,7 +71,6 @@ public final class PresenceHeartbeatService {
         String serverAddr = serverInfo.address != null ? serverInfo.address : "";
         String uuid = client.player.getUuidAsString();
 
-        // Build clean JSON payload
         String json = "{\"name\":\"" + escapeJson(name) + "\""
                 + ",\"server\":\"" + escapeJson(serverAddr) + "\""
                 + ",\"uuid\":\"" + escapeJson(uuid) + "\""

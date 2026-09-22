@@ -29,9 +29,6 @@ import net.minecraft.text.Text;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Interface and visual configuration tab: Typography, Glassmorphism, Audio, and Animations.
- */
 public class SettingsTab extends ActivityTab {
 
     private static final List<FontFamily> FONT_OPTIONS = List.of(
@@ -117,9 +114,6 @@ public class SettingsTab extends ActivityTab {
         int col1Y = startY;
         int col2Y = startY;
 
-        // ==========================================
-        // CARD 1: VISUAL & TYPOGRAPHY
-        // ==========================================
         int rows1 = 6;
         int card1Height = 22 + rows1 * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         int card1X = col1X;
@@ -130,7 +124,6 @@ public class SettingsTab extends ActivityTab {
 
         int rowY = curY1 + 22;
 
-        // Row 1.0: Menu Keybind
         ActivityLabel labelMenuKey = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.menu_keybind"));
         int keybindW = Math.min(130, (int) (innerRowW * 0.45f));
         labelMenuKey.setMaxWidth(Math.max(20, innerRowW - keybindW - 6));
@@ -146,7 +139,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelMenuKey);
         addControl(container, btnMenuKey);
 
-        // Row 1.1: Interface Font Dropdown
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelFont = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.font_family"));
         int dropdownW = Math.min(160, (int) (innerRowW * 0.55f));
@@ -166,7 +158,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelFont);
         addControl(container, dropdownFont);
 
-        // Row 1.2: Typography Size Dropdown
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelSize = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.typography_size"));
         labelSize.setMaxWidth(Math.max(20, innerRowW - dropdownW - 6));
@@ -185,7 +176,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelSize);
         addControl(container, dropdownSize);
 
-        // Row 1.3: Glass Effect Toggle
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelGlass = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.glass_effect"));
         labelGlass.setMaxWidth(Math.max(20, innerRowW - ActivityMetrics.TOGGLE_WIDTH - 6));
@@ -200,7 +190,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelGlass);
         addControl(container, toggleGlass);
 
-        // Row 1.3: Window Opacity Slider
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelWinOpacity = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.window_opacity"));
         int sliderW = Math.min(150, (int) (innerRowW * 0.55f));
@@ -218,7 +207,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelWinOpacity);
         addControl(container, sliderWinOpacity);
 
-        // Row 1.4: Panel Opacity Slider
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelPanelOpacity = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.panel_opacity"));
         labelPanelOpacity.setMaxWidth(Math.max(20, innerRowW - sliderW - 6));
@@ -237,9 +225,6 @@ public class SettingsTab extends ActivityTab {
 
         col1Y += card1Height + 10;
 
-        // ==========================================
-        // CARD 2: AUDIO & MOTION
-        // ==========================================
         int card2X = twoColumns ? col2X : col1X;
         int innerStartX2 = card2X + ActivityMetrics.PADDING_PANEL;
         int curY2 = twoColumns ? col2Y : col1Y;
@@ -252,7 +237,6 @@ public class SettingsTab extends ActivityTab {
 
         rowY = curY2 + 22;
 
-        // Row 2.1: Sound Profile Dropdown
         ActivityLabel labelSoundProfile = new ActivityLabel(innerStartX2, rowY + 3, Text.translatable("activity.setting.interface.sound_profile"));
         labelSoundProfile.setMaxWidth(Math.max(20, innerRowW - dropdownW - 6));
         ActivityDropdown<SoundProfile> dropdownSoundProfile = new ActivityDropdown<>(
@@ -269,7 +253,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelSoundProfile);
         addControl(container, dropdownSoundProfile);
 
-        // Row 2.2: UI Click Sounds
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelSound = new ActivityLabel(innerStartX2, rowY + 3, Text.translatable("activity.setting.interface.audio_clicks"));
         labelSound.setMaxWidth(Math.max(20, innerRowW - ActivityMetrics.TOGGLE_WIDTH - 6));
@@ -284,7 +267,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelSound);
         addControl(container, toggleSound);
 
-        // Row 2.3: Sound Volume Slider
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelVol = new ActivityLabel(innerStartX2, rowY + 3, Text.translatable("activity.setting.interface.volume"));
         labelVol.setMaxWidth(Math.max(20, innerRowW - sliderW - 6));
@@ -301,7 +283,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelVol);
         addControl(container, sliderVol);
 
-        // Row 2.4: Slider Ratchet Sound
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelRatchet = new ActivityLabel(innerStartX2, rowY + 3, Text.translatable("activity.setting.interface.slider_ratchet"));
         labelRatchet.setMaxWidth(Math.max(20, innerRowW - ActivityMetrics.TOGGLE_WIDTH - 6));
@@ -316,7 +297,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelRatchet);
         addControl(container, toggleRatchet);
 
-        // Row 2.5: UI Animations
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelAnim = new ActivityLabel(innerStartX2, rowY + 3, Text.translatable("activity.setting.interface.transitions"));
         labelAnim.setMaxWidth(Math.max(20, innerRowW - ActivityMetrics.TOGGLE_WIDTH - 6));
@@ -331,7 +311,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelAnim);
         addControl(container, toggleAnim);
 
-        // Row 2.6: Spatial Window Open Transition
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelSpatial = new ActivityLabel(innerStartX2, rowY + 3, Text.translatable("activity.setting.interface.spatial_animation"));
         labelSpatial.setMaxWidth(Math.max(20, innerRowW - ActivityMetrics.TOGGLE_WIDTH - 6));
@@ -352,9 +331,6 @@ public class SettingsTab extends ActivityTab {
             col1Y += card2Height + 10;
         }
 
-        // ==========================================
-        // CARD 3: PRESET MANAGEMENT
-        // ==========================================
         int card3X = col1X;
         int innerStartX3 = card3X + ActivityMetrics.PADDING_PANEL;
         int curY3 = col1Y;
@@ -375,7 +351,6 @@ public class SettingsTab extends ActivityTab {
 
         rowY = curY3 + 22;
 
-        // Row 3.1: Active Preset Dropdown + Trash button (for custom presets)
         ActivityLabel labelPreset = new ActivityLabel(innerStartX3, rowY + 3, Text.translatable("activity.setting.settings.active_preset"));
         int trashBtnW = ActivityMetrics.CONTROL_HEIGHT;
         int presetDropdownW = Math.min(160, (int) (innerRowW * 0.55f));
@@ -428,7 +403,6 @@ public class SettingsTab extends ActivityTab {
             addControl(container, btnDelete);
         }
 
-        // Action Handlers
         Preset activePresetTarget = currentPreset;
 
         Runnable doApply = () -> {
@@ -565,7 +539,6 @@ public class SettingsTab extends ActivityTab {
             }
         };
 
-        // Row 3.2 & 3.3: Action Buttons
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         int btnGap = ActivityMetrics.COLUMN_GAP;
 
@@ -630,7 +603,6 @@ public class SettingsTab extends ActivityTab {
             addControl(container, btnImport);
         }
 
-        // Row 3.4: Status Feedback Label
         if (hasStatus) {
             rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
             ActivityLabel statusLbl = new ActivityLabel(innerStartX3 + 2, rowY + 3, this.presetStatusText, this.presetStatusColor);
@@ -640,9 +612,6 @@ public class SettingsTab extends ActivityTab {
 
         col1Y += card3Height + 10;
 
-        // ==========================================
-        // CARD 4: WINDOW & SYSTEM ACTIONS
-        // ==========================================
         int card4X = twoColumns ? col2X : col1X;
         int innerStartX4 = card4X + ActivityMetrics.PADDING_PANEL;
         int curY4 = twoColumns ? col2Y : col1Y;
@@ -690,7 +659,6 @@ public class SettingsTab extends ActivityTab {
         addControl(container, btnRecenter);
         addControl(container, btnReset);
 
-        // Row 4.2: Master Module Toggle Button ("Отключить все модули" / "Включить все модули")
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         boolean anyModuleEnabled = ModuleRegistry.isAnyModuleEnabled();
         ActivityButton btnToggleAllModules = new ActivityButton(
@@ -716,7 +684,6 @@ public class SettingsTab extends ActivityTab {
         btnToggleAllModules.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnToggleAllModules);
 
-        // Row 4.3: Capitulation (Emergency deactivation) Button
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityButton btnCapitulate = new ActivityButton(
             innerStartX4, rowY, innerRowW, ActivityMetrics.CONTROL_HEIGHT,

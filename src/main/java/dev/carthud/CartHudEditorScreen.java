@@ -33,7 +33,6 @@ public final class CartHudEditorScreen extends Screen {
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
 
-    // Draggable vertical floating card widget
     private int panelX = -1;
     private int panelY = -1;
     private static final int PANEL_W = 140;
@@ -42,7 +41,6 @@ public final class CartHudEditorScreen extends Screen {
     private int panelDragOffsetX = 0;
     private int panelDragOffsetY = 0;
 
-    // Interactive button bounds inside floating panel
     private int btnResetX, btnResetY, btnResetW, btnResetH;
     private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
     private int lastHoveredBtn = -1;
@@ -161,7 +159,6 @@ public final class CartHudEditorScreen extends Screen {
         btnDoneX = panelX + 10;
         btnDoneY = panelY + 78;
 
-        // 1. Floating panel buttons or dragging
         if (button == 0) {
             if (mx >= btnResetX && mx <= btnResetX + btnResetW && my >= btnResetY && my <= btnResetY + btnResetH) {
                 CartHudConfig.customX = -1;
@@ -189,7 +186,6 @@ public final class CartHudEditorScreen extends Screen {
             }
         }
 
-        // 2. Draggable cart element (+10px generous hitbox)
         int currentX = CartHudOverlay.getEffectiveX(width);
         int currentY = CartHudOverlay.getEffectiveY(height);
         int boxW = CartHudOverlay.ELEMENT_WIDTH;
@@ -368,9 +364,6 @@ public final class CartHudEditorScreen extends Screen {
             }
         }
 
-        // ==========================================
-        // FLOATING DRAGGABLE CONTROL CARD (LEFT DOCKED)
-        // ==========================================
         ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
         ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
         ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
@@ -405,7 +398,6 @@ public final class CartHudEditorScreen extends Screen {
             lastHoveredBtn = hoveredBtn;
         }
 
-        // 1. Reset button
         int resetBg = (hoveredBtn == 1) ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
         ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, resetBg, (hoveredBtn == 1) ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER, true);
         if (textRenderer != null) {
@@ -413,7 +405,6 @@ public final class CartHudEditorScreen extends Screen {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(rstText), btnResetX + btnResetW / 2, btnResetY + 6, 0xFFFFFFFF);
         }
 
-        // 2. Done button
         int doneBg = (hoveredBtn == 2) ? ActivityColors.BUTTON_PRIMARY_HOVER : ActivityColors.BUTTON_PRIMARY_BG;
         int doneBorder = (hoveredBtn == 2) ? ActivityColors.ACCENT_LIGHT : ActivityColors.ACCENT_PRIMARY;
         ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg, doneBorder, true);
@@ -422,7 +413,6 @@ public final class CartHudEditorScreen extends Screen {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(dnText), btnDoneX + btnDoneW / 2, btnDoneY + 7, 0xFFFFFFFF);
         }
 
-        // Subtle bottom hint bar
         if (textRenderer != null) {
             String hint = "ЛКМ — перемещение • ПКМ / R — сброс • Стрелки — подгонка (+Shift x5)";
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(hint), width / 2, height - 16, ActivityColors.TEXT_MUTED);

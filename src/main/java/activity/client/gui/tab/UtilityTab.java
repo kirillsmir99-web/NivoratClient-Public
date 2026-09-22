@@ -23,9 +23,6 @@ import net.minecraft.text.Text;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Utility modules configuration tab: HPReaper, AutoTool, AutoGG, CartHUD, and Activity HUD.
- */
 public class UtilityTab extends ActivityTab {
 
     private static final Text SUBTITLE = Text.translatable("activity.tab.utility.subtitle");
@@ -152,7 +149,6 @@ public class UtilityTab extends ActivityTab {
             }
         }
 
-        // Card 5: HUD NIVORATCLIENT (Оверлей)
         int curY = Math.max(col1Y, col2Y);
         int hudRows = 5;
         int hudHeight = 22 + hudRows * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
@@ -168,7 +164,6 @@ public class UtilityTab extends ActivityTab {
 
         int rowY = curY + 22;
 
-        // Row 5.1: Enable HUD Toggle
         ActivityLabel labelHud = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.setting.general.enable_hud"));
         labelHud.setMaxWidth(toggleLabelMaxW);
         ActivityToggle toggleHud = new ActivityToggle(
@@ -182,7 +177,6 @@ public class UtilityTab extends ActivityTab {
         addControl(container, labelHud);
         addControl(container, toggleHud);
 
-        // Row 5.2: Show Active Modules Toggle
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelModules = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.setting.general.hud_show_active_modules"));
         labelModules.setMaxWidth(toggleLabelMaxW);
@@ -197,7 +191,6 @@ public class UtilityTab extends ActivityTab {
         addControl(container, labelModules);
         addControl(container, toggleModules);
 
-        // Row 5.3: HUD Anchor Dropdown
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelHudPos = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.setting.general.hud_anchor"));
         labelHudPos.setMaxWidth(dropdownLabelMaxW);
@@ -213,7 +206,6 @@ public class UtilityTab extends ActivityTab {
         addControl(container, labelHudPos);
         addControl(container, dropdownHudPos);
 
-        // Row 5.4: Overlay Opacity Slider
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelOpacity = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.setting.general.overlay_opacity"));
         labelOpacity.setMaxWidth(sliderLabelMaxW);
@@ -230,7 +222,6 @@ public class UtilityTab extends ActivityTab {
         addControl(container, labelOpacity);
         addControl(container, sliderOpacity);
 
-        // Row 5.5: Open HUD Editor Button
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityButton btnOpenEditor = new ActivityButton(
             innerStartX, rowY, fullInnerRowW, ActivityMetrics.CONTROL_HEIGHT,

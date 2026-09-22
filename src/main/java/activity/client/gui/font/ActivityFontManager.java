@@ -7,9 +7,6 @@ import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-/**
- * Backward-compatible delegating facade to {@link NivoratFontManager}.
- */
 public final class ActivityFontManager {
 
     public static final String FONT_FAMILY_DEFAULT = "minecraft";

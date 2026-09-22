@@ -22,9 +22,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Combat modules configuration tab: AutoMace, AutoSpear, AutoShieldbreaker, and AutoStunSlam.
- */
 public class CombatTab extends ActivityTab {
 
     private static final Text SUBTITLE = Text.translatable("activity.tab.combat.subtitle");

@@ -31,7 +31,6 @@ public class CartHudModule extends NivoratModule {
                 .aliases("carthud", "hud", "хад", "картхад", "оверлей", "вагонетки", "редактор", "editor", "позиция")
                 .build();
 
-        // 1. EXTRA (ordinal 2)
         registerAction("open_editor", Text.translatable("activity.setting.utility.open_carthud_editor"),
                 Text.translatable("activity.setting.utility.open_carthud_editor.desc"), SettingGroup.EXTRA,
                 () -> {

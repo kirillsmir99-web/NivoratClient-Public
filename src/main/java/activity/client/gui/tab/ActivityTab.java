@@ -11,13 +11,6 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Base abstract class representing an interactive tab section in the Activity GUI.
- *
- * <p>Each tab encapsulates its own persistent state variables, layout structure,
- * scroll position, title, subtitle, and component instantiation logic.
- * States are strictly preserved across tab switching and window resizes.
- */
 public abstract class ActivityTab {
 
     private final String id;
@@ -62,9 +55,6 @@ public abstract class ActivityTab {
         return icon;
     }
 
-    /**
-     * @return the descriptive subtitle shown beneath the page H1 title in the content area
-     */
     public abstract Text getSubtitle();
 
     public List<ActivityComponent> getComponents() {
@@ -89,15 +79,9 @@ public abstract class ActivityTab {
         this.hoverProgress = hoverProgress;
     }
 
-    /**
-     * Updates the tab's hover transition progress (~100ms budget) frame-rate independently.
-     *
-     * @param hovered whether the mouse is currently over this tab item
-     * @param dt      frame delta time in seconds
-     */
     public void updateHover(boolean hovered, float dt) {
         float target = hovered ? 1.0f : 0.0f;
-        float speed = 10.0f; // 100ms duration (1.0 / 0.10s)
+        float speed = 10.0f;
         if (this.hoverProgress < target) {
             this.hoverProgress = Math.min(target, this.hoverProgress + speed * dt);
         } else if (this.hoverProgress > target) {
@@ -134,10 +118,6 @@ public abstract class ActivityTab {
     private final java.util.Map<String, ModuleSection> moduleSections = new java.util.LinkedHashMap<>();
     private String currentBuildingModule = null;
 
-    /**
-     * Convenience registration helper: adds widget to both the tab's state-tracking
-     * list and the target {@link ScrollContainer}.
-     */
     public <T extends ActivityComponent> T addControl(ScrollContainer container, T component) {
         if (component != null) {
             container.addChild(component);
@@ -149,9 +129,6 @@ public abstract class ActivityTab {
         return component;
     }
 
-    /**
-     * Helper to create a grouped card container inside the scroll container.
-     */
     public ActivityPanel createCard(ScrollContainer container, int x, int y, int width, int height, Text title) {
         ActivityPanel card = new ActivityPanel(x, y, width, height, title);
         card.setBackgroundColor(ActivityColors.PANEL_INNER_BG);
@@ -199,7 +176,6 @@ public abstract class ActivityTab {
             return;
         }
 
-        // Check which module sections match the query
         java.util.Set<String> matching = new java.util.HashSet<>();
         for (ModuleSection sec : this.moduleSections.values()) {
             if (activity.client.gui.search.SearchController.matchesModule(this.getId(), sec.moduleId, query)) {
@@ -240,7 +216,7 @@ public abstract class ActivityTab {
             container.recomputeContentHeight();
             container.scrollTo(0);
         } else {
-            // No matches in this tab: hide cards so only relevant modules/settings are displayed
+
             for (ModuleSection sec : this.moduleSections.values()) {
                 sec.card.setVisible(false);
                 for (ActivityComponent c : sec.controls) {
@@ -259,41 +235,15 @@ public abstract class ActivityTab {
         this.currentBuildingModule = null;
     }
 
-    /**
-     * Instantiates and arranges all widgets for this tab inside the scrollable container.
-     * All widgets must be wired to the tab's internal persistent state variables.
-     *
-     * @param screen     parent activity screen
-     * @param container  scrollable content container
-     * @param startX     content starting X coordinate inside container
-     * @param startY     content starting Y coordinate inside container
-     * @param rowWidth   available width for settings rows (accounting for scrollbar)
-     */
     public abstract void buildTab(ActivityScreen screen, ScrollContainer container, int startX, int startY, int rowWidth);
 
-    /**
-     * Associated module category if this tab represents a gameplay module group, or null.
-     */
     public activity.client.module.api.ModuleCategory getCategory() {
         return null;
     }
 
-    /**
-     * Resets all persistent state variables on this tab to their default values.
-     */
     public abstract void resetDefaults();
 
-    /**
-     * Loads tab state variables from the provided global configuration object.
-     *
-     * @param config the configuration model to read from
-     */
     public abstract void loadFromConfig(activity.client.config.ActivityConfig config);
 
-    /**
-     * Writes current tab state variables into the provided global configuration object.
-     *
-     * @param config the configuration model to populate
-     */
     public abstract void saveToConfig(activity.client.config.ActivityConfig config);
 }

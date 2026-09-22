@@ -3,19 +3,8 @@ package activity.client.gui.icon;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Modern icon enum for NivoratClient.
- *
- * <p>Supports both texture atlas coordinates (from {@code nivorat_icons_atlas.png})
- * and procedural monochrome pixel-art spans for headless testing and fallback rendering.
- *
- * <p>All icons have UV coordinates matching {@code docs/ICON_ATLAS_MAP.json} (cell size 24x24, atlas 192x96).
- */
 public enum ActivityIcon {
 
-    // ==========================================
-    // 1. SEMANTIC ICONS (ATLAS COORDINATES)
-    // ==========================================
     ANIMATION(0, 0, 24, 24,
         "XXXXXXXXXX",
         "X.X....X.X",
@@ -365,9 +354,6 @@ public enum ActivityIcon {
         ".........."
     ),
 
-    // ==========================================
-    // 2. CATEGORY & PROCEDURAL ICONS
-    // ==========================================
     COMBAT(-1, -1, 0, 0,
         ".......XX.",
         "......XXX.",
@@ -405,9 +391,6 @@ public enum ActivityIcon {
         ".X..XX..X."
     ),
 
-    // ==========================================
-    // 3. COMPATIBILITY & LEGACY ALIASES
-    // ==========================================
     ABOUT(96, 24, 24, 24,
         "...XXXX...",
         "..XX..XX..",

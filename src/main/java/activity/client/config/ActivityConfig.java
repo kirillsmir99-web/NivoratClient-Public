@@ -4,22 +4,12 @@ import activity.client.module.keybind.Keybind;
 
 import java.util.Objects;
 
-/**
- * Data model representing all configurable settings across the Activity GUI framework.
- *
- * <p>Contains configuration parameters for Combat, Defense, Utility, HUD, Profiles, and Engine settings.
- * Designed for safe JSON serialization via Gson, dirty tracking via {@link #equals(Object)},
- * and deep cloning via {@link #copy()}.
- */
 public class ActivityConfig {
 
     public static final String PRESET_DEFAULT = "default";
 
     public int configVersion = 2;
 
-    // ==========================================
-    // 0. QUICK ACCESS & PINNED MODULES
-    // ==========================================
     public java.util.List<String> pinnedModules = new java.util.ArrayList<>();
 
     public boolean isPinned(String moduleId) {
@@ -55,10 +45,6 @@ public class ActivityConfig {
         return java.util.Collections.unmodifiableList(this.pinnedModules);
     }
 
-    // ==========================================
-    // 1. COMBAT MODULES (Оружие и свапы)
-    // ==========================================
-    // AutoMace
     public boolean autoMaceEnabled = true;
     public Keybind autoMaceKeybind = new Keybind();
     public String autoMaceSourceMode = "sword_and_axe";
@@ -69,7 +55,6 @@ public class ActivityConfig {
     public double autoMaceMissChance = 10.0;
     public boolean autoMaceRandomDelay = true;
 
-    // AutoSpear
     public boolean autoSpearEnabled = true;
     public Keybind autoSpearKeybind = new Keybind();
     public Keybind autoSpearTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
@@ -79,7 +64,6 @@ public class ActivityConfig {
     public double autoSpearMissChance = 0.0;
     public boolean autoSpearRandomDelay = true;
 
-    // AutoShieldbreaker
     public boolean autoShieldbreakerEnabled = true;
     public Keybind autoShieldbreakerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_J, true, true, false);
     public String autoShieldbreakerMode = "full_auto";
@@ -92,7 +76,6 @@ public class ActivityConfig {
     public boolean autoShieldbreakerAbortOnManualSwitch = true;
     public boolean autoShieldbreakerLegitMode = true;
 
-    // AutoStunSlam (Авто Стан Слэм)
     public boolean autoStunSlamEnabled = true;
     public Keybind autoStunSlamKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_M, true, true, false);
     public String autoStunSlamMode = "full_auto";
@@ -105,7 +88,6 @@ public class ActivityConfig {
     public boolean autoStunSlamRandomDelay = false;
     public boolean autoStunSlamLegitMode = true;
 
-    // AutoPearlCatch (Авто Пёрл Кэтч)
     public boolean autoPearlCatchEnabled = true;
     public Keybind autoPearlCatchKeybind = new Keybind();
     public Keybind autoPearlCatchActionKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
@@ -121,7 +103,6 @@ public class ActivityConfig {
     public boolean autoPearlCatchRandomDelay = true;
     public double autoPearlCatchRandomSpreadMs = 15.0;
 
-    // Backward-compatibility legacy alias fields for JSON deserialization
     public Boolean autoStunSlimeEnabled = null;
     public Keybind autoStunSlimeKeybind = null;
     public String autoStunSlimeMode = null;
@@ -134,10 +115,6 @@ public class ActivityConfig {
     public Boolean autoStunSlimeRandomDelay = null;
     public Boolean autoStunSlimeLegitMode = null;
 
-    // ==========================================
-    // 2. DEFENSE MODULES (Защита и карты)
-    // ==========================================
-    // AutoTotem
     public boolean autoTotemEnabled = true;
     public Keybind autoTotemKeybind = new Keybind();
     public String autoTotemMode = "main_hand";
@@ -155,7 +132,6 @@ public class ActivityConfig {
     public boolean autoTotemAutoRefill = true;
     public String autoTotemRefillSlot = "auto";
 
-    // AutoCart
     public boolean autoCartEnabled = true;
     public Keybind autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
     public String autoCartPreset = "medium";
@@ -172,7 +148,6 @@ public class ActivityConfig {
     public double autoCartRestoreDelay = 2.0;
     public boolean autoCartUseMainHand = true;
 
-    // AutoAnchor
     public boolean autoAnchorEnabled = true;
     public Keybind autoAnchorKeybind = new Keybind();
     public String autoAnchorPreset = "balanced";
@@ -184,7 +159,6 @@ public class ActivityConfig {
     public double autoAnchorTargetCharges = 1.0;
     public boolean autoAnchorLegitMode = true;
 
-    // CartRefill
     public boolean cartRefillEnabled = true;
     public Keybind cartRefillKeybind = new Keybind();
     public double cartRefillDelayTicks = 2.0;
@@ -194,10 +168,6 @@ public class ActivityConfig {
     public double cartRefillRandomSpreadTicks = 1.0;
     public boolean cartRefillLegitMode = true;
 
-    // ==========================================
-    // 3. UTILITY MODULES (Утилиты и HUD)
-    // ==========================================
-    // HPReaper
     public boolean hpReaperEnabled = true;
     public Keybind hpReaperKeybind = new Keybind();
     public String hpReaperMode = "target_hp";
@@ -211,7 +181,6 @@ public class ActivityConfig {
     public int hpReaperDiffX = -1;
     public int hpReaperDiffY = -1;
 
-    // AutoTool
     public boolean autoToolEnabled = true;
     public Keybind autoToolKeybind = new Keybind();
     public boolean autoToolCombatGuard = true;
@@ -226,7 +195,6 @@ public class ActivityConfig {
     public boolean autoToolIgnoreInstantBreak = true;
     public boolean autoToolLockWhileMining = true;
 
-    // AutoGG
     public boolean autoGGEnabled = true;
     public Keybind autoGGKeybind = new Keybind();
     public Keybind autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
@@ -236,15 +204,11 @@ public class ActivityConfig {
     public boolean autoGGRandomOrder = false;
     public double autoGGDelayMs = 950.0;
 
-    // CartHUD
     public boolean cartHudEnabled = true;
     public Keybind cartHudKeybind = new Keybind();
     public int cartHudCustomX = -1;
     public int cartHudCustomY = -1;
 
-    // ==========================================
-    // 4. HUD & VISUALS
-    // ==========================================
     public boolean overlayEnabled = true;
     public boolean darkThemeEnabled = true;
     public String hudPosition = "top_right";
@@ -268,9 +232,6 @@ public class ActivityConfig {
     public int hudCustomY = -1;
     public boolean hudShowActiveModules = true;
 
-    // ==========================================
-    // 5. PROFILES & SYSTEM SETTINGS
-    // ==========================================
     public String activeProfile = PRESET_DEFAULT;
     public String themeVariant = "Фирменная тёмная";
     public boolean compactMode = false;
@@ -292,9 +253,6 @@ public class ActivityConfig {
     public String filterRegex = ".*";
     public String gcPolicy = "Консервативный";
 
-    // ==========================================
-    // 6. PHASE 2: VISUAL, FONT, SOUND, WINDOW
-    // ==========================================
     public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
     public String fontFamily = "onest";
     public String typographySize = "normal";
@@ -316,9 +274,6 @@ public class ActivityConfig {
     public boolean animationsEnabled = true;
     public boolean spatialOpenAnimation = true;
 
-    // ==========================================
-    // 7. STRUCTURED MODULE PERSISTENCE (NIVORAT SDK)
-    // ==========================================
     public static class ModuleConfigEntry {
         public boolean enabled = true;
         public Keybind keybind = new Keybind();
@@ -350,9 +305,6 @@ public class ActivityConfig {
 
     public java.util.Map<String, ModuleConfigEntry> modules = new java.util.LinkedHashMap<>();
 
-    // ==========================================
-    // 8. STRUCTURED CLIENT PERSISTENCE (NIVORAT SCHEMA)
-    // ==========================================
     public static class UiSection {
         public boolean overlayEnabled = true;
         public boolean darkThemeEnabled = true;
@@ -494,29 +446,19 @@ public class ActivityConfig {
 
     public ClientSection client = new ClientSection();
 
-    // Legacy migration state
     public boolean legacyMigrationDone = false;
     public int legacyMigrationVersion = 0;
 
     public ActivityConfig() {}
 
-    /**
-     * Applies a named gameplay configuration preset.
-     *
-     * @param presetName name or ID of preset
-     */
     public void applyPreset(String presetName) {
         if (presetName == null || presetName.isBlank()) return;
         activity.client.config.preset.PresetManager.applyPresetByName(presetName, this);
     }
 
-    /**
-     * Resets all parameters to their factory default values.
-     */
     public void resetToDefaults() {
         this.configVersion = 2;
 
-        // Combat
         this.autoMaceEnabled = true;
         this.autoMaceKeybind.clear();
         this.autoMaceSourceMode = "sword_and_axe";
@@ -591,7 +533,6 @@ public class ActivityConfig {
             this.pinnedModules.clear();
         }
 
-        // Defense
         this.autoTotemEnabled = true;
         this.autoTotemKeybind.clear();
         this.autoTotemMode = "main_hand";
@@ -645,7 +586,6 @@ public class ActivityConfig {
         this.cartRefillRandomSpreadTicks = 1.0;
         this.cartRefillLegitMode = true;
 
-        // Utility
         this.hpReaperEnabled = true;
         this.hpReaperKeybind.clear();
         this.hpReaperMode = "target_hp";
@@ -687,7 +627,6 @@ public class ActivityConfig {
         this.cartHudCustomX = -1;
         this.cartHudCustomY = -1;
 
-        // HUD & System
         this.overlayEnabled = true;
         this.darkThemeEnabled = true;
         this.hudPosition = "top_right";
@@ -758,9 +697,6 @@ public class ActivityConfig {
         syncModuleConfigEntries();
     }
 
-    /**
-     * Validates and sanitizes loaded configuration values against bounds, nulls, and NaNs.
-     */
     public void sanitize() {
         if (this.modules == null) {
             this.modules = new java.util.LinkedHashMap<>();
@@ -784,7 +720,6 @@ public class ActivityConfig {
             }
         }
 
-        // Keybind null guards
         if (this.autoMaceKeybind == null) this.autoMaceKeybind = new Keybind();
         if (this.autoSpearKeybind == null) this.autoSpearKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
         if (this.autoSpearTriggerKeybind == null) this.autoSpearTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
@@ -804,7 +739,6 @@ public class ActivityConfig {
         if (this.cartHudKeybind == null) this.cartHudKeybind = new Keybind();
         if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
 
-        // Migration from legacy autoStunSlime JSON fields if present
         if (this.autoStunSlimeEnabled != null) {
             this.autoStunSlamEnabled = this.autoStunSlimeEnabled;
             this.autoStunSlimeEnabled = null;
@@ -850,7 +784,6 @@ public class ActivityConfig {
             this.autoStunSlimeLegitMode = null;
         }
 
-        // Pinned modules migration and null guard
         if (this.pinnedModules == null) {
             this.pinnedModules = new java.util.ArrayList<>();
         } else {
@@ -862,7 +795,6 @@ public class ActivityConfig {
             }
         }
 
-        // Sliders & Numbers
         this.autoMaceRestoreDelayMs = clampSanitize(this.autoMaceRestoreDelayMs, 30.0, 300.0, 90.0);
         this.autoMaceMissChance = clampSanitize(this.autoMaceMissChance, 0.0, 50.0, 10.0);
         this.autoSpearRestoreDelayMs = clampSanitize(this.autoSpearRestoreDelayMs, 10.0, 500.0, 185.0);
@@ -922,7 +854,6 @@ public class ActivityConfig {
         this.hudPadding = clampSanitize(this.hudPadding, 0.0, 64.0, 8.0);
         this.maxCacheEntries = clampSanitize(this.maxCacheEntries, 16.0, 2048.0, 256.0);
 
-        // String migration and non-null guards
         if ("Меч и топор".equals(this.autoMaceSourceMode) || "sword_and_axe".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "sword_and_axe";
         else if ("Только меч".equals(this.autoMaceSourceMode) || "sword_only".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "sword_only";
         else if ("Только топор".equals(this.autoMaceSourceMode) || "axe_only".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "axe_only";
@@ -1421,9 +1352,6 @@ public class ActivityConfig {
         return def;
     }
 
-    /**
-     * Looks up module entry handling case-insensitivity and AutoStun aliases.
-     */
     public ModuleConfigEntry getModuleEntry(String id) {
         if (this.modules == null || id == null) return null;
         String clean = id.replace("_", "").toLowerCase(java.util.Locale.ROOT);
@@ -1659,9 +1587,6 @@ public class ActivityConfig {
         return Math.clamp(val, min, max);
     }
 
-    /**
-     * Creates a detached deep copy of this configuration.
-     */
     public ActivityConfig copy() {
         this.syncClientSection();
         this.syncModuleConfigEntries();
@@ -1679,7 +1604,6 @@ public class ActivityConfig {
             }
         }
 
-        // Combat
         copy.autoMaceEnabled = this.autoMaceEnabled;
         copy.autoMaceKeybind.copyFrom(this.autoMaceKeybind);
         copy.autoMaceSourceMode = this.autoMaceSourceMode;
@@ -1738,7 +1662,6 @@ public class ActivityConfig {
         copy.autoPearlCatchRandomDelay = this.autoPearlCatchRandomDelay;
         copy.autoPearlCatchRandomSpreadMs = this.autoPearlCatchRandomSpreadMs;
 
-        // Defense
         copy.autoTotemEnabled = this.autoTotemEnabled;
         copy.autoTotemKeybind.copyFrom(this.autoTotemKeybind);
         copy.autoTotemMode = this.autoTotemMode;
@@ -1792,7 +1715,6 @@ public class ActivityConfig {
         copy.cartRefillRandomSpreadTicks = this.cartRefillRandomSpreadTicks;
         copy.cartRefillLegitMode = this.cartRefillLegitMode;
 
-        // Utility
         copy.hpReaperEnabled = this.hpReaperEnabled;
         copy.hpReaperKeybind.copyFrom(this.hpReaperKeybind);
         copy.hpReaperMode = this.hpReaperMode;
@@ -1833,7 +1755,6 @@ public class ActivityConfig {
         copy.cartHudCustomX = this.cartHudCustomX;
         copy.cartHudCustomY = this.cartHudCustomY;
 
-        // HUD & Profiles
         copy.overlayEnabled = this.overlayEnabled;
         copy.darkThemeEnabled = this.darkThemeEnabled;
         copy.hudPosition = this.hudPosition;
@@ -1913,7 +1834,7 @@ public class ActivityConfig {
         if (!(o instanceof ActivityConfig that)) return false;
 
         return this.configVersion == that.configVersion &&
-               // Combat
+
                this.autoMaceEnabled == that.autoMaceEnabled &&
                this.autoMaceLegitMode == that.autoMaceLegitMode &&
                this.autoMaceRandomDelay == that.autoMaceRandomDelay &&
@@ -1973,7 +1894,6 @@ public class ActivityConfig {
                 Objects.equals(this.autoPearlCatchMode, that.autoPearlCatchMode) &&
                 Objects.equals(this.autoPearlCatchDirection, that.autoPearlCatchDirection) &&
 
-                 // Defense
                  this.autoTotemEnabled == that.autoTotemEnabled &&
                  this.autoTotemReturnItem == that.autoTotemReturnItem &&
                  this.autoTotemReturnOnPop == that.autoTotemReturnOnPop &&
@@ -2025,7 +1945,6 @@ public class ActivityConfig {
                 Double.compare(this.cartRefillRandomSpreadTicks, that.cartRefillRandomSpreadTicks) == 0 &&
                 Objects.equals(this.cartRefillKeybind, that.cartRefillKeybind) &&
 
-               // Utility
                this.hpReaperEnabled == that.hpReaperEnabled &&
                this.hpReaperOwnHealthX == that.hpReaperOwnHealthX &&
                this.hpReaperOwnHealthY == that.hpReaperOwnHealthY &&
@@ -2066,7 +1985,6 @@ public class ActivityConfig {
                this.cartHudCustomY == that.cartHudCustomY &&
                Objects.equals(this.cartHudKeybind, that.cartHudKeybind) &&
 
-               // HUD & System
                this.overlayEnabled == that.overlayEnabled &&
                this.darkThemeEnabled == that.darkThemeEnabled &&
                this.autoHideOnChat == that.autoHideOnChat &&
@@ -2139,7 +2057,7 @@ public class ActivityConfig {
             client,
             modules,
             menuKeybind,
-            // Combat
+
             autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay,
             autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay,
             autoShieldbreakerEnabled, autoShieldbreakerKeybind, autoShieldbreakerMode, autoShieldbreakerDistance, autoShieldbreakerChance,
@@ -2151,7 +2069,7 @@ public class ActivityConfig {
             autoPearlCatchEnabled, autoPearlCatchKeybind, autoPearlCatchActionKeybind, autoPearlCatchHorizontalKeybind,
             autoPearlCatchMode, autoPearlCatchDirection, autoPearlCatchThrowDelay, autoPearlCatchRestoreSlot,
             autoPearlCatchRestoreCamera, autoPearlCatchRotationTimeMs, autoPearlCatchLegitMode, autoPearlCatchHorizontalOffset, autoPearlCatchRandomDelay, autoPearlCatchRandomSpreadMs,
-            // Defense
+
             autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemCrystalTriggerHearts, autoTotemCrystalRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
             autoCartEnabled, autoCartKeybind, autoCartPreset, autoCartPlacementChance, autoCartMaxDistance, autoCartMinDelayMs, autoCartMaxDelayMs,
             autoCartAllowSelfCart, autoCartAllowPitPlacement, autoCartRandomDelay, autoCartRailDelay, autoCartCartDelay, autoCartRestoreDelay, autoCartLegitMode, autoCartUseMainHand,
@@ -2159,13 +2077,13 @@ public class ActivityConfig {
             cartRefillEnabled, cartRefillKeybind, cartRefillDelayTicks, cartRefillChance, cartRefillAutoClose, cartRefillRandomDelay, cartRefillRandomSpreadTicks, cartRefillLegitMode
         );
         result = 31 * result + Objects.hash(
-            // Utility
+
             hpReaperEnabled, hpReaperKeybind, hpReaperMode, hpReaperTargetFilter,
             hpReaperOwnHealthX, hpReaperOwnHealthY, hpReaperCrosshairTargetX, hpReaperCrosshairTargetY, hpReaperTargetHealthX, hpReaperTargetHealthY, hpReaperDiffX, hpReaperDiffY,
             autoToolEnabled, autoToolKeybind, autoToolCombatGuard, autoToolDurabilitySaver, autoToolDurabilityThreshold, autoToolPreferSilkTouch, autoToolRestorePrevious, autoToolLegitMode, autoToolSingleSlotMode, autoToolSingleSlot, autoToolIgnoreInstantBreak, autoToolLockWhileMining,
             autoGGEnabled, autoGGKeybind, autoGGMenuKeybind, autoGGPhrase, autoGGSendOnKill, autoGGSendOnOwnDeath, autoGGRandomOrder, autoGGDelayMs,
             cartHudEnabled, cartHudKeybind, cartHudCustomX, cartHudCustomY,
-            // HUD & System
+
             overlayEnabled, darkThemeEnabled, hudPosition, overlayOpacity, autoHideOnChat, hideInF3, searchFilter, filterCategory, matchCase
         );
         result = 31 * result + Objects.hash(

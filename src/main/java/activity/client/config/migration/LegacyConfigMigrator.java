@@ -19,20 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-/**
- * Robust legacy configuration migration engine for NivoratClient.
- *
- * <p>Inspects legacy standalone mod configurations across all 12 modules,
- * safely extracts compatible parameters in both Properties and JSON formats,
- * validates and clamps them, applies them to {@link ActivityConfig},
- * and leaves an idempotent migration marker.
- */
 public final class LegacyConfigMigrator {
 
     public static final String MIGRATION_MARKER_FILE = ".nivorat_legacy_migrated";
     public static final int CURRENT_MIGRATION_VERSION = 1;
 
-    // Legacy File Constants
     public static final String AUTO_MACE_PRIMARY = "redstone_optimizer.properties";
     public static final String AUTO_MACE_LEGACY = "impact_tweaks.properties";
     public static final String AUTO_MACE_PROP = "automace.properties";
@@ -157,9 +148,6 @@ public final class LegacyConfigMigrator {
 
     private LegacyConfigMigrator() {}
 
-    /**
-     * Resolves the active Minecraft configuration directory.
-     */
     public static Path resolveConfigDir() {
         try {
             FabricLoader loader = FabricLoader.getInstance();
@@ -170,9 +158,6 @@ public final class LegacyConfigMigrator {
         return Path.of("config");
     }
 
-    /**
-     * Checks if any legacy configuration file exists in the specified directory.
-     */
     public static boolean hasAnyLegacyConfig(Path configDir) {
         if (configDir == null || !Files.exists(configDir)) return false;
         for (String filename : ALL_LEGACY_FILENAMES) {
@@ -183,9 +168,6 @@ public final class LegacyConfigMigrator {
         return false;
     }
 
-    /**
-     * Checks if migration has already been executed for this installation.
-     */
     public static boolean isAlreadyMigrated(ActivityConfig config, Path configDir) {
         if (config != null && config.legacyMigrationDone && config.legacyMigrationVersion >= CURRENT_MIGRATION_VERSION) {
             return true;
@@ -200,9 +182,6 @@ public final class LegacyConfigMigrator {
         return false;
     }
 
-    /**
-     * Marks migration as successfully completed by setting config flags and writing marker file.
-     */
     public static void markMigrated(ActivityConfig config, Path configDir) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return;
@@ -227,36 +206,15 @@ public final class LegacyConfigMigrator {
         }
     }
 
-    /**
-     * Standard migration check called upon client boot.
-     *
-     * @param config configuration model to populate
-     * @return true if any legacy configs were migrated, false otherwise
-     */
     public static boolean checkAndMigrate(ActivityConfig config) {
         Path configDir = resolveConfigDir();
         return migrate(config, configDir, false);
     }
 
-    /**
-     * Performs migration of all available legacy mod files into the target configuration.
-     *
-     * @param config    target configuration model
-     * @param configDir directory containing legacy files
-     * @return true if files were found and imported, false if skipped or no files present
-     */
     public static boolean migrate(ActivityConfig config, Path configDir) {
         return migrate(config, configDir, false);
     }
 
-    /**
-     * Performs migration of all available legacy mod files into the target configuration with force option.
-     *
-     * @param config    target configuration model
-     * @param configDir directory containing legacy files
-     * @param force     whether to force migration even if migration marker exists
-     * @return true if files were found and imported, false if skipped or no files present
-     */
     public static boolean migrate(ActivityConfig config, Path configDir, boolean force) {
         if (config == null || configDir == null) return false;
 
@@ -275,46 +233,32 @@ public final class LegacyConfigMigrator {
 
         int migratedModules = 0;
 
-        // 1. AutoMace
         if (migrateAutoMace(config, configDir)) migratedModules++;
 
-        // 2. AutoSpear
         if (migrateAutoSpear(config, configDir)) migratedModules++;
 
-        // 3. AutoShieldbreaker
         if (migrateAutoShieldbreaker(config, configDir)) migratedModules++;
 
-        // 4. AutoStunSlam (supports AutoStunSlime alias)
         if (migrateAutoStunSlam(config, configDir)) migratedModules++;
 
-        // 5. AutoTotem
         if (migrateAutoTotem(config, configDir)) migratedModules++;
 
-        // 6. AutoCart
         if (migrateAutoCart(config, configDir)) migratedModules++;
 
-        // 7. AutoAnchor
         if (migrateAutoAnchor(config, configDir)) migratedModules++;
 
-        // 8. CartRefill
         if (migrateCartRefill(config, configDir)) migratedModules++;
 
-        // 9. HPReaper
         if (migrateHpReaper(config, configDir)) migratedModules++;
 
-        // 10. AutoTool
         if (migrateAutoTool(config, configDir)) migratedModules++;
 
-        // 11. AutoGG
         if (migrateAutoGG(config, configDir)) migratedModules++;
 
-        // 12. CartHUD
         if (migrateCartHud(config, configDir)) migratedModules++;
 
-        // 13. Legacy Hotkeys (redstone_keys.properties, pvp_keys.properties, keys.json)
         migrateKeybinds(config, configDir);
 
-        // Sanitize and sync to modules
         config.sanitize();
         ModuleRegistry.loadAll(config);
         NivoratConfigManager.syncToModules(config);
@@ -324,10 +268,6 @@ public final class LegacyConfigMigrator {
         ActivityClient.LOGGER.debug("[NivoratClient] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
         return true;
     }
-
-    // =========================================================================
-    // MODULE-SPECIFIC PARSERS (Supporting Properties & JSON)
-    // =========================================================================
 
     private static boolean migrateAutoMace(ActivityConfig config, Path dir) {
         LegacyConfigData data = loadLegacyData(dir, AUTO_MACE_PRIMARY, AUTO_MACE_LEGACY, AUTO_MACE_PROP, AUTO_MACE_JSON, "auto_mace.properties", "auto_mace.json");
@@ -1018,9 +958,6 @@ public final class LegacyConfigMigrator {
         return null;
     }
 
-    /**
-     * Unified data container holding either Properties or JsonObject representation of a legacy file.
-     */
     private static final class LegacyConfigData {
         private final Properties props;
         private final JsonObject json;

@@ -4,12 +4,6 @@ import com.google.gson.JsonObject;
 
 import java.util.Objects;
 
-/**
- * Representation of a gameplay and module configuration preset.
- *
- * <p>Contains metadata and a clean snapshot of module settings, excluding
- * transient UI state (window coordinates, current scroll, search query, active profile).
- */
 public class Preset {
 
     public static final int CURRENT_SCHEMA_VERSION = 1;

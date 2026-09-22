@@ -3,13 +3,6 @@ package activity.client.gui.font;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Dedicated metrics container for font typography across the GUI framework.
- *
- * <p>Encapsulates distinct line height, vertical baseline offset, glyph spacing,
- * and scale adjustments per font family and size preset. Eliminates scattered
- * font-checking conditional branches in individual widgets.
- */
 public final class TypographyMetrics {
 
     private static final Map<FontFamily, Map<TypographySize, TypographyMetrics>> CACHE = new EnumMap<>(FontFamily.class);
@@ -43,13 +36,6 @@ public final class TypographyMetrics {
         this.scaleFactor = scaleFactor;
     }
 
-    /**
-     * Resolves the pre-calibrated typography metrics for the given font family and size.
-     *
-     * @param family font family (falls back to ONEST if null)
-     * @param size   typography size (falls back to NORMAL if null)
-     * @return non-null TypographyMetrics
-     */
     public static TypographyMetrics get(FontFamily family, TypographySize size) {
         FontFamily resolvedFamily = family != null ? family : FontFamily.ONEST;
         TypographySize resolvedSize = size != null ? size : TypographySize.NORMAL;
@@ -146,16 +132,10 @@ public final class TypographyMetrics {
         return scaleFactor;
     }
 
-    /**
-     * Calculates the baseline Y coordinate adjusted for font vertical offset.
-     */
     public int getAdjustedY(int y) {
         return Math.round(y + verticalOffset);
     }
 
-    /**
-     * Calculates the vertically centered Y coordinate for text inside a bounding box of given height.
-     */
     public int getCenterY(int parentY, int parentHeight) {
         return parentY + (parentHeight - lineHeight) / 2 + Math.round(verticalOffset);
     }

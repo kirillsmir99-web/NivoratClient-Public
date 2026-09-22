@@ -22,7 +22,7 @@ public class AutoPearlCatchModule extends NivoratModule {
 
     public AutoPearlCatchModule() {
         super(ID, Text.translatable("activity.module.auto_pearl_catch.name"), Text.translatable("activity.module.auto_pearl_catch.desc"), ModuleCategory.COMBAT);
-        this.keybind.clear(); // Module enable/disable toggle keybind
+        this.keybind.clear();
         this.metadata = ModuleMetadata.builder(ID)
                 .displayName(name)
                 .description(description)
@@ -34,7 +34,6 @@ public class AutoPearlCatchModule extends NivoratModule {
                 .aliases("pearlcatch", "pearl_catch", "autopearlcatch", "pearl", "эндерперл", "перл", "пёрл", "перлкэтч", "windcharge", "ветер", "заряд ветра", "катч", "catch")
                 .build();
 
-        // 1. GENERAL
         registerEnum("mode", Text.translatable("activity.setting.combat.pearl_catch_mode"),
                 Text.translatable("activity.setting.combat.pearl_catch_mode.desc"), SettingGroup.GENERAL,
                 List.of("semi_auto", "full_auto"), "semi_auto",
@@ -96,7 +95,6 @@ public class AutoPearlCatchModule extends NivoratModule {
             }
         });
 
-        // 2. BEHAVIOR - Sliders first
         registerNumber("throw_delay", Text.translatable("activity.setting.combat.throw_delay"),
                 Text.translatable("activity.setting.combat.throw_delay.desc"), SettingGroup.BEHAVIOR,
                 1.0, 5.0, 1.0, " t", true, 2.0,
@@ -145,7 +143,6 @@ public class AutoPearlCatchModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR - Toggles after sliders
         registerBoolean("restore_slot", Text.translatable("activity.setting.combat.restore_slot"),
                 Text.translatable("activity.setting.combat.restore_slot.desc"), SettingGroup.BEHAVIOR,
                 true,
@@ -194,7 +191,6 @@ public class AutoPearlCatchModule extends NivoratModule {
                 }
         );
 
-        // 3. ADVANCED - Legit mode is strictly last
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
                 true,

@@ -6,12 +6,6 @@ import net.minecraft.text.Text;
 
 import java.util.Objects;
 
-/**
- * Unified metadata model for Activity modules and integration stubs.
- *
- * <p>Contains descriptive identity, versioning, authorship, categorization,
- * interactive keybind reference, and social links.
- */
 public class ModuleMetadata {
 
     public static final String DEFAULT_AUTHOR = "Nivorat";

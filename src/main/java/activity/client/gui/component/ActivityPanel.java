@@ -19,10 +19,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Structural card container component.
- * Supports background fill, 1px border, optional dark header bar, and nested child components.
- */
 public class ActivityPanel extends ActivityComponent {
 
     private int backgroundColor = ActivityColors.PANEL_BACKGROUND;
@@ -153,10 +149,8 @@ public class ActivityPanel extends ActivityComponent {
         int effectiveBg = ActivityColors.scaleAlphaPercent(this.backgroundColor, panelOpacity * this.alpha);
         currentBorder = ActivityColors.scaleAlpha(currentBorder, this.alpha);
 
-        // Draw panel background, 1px crisp border, and subtle glass highlights
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, effectiveBg, currentBorder, glassEffect);
 
-        // Draw header bar if title is present
         if (this.title != null) {
             int effectiveHeaderBg = ActivityColors.scaleAlphaPercent(ActivityColors.HEADER_BACKGROUND, panelOpacity * this.alpha);
             int dividerColor = ActivityColors.scaleAlpha(ActivityColors.BORDER_DIVIDER, this.alpha);
@@ -196,7 +190,6 @@ public class ActivityPanel extends ActivityComponent {
             activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, display, this.x + ActivityMetrics.PADDING_PANEL, textY, titleColor);
         }
 
-        // Render children
         for (ActivityComponent child : this.children) {
             if (child.isVisible()) {
                 child.setAlpha(this.alpha);

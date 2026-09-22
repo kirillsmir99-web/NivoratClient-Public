@@ -2,12 +2,6 @@ package activity.client.module.setting;
 
 import java.util.Locale;
 
-/**
- * Standard unit types for numeric settings in NivoratClient.
- *
- * <p>Automates formatted text representation with proper suffixes and spacing,
- * ensuring UI components do not have to manually craft display strings.
- */
 public enum NumberUnit {
     NONE("", ""),
     MS("ms", " ms"),
@@ -33,9 +27,6 @@ public enum NumberUnit {
         return suffix;
     }
 
-    /**
-     * Resolves a NumberUnit from arbitrary legacy string inputs (e.g., "ms", " ms", "%", "bl", "blocks").
-     */
     public static NumberUnit fromString(String raw) {
         if (raw == null || raw.isBlank()) return NONE;
         String s = raw.trim().toLowerCase(Locale.ROOT);
@@ -50,13 +41,6 @@ public enum NumberUnit {
         };
     }
 
-    /**
-     * Formats a double value with the unit suffix.
-     *
-     * @param value       numeric value
-     * @param integerOnly whether to omit decimal places
-     * @return formatted string (e.g. "90 ms", "2.5 bl", "75%")
-     */
     public String format(double value, boolean integerOnly) {
         boolean isWhole = integerOnly || Math.abs(value - Math.round(value)) < 1e-6;
         String numStr = isWhole

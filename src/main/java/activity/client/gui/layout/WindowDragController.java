@@ -3,10 +3,6 @@ package activity.client.gui.layout;
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 
-/**
- * Manages dragging the main Activity GUI window across the screen by its header bar.
- * Handles boundary clamping, screen resize safety, and position persistence.
- */
 public class WindowDragController {
 
     private boolean dragging = false;
@@ -103,11 +99,6 @@ public class WindowDragController {
         return dragging;
     }
 
-    /**
-     * Saves pre-maximize bounds and switches state to maximized.
-     *
-     * @param layout current layout before maximizing
-     */
     public void maximize(WindowLayout layout) {
         if (this.currentWindowX >= 0) {
             this.unmaximizedX = this.currentWindowX;
@@ -133,9 +124,6 @@ public class WindowDragController {
         persistState();
     }
 
-    /**
-     * Restores previous x, y, width, and height prior to maximization.
-     */
     public void restore() {
         this.maximized = false;
         if (this.unmaximizedX >= 0 && this.unmaximizedY >= 0) {
@@ -149,12 +137,6 @@ public class WindowDragController {
         persistState();
     }
 
-    /**
-     * Toggles between maximized and restored state.
-     *
-     * @param layout current window layout
-     * @return new maximized state
-     */
     public boolean toggleMaximize(WindowLayout layout) {
         if (this.maximized) {
             restore();
@@ -184,19 +166,9 @@ public class WindowDragController {
         }
     }
 
-    /**
-     * Attempts to begin window dragging.
-     *
-     * @param mouseX       cursor X
-     * @param mouseY       cursor Y
-     * @param layout       current window layout
-     * @param overControls true if mouse is over top-right control buttons
-     * @return true if drag started
-     */
     public boolean startDrag(double mouseX, double mouseY, WindowLayout layout, boolean overControls) {
         if (overControls) return false;
 
-        // Only start dragging if click was within header bar
         if (mouseX >= layout.headerX && mouseX < layout.headerX + layout.headerWidth &&
             mouseY >= layout.headerY && mouseY < layout.headerY + layout.headerHeight) {
             if (this.maximized) {
@@ -218,13 +190,9 @@ public class WindowDragController {
         return false;
     }
 
-    /**
-     * Clamps the persistent custom window position strictly within current screen dimensions.
-     * Prevents windows from being stranded off-screen after resolution or GUI scale changes.
-     */
     public void clampWindowPosition(int screenWidth, int screenHeight, int windowWidth, int windowHeight) {
         if (this.maximized) {
-            // When maximized, ensure saved unmaximized dimensions and position will fit if restored
+
             if (this.unmaximizedWidth > 0 && this.unmaximizedHeight > 0) {
                 this.unmaximizedWidth = Math.min(this.unmaximizedWidth, screenWidth);
                 this.unmaximizedHeight = Math.min(this.unmaximizedHeight, screenHeight);
@@ -274,10 +242,6 @@ public class WindowDragController {
         }
     }
 
-    /**
-     * Updates window position while dragging with strict screen boundary clamping.
-     * Ensures the window can NEVER be dragged completely off-screen.
-     */
     public boolean onDrag(double mouseX, double mouseY, int screenWidth, int screenHeight, int windowWidth, int windowHeight) {
         if (!this.dragging) return false;
 
@@ -296,9 +260,6 @@ public class WindowDragController {
         return true;
     }
 
-    /**
-     * Concludes dragging and saves position to configuration.
-     */
     public boolean stopDrag() {
         if (this.dragging) {
             this.dragging = false;
@@ -319,9 +280,6 @@ public class WindowDragController {
         return false;
     }
 
-    /**
-     * Resets window position to center and saves configuration.
-     */
     public void recenter() {
         this.currentWindowX = -1;
         this.currentWindowY = -1;

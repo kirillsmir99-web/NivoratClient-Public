@@ -127,7 +127,6 @@ public final class PearlCatchController {
             return;
         }
 
-        // 1. Offhand & Hotbar inspection
         pearlInOffhand = isOffhandItem(client.player, Items.ENDER_PEARL);
         pearlSlot = pearlInOffhand ? -1 : findHotbarItem(client.player, Items.ENDER_PEARL);
 
@@ -138,15 +137,13 @@ public final class PearlCatchController {
             return;
         }
 
-        // 2. Safety Raycast: Ceiling detection for vertical mode
         if (mode == Mode.VERTICAL && isCeilingBlocked(client, 10.0)) {
-            // Ceiling directly above: automatically fallback to horizontal mode
+
             mode = Mode.HORIZONTAL;
         }
 
-        // 3. Safety Raycast: Check if immediate forward throw is directly blocked by a solid wall
         if (mode == Mode.HORIZONTAL && isForwardBlocked(client, -15.0f, client.player.getYaw(), 2.0)) {
-            // Obstacle directly in front, aborting safely to prevent blowing player up
+
             return;
         }
 
@@ -176,7 +173,6 @@ public final class PearlCatchController {
 
         long rotDuration = Math.max(50L, (long) config.autoPearlCatchRotationTimeMs);
 
-        // Pre-select pearl slot early so server has time to process
         if (!pearlInOffhand && pearlSlot >= 0 && pearlSlot < 9 && pearlSlot != initialSlot) {
             SafeSlotManager.selectSlot(client, pearlSlot);
         }
@@ -194,7 +190,7 @@ public final class PearlCatchController {
                 cameraInterpolator.start(initialPitch, pearlPitch, initialYaw, initialYaw, rotDuration, legit);
                 state = State.ROTATING_TO_PEARL;
             } else {
-                // Kinematic 3D intercept solver
+
                 PearlCatchTrajectory.Solution sol = PearlCatchTrajectory.solve3D(
                         effectiveDelay,
                         initialYaw,
@@ -269,7 +265,6 @@ public final class PearlCatchController {
                 return;
             }
 
-            // Smooth interpolation to target wind charge pitch & yaw (zero instant snaps)
             if (fullAuto && currentMode == Mode.HORIZONTAL) {
                 long dipDuration = Math.max(40L, activeEffectiveDelay * 50L - 10L);
                 cameraInterpolator.start(client.player.getPitch(), targetWindPitch, client.player.getYaw(), targetWindYaw, dipDuration, legit);
@@ -277,7 +272,6 @@ public final class PearlCatchController {
 
             delayTicksRemaining = activeEffectiveDelay;
 
-            // 1-Tick delay pre-selection: pre-select wind slot immediately upon pearl throw if delay is 1
             if (activeEffectiveDelay == 1 && !windInOffhand && windSlot >= 0 && windSlot < 9) {
                 int cur = client.player.getInventory().getSelectedSlot();
                 if (cur != windSlot) {
@@ -291,7 +285,7 @@ public final class PearlCatchController {
 
         if (state == State.WAIT_FOR_WIND) {
             delayTicksRemaining--;
-            // Pre-select wind slot 1 tick before release so server is perfectly synced
+
             if (delayTicksRemaining <= 1 && !windInOffhand && windSlot >= 0 && windSlot < 9) {
                 int cur = client.player.getInventory().getSelectedSlot();
                 if (cur != windSlot) {
@@ -306,7 +300,7 @@ public final class PearlCatchController {
         }
 
         if (state == State.THROW_WIND) {
-            // Guarantee camera is exactly at target wind angles before releasing wind charge
+
             if (fullAuto && currentMode == Mode.HORIZONTAL) {
                 cameraInterpolator.finalizeInterpolation(client, targetWindPitch, targetWindYaw);
             }

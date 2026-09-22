@@ -12,16 +12,11 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 import java.util.function.BooleanSupplier;
 
-/**
- * Top-right window control action buttons (Refresh, Maximize / Restore, Close).
- * Provides clean monochrome pixel icons, responsive animated hover highlights,
- * tactile press feedback, click cancellation on drag-off, and tooltips.
- */
 public class WindowControlButtons {
 
     public static final int BTN_SIZE = 16;
     public static final int BTN_GAP = 4;
-    public static final int TOTAL_WIDTH = BTN_SIZE * 4 + BTN_GAP * 3; // 76px (ToggleAll, Reload, Maximize, Close)
+    public static final int TOTAL_WIDTH = BTN_SIZE * 4 + BTN_GAP * 3;
 
     private static final Text TOOLTIP_TOGGLE_DISABLE = Text.translatable("activity.button.disable_all_modules");
     private static final Text TOOLTIP_TOGGLE_ENABLE = Text.translatable("activity.button.enable_all_modules");
@@ -36,7 +31,7 @@ public class WindowControlButtons {
     private final Runnable onClose;
     private final BooleanSupplier isMaximizedSupplier;
 
-    private int hoveredButton = -1; // 0: Toggle All, 1: Refresh, 2: Maximize/Restore, 3: Close, -1: None
+    private int hoveredButton = -1;
     private int lastHoveredButton = -1;
     private int pressedButton = -1;
     private final float[] hoverProgress = new float[4];
@@ -118,14 +113,13 @@ public class WindowControlButtons {
 
             boolean isPressed = (this.pressedButton == i && isHovered);
 
-            // Smooth animated hover transition
             float targetHover = isHovered ? 1.0f : 0.0f;
             this.hoverProgress[i] = AnimationClock.approach(this.hoverProgress[i], targetHover, 0.12f);
 
             int iconY = isPressed ? by + 1 : by;
 
             if (i == 3) {
-                // Close button: danger red styling
+
                 if (isPressed) {
                     int bg = ActivityColors.scaleAlpha(0x65C93B3D, alphaFactor);
                     int border = ActivityColors.scaleAlpha(0xFFC93B3D, alphaFactor);
@@ -143,8 +137,7 @@ public class WindowControlButtons {
                     ActivityIconRenderer.drawCentered(context, icons[i], bx, iconY, BTN_SIZE, BTN_SIZE, ActivityColors.scaleAlpha(ActivityColors.TEXT_SECONDARY, alphaFactor));
                 }
             } else if (i == 0) {
-                // Toggle All Modules button:
-                // Green/Success styling when enabled, Warning/Danger styling when disabled
+
                 int highlightColor = anyModuleEnabled ? ActivityColors.SUCCESS : ActivityColors.WARNING;
                 if (isPressed) {
                     int bg = ActivityColors.scaleAlpha((0x45 << 24) | (highlightColor & 0x00FFFFFF), alphaFactor);
@@ -164,7 +157,7 @@ public class WindowControlButtons {
                     ActivityIconRenderer.drawCentered(context, icons[i], bx, iconY, BTN_SIZE, BTN_SIZE, ActivityColors.scaleAlpha(defaultIconCol, alphaFactor));
                 }
             } else {
-                // Refresh (1) and Maximize/Restore (2): subtle white / accent styling
+
                 if (isPressed) {
                     int bg = ActivityColors.scaleAlpha(0x45FFFFFF, alphaFactor);
                     int border = ActivityColors.scaleAlpha(0x90FFFFFF, alphaFactor);
@@ -191,7 +184,7 @@ public class WindowControlButtons {
     }
 
     public void renderTooltips(DrawContext context, TextRenderer textRenderer, int mouseX, int mouseY) {
-        if (this.pressedButton != -1) return; // Suppress tooltip when clicking
+        if (this.pressedButton != -1) return;
         if (this.hoveredButton == 0) {
             boolean anyModuleEnabled = activity.client.module.api.ModuleRegistry.isAnyModuleEnabled();
             Text tooltip = anyModuleEnabled ? TOOLTIP_TOGGLE_DISABLE : TOOLTIP_TOGGLE_ENABLE;

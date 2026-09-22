@@ -16,18 +16,6 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Pixel-accurate, modern slider component adhering to the Activity design system.
- *
- * <p>Features:
- * <ul>
- *   <li>3px centered track with signature cyan-blue fill (#3EA4E8) and dark well background (#20242D).</li>
- *   <li>8x12px crisp white rectangular thumb with 1px border.</li>
- *   <li>Continuous mouse dragging with full capture and release.</li>
- *   <li>Scroll wheel support and keyboard Left/Right arrow control when focused.</li>
- *   <li>Custom value formatters, discrete step quantization, and change listeners.</li>
- * </ul>
- */
 public class ActivitySlider extends ActivityComponent {
 
     private double min;
@@ -276,11 +264,11 @@ public class ActivitySlider extends ActivityComponent {
             if (this.visualNorm < 0.0f) {
                 this.visualNorm = targetNorm;
             } else if (this.dragging) {
-                // High responsiveness during drag: crisp tracking with slight damping across discrete notches
+
                 float decay = (this.step > 0) ? 38.0f : 55.0f;
                 this.visualNorm = AnimationClock.approachExp(this.visualNorm, targetNorm, decay);
             } else {
-                // Smooth glide for clicks on track, mouse scroll wheel, or keyboard arrow steps
+
                 this.visualNorm = AnimationClock.approachExp(this.visualNorm, targetNorm, 24.0f);
             }
             if (Math.abs(this.visualNorm - targetNorm) < 0.0005f) {
@@ -293,7 +281,6 @@ public class ActivitySlider extends ActivityComponent {
             this.valuePulse = AnimationClock.approach(this.valuePulse, 0.0f, 0.18f);
         }
 
-        // 1. Draw optional label on the left (if space permits)
         if (shouldDrawInternalLabel()) {
             int labelColor = this.enabled ? ActivityColors.TEXT_PRIMARY : ActivityColors.TEXT_DISABLED;
             int maxLabelW = (int) (this.width * 0.40f);
@@ -306,7 +293,6 @@ public class ActivitySlider extends ActivityComponent {
             activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, displayLabel, this.x + 2, textY, labelColor);
         }
 
-        // 2. Draw formatted value on the right (refined value update with smooth highlight pulse)
         if (this.cachedValueText == null) {
             this.cachedValueText = this.valueFormatter.apply(this.value);
         }
@@ -319,7 +305,6 @@ public class ActivitySlider extends ActivityComponent {
             : ActivityColors.TEXT_DISABLED;
         activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, this.cachedValueText, valueX, textY, valueColor);
 
-        // 3. Draw slider track
         int trackX = getTrackX();
         int trackW = getTrackWidth();
         int trackH = 3;
@@ -329,13 +314,11 @@ public class ActivitySlider extends ActivityComponent {
         int thumbX = trackX + (int) Math.round(norm * (trackW - this.thumbWidth));
         int thumbY = this.y + (this.height - this.thumbHeight) / 2;
 
-        // Track empty background (dark well #20242D) with subtle hover border brightening
         int emptyTrackColor = 0xFF20242D;
         int emptyTrackBorder = ActivityColors.interpolateColor(ActivityColors.BORDER_INPUT, ActivityColors.BORDER_HOVER, this.thumbHoverProgress * 0.7f);
         ActivityGuiRenderer.fill(context, trackX, trackY, trackW, trackH, emptyTrackColor);
         ActivityGuiRenderer.drawBorder(context, trackX, trackY, trackW, trackH, emptyTrackBorder);
 
-        // Track filled portion (signature cyan-blue #3EA4E8) with smooth hover brightening and active tip highlight
         int filledWidth = thumbX - trackX + this.thumbWidth / 2;
         if (filledWidth > 0) {
             int baseFill = ActivityColors.ACCENT_PRIMARY;
@@ -344,12 +327,10 @@ public class ActivitySlider extends ActivityComponent {
             int fillColor = this.enabled ? ActivityColors.interpolateColor(baseFill, brightFill, fillLuminance) : ActivityColors.BORDER;
             ActivityGuiRenderer.fill(context, trackX, trackY, filledWidth, trackH, fillColor);
 
-            // Specular top highlight line along the filled bar
             if (this.enabled) {
                 ActivityGuiRenderer.fill(context, trackX, trackY, filledWidth, 1, 0x40FFFFFF);
             }
 
-            // Subtle luminous tip highlight at the leading edge with value pulse glow
             if (filledWidth >= 2 && this.enabled) {
                 float tipPulse = Math.max(0.45f, this.valuePulse * 0.85f);
                 int tipColor = ActivityColors.interpolateColor(fillColor, 0xFF80D8FF, tipPulse);
@@ -357,7 +338,6 @@ public class ActivitySlider extends ActivityComponent {
             }
         }
 
-        // 4. Draw Thumb (8x12px crisp white rectangle with tactile border, specular highlight, and smooth hover transition)
         int normalBorder = ActivityColors.BORDER_CARD;
         int activeBorder = (this.dragging || this.focused) ? ActivityColors.ACCENT_PRIMARY : ActivityColors.BORDER_HOVER;
         float borderProgress = (this.dragging || this.focused) ? 1.0f : this.thumbHoverProgress;
@@ -366,14 +346,12 @@ public class ActivitySlider extends ActivityComponent {
 
         ActivityGuiRenderer.drawPanel(context, thumbX, thumbY, this.thumbWidth, this.thumbHeight, thumbBg, thumbBorder);
 
-        // Tactile depth on handle: 1px top specular highlight and 1px bottom shadow
         if (this.enabled) {
             int handleSpecular = this.thumbHoverProgress > 0.001f ? 0x60FFFFFF : 0x40FFFFFF;
             ActivityGuiRenderer.fill(context, thumbX + 1, thumbY + 1, this.thumbWidth - 2, 1, handleSpecular);
             ActivityGuiRenderer.fill(context, thumbX + 1, thumbY + this.thumbHeight - 2, this.thumbWidth - 2, 1, 0x22000000);
         }
 
-        // Two-stage outer glow on hover/drag with smooth alpha fade
         if (this.enabled && this.thumbHoverProgress > 0.001f) {
             int halo1 = ActivityColors.withAlpha(activeBorder, (int) (170 * this.thumbHoverProgress));
             ActivityGuiRenderer.drawBorder(context, thumbX - 1, thumbY - 1, this.thumbWidth + 2, this.thumbHeight + 2, halo1);

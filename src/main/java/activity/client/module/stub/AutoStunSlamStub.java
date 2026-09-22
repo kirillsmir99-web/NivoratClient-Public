@@ -5,10 +5,6 @@ import activity.client.module.api.ModuleCategory;
 import activity.client.module.keybind.Keybind;
 import net.minecraft.text.Text;
 
-/**
- * Integration stub for AutoStunSlam (Авто Стан Слэм).
- * Slime block combo stun sequence.
- */
 public class AutoStunSlamStub extends AbstractModuleStub {
 
     public static final String ID = "auto_stun_slam";

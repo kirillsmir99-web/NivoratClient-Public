@@ -14,56 +14,18 @@ import activity.client.module.setting.StringSetting;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Unified Nivorat Configuration Manager providing high-level structured access
- * to module states, keybindings, dynamic setting values, and legacy migration.
- *
- * <p>Integrates directly with {@link ActivityConfigManager} while exposing the structured
- * hierarchical schema required by the Nivorat Module SDK:
- * <pre>
- * client:
- *   ui: ...
- *   sound: ...
- *   fonts: ...
- * modules:
- *   auto_mace:
- *     enabled: true
- *     keybind: [key, ctrl, shift, alt]
- *     settings:
- *       source_mode: "sword_and_axe"
- *       restore_delay: 90.0
- * </pre>
- */
 public final class NivoratConfigManager {
 
     private NivoratConfigManager() {}
 
-    /**
-     * @return current active Activity/Nivorat configuration model
-     */
     public static ActivityConfig getConfig() {
         return ActivityConfigManager.getConfig();
     }
 
-    /**
-     * Retrieves structured configuration entry for the specified module ID,
-     * seamlessly handling legacy aliases such as "auto_stun_slime" -> "auto_stun_slam".
-     *
-     * @param moduleId canonical ID or legacy alias
-     * @return module configuration entry or null if absent
-     */
     public static ActivityConfig.ModuleConfigEntry getModuleConfig(String moduleId) {
         return getModuleConfig(getConfig(), moduleId);
     }
 
-    /**
-     * Retrieves structured configuration entry for the specified module ID from the given config,
-     * seamlessly handling legacy aliases such as "auto_stun_slime" -> "auto_stun_slam".
-     *
-     * @param config   target configuration instance
-     * @param moduleId canonical ID or legacy alias
-     * @return module configuration entry or null if absent
-     */
     public static ActivityConfig.ModuleConfigEntry getModuleConfig(ActivityConfig config, String moduleId) {
         if (config == null || config.modules == null || moduleId == null) return null;
         String clean = moduleId.replace("_", "").toLowerCase(java.util.Locale.ROOT);
@@ -83,25 +45,10 @@ public final class NivoratConfigManager {
         return null;
     }
 
-    /**
-     * Stores structured configuration entry for the specified module,
-     * seamlessly handling legacy aliases such as "auto_stun_slime" -> "auto_stun_slam".
-     *
-     * @param moduleId canonical ID or legacy alias
-     * @param entry    module configuration entry
-     */
     public static void setModuleConfig(String moduleId, ActivityConfig.ModuleConfigEntry entry) {
         setModuleConfig(getConfig(), moduleId, entry);
     }
 
-    /**
-     * Stores structured configuration entry for the specified module into the given config,
-     * seamlessly handling legacy aliases such as "auto_stun_slime" -> "auto_stun_slam".
-     *
-     * @param config   target configuration instance
-     * @param moduleId canonical ID or legacy alias
-     * @param entry    module configuration entry
-     */
     public static void setModuleConfig(ActivityConfig config, String moduleId, ActivityConfig.ModuleConfigEntry entry) {
         if (config == null || moduleId == null || entry == null) return;
         if (config.modules == null) {
@@ -120,41 +67,19 @@ public final class NivoratConfigManager {
         markDirty();
     }
 
-    /**
-     * @param moduleId canonical ID or legacy alias
-     * @return true if module is marked enabled in configuration
-     */
     public static boolean isModuleEnabled(String moduleId) {
         return isModuleEnabled(getConfig(), moduleId);
     }
 
-    /**
-     * @param config   target configuration instance
-     * @param moduleId canonical ID or legacy alias
-     * @return true if module is marked enabled in configuration
-     */
     public static boolean isModuleEnabled(ActivityConfig config, String moduleId) {
         ActivityConfig.ModuleConfigEntry entry = getModuleConfig(config, moduleId);
         return entry != null && entry.enabled;
     }
 
-    /**
-     * Updates module enabled state in configuration and active module instance.
-     *
-     * @param moduleId canonical ID or legacy alias
-     * @param enabled  new enabled state
-     */
     public static void setModuleEnabled(String moduleId, boolean enabled) {
         setModuleEnabled(getConfig(), moduleId, enabled);
     }
 
-    /**
-     * Updates module enabled state in configuration and active module instance.
-     *
-     * @param config   target configuration instance
-     * @param moduleId canonical ID or legacy alias
-     * @param enabled  new enabled state
-     */
     public static void setModuleEnabled(ActivityConfig config, String moduleId, boolean enabled) {
         ActivityConfig.ModuleConfigEntry entry = getModuleConfig(config, moduleId);
         if (entry != null) {
@@ -169,18 +94,12 @@ public final class NivoratConfigManager {
         }
     }
 
-    /**
-     * Loads the configuration from disk, synchronizes modules, and verifies legacy migration.
-     */
     public static ActivityConfig load() {
         ActivityConfig config = ActivityConfigManager.load();
         syncFromModules(config);
         return config;
     }
 
-    /**
-     * Persists all module states and saves configuration atomically to disk.
-     */
     public static boolean save() {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null) {
@@ -189,33 +108,19 @@ public final class NivoratConfigManager {
         return ActivityConfigManager.save();
     }
 
-    /**
-     * Marks configuration as dirty, scheduling it for atomic disk write.
-     */
     public static void markDirty() {
         ActivityConfigManager.markDirty();
     }
 
-    /**
-     * Resets configuration to factory defaults.
-     */
     public static void resetDefaults() {
         ActivityConfigManager.resetDefaults();
     }
 
-    /**
-     * @return true if legacy configuration migration has completed
-     */
     public static boolean isLegacyMigrated() {
         ActivityConfig config = getConfig();
         return config != null && config.legacyMigrationDone;
     }
 
-    /**
-     * Explicitly triggers inspection and migration of legacy mod configuration files.
-     *
-     * @return true if legacy configs were discovered and imported, false otherwise
-     */
     public static boolean importLegacyConfigs() {
         ActivityConfig config = getConfig();
         if (config == null) return false;
@@ -229,9 +134,6 @@ public final class NivoratConfigManager {
         return migrated;
     }
 
-    /**
-     * Synchronizes registered {@link IModule} states into the structured config map.
-     */
     public static void syncToModules(ActivityConfig config) {
         if (config == null) return;
         if (config.modules == null) {
@@ -262,10 +164,6 @@ public final class NivoratConfigManager {
         }
     }
 
-    /**
-     * Synchronizes structured config values back into module settings,
-     * applying validation, bounds clamping, and legacy alias resolution.
-     */
     public static void syncFromModules(ActivityConfig config) {
         if (config == null || config.modules == null || config.modules.isEmpty()) return;
         for (IModule module : ModuleRegistry.getAll()) {
@@ -284,13 +182,6 @@ public final class NivoratConfigManager {
         }
     }
 
-    /**
-     * Safely applies setting values from a raw map onto module settings,
-     * automatically clamping numbers, validating enums, and defaulting missing or malformed entries.
-     *
-     * @param module      target module
-     * @param settingsMap map of raw setting id to value
-     */
     public static void applyModuleSettings(IModule module, Map<String, Object> settingsMap) {
         if (module == null || settingsMap == null || settingsMap.isEmpty()) return;
         for (Setting<?> setting : module.getSettings()) {
@@ -327,7 +218,7 @@ public final class NivoratConfigManager {
                     strSetting.set(String.valueOf(val));
                 }
             } catch (Exception ignored) {
-                // Out-of-range, bad format, or invalid enum handled gracefully without crashing
+
             }
         }
     }

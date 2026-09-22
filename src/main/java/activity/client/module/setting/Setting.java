@@ -6,11 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Base abstraction for a typed, reactive module setting with automatic UI binding.
- *
- * @param <T> value type
- */
 public abstract class Setting<T> {
 
     private final String id;

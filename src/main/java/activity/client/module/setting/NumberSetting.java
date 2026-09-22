@@ -5,9 +5,6 @@ import net.minecraft.text.Text;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Numeric slider setting supporting bounds, step intervals, and unit formatting.
- */
 public class NumberSetting extends Setting<Double> {
 
     private final double min;

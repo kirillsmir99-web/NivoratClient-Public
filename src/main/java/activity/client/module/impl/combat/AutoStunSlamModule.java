@@ -39,7 +39,6 @@ public class AutoStunSlamModule extends NivoratModule {
                 .aliases("autostunslam", "stunslam", "slam", "stun", "стан слэм", "стан-слэм", "авто стан слэм", "авто-стан-слэм", "стан", "блок", "задержка", "delay", "дистанция", "autostunslime", "auto_stun_slime", "стан слизь", "слизь")
                 .build();
 
-        // 1. GENERAL
         registerEnum("mode", Text.translatable("activity.setting.combat.slam_mode"),
                 Text.translatable("activity.setting.combat.slam_mode.desc"), SettingGroup.GENERAL,
                 List.of("full_auto", "semi_auto"), "full_auto",
@@ -58,7 +57,6 @@ public class AutoStunSlamModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR
         registerNumber("distance", Text.translatable("activity.setting.combat.slam_distance"),
                 Text.translatable("activity.setting.combat.slam_distance.desc"), SettingGroup.BEHAVIOR,
                 1.5, 4.0, 0.1, " бл.", false, 2.85,
@@ -161,7 +159,6 @@ public class AutoStunSlamModule extends NivoratModule {
                 }
         );
 
-        // 3. ADVANCED
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
                 true,

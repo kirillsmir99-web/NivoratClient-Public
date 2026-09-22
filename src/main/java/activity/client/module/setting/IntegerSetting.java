@@ -5,9 +5,6 @@ import net.minecraft.text.Text;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Typed integer slider/counter setting with unit formatting and bounds constraints.
- */
 public class IntegerSetting extends Setting<Integer> {
 
     private final int min;

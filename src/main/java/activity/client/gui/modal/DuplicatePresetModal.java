@@ -12,16 +12,6 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-/**
- * Modal dialog presented during preset import when a preset with the identical name already exists.
- *
- * <p>Provides three distinct actions:
- * <ul>
- *   <li><b>Отмена</b>: Dismisses without modifying any presets.</li>
- *   <li><b>Заменить</b>: Overwrites the existing preset's settings.</li>
- *   <li><b>Сохранить как новый</b>: Generates a unique name (e.g. "Name (1)") and adds as a separate preset.</li>
- * </ul>
- */
 public class DuplicatePresetModal extends BaseModal {
 
     private final Text description;
@@ -92,7 +82,6 @@ public class DuplicatePresetModal extends BaseModal {
         int btnHeight = ActivityMetrics.CONTROL_HEIGHT;
         int spacing = 6;
 
-        // Row 1 of actions (Save as New / Overwrite)
         int row1Y = modalY + modalHeight - (btnHeight * 2 + spacing + 10);
         int halfW = (modalWidth - padding * 2 - spacing) / 2;
 
@@ -106,7 +95,6 @@ public class DuplicatePresetModal extends BaseModal {
         this.overwriteButton.setWidth(halfW);
         this.overwriteButton.setHeight(btnHeight);
 
-        // Row 2 of actions (Cancel full width)
         int row2Y = modalY + modalHeight - (btnHeight + 10);
         this.cancelButton.setX(modalX + padding);
         this.cancelButton.setY(row2Y);

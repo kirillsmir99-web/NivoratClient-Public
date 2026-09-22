@@ -5,9 +5,6 @@ import net.minecraft.text.Text;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * String text field setting.
- */
 public class StringSetting extends Setting<String> {
 
     private final Supplier<String> getter;

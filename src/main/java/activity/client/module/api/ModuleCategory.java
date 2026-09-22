@@ -2,9 +2,6 @@ package activity.client.module.api;
 
 import net.minecraft.text.Text;
 
-/**
- * Functional categories for Activity modules.
- */
 public enum ModuleCategory {
     COMBAT("activity.category.combat", "Оружие и свапы"),
     DEFENSE("activity.category.defense", "Защита и карты"),

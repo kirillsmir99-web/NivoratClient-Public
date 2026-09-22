@@ -22,7 +22,6 @@ public class ActivityClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.debug("[Activity] Initializing Activity client mod...");
 
-        // Load persisted configuration from disk (or initialize clean defaults)
         ActivityConfigManager.load();
         activity.client.module.api.ModuleRegistry.initEvents();
         activity.client.gui.font.FontManager.init();
@@ -62,7 +61,6 @@ public class ActivityClient implements ClientModInitializer {
 
             boolean isDown = config.menuKeybind.matchesWindow(window, ctrl, shift, alt);
 
-            // While any screen is open, keep track of key state so it doesn't trigger on close
             if (client.currentScreen != null) {
                 menuKeyDown = isDown;
                 return;
@@ -94,9 +92,6 @@ public class ActivityClient implements ClientModInitializer {
         LOGGER.debug("[Activity] Activity client loaded successfully. Masked menu keybind active.");
     }
 
-    /**
-     * Suppresses menu key trigger so that closing the screen via hotkey does not re-open it on tick.
-     */
     public static void suppressMenuKey() {
         menuKeyDown = true;
     }

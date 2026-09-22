@@ -8,7 +8,7 @@ public final class PearlCatchTrajectory {
     public static final double PEARL_GRAVITY = 0.03;
     public static final double PEARL_DRAG = 0.99;
     public static final double WIND_CHARGE_SPEED = 1.5;
-    public static final double BURST_OFFSET_Y = 0.38; // Aim slightly below pearl so wind burst pushes pearl forward and upward
+    public static final double BURST_OFFSET_Y = 0.38;
 
     private PearlCatchTrajectory() {}
 
@@ -30,18 +30,6 @@ public final class PearlCatchTrajectory {
         }
     }
 
-    /**
-     * Solves for the 3D trajectory intercept between Ender Pearl and Wind Charge.
-     * Takes into account 3D player velocity (including vertical motion from jump/fall/knockback),
-     * gravity, air drag, and throw delay.
-     *
-     * @param delayTicks Delay in ticks between pearl throw and wind charge release
-     * @param playerYaw Current player yaw in degrees
-     * @param playerVel Current player velocity vector
-     * @param onGround Whether player is on ground (affects initial velocity addition in vanilla)
-     * @param customOffset Optional manual offset override (or <= 0 to compute dynamically)
-     * @return Fully resolved Solution with optimal pearl pitch and required wind charge angles
-     */
     public static Solution solve3D(
             int delayTicks,
             float playerYaw,
@@ -56,10 +44,8 @@ public final class PearlCatchTrajectory {
         Vec3d inheritedPearlVel = new Vec3d(safeVel.x, verticalSpeed, safeVel.z);
         Vec3d inheritedWindVel = new Vec3d(safeVel.x, verticalSpeed, safeVel.z);
 
-        // Optimal base pearl pitch
         float nominalPearlPitch = calculateOptimalPearlPitch(safeDelay, safeVel, horizontalSpeed > 0.18);
 
-        // Player displacement over delayTicks with player physics (gravity 0.08, drag 0.98)
         double plY = 0.0;
         double curVy = verticalSpeed;
         for (int d = 0; d < safeDelay; d++) {
@@ -69,7 +55,6 @@ public final class PearlCatchTrajectory {
         Vec3d pearlOrigin = Vec3d.ZERO;
         Vec3d windOrigin = new Vec3d(safeVel.x * safeDelay, plY, safeVel.z * safeDelay);
 
-        // Test candidate pearl pitches around the nominal pitch
         float[] candidatePitches = new float[]{
                 nominalPearlPitch,
                 nominalPearlPitch - 1.0f,
@@ -89,7 +74,6 @@ public final class PearlCatchTrajectory {
             Vec3d pearlDir = getDirectionVector(testPearlPitch, playerYaw);
             Vec3d pearlVel0 = pearlDir.multiply(PEARL_SPEED).add(inheritedPearlVel);
 
-            // Simulate pearl tick by tick
             Vec3d pPos = pearlOrigin;
             Vec3d pVel = pearlVel0;
 
@@ -105,7 +89,6 @@ public final class PearlCatchTrajectory {
                 double flightTicks = t - safeDelay;
                 if (flightTicks < 1.0) continue;
 
-                // Aim slightly below the pearl so the wind explosion pushes the pearl up and forward
                 Vec3d aimTarget = pPos.subtract(0.0, BURST_OFFSET_Y, 0.0);
                 Vec3d neededVel = aimTarget.subtract(windOrigin).multiply(1.0 / flightTicks).subtract(inheritedWindVel);
                 double neededSpeed = neededVel.length();
@@ -125,7 +108,6 @@ public final class PearlCatchTrajectory {
             }
         }
 
-        // Derive bestWindPitch directly from bestNeededVel using exact kinematic trigonometry
         double hypotXZ = Math.hypot(bestNeededVel.x, bestNeededVel.z);
         float bestWindPitch = - (float) Math.toDegrees(Math.atan2(bestNeededVel.y, hypotXZ));
         if (customOffset > 0.0f) {
@@ -134,13 +116,11 @@ public final class PearlCatchTrajectory {
 
         float bestWindYaw = (float) Math.toDegrees(Math.atan2(-bestNeededVel.x, bestNeededVel.z));
 
-        // Calculate actual physical wind charge position at bestTick to determine exact residual Euclidean error
         double flightTicks = bestTick - safeDelay;
         Vec3d actualWindDir = getDirectionVector(bestWindPitch, bestWindYaw);
         Vec3d actualWindVel = actualWindDir.multiply(WIND_CHARGE_SPEED).add(inheritedWindVel);
         Vec3d actualWindPos = windOrigin.add(actualWindVel.multiply(flightTicks));
 
-        // Accurate Euclidean distance in blocks to the aim target
         double residualDist = actualWindPos.distanceTo(bestAimTarget);
 
         float computedOffset = bestWindPitch - bestPearlPitch;
@@ -166,9 +146,6 @@ public final class PearlCatchTrajectory {
         return new Vec3d(i * j, -k, h * j);
     }
 
-    /**
-     * Helper for basic pitch calculation.
-     */
     public static float calculateOptimalPearlPitch(int delayTicks, Vec3d velocity, boolean sprinting) {
         double horizontalSpeed = velocity != null ? Math.hypot(velocity.x, velocity.z) : 0.0;
 
@@ -182,15 +159,12 @@ public final class PearlCatchTrajectory {
         }
 
         if (sprinting || horizontalSpeed > 0.18) {
-            basePitch += 1.0f; // Flatter launch when running: -27.0f for delay 2
+            basePitch += 1.0f;
         }
 
         return MathHelper.clamp(basePitch, -45.0f, -15.0f);
     }
 
-    /**
-     * Helper for wind charge offset.
-     */
     public static float calculateWindChargePitchOffset(int delayTicks) {
         return switch (delayTicks) {
             case 1 -> 5.5f;

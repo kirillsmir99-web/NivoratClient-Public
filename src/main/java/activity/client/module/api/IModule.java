@@ -17,9 +17,6 @@ import net.minecraft.world.World;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Common contract for all Activity gameplay modules and integration stubs.
- */
 public interface IModule {
 
     String getId();
@@ -105,26 +102,10 @@ public interface IModule {
 
     default void onRenderHud(DrawContext context, RenderTickCounter tickCounter) {}
 
-    /**
-     * Extension point for complex HUD modules (e.g. HPReaper, CartHUD) to declare custom UI sections.
-     *
-     * @return true if module provides custom UI rendering beyond standard generated settings
-     */
     default boolean hasCustomSection() {
         return false;
     }
 
-    /**
-     * Builds custom UI controls or previews into the module card.
-     *
-     * @param tab parent activity tab
-     * @param screen parent activity screen
-     * @param container scroll container receiving widgets
-     * @param startX start X inside card
-     * @param startY start Y inside card
-     * @param innerRowW width of content area
-     * @return additional height consumed by custom section
-     */
     default int buildCustomSection(activity.client.gui.tab.ActivityTab tab,
                                   activity.client.gui.ActivityScreen screen,
                                   activity.client.gui.layout.ScrollContainer container,

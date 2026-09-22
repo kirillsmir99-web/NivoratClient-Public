@@ -15,9 +15,6 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-/**
- * Defense modules configuration tab: AutoTotem, AutoCart, AutoAnchor, and CartRefill.
- */
 public class DefenseTab extends ActivityTab {
 
     private static final Text SUBTITLE = Text.translatable("activity.tab.defense.subtitle");

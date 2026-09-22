@@ -7,9 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Manages tab registry, switching, and configuration synchronization across the Activity GUI.
- */
 public class TabManager {
 
     private final List<ActivityTab> tabs;
@@ -87,9 +84,6 @@ public class TabManager {
         }
     }
 
-    /**
-     * Loads settings into all registered tabs from the provided configuration.
-     */
     public void loadAllFromConfig(ActivityConfig config) {
         if (config == null) return;
         for (ActivityTab tab : this.tabs) {
@@ -97,9 +91,6 @@ public class TabManager {
         }
     }
 
-    /**
-     * Collects and saves settings from all registered tabs into the provided configuration.
-     */
     public void saveAllToConfig(ActivityConfig config) {
         if (config == null) return;
         for (ActivityTab tab : this.tabs) {
@@ -107,9 +98,6 @@ public class TabManager {
         }
     }
 
-    /**
-     * Resets persistent state on all registered tabs to factory defaults and persists to disk.
-     */
     public void resetAllTabs() {
         for (ActivityTab tab : this.tabs) {
             tab.resetDefaults();

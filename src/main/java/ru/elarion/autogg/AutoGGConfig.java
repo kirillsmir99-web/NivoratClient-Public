@@ -40,21 +40,18 @@ public final class AutoGGConfig {
                 if (c.phrases == null) c.phrases = new ArrayList<>();
                 c.phrases.removeIf(s -> s == null || s.isBlank() || s.equalsIgnoreCase("Новая фраза"));
 
-                // Migrate legacy "Yes" to "ez"
                 for (int i = 0; i < c.phrases.size(); i++) {
                     if ("Yes".equalsIgnoreCase(c.phrases.get(i).trim())) {
                         c.phrases.set(i, "ez");
                     }
                 }
 
-                // Remove legacy test phrases to strictly enforce user requirement (EZ/ez is allowed and default now)
                 List<String> legacyList = List.of(
                         "Good Fight", "Короля не убить", "Катка супер!", "Мощно!",
                         "GF", "Well Played!", "Well Played", "Новая фраза"
                 );
                 c.phrases.removeIf(s -> s == null || s.isBlank() || legacyList.stream().anyMatch(leg -> leg.equalsIgnoreCase(s.trim())));
 
-                // Deduplicate while preserving order
                 List<String> deduped = new ArrayList<>();
                 for (String p : c.phrases) {
                     String trimmed = p.trim();
@@ -68,7 +65,6 @@ public final class AutoGGConfig {
                     c.phrases = new ArrayList<>(DEFAULT_PHRASES);
                 }
 
-                // Strict limit of 8 words max
                 if (c.phrases.size() > MAX_PHRASES) {
                     c.phrases = new ArrayList<>(c.phrases.subList(0, MAX_PHRASES));
                 }

@@ -9,23 +9,20 @@ import java.nio.file.Path;
 
 public final class AutoToolConfig {
     public boolean enabled = true;
-    
-    
-    public boolean singleSlotMode = false;     
+
+    public boolean singleSlotMode = false;
     public int singleSlot = 0;
-    public boolean legitMode = true;           
-    
-    
-    public boolean combatGuard = true;        
+    public boolean legitMode = true;
+
+    public boolean combatGuard = true;
     public boolean weaponSwitch = true;
-    public boolean ignoreInstantBreak = true; 
-    public boolean lockWhileMining = true;    
-    
-    
-    public boolean durabilitySaver = true;    
+    public boolean ignoreInstantBreak = true;
+    public boolean lockWhileMining = true;
+
+    public boolean durabilitySaver = true;
     public int durabilityThreshold = 5;
-    public boolean preferSilkTouch = false;   
-    public boolean restorePreviousItem = true; 
+    public boolean preferSilkTouch = false;
+    public boolean restorePreviousItem = true;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 

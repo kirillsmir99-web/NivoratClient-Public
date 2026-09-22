@@ -396,7 +396,6 @@ public final class RedstoneTickEngine {
 
         int mode = RedstoneOptimizerConfig.enchantMode;
 
-        // 1. BREACH ONLY mode
         if (mode == RedstoneOptimizerConfig.ENCHANT_BREACH_ONLY) {
             if (breachLevel <= 0) {
                 return -1;
@@ -408,9 +407,8 @@ public final class RedstoneTickEngine {
             return score;
         }
 
-        // 2. DENSITY ONLY mode
         if (mode == RedstoneOptimizerConfig.ENCHANT_DENSITY_ONLY) {
-            // Must have Density and player must be falling for >= 0.6s
+
             if (densityLevel <= 0 || !isHighFallDensity) {
                 return -1;
             }
@@ -421,9 +419,8 @@ public final class RedstoneTickEngine {
             return score;
         }
 
-        // 3. SMART mode:
         if (isHighFallDensity) {
-            // High fall (>= 0.6s): Density has top priority for massive smash bonus
+
             if (densityLevel > 0) {
                 int score = 10000 + densityLevel * 2000 + breachLevel * 100 + windBurstLevel * 50;
                 if (stack.isDamageable()) {
@@ -440,8 +437,7 @@ public final class RedstoneTickEngine {
                 return 2000;
             }
         } else {
-            // Ordinary jump (< 0.6s) or on ground: Breach is mandatory!
-            // If the mace only has Density (no Breach), do NOT use Density mace; attack with normal sword instead!
+
             if (breachLevel > 0) {
                 int score = 10000 + breachLevel * 2000 + densityLevel * 100 + windBurstLevel * 50;
                 if (stack.isDamageable()) {
@@ -449,7 +445,7 @@ public final class RedstoneTickEngine {
                 }
                 return score;
             } else {
-                // No Breach in ordinary jump/ground -> return -1 so player hits with sword
+
                 return -1;
             }
         }

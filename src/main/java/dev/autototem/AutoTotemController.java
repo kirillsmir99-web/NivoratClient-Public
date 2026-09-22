@@ -13,18 +13,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
-/**
- * High-performance, humanized AutoTotem controller supporting dual modes and inventory refill.
- *
- * <p>Modes:
- * <ul>
- *   <li><b>Mode 1 (Offhand / Swap F)</b>: Swaps totem to offhand via packet/key F at critical HP,
- *       restores on heal, and respects "no return on pop" setting.</li>
- *   <li><b>Mode 2 (Hotbar)</b>: Selects totem in hotbar at critical HP, restores sword/tool on pop.</li>
- *   <li><b>Auto-Refill</b>: Humanized inventory screen opening and slot swap from main inventory (9..35)
- *       into hotbar when totems are expended.</li>
- * </ul>
- */
 public final class AutoTotemController {
     private boolean enabled = true;
     private State state = State.IDLE;
@@ -74,11 +62,10 @@ public final class AutoTotemController {
         userOverrideCount = 0;
         awaitingHealAfterPop = false;
 
-        // Mode 1: Main Hand or Mode 3: Crystal
         if (AutoTotemConfig.mode == 1 || AutoTotemConfig.mode == 3) {
             int nextTotem = findHotbarTotem(client.player);
             if (nextTotem >= 0) {
-                // If another totem is readily available in hotbar, equip it immediately!
+
                 heldTotemHotbarSlot = nextTotem;
                 lastTotemHotbarSlot = nextTotem;
                 lastControllerAssignedSlot = nextTotem;
@@ -89,7 +76,6 @@ public final class AutoTotemController {
                 return;
             }
 
-            // No totem in hotbar; if inventory has totems, trigger auto-refill
             if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
                 int targetRefill = (AutoTotemConfig.mode == 3)
                         ? getDesignatedCrystalSlot(client.player)
@@ -100,14 +86,12 @@ public final class AutoTotemController {
                 }
             }
 
-            // No totems left anywhere, restore weapon
             int weaponSlot = savedMainSlot >= 0 ? savedMainSlot : findPreferredWeaponSlot(client.player);
             SafeSlotManager.selectSlot(client, weaponSlot);
             clear();
             return;
         }
 
-        // Mode 2: Offhand
         if (AutoTotemConfig.mode == 2) {
             int nextTotem = findHotbarTotem(client.player);
             if (nextTotem >= 0 && hp <= triggerHp) {
@@ -206,7 +190,7 @@ public final class AutoTotemController {
                 boolean slotHasTotem = slotStack.isOf(Items.TOTEM_OF_UNDYING);
 
                 if (!slotHasTotem) {
-                    // Totem in target slot was consumed/popped!
+
                     int nextTotem = findHotbarTotem(client.player);
                     if (nextTotem >= 0 && hp <= triggerHp) {
                         heldTotemHotbarSlot = nextTotem;
@@ -236,16 +220,15 @@ public final class AutoTotemController {
                     return;
                 }
 
-                // Totem is still in target slot. Check if player manually switched away from it!
                 int currentSelected = client.player.getInventory().getSelectedSlot();
                 if (currentSelected != targetSlot) {
                     userOverrideCount++;
                     if (userOverrideCount < 2) {
-                        // 1st attempt: mod insists and switches back to totem
+
                         SafeSlotManager.selectSlot(client, targetSlot);
                         lastControllerAssignedSlot = targetSlot;
                     } else {
-                        // 2nd attempt: mod yields to player, allows keeping the chosen slot
+
                         userCancelled = true;
                         userCancelledTime = now;
                         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
@@ -304,11 +287,11 @@ public final class AutoTotemController {
                 boolean offhandHasTotem = client.player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING);
 
                 if (!offhandHasTotem) {
-                    // Totem was popped in offhand!
+
                     if (AutoTotemConfig.returnOnPop && swappedHotbarSlot >= 0) {
                         state = State.RESTORE_SWAP_SELECT;
                     } else {
-                        // User chose "do not swap back on pop"
+
                         if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
                             startRefill(client, swappedHotbarSlot >= 0 ? swappedHotbarSlot : 0);
                         } else {
@@ -416,11 +399,9 @@ public final class AutoTotemController {
                     if (empty >= 0) {
                         targetHotbar = empty;
                     }
-                    // Continue with targetHotbar! SlotActionType.SWAP safely exchanges the totem
-                    // with whatever item is currently in targetHotbar into player inventory.
+
                 }
 
-                // Stop sprinting before clicking slot (GrimAC / Vulcan anti-cheat compliance)
                 if (client.player.isSprinting()) {
                     client.player.setSprinting(false);
                     if (client.getNetworkHandler() != null) {
@@ -458,7 +439,7 @@ public final class AutoTotemController {
                 }
                 if (hp <= triggerHp) {
                     if (AutoTotemConfig.mode == 3) {
-                        // Mode 3: Crystal (Crystal PvP)
+
                         int crystalSlot = getDesignatedCrystalSlot(client.player);
                         ItemStack slotStack = client.player.getInventory().getStack(crystalSlot);
                         if (slotStack.isOf(Items.TOTEM_OF_UNDYING)) {
@@ -483,7 +464,7 @@ public final class AutoTotemController {
                             state = State.HOLD_IN_HAND;
                             return;
                         } else {
-                            // Target crystal slot is empty or missing totem! Refill it from inventory!
+
                             if (AutoTotemConfig.autoRefill && now - lastRefillTime >= REFILL_COOLDOWN_MS
                                     && findInventoryTotem(client.player) >= 0) {
                                 startRefill(client, crystalSlot);
@@ -491,7 +472,7 @@ public final class AutoTotemController {
                             return;
                         }
                     } else if (AutoTotemConfig.mode == 1) {
-                        // Mode 1: Main Hand (In Hand)
+
                         if (client.player.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                             return;
                         }
@@ -528,7 +509,7 @@ public final class AutoTotemController {
                             return;
                         }
                     } else {
-                        // Mode 2: Offhand (Swap F)
+
                         if (client.player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                             return;
                         }
@@ -686,7 +667,7 @@ public final class AutoTotemController {
 
     private int findInventoryTotem(ClientPlayerEntity player) {
         if (player == null) return -1;
-        // Search slots 9 to 35 (main inventory)
+
         for (int s = 9; s < 36; s++) {
             if (player.getInventory().getStack(s).isOf(Items.TOTEM_OF_UNDYING)) {
                 return s;
@@ -712,7 +693,6 @@ public final class AutoTotemController {
             return getDesignatedCrystalSlot(player);
         }
 
-        // 1. If user configured a fixed slot (0..8)
         if (AutoTotemConfig.refillSlot >= 0 && AutoTotemConfig.refillSlot < 9) {
             int target = AutoTotemConfig.refillSlot;
             ItemStack stack = player.getInventory().getStack(target);
@@ -723,7 +703,6 @@ public final class AutoTotemController {
             return empty >= 0 ? empty : target;
         }
 
-        // 2. "Auto" mode: refill into the slot where the totem was
         if (preferredSlot >= 0 && preferredSlot < 9) {
             return preferredSlot;
         }
@@ -731,11 +710,9 @@ public final class AutoTotemController {
             return lastTotemHotbarSlot;
         }
 
-        // 3. Fallback: find any empty hotbar slot
         int empty = findEmptyHotbarSlot(player);
         if (empty >= 0) return empty;
 
-        // 4. Fallback: find non-weapon slot avoiding savedMainSlot
         for (int i = 8; i >= 0; i--) {
             if (savedMainSlot >= 0 && i == savedMainSlot) continue;
             return i;

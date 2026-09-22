@@ -2,9 +2,6 @@ package activity.client.gui.layout;
 
 import activity.client.gui.theme.ActivityMetrics;
 
-/**
- * Calculates responsive bounding boxes for the Activity window, header, sidebar, and content area.
- */
 public final class WindowLayout {
     public final ScreenSizeClass sizeClass;
     public final int windowX;
@@ -60,8 +57,8 @@ public final class WindowLayout {
         int minH = (screenHeight < 200) ? 130 : (this.sizeClass == ScreenSizeClass.COMPACT ? 150 : ActivityMetrics.MIN_WINDOW_HEIGHT);
 
         if (isMaximized) {
-            // NivoratClient occupies almost the entire screen, leaving strictly 10–16 logical px margins
-            int maxMargin = this.isSmallScreen ? 10 : (this.sizeClass == ScreenSizeClass.COMPACT ? 12 : (this.sizeClass == ScreenSizeClass.STANDARD ? 14 : 16)); // 10–16 logical px
+
+            int maxMargin = this.isSmallScreen ? 10 : (this.sizeClass == ScreenSizeClass.COMPACT ? 12 : (this.sizeClass == ScreenSizeClass.STANDARD ? 14 : 16));
             int w = Math.max(1, screenWidth - maxMargin * 2);
             int h = Math.max(1, screenHeight - maxMargin * 2);
             this.windowWidth = Math.min(w, screenWidth);
@@ -70,7 +67,7 @@ public final class WindowLayout {
             this.windowY = Math.max(0, (screenHeight - this.windowHeight) / 2);
         } else {
             if (customWidth > 0 && customHeight > 0) {
-                // Restore previous dimensions, safely clamped within current screen limits
+
                 int w = Math.clamp(customWidth, minW, availW);
                 int h = Math.clamp(customHeight, minH, availH);
                 this.windowWidth = Math.min(w, screenWidth);
@@ -113,7 +110,6 @@ public final class WindowLayout {
             }
         }
 
-        // Header - slightly lower profile on compact screens to maximize content room
         this.headerHeight = this.sizeClass == ScreenSizeClass.COMPACT
             ? Math.min(ActivityMetrics.HEADER_HEIGHT_COMPACT, Math.max(16, this.windowHeight / 5))
             : ActivityMetrics.HEADER_HEIGHT;
@@ -121,20 +117,16 @@ public final class WindowLayout {
         this.headerY = this.windowY;
         this.headerWidth = this.windowWidth;
 
-        // Body area below header
         this.bodyX = this.windowX;
         this.bodyY = this.windowY + this.headerHeight;
         this.bodyWidth = this.windowWidth;
         this.bodyHeight = this.windowHeight - this.headerHeight;
 
-        // Content padding
         int paddingWin = this.sizeClass == ScreenSizeClass.COMPACT ? ActivityMetrics.PADDING_WINDOW_COMPACT : ActivityMetrics.PADDING_WINDOW;
 
-        // Content minimum protection: ensure content always has at least guaranteed minimum width
         int minContentW = this.isSmallScreen ? 110 : (this.sizeClass == ScreenSizeClass.COMPACT ? 135 : 160);
         int maxSidebarFromContent = Math.max(68, this.windowWidth - paddingWin * 2 - minContentW);
 
-        // Sidebar - adapts proportionally with strict minimums for readability
         if (this.sizeClass == ScreenSizeClass.COMPACT) {
             int prefW = (int) (this.windowWidth * 0.30f);
             int minSidebarW = this.windowWidth < 260 ? 70 : 76;
@@ -148,7 +140,6 @@ public final class WindowLayout {
         this.sidebarY = this.bodyY;
         this.sidebarHeight = this.bodyHeight;
 
-        // Content area - guaranteed strictly inside the window without right-border overflow
         this.contentX = this.sidebarX + this.sidebarWidth + paddingWin;
         this.contentY = this.bodyY + paddingWin;
         int remainingContentW = (this.windowX + this.windowWidth) - this.contentX - paddingWin;

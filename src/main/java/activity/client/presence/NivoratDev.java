@@ -1,9 +1,5 @@
 package activity.client.presence;
 
-/**
- * Developer Edition configuration and identity tokens for NivoratClient.
- * Generated automatically by Gradle build system.
- */
 public final class NivoratDev {
 
     private NivoratDev() {}

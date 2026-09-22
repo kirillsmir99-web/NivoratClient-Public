@@ -16,11 +16,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.function.Consumer;
 
-/**
- * Clean, dark, responsive text input field adhering to the Activity design system.
- * Features 1px border, accent focus glow, scissor clipping, scrolling text,
- * blinking cursor, selection, clipboard shortcuts (copy/paste/cut/selectAll).
- */
 public class ActivityTextField extends ActivityComponent {
 
     private String text = "";
@@ -170,7 +165,6 @@ public class ActivityTextField extends ActivityComponent {
         int baseBorder = ActivityColors.interpolateColor(ActivityColors.BORDER_INPUT, ActivityColors.BORDER_HOVER, this.hoverProgress);
         int borderColor = ActivityColors.interpolateColor(baseBorder, ActivityColors.ACCENT_PRIMARY, this.focusProgress);
 
-        // Draw cavity well background and 1px border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, ActivityColors.FIELD_BACKGROUND, borderColor);
 
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
@@ -193,7 +187,6 @@ public class ActivityTextField extends ActivityComponent {
 
                 activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, rendered, innerX, innerY, this.enabled ? ActivityColors.TEXT_PRIMARY : ActivityColors.TEXT_DISABLED);
 
-                // Draw cursor
                 if (this.focused && this.enabled) {
                     boolean cursorVisible = AnimationClock.isCursorBlinkVisible(this.cursorBlinkStartTime);
                     if (cursorVisible && this.cursorPosition >= this.firstVisibleIndex) {
@@ -203,7 +196,6 @@ public class ActivityTextField extends ActivityComponent {
                     }
                 }
 
-                // Draw selection box if present
                 if (hasSelection()) {
                     int selStart = Math.min(this.cursorPosition, this.selectionEnd);
                     int selEnd = Math.max(this.cursorPosition, this.selectionEnd);

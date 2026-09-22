@@ -37,7 +37,6 @@ public class AutoMaceModule extends NivoratModule {
                 .aliases("automace", "mace", "булава", "автобулава", "авто-булава", "авто булава", "свап", "swap", "чары", "enchant", "miss", "промах", "legit", "легит")
                 .build();
 
-        // 1. GENERAL
         registerEnum("source_mode", Text.translatable("activity.setting.combat.source_mode"),
                 Text.translatable("activity.setting.combat.source_mode.desc"), SettingGroup.GENERAL,
                 List.of("sword_and_axe", "sword_only", "axe_only"), "sword_and_axe",
@@ -92,7 +91,6 @@ public class AutoMaceModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR
         registerNumber("restore_delay", Text.translatable("activity.setting.combat.restore_delay"),
                 Text.translatable("activity.setting.combat.restore_delay.desc"), SettingGroup.BEHAVIOR,
                 30.0, 300.0, 5.0, " ms", true, 90.0,
@@ -127,7 +125,6 @@ public class AutoMaceModule extends NivoratModule {
                 }
         );
 
-        // 3. ADVANCED
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
                 true,

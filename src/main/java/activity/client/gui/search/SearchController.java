@@ -20,10 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * High-performance search and indexing engine for Activity GUI settings and modules.
- * Indexes all modules and configuration parameters with bilingual (Russian and English) keywords.
- */
 public final class SearchController {
 
     public record SearchEntry(
@@ -197,9 +193,7 @@ public final class SearchController {
     }
 
     private static void initIndex() {
-        // =========================================================================
-        // CATEGORIES (6 Main Sections)
-        // =========================================================================
+
         addCategory("combat", Text.translatable("activity.tab.combat"), ActivityIcon.COMBAT,
             List.of("combat", "бой", "оружие", "свапы", "оружие и свапы", "оружие & свапы", "combat & swaps", "пвп", "pvp", "мечи", "булава", "копье", "щит", "слизь"));
 
@@ -217,9 +211,6 @@ public final class SearchController {
 
         addCategory("about", Text.translatable("activity.tab.about"), ActivityIcon.ABOUT,
             List.of("about", "о проекте", "информация", "версия", "автор", "телеграм", "telegram", "ссылки"));
-        // =========================================================================
-        // NON-MODULE CARDS & SECTIONS
-        // =========================================================================
 
         addModule("utility", "hud_activity",
             Text.translatable("activity.card.utility.hud_activity"),
@@ -228,7 +219,6 @@ public final class SearchController {
             List.of("hud", "overlay", "хад", "оверлей", "fps", "фпс", "координаты", "coords", "биомы", "время", "компас")
         );
 
-        // --- Config Modules ---
         addModule("config", "profiles",
             Text.translatable("activity.card.config.profiles"),
             Text.translatable("activity.tab.config"),
@@ -243,7 +233,6 @@ public final class SearchController {
             List.of("status", "статус", "интеграция", "модули", "активные", "active", "инфо")
         );
 
-        // --- Settings Sections ---
         addModule("settings", "visual_settings",
             Text.translatable("activity.card.interface.typography"),
             Text.translatable("activity.tab.settings"),
@@ -265,7 +254,6 @@ public final class SearchController {
             List.of("presets", "пресеты", "активный", "сброс", "сохранить", "импорт", "экспорт", "layout")
         );
 
-        // --- About Sections ---
         addModule("about", "info",
             Text.translatable("activity.card.about.info"),
             Text.translatable("activity.tab.about"),
@@ -280,11 +268,6 @@ public final class SearchController {
             List.of("telegram", "телеграм", "тг", "канал", "сообщество", "ссылка", "автор")
         );
 
-        // =========================================================================
-        // NON-MODULE SETTINGS
-        // =========================================================================
-
-        // --- HUD Settings ---
         addSetting("utility", "hud_activity", "hud_anchor",
             Text.translatable("activity.setting.general.hud_anchor"),
             breadcrumb("activity.tab.utility", "activity.card.utility.hud_activity"),
@@ -334,7 +317,6 @@ public final class SearchController {
             List.of("прозрачность панелей", "панели", "карточки", "panel opacity", "фон")
         );
 
-        // --- Audio & Motion Settings ---
         addSetting("settings", "motion_audio", "sound_profile",
             Text.translatable("activity.setting.interface.sound_profile"),
             breadcrumb("activity.tab.settings", "activity.card.interface.audio"),
@@ -377,7 +359,6 @@ public final class SearchController {
             List.of("пространственная анимация", "появление окна", "open animation", "плавное открытие", "окно")
         );
 
-        // --- Presets & Window Actions ---
         addSetting("settings", "presets", "active_preset",
             Text.translatable("activity.setting.settings.active_preset"),
             breadcrumb("activity.tab.settings", "activity.card.settings.presets"),
@@ -399,7 +380,6 @@ public final class SearchController {
             List.of("сбросить к заводским", "сброс", "заводские", "reset", "defaults", "очистить")
         );
 
-        // Dynamic modules indexing from ModuleRegistry
         indexAllModulesFromRegistry();
     }
 
@@ -424,7 +404,6 @@ public final class SearchController {
         String categoryId = module.getCategory() != null ? module.getCategory().getId() : "combat";
         String moduleId = module.getId();
 
-        // Remove any old entries for this module so re-indexing is clean
         INDEX.removeIf(e -> moduleId.equalsIgnoreCase(e.moduleId()));
 
         ActivityIcon icon = (module.getMetadata() != null && module.getMetadata().getIcon() != null)
@@ -502,14 +481,12 @@ public final class SearchController {
 
                 addSetting(categoryId, moduleId, sid, s.getDisplayName(), bc, icon, settingKeywords);
 
-                // AutoShieldbreaker chance -> breaker_chance compatibility
                 if ("auto_shieldbreaker".equals(moduleId) && "chance".equals(sid)) {
                     addSetting(categoryId, moduleId, "breaker_chance", s.getDisplayName(), bc, icon, settingKeywords);
                 }
             }
         }
 
-        // AutoStunSlam compatibility with legacy auto_stun_slime test expectations
         if ("auto_stun_slam".equals(moduleId)) {
             INDEX.removeIf(e -> "auto_stun_slime".equalsIgnoreCase(e.moduleId()));
             addModule(categoryId, "auto_stun_slime", Text.translatable("activity.module.auto_stun_slime.name"), Text.translatable("activity.tab." + categoryId), icon, moduleKeywords);
@@ -530,13 +507,6 @@ public final class SearchController {
         }
     }
 
-    /**
-     * Performs a ranked search across all indexed categories, modules, and settings.
-     *
-     * @param query user input query string
-     * @param maxResults maximum number of top results to return
-     * @return ranked list of search results
-     */
     public static List<SearchResult> search(String query, int maxResults) {
         if (query == null || query.isBlank()) {
             return List.of();
@@ -554,7 +524,6 @@ public final class SearchController {
             String ruBc = normalize(getTranslation(entry.breadcrumb(), "ru"));
             String enBc = normalize(getTranslation(entry.breadcrumb(), "en"));
 
-            // Exact match on title (raw, ru, or en)
             if (rawTitle.equals(normalized) || ruTitle.equals(normalized) || enTitle.equals(normalized)) {
                 score += 120;
             } else if (rawTitle.startsWith(normalized) || ruTitle.startsWith(normalized) || enTitle.startsWith(normalized)) {
@@ -567,12 +536,10 @@ public final class SearchController {
                 score += 35;
             }
 
-            // Breadcrumb match
             if (rawBc.contains(normalized) || ruBc.contains(normalized) || enBc.contains(normalized)) {
                 score += 20;
             }
 
-            // Module or Setting ID matches
             String normModId = normalize(entry.moduleId());
             if (normModId.equals(normalized) || normModId.replace("_", "").equals(normalized)) {
                 score += 65;
@@ -582,7 +549,6 @@ public final class SearchController {
                 score += 25;
             }
 
-            // Prioritize top-level module/category over sub-settings
             if (entry.settingId() == null) {
                 score += 35;
             } else {
@@ -594,7 +560,6 @@ public final class SearchController {
                 }
             }
 
-            // Keyword matches
             for (String kw : entry.keywords()) {
                 String kwNorm = normalize(kw);
                 if (kwNorm.equals(normalized)) {

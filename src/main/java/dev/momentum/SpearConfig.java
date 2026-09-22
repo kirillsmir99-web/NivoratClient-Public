@@ -1,10 +1,5 @@
 package dev.momentum;
 
-/**
- * In-memory runtime state for AutoSpear combat controller.
- * Bound to NivoratClient unified configuration ({@link activity.client.config.ActivityConfig}).
- * Independent file I/O has been removed in favor of NivoratConfigManager.
- */
 public final class SpearConfig {
     public static final int PRIORITY_AUTO = 0;
     public static final int PRIORITY_LUNGE_1 = 1;
@@ -34,10 +29,10 @@ public final class SpearConfig {
     }
 
     public static void load() {
-        // Bound to NivoratClient ActivityConfig — no independent file I/O
+
     }
 
     public static void save() {
-        // Bound to NivoratClient ActivityConfig — no independent file I/O
+
     }
 }

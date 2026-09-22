@@ -10,12 +10,6 @@ import net.minecraft.util.math.BlockPos;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Shared service managing TNT minecart inventory state, detection, and coordination
- * across AutoCart, CartRefill, and CartHUD modules.
- *
- * <p>Eliminates duplicated inventory-scanning logic and reflection-based workarounds.
- */
 public final class CartStateService {
 
     public interface CartEventListener {
@@ -60,10 +54,6 @@ public final class CartStateService {
         }
     }
 
-    /**
-     * Counts the total number of TNT minecarts currently in the player's inventory.
-     * Caches the count per world tick to avoid redundant inventory traversal during render frames.
-     */
     public static int countCarts(ClientPlayerEntity player) {
         if (player == null) return 0;
         net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
@@ -78,9 +68,6 @@ public final class CartStateService {
         return countCartsUncached(player);
     }
 
-    /**
-     * Direct uncached count of TNT minecarts in the player's inventory.
-     */
     public static int countCartsUncached(ClientPlayerEntity player) {
         if (player == null) return 0;
         int count = 0;
@@ -93,10 +80,6 @@ public final class CartStateService {
         return count;
     }
 
-    /**
-     * Finds the first slot in the main inventory (slots 9 to 35) containing a TNT minecart.
-     * Returns -1 if none found.
-     */
     public static int findInventoryCart(ClientPlayerEntity player) {
         if (player == null) return -1;
         for (int i = 9; i < 36; i++) {
@@ -108,10 +91,6 @@ public final class CartStateService {
         return -1;
     }
 
-    /**
-     * Finds the first slot in the hotbar (slots 0 to 8) containing a TNT minecart that is NOT on cooldown.
-     * Returns -1 if none found or all carts are cooling down.
-     */
     public static int findHotbarCart(ClientPlayerEntity player) {
         if (player == null) return -1;
         boolean hasCooldownManager = player.getItemCooldownManager() != null;
@@ -127,9 +106,6 @@ public final class CartStateService {
         return -1;
     }
 
-    /**
-     * Checks if TNT minecarts are currently cooling down for the player.
-     */
     public static boolean isCartOnCooldown(ClientPlayerEntity player) {
         if (player == null || player.getItemCooldownManager() == null) {
             return false;
@@ -137,10 +113,6 @@ public final class CartStateService {
         return player.getItemCooldownManager().isCoolingDown(Items.TNT_MINECART.getDefaultStack());
     }
 
-    /**
-     * Checks if the player currently holds a TNT minecart in their off-hand (slot 40)
-     * that is NOT on cooldown.
-     */
     public static boolean isCartInOffhand(ClientPlayerEntity player) {
         if (player == null) return false;
         ItemStack offhand = player.getOffHandStack();
@@ -153,10 +125,6 @@ public final class CartStateService {
         return true;
     }
 
-    /**
-     * Finds the first slot in the hotbar (slots 0 to 8) containing any rail block.
-     * Returns -1 if none found.
-     */
     public static int findRailSlot(ClientPlayerEntity player) {
         if (player == null) return -1;
         for (int slot = 0; slot < 9; slot++) {
@@ -169,9 +137,6 @@ public final class CartStateService {
         return -1;
     }
 
-    /**
-     * Resets internal caches.
-     */
     public static void reset() {
         cachedCartCount = 0;
         lastCountWorldTime = -1L;

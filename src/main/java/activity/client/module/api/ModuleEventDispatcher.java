@@ -31,18 +31,6 @@ import net.minecraft.world.World;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Consolidated high-performance event dispatcher for NivoratClient.
- *
- * <p>Key Guarantees:
- * <ul>
- *   <li>Single Fabric ClientTick hook, single AttackEntity callback, and single HUD render element.</li>
- *   <li>Fast-path routing: calls <b>only</b> enabled modules that actually require the event.</li>
- *   <li>Zero overhead for disabled modules (0 ns cost; no tick/attack/render iteration).</li>
- *   <li>Zero per-frame / per-tick object allocations in event dispatch loops.</li>
- *   <li>Integrated per-tick lifecycle coordination for shared services (player, inventory, target caches).</li>
- * </ul>
- */
 public final class ModuleEventDispatcher {
 
     private static volatile IModule[] activeTickModules = new IModule[0];
@@ -54,9 +42,6 @@ public final class ModuleEventDispatcher {
 
     private ModuleEventDispatcher() {}
 
-    /**
-     * Initializes global Fabric client event hooks. Safe to call multiple times.
-     */
     public static synchronized void init() {
         if (eventsRegistered) return;
         eventsRegistered = true;
@@ -65,16 +50,12 @@ public final class ModuleEventDispatcher {
         TickBoundScheduler.markDispatcherManaged();
         CombatRaytraceGuard.markDispatcherManaged();
 
-        // 1. Single Consolidated Client Tick & Keybind dispatch
         ClientTickEvents.START_CLIENT_TICK.register(ModuleEventDispatcher::onClientTick);
 
-        // 2. Single Consolidated Attack Entity Callback dispatch
         AttackEntityCallback.EVENT.register(ModuleEventDispatcher::onAttackEntity);
 
-        // 3. Single Consolidated HUD Render dispatch
         HudElementRegistry.addLast(Identifier.of("activity", "modules_hud"), ModuleEventDispatcher::onRenderHud);
 
-        // 4. World Render Event for Camera Interpolation (AutoPearlCatch smooth rotation)
         net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.START_MAIN.register(context -> {
             if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
             MinecraftClient client = MinecraftClient.getInstance();
@@ -86,9 +67,6 @@ public final class ModuleEventDispatcher {
         updateActiveModules();
     }
 
-    /**
-     * Rebuilds fast-path arrays of enabled modules categorized by capability.
-     */
     public static synchronized void updateActiveModules() {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             activeTickModules = new IModule[0];
@@ -124,9 +102,6 @@ public final class ModuleEventDispatcher {
         KeybindManager.rebuildBoundKeybinds();
     }
 
-    /**
-     * Internal tick dispatch called on every Minecraft client tick.
-     */
     public static void onClientTick(MinecraftClient client) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return;
@@ -143,19 +118,15 @@ public final class ModuleEventDispatcher {
 
         long tick = ++clientTickCounter;
 
-        // Advance shared per-tick state caches once
         PlayerStateService.onTick(client, tick);
         TargetCacheService.onTick(client, tick);
         InventoryScanService.onTick(client, tick);
         CombatRaytraceGuard.onTick(tick);
 
-        // Tick scheduler
         TickBoundScheduler.onTick(client);
 
-        // Keybind evaluation
         KeybindManager.handleTick(client);
 
-        // Dispatch to only enabled modules with tick logic
         IModule[] modules = activeTickModules;
         for (int i = 0; i < modules.length; i++) {
             try {
@@ -164,9 +135,6 @@ public final class ModuleEventDispatcher {
         }
     }
 
-    /**
-     * Internal attack entity dispatch called on player entity attacks.
-     */
     public static ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return ActionResult.PASS;
@@ -186,9 +154,6 @@ public final class ModuleEventDispatcher {
         return ActionResult.PASS;
     }
 
-    /**
-     * Internal HUD render dispatch called on each render frame.
-     */
     public static void onRenderHud(DrawContext context, RenderTickCounter tickCounter) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return;

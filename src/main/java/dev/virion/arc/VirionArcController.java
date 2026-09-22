@@ -115,19 +115,16 @@ public final class VirionArcController {
         int trackedBowSlot = bowSlot;
         resetBowTracking();
 
-        // 1. If slot switched away from bow, this was a cancel/swap, not a shot
         if (trackedBowSlot < 0 || currentSlot != trackedBowSlot || !(currentItem.getItem() instanceof BowItem)) {
             return;
         }
 
-        // 2. Must have ammo
         boolean hasArrow = client.player.getAbilities().creativeMode
             || !client.player.getProjectileType(currentItem).isEmpty();
         if (!hasArrow) {
             return;
         }
 
-        // 3. Minimum draw ticks: discard accidental feints/taps
         if (releasedDrawTicks < MIN_BOW_DRAW_TICKS || releasedDrawTicks > MAX_BOW_DRAW_TICKS) {
             return;
         }
@@ -145,7 +142,6 @@ public final class VirionArcController {
             return;
         }
 
-        // Hotbar cooldown check: server applied cooldown to minecart item
         if (activity.client.module.service.CartStateService.isCartOnCooldown(client.player)) {
             return;
         }
@@ -215,13 +211,12 @@ public final class VirionArcController {
     }
 
     private TargetResolution resolvePlacementTarget(MinecraftClient client, int drawTicks) {
-        // 1. Primary: Predict arrow trajectory impact
+
         TargetResolution trajectoryResolution = predictReleasedArrow(client, drawTicks);
         if (trajectoryResolution != null && trajectoryResolution.target != null && canPlaceRail(client, trajectoryResolution.target)) {
             return trajectoryResolution;
         }
 
-        // 2. Crosshair fallback (only if looking directly at valid block or entity within reach)
         if (client.crosshairTarget != null) {
             if (client.crosshairTarget instanceof EntityHitResult entityHit) {
                 Entity entity = entityHit.getEntity();
@@ -247,7 +242,6 @@ public final class VirionArcController {
             }
         }
 
-        // 3. Self-cart fallback ONLY if allowSelfCart is on and player is looking straight down at feet
         boolean isSelfCartAim = MorrowConfig.allowSelfCart && client.player.getPitch() >= 82.0F;
         if (isSelfCartAim) {
             BlockPos feetGround = findSolidGroundBelow(client.world, client.player.getBlockPos(), 2);
@@ -256,7 +250,6 @@ public final class VirionArcController {
             }
         }
 
-        // Never drop cart at player's feet if shot was far or missed!
         return null;
     }
 
@@ -316,7 +309,7 @@ public final class VirionArcController {
                 if (target != null && canPlaceRail(client, target)) {
                     return new TargetResolution(target, tick + 1);
                 }
-                // Arrow struck an obstacle: stop trajectory
+
                 break;
             }
 
@@ -376,8 +369,7 @@ public final class VirionArcController {
                 return topCandidate.toImmutable();
             }
         } else if (side.getAxis().isHorizontal()) {
-            // If the arrow struck the upper part of the block (y >= blockY + 0.45),
-            // prefer placing on top of the block so it doesn't offset horizontally!
+
             if (hit.getPos().y >= hitBlock.getY() + 0.45D) {
                 BlockPos topCandidate = hitBlock.up();
                 if (canPlaceRail(client, topCandidate)) {
@@ -385,7 +377,6 @@ public final class VirionArcController {
                 }
             }
 
-            // Prefer stepping back towards player along view direction so it doesn't shift sideways
             Vec3d backStep = hit.getPos().subtract(client.player.getRotationVec(1.0F).multiply(0.35D));
             BlockPos backPos = BlockPos.ofFloored(backStep.x, backStep.y, backStep.z);
             BlockPos groundInFront = findSolidGroundBelow(client.world, backPos, 2);
@@ -452,7 +443,6 @@ public final class VirionArcController {
             return;
         }
 
-        // Aim check: abort if player turned away (> ~60 degrees)
         if (!isPlayerAimingAtTarget(client, activeJob.target)) {
             cancelJob(client);
             return;
@@ -516,7 +506,6 @@ public final class VirionArcController {
                     activeJob.lastSlotSwitchTimeMs = now;
                 }
 
-                // Verify rail is present before placing cart
                 BlockState state = client.world.getBlockState(activeJob.target);
                 if (!(state.getBlock() instanceof AbstractRailBlock)) {
                     if (activeJob.railRetries < 2) {
@@ -568,19 +557,16 @@ public final class VirionArcController {
             return false;
         }
 
-        // Distance from self check (Self-cart and proximity filter)
         boolean isSelfCart = MorrowConfig.allowSelfCart && client.player.getPitch() >= 82.0F;
 
         if (!isSelfCart) {
             Box playerBox = client.player.getBoundingBox();
             Box targetBox = new Box(target);
 
-            // Cannot place inside player bounding box when self-cart is off
             if (playerBox.expand(0.10D).intersects(targetBox)) {
                 return false;
             }
 
-            // If target is at the same level or higher than player's feet, enforce horizontal clearance
             if (target.getY() >= client.player.getBlockY()) {
                 double dx = (target.getX() + 0.5D) - client.player.getX();
                 double dz = (target.getZ() + 0.5D) - client.player.getZ();
@@ -611,7 +597,6 @@ public final class VirionArcController {
             return false;
         }
 
-        // If self-cart is enabled and player is looking down at feet, allow
         boolean isSelfCart = MorrowConfig.allowSelfCart && client.player.getPitch() >= 82.0F;
         if (isSelfCart) {
             int dx = Math.abs(target.getX() - client.player.getBlockX());
@@ -641,10 +626,10 @@ public final class VirionArcController {
 
         if (MorrowConfig.legitMode) {
             if (diff > 0) {
-                // Bottom-to-top: ledge up to 4 blocks higher
+
                 return diff <= 4;
             } else {
-                // Top-to-bottom: pit or jumping down
+
                 int minDiff = MorrowConfig.allowPitPlacement ? -6 : -4;
                 return diff >= minDiff;
             }
@@ -661,7 +646,6 @@ public final class VirionArcController {
         Vec3d eyePos = client.player.getEyePos();
         BlockPos supportPos = target.down();
 
-        // 1. Raycast to target center (the rail block space itself)
         Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D);
         BlockHitResult hitTarget = client.world.raycast(new RaycastContext(
             eyePos,
@@ -679,7 +663,6 @@ public final class VirionArcController {
             return true;
         }
 
-        // 2. Raycast to top of support block (supportPos top face)
         Vec3d topPoint = nearestTopPoint(eyePos, supportPos);
         BlockHitResult hitSupport = client.world.raycast(new RaycastContext(
             eyePos,
@@ -707,16 +690,14 @@ public final class VirionArcController {
         Vec3d hitPosition = nearestTopPoint(eyePos, target.down());
         Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D);
 
-        // Vanilla interaction reach: check nearest point on surface or block center
         double dSq = Math.min(eyePos.squaredDistanceTo(hitPosition), eyePos.squaredDistanceTo(targetCenter));
         double baseRange = client.player.getBlockInteractionRange();
-        // Vanilla reach allows 4.5 blocks; allow full vanilla range
+
         double max3DReach = Math.min(baseRange, MorrowConfig.maxDistance + 0.25D);
         if (dSq > max3DReach * max3DReach) {
             return false;
         }
 
-        // Horizontal distance check against maxDistance
         double dx = (target.getX() + 0.5D) - client.player.getX();
         double dz = (target.getZ() + 0.5D) - client.player.getZ();
         double hDistSq = dx * dx + dz * dz;
@@ -793,7 +774,6 @@ public final class VirionArcController {
         long heldTime = now - activeJob.lastSlotSwitchTimeMs;
         int minSafeHold = getMinSafeSlotHoldMs();
 
-        // If slot was switched very recently, delay restore to prevent GrimModCounter FastSwapSequence
         if (heldTime < minSafeHold && client != null && client.player != null
             && client.player.getInventory().getSelectedSlot() != activeJob.originalSlot) {
             activeJob.stage = Stage.RESTORE_SLOT;

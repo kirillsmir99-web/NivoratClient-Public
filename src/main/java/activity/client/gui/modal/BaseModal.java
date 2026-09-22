@@ -19,18 +19,6 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Abstract foundational base class for all modal dialogs in NivoratClient.
- *
- * <p>Guarantees:
- * <ul>
- *   <li>Top-level overlay positioning (Z=7 Layer) with full-screen click-through blocking.</li>
- *   <li>Responsive centering and dimension clamping across GUI Scales 2, 3, and 4.</li>
- *   <li>Smooth opening and closing scale + alpha animations.</li>
- *   <li>Glassmorphic acrylic aesthetic with translucent backdrop scrim and accent border.</li>
- *   <li>Native Escape key handling to cancel and dismiss.</li>
- * </ul>
- */
 public abstract class BaseModal implements Overlay {
 
     protected final Text title;
@@ -66,9 +54,6 @@ public abstract class BaseModal implements Overlay {
         this.onCancel = onCancel;
     }
 
-    /**
-     * Updates modal position and dimensions to remain centered and responsive.
-     */
     public void updateResponsiveBounds() {
         MinecraftClient mc = MinecraftClient.getInstance();
         int screenW = mc != null && mc.getWindow() != null ? mc.getWindow().getScaledWidth() : 400;
@@ -82,9 +67,6 @@ public abstract class BaseModal implements Overlay {
         this.layoutChildren(this.x, this.y, this.width, this.height);
     }
 
-    /**
-     * Subclasses must arrange child components relative to the modal bounds.
-     */
     protected abstract void layoutChildren(int modalX, int modalY, int modalWidth, int modalHeight);
 
     protected <T extends ActivityComponent> T addChild(T child) {
@@ -135,7 +117,7 @@ public abstract class BaseModal implements Overlay {
 
     @Override
     public boolean contains(double mouseX, double mouseY) {
-        // Modal acts as a full-screen shield preventing click-through to background widgets
+
         return true;
     }
 
@@ -174,12 +156,10 @@ public abstract class BaseModal implements Overlay {
 
         float eased = AnimationClock.smoothStep(this.animProgress);
 
-        // Step 1: Fullscreen dark translucent backdrop scrim
         int scrimAlpha = Math.round(150 * eased);
         int scrimColor = (scrimAlpha << 24) | 0x000000;
         ActivityGuiRenderer.fill(context, 0, 0, screenW, screenH, scrimColor);
 
-        // Step 2: Animated glass modal container (scale + translation)
         float scale = 0.90f + 0.10f * eased;
         float centerX = this.x + this.width / 2.0f;
         float centerY = this.y + this.height / 2.0f;
@@ -190,27 +170,23 @@ public abstract class BaseModal implements Overlay {
         context.getMatrices().translate(-centerX, -centerY);
 
         try {
-            // Glass Acrylic Panel
+
             int modalBg = ActivityColors.withAlpha(0x12141A, Math.round(235 * eased));
             int modalBorder = ActivityColors.withAlpha(0x38FFFFFF, Math.round(255 * eased));
             ActivityGuiRenderer.fill(context, this.x, this.y, this.width, this.height, modalBg);
             ActivityGuiRenderer.drawBorder(context, this.x, this.y, this.width, this.height, modalBorder);
 
-            // Specular top highlight line
             int topGlint = ActivityColors.withAlpha(0xFFFFFF, Math.round(45 * eased));
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, 1, topGlint);
 
-            // Title Bar
             TextRenderer tr = mc != null ? mc.textRenderer : null;
             if (tr != null && this.title != null) {
                 activity.client.gui.font.UiTextRenderer.drawText(context, tr, this.title, this.x + 14, this.y + 12, ActivityColors.TEXT_PRIMARY, false);
 
-                // Thin separator below title
                 int sepColor = ActivityColors.withAlpha(0x28FFFFFF, Math.round(255 * eased));
                 ActivityGuiRenderer.fill(context, this.x + 10, this.y + 28, this.width - 20, 1, sepColor);
             }
 
-            // Render modal children
             renderContent(context, mouseX, mouseY, delta);
 
             for (ActivityComponent child : this.children) {
@@ -223,9 +199,6 @@ public abstract class BaseModal implements Overlay {
         }
     }
 
-    /**
-     * Optional custom rendering hook for subclasses (e.g. description text, icons).
-     */
     protected void renderContent(DrawContext context, int mouseX, int mouseY, float delta) {}
 
     @Override
@@ -235,7 +208,6 @@ public abstract class BaseModal implements Overlay {
         double mx = click.x();
         double my = click.y();
 
-        // Check children if inside modal
         if (mx >= this.x && mx <= this.x + this.width && my >= this.y && my <= this.y + this.height) {
             for (int i = this.children.size() - 1; i >= 0; i--) {
                 ActivityComponent child = this.children.get(i);
@@ -255,11 +227,10 @@ public abstract class BaseModal implements Overlay {
             return true;
         }
 
-        // Outside modal (backdrop click)
         if (this.shouldCloseOnClickOutside()) {
             this.cancel();
         }
-        return true; // Strictly consume click to block background interaction
+        return true;
     }
 
     @Override
@@ -303,7 +274,7 @@ public abstract class BaseModal implements Overlay {
             }
         }
 
-        return true; // Intercept all hotkeys while modal is open
+        return true;
     }
 
     @Override

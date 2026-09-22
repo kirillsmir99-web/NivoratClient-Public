@@ -5,9 +5,6 @@ import net.minecraft.text.Text;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Convenience double slider setting extending {@link NumberSetting}.
- */
 public class DoubleSetting extends NumberSetting {
 
     public DoubleSetting(String id, Text name, Text description, SettingGroup group,

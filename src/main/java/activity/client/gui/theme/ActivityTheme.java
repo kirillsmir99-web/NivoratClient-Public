@@ -1,8 +1,5 @@
 package activity.client.gui.theme;
 
-/**
- * High-level theme facade providing convenient access to colors and metrics.
- */
 public final class ActivityTheme {
     private static final ActivityTheme INSTANCE = new ActivityTheme();
 

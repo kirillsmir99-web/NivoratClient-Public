@@ -8,10 +8,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Objects;
 
-/**
- * Encapsulates a configurable keybind combination supporting keyboard keys,
- * mouse buttons, and modifier keys (Ctrl, Shift, Alt).
- */
 public final class Keybind {
 
     public static final int UNBOUND = -1;
@@ -97,9 +93,6 @@ public final class Keybind {
         return isMouseButton() ? MOUSE_OFFSET - this.keyCode : -1;
     }
 
-    /**
-     * Checks if this keybind matches the given key code and GLFW modifier bitfield.
-     */
     public boolean matchesKey(int key, int modifiers) {
         if (isUnbound() || isMouseButton()) return false;
         if (this.keyCode != key) return false;
@@ -111,9 +104,6 @@ public final class Keybind {
         return this.ctrl == ctrlDown && this.shift == shiftDown && this.alt == altDown;
     }
 
-    /**
-     * Checks if this keybind matches the given mouse button and GLFW modifier bitfield.
-     */
     public boolean matchesButton(int button, int modifiers) {
         if (isUnbound() || !isMouseButton()) return false;
         if (getMouseButton() != button) return false;
@@ -125,17 +115,11 @@ public final class Keybind {
         return this.ctrl == ctrlDown && this.shift == shiftDown && this.alt == altDown;
     }
 
-    /**
-     * Checks if this keybind matches the Minecraft client KeyInput event.
-     */
     public boolean matchesKeyInput(KeyInput input) {
         if (input == null) return false;
         return matchesKey(input.key(), input.modifiers());
     }
 
-    /**
-     * Tests whether this keybind is currently held in the game window.
-     */
     public boolean matchesWindow(Window window, boolean ctrlDown, boolean shiftDown, boolean altDown) {
         if (isUnbound() || window == null || window.getHandle() == 0L) return false;
         if (this.ctrl != ctrlDown || this.shift != shiftDown || this.alt != altDown) return false;
@@ -148,9 +132,6 @@ public final class Keybind {
         return InputUtil.isKeyPressed(window, this.keyCode);
     }
 
-    /**
-     * Produces a human-readable, localized string representation of the keybind.
-     */
     public String format() {
         if (isUnbound()) {
             try {
@@ -213,9 +194,6 @@ public final class Keybind {
         return sb.toString();
     }
 
-    /**
-     * Returns a Minecraft Text representation of the formatted keybind.
-     */
     public Text getDisplayText() {
         if (isUnbound()) {
             return Text.translatable("activity.keybind.none");
@@ -223,9 +201,6 @@ public final class Keybind {
         return Text.literal(format());
     }
 
-    /**
-     * Returns a string representation of the formatted keybind.
-     */
     public String getDisplayString() {
         return format();
     }

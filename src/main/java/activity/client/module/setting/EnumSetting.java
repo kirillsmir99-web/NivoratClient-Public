@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Dropdown selector setting with a fixed list of options.
- */
 public class EnumSetting extends Setting<String> {
 
     private final List<String> options;

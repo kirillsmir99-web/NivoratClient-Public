@@ -21,20 +21,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Modern dark dropdown selector component adhering to the Activity design system.
- *
- * <p>Features:
- * <ul>
- *   <li>1px crisp border with input styling (or accent glow on focus/open).</li>
- *   <li>Right-aligned indicator chevron icon (procedural pixel-art).</li>
- *   <li>Opens an isolated floating {@link DropdownPopup} in the {@link OverlayManager} (Z=7 layer).</li>
- *   <li>Guarantees strict click-through prevention.</li>
- *   <li>Escape key closes popup without closing the parent screen.</li>
- * </ul>
- *
- * @param <T> the type of options in this dropdown
- */
 public class ActivityDropdown<T> extends ActivityComponent {
 
     private final OverlayManager overlayManager;
@@ -158,14 +144,12 @@ public class ActivityDropdown<T> extends ActivityComponent {
         int baseBorder = ActivityColors.interpolateColor(ActivityColors.BORDER_INPUT, ActivityColors.BORDER_HOVER, this.hoverProgress);
         int borderColor = ActivityColors.interpolateColor(baseBorder, ActivityColors.ACCENT_PRIMARY, this.focusProgress);
 
-        // Draw cavity well background and 1px border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, ActivityColors.FIELD_BACKGROUND, borderColor);
 
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         int fontH = activity.client.gui.font.UiTextRenderer.getFontHeight(tr);
         int textY = this.y + (this.height - fontH) / 2;
 
-        // Draw current selected text (clipped to width minus arrow space)
         if (this.selectedOption != null) {
             if (this.cachedWrappedLabel == null || !java.util.Objects.equals(this.selectedOption, this.lastSelectedOption)) {
                 this.lastSelectedOption = this.selectedOption;
@@ -186,7 +170,6 @@ public class ActivityDropdown<T> extends ActivityComponent {
             }
         }
 
-        // Draw dropdown chevron icon
         int arrowColor = (this.hovered || this.expanded) ? ActivityColors.TEXT_PRIMARY : ActivityColors.TEXT_SECONDARY;
         ActivityIconRenderer.drawCentered(context, this.expanded ? ActivityIcon.CHEVRON_UP : ActivityIcon.CHEVRON_DOWN,
             this.x + this.width - 16, this.y, 14, this.height, arrowColor);

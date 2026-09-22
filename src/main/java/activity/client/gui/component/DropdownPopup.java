@@ -17,14 +17,6 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-/**
- * Floating popup menu for {@link ActivityDropdown}, rendered in the top-level Overlay layer (Z=7).
- *
- * <p>Supports smooth 120ms expand animation, scrolling when items exceed maximum visible rows,
- * hover states, active item indicator, and click-through protection.
- *
- * @param <T> the type of options
- */
 public class DropdownPopup<T> implements Overlay {
 
     private final ActivityDropdown<T> dropdown;
@@ -69,7 +61,6 @@ public class DropdownPopup<T> implements Overlay {
         int visibleCount = Math.min(options.size(), maxAllowed);
         int initialHeight = visibleCount * this.itemHeight + 2;
 
-        // Position popup below dropdown; flip above if not enough room at bottom of screen
         int potentialBottomY = dropdown.getY() + dropdown.getHeight() + 1;
         int spaceBelow = (screenHeight - ActivityMetrics.SCREEN_MARGIN_SMALL) - potentialBottomY;
         int spaceAbove = dropdown.getY() - 1 - topCeiling;
@@ -147,10 +138,9 @@ public class DropdownPopup<T> implements Overlay {
         int ry = getRenderY();
         int rh = getRenderHeight();
 
-        // Clip the expanding popup bounds
         ScissorHelper.pushScissor(context, this.x, ry, this.width, rh);
         try {
-            // Draw solid dark popup surface (#0E1015 at ~97% opacity)
+
             int popupBg = 0xF80E1015;
             ActivityGuiRenderer.fill(context, this.x, ry, this.width, rh, popupBg);
 
@@ -168,7 +158,6 @@ public class DropdownPopup<T> implements Overlay {
                                     mouseY >= rowY && mouseY < rowY + this.itemHeight;
                 boolean isSelected = item.equals(this.dropdown.getSelectedOption());
 
-                // Background highlight for item
                 if (isSelected) {
                     ActivityGuiRenderer.fill(context, this.x + 1, rowY, this.width - 2, this.itemHeight, ActivityColors.ITEM_SELECTED_BG);
                     ActivityGuiRenderer.fill(context, this.x + 1, rowY, ActivityMetrics.INDICATOR_WIDTH, this.itemHeight, ActivityColors.ITEM_SELECTED_BAR);
@@ -176,12 +165,10 @@ public class DropdownPopup<T> implements Overlay {
                     ActivityGuiRenderer.fill(context, this.x + 1, rowY, this.width - 2, this.itemHeight, ActivityColors.ITEM_HOVER_BG);
                 }
 
-                // Draw divider line between items
                 if (i > 0) {
                     ActivityGuiRenderer.drawHorizontalLine(context, this.x + 2, rowY, this.width - 4, ActivityColors.BORDER_DIVIDER);
                 }
 
-                // Draw item text (cached wrapped Text)
                 if (this.cachedWrappedItems == null || this.cachedWrappedItems.length != options.size()) {
                     this.cachedWrappedItems = new Text[options.size()];
                 }
@@ -204,7 +191,6 @@ public class DropdownPopup<T> implements Overlay {
                 }
             }
 
-            // Draw scrollbar indicator if options exceed visible area
             if (options.size() > effVisible) {
                 int scrollbarX = this.x + this.width - 3;
                 int trackH = rh - 4;
@@ -220,7 +206,6 @@ public class DropdownPopup<T> implements Overlay {
             ScissorHelper.popScissor(context);
         }
 
-        // Draw crisp 1px outer border around animated bounds
         ActivityGuiRenderer.drawBorder(context, this.x, ry, this.width, rh, ActivityColors.BORDER_LIGHT);
     }
 

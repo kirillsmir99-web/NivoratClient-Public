@@ -18,10 +18,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-/**
- * Reusable keybind configuration component for the Activity design system.
- * Supports listening mode, single keys, mouse buttons, and modifier combinations (Ctrl, Shift, Alt).
- */
 public class ActivityKeybindButton extends ActivityComponent {
 
     private final Keybind keybind;
@@ -177,10 +173,8 @@ public class ActivityKeybindButton extends ActivityComponent {
             }
         }
 
-        // Base background and border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bgColor, borderColor);
 
-        // Hover overlay
         if (!this.listening && this.hoverProgress > 0.001f) {
             int maxAlpha = (ActivityColors.BUTTON_SECONDARY_HOVER >>> 24) & 0xFF;
             int overlayAlpha = (int) (maxAlpha * this.hoverProgress);
@@ -188,12 +182,10 @@ public class ActivityKeybindButton extends ActivityComponent {
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, this.height - 2, overlayColor);
         }
 
-        // Focused outline (if not listening)
         if (!this.listening && this.focused && this.enabled) {
             ActivityGuiRenderer.drawBorder(context, this.x, this.y, this.width, this.height, ActivityColors.ACCENT_PRIMARY);
         }
 
-        // Label formatting with cached text
         if (this.cachedWrappedLabel == null ||
             this.listening != this.lastListening ||
             this.keybind.getKeyCode() != this.lastKeyCode ||
@@ -239,17 +231,17 @@ public class ActivityKeybindButton extends ActivityComponent {
         if (this.listening) {
             if (button == 0) {
                 if (mouseOver) {
-                    // Clicking LMB directly on the listening button cancels listening mode
+
                     setListening(false);
                     ActivityGuiRenderer.playClickSound();
                     return true;
                 } else {
-                    // Clicking LMB outside cancels listening and allows click to route to the target
+
                     setListening(false);
                     return false;
                 }
             } else {
-                // Mouse buttons > 0 (RMB=1, Middle=2, Mouse4=3, Mouse5=4, etc.) are bound as hotkeys
+
                 boolean ctrl = hasCtrlModifier();
                 boolean shift = hasShiftModifier();
                 boolean alt = hasAltModifier();
@@ -279,14 +271,12 @@ public class ActivityKeybindButton extends ActivityComponent {
             int code = input.key();
             int mods = input.modifiers();
 
-            // 1. Escape cancels listening mode without modifying the bind
             if (input.isEscape() || code == GLFW.GLFW_KEY_ESCAPE) {
                 setListening(false);
                 ActivityGuiRenderer.playClickSound();
                 return true;
             }
 
-            // 2. Backspace or Delete clears the keybind (sets to Unbound)
             if (code == GLFW.GLFW_KEY_BACKSPACE || code == GLFW.GLFW_KEY_DELETE) {
                 this.keybind.clear();
                 setListening(false);
@@ -295,12 +285,10 @@ public class ActivityKeybindButton extends ActivityComponent {
                 return true;
             }
 
-            // 3. Modifier keys pressed alone (Ctrl, Shift, Alt, Super) are ignored
             if (isModifierKey(code)) {
                 return true;
             }
 
-            // 4. Regular key with optional modifiers
             boolean ctrl = input.hasCtrl() || (mods & GLFW.GLFW_MOD_CONTROL) != 0;
             boolean shift = input.hasShift() || (mods & GLFW.GLFW_MOD_SHIFT) != 0;
             boolean alt = input.hasAlt() || (mods & GLFW.GLFW_MOD_ALT) != 0;
@@ -311,7 +299,7 @@ public class ActivityKeybindButton extends ActivityComponent {
             ActivityGuiRenderer.playClickSound();
             return true;
         } else {
-            // When focused and not listening: Enter or Space activates listening mode
+
             if (this.focused && input.isEnterOrSpace()) {
                 setListening(true);
                 ActivityGuiRenderer.playClickSound();

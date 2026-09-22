@@ -39,7 +39,6 @@ public class AutoSpearModule extends NivoratModule {
                 .aliases("autospear", "spear", "копье", "копьё", "автокопье", "авто-копье", "авто копье", "выпад", "выпад копьем", "выпад копьём", "задержка", "delay", "restore")
                 .build();
 
-        // 1. GENERAL
         registerKeybind("trigger_keybind", Text.translatable("activity.setting.combat.trigger_keybind"),
                 Text.translatable("activity.setting.combat.trigger_keybind.desc"), SettingGroup.GENERAL,
                 new activity.client.module.keybind.Keybind(GLFW.GLFW_KEY_TAB),
@@ -95,7 +94,6 @@ public class AutoSpearModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR
         registerNumber("restore_delay", Text.translatable("activity.setting.combat.restore_delay"),
                 Text.translatable("activity.setting.combat.restore_delay.desc"), SettingGroup.BEHAVIOR,
                 10.0, 500.0, 5.0, " ms", true, 185.0,
@@ -130,7 +128,6 @@ public class AutoSpearModule extends NivoratModule {
                 }
         );
 
-        // 3. ADVANCED
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
                 true,

@@ -47,7 +47,7 @@ public final class CameraInterpolator {
         }
 
         double t = Math.max(0.0, Math.min(1.0, progress));
-        // Ken Perlin's Smootherstep: 6t^5 - 15t^4 + 10t^3 (zero 1st & 2nd derivative at endpoints)
+
         double smooth = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 
         float calculatedPitch = (float) (startPitch + (targetPitch - startPitch) * smooth);

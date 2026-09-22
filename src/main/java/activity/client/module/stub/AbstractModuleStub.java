@@ -8,11 +8,6 @@ import net.minecraft.text.Text;
 
 import java.util.Objects;
 
-/**
- * Base class for Activity integration stubs.
- * Clearly marks modules as awaiting game-mechanic logic connection while
- * maintaining full GUI, configuration, and keybind functionality.
- */
 public abstract class AbstractModuleStub implements IModule {
 
     private final String id;

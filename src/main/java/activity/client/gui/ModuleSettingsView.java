@@ -37,10 +37,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 
-/**
- * Generic unified module settings view for NivoratClient.
- * Can be opened as a standalone Screen or used via static buildCard() to embed into tabs.
- */
 public class ModuleSettingsView extends Screen {
 
     private final IModule module;
@@ -128,7 +124,6 @@ public class ModuleSettingsView extends Screen {
         this.scrollContainer = new ScrollContainer(cardX, cardY, cardW, cardH);
         this.scrollContainer.setOverlayManager(this.overlayManager);
 
-        // Back button at bottom center
         int btnW = 100;
         int btnH = 20;
         addDrawableChild(ButtonWidget.builder(
@@ -136,7 +131,6 @@ public class ModuleSettingsView extends Screen {
                 b -> close()
         ).dimensions((this.width - btnW) / 2, this.height - 30, btnW, btnH).build());
 
-        // Build module card into scrollContainer
         buildCard(null, null, this.scrollContainer, this.module, cardX, 0, cardW, innerRowW,
                 this::openAboutModuleSheet, this.overlayManager, this.modalManager, this::reloadView);
     }
@@ -148,10 +142,8 @@ public class ModuleSettingsView extends Screen {
             return;
         }
 
-        // Subtle dark translucent background
         context.fill(0, 0, this.width, this.height, 0xD00A0D14);
 
-        // Header Title
         context.drawTextWithShadow(
                 this.textRenderer,
                 this.title,
@@ -245,10 +237,6 @@ public class ModuleSettingsView extends Screen {
         }
     }
 
-    /**
-     * Builds a standardized, consistent module settings card.
-     * Supports both tab embedding and standalone scroll container.
-     */
     public static int buildCard(
             ActivityTab tab,
             ActivityScreen screen,
@@ -266,9 +254,6 @@ public class ModuleSettingsView extends Screen {
                 screen != null ? screen::reloadCurrentTab : null);
     }
 
-    /**
-     * Builds a standardized, consistent module settings card with reactive visibility and overlay support.
-     */
     public static int buildCard(
             ActivityTab tab,
             ActivityScreen screen,
@@ -293,10 +278,10 @@ public class ModuleSettingsView extends Screen {
                 initialVisibleIds.add(s.getId());
             }
         }
-        // Strict group order: GENERAL (0) -> BEHAVIOR (1) -> EXTRA (2) -> ADVANCED (3)
+
         settings.sort(Comparator.comparingInt(s -> s.getGroup().ordinal()));
 
-        int rowCount = 1 + settings.size(); // Row 1 is Title, About button, Keybind, Enable toggle
+        int rowCount = 1 + settings.size();
         int cardHeight = 22 + rowCount * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
 
         Text cardTitle = Text.translatable("activity.card." + module.getCategory().name().toLowerCase(Locale.ROOT) + "." + module.getId());
@@ -312,7 +297,6 @@ public class ModuleSettingsView extends Screen {
         int innerStartX = cardX + ActivityMetrics.PADDING_PANEL;
         int rowY = cardY + 22;
 
-        // Metric calculations for consistent header alignment
         int toggleW = ActivityMetrics.TOGGLE_WIDTH;
         int gap = innerRowW < 220 ? ActivityMetrics.COLUMN_GAP_COMPACT : ActivityMetrics.COLUMN_GAP;
         int keybindBtnW = innerRowW < 170 ? 44 : (innerRowW < 200 ? 54 : (innerRowW < 240 ? 70 : 85));
@@ -323,9 +307,6 @@ public class ModuleSettingsView extends Screen {
         int aboutX = keybindX - gap - aboutBtnW;
         int moduleLabelMaxW = Math.max(20, aboutX - innerStartX - 4);
 
-        // ==========================================
-        // 1. Header (Title, About, Keybind, Toggle)
-        // ==========================================
         ActivityLabel labelTitle = new ActivityLabel(innerStartX, rowY + 3, module.getName());
         labelTitle.setMaxWidth(moduleLabelMaxW);
         if (module.getDescription() != null) {
@@ -404,9 +385,6 @@ public class ModuleSettingsView extends Screen {
             container.addChild(toggleEnabled);
         }
 
-        // ==========================================
-        // 2..5 Grouped Settings (via SettingComponentFactory)
-        // ==========================================
         for (Setting<?> s : settings) {
             rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
             SettingComponentFactory.SettingRow row = SettingComponentFactory.createRow(
@@ -424,9 +402,6 @@ public class ModuleSettingsView extends Screen {
             }
         }
 
-        // ==========================================
-        // 6. Custom Section Extension
-        // ==========================================
         if (module.hasCustomSection()) {
             rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
             int customHeight = module.buildCustomSection(tab, screen, container, innerStartX, rowY, innerRowW);

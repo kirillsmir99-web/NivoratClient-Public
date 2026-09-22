@@ -60,8 +60,6 @@ public final class GaussianTimingEngine {
         return getDelay(950.0D, 160.0D, 700L, 1450L);
     }
 
-    // --- Fast Legit Dynamic Randomizer (CartRefill R3) ---
-
     public static final long FAST_LEGIT_MIN_MS = 60L;
     public static final long FAST_LEGIT_MAX_MS = 180L;
     public static final int FAST_LEGIT_MIN_TICKS = 2;

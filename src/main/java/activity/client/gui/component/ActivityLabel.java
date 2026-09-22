@@ -7,9 +7,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 
-/**
- * Text label component supporting custom colors, shadows, alignment, and dynamic font updates.
- */
 public class ActivityLabel extends ActivityComponent {
 
     private Text text;

@@ -18,23 +18,6 @@ import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 
-/**
- * Compact acrylic glass context menu opened upon right-clicking a module.
- *
- * <p>Actions:
- * <ul>
- *   <li>Pin / Unpin ("Закрепить" / "Открепить")</li>
- *   <li>About Module ("О модификации")</li>
- * </ul>
- *
- * <p>UX Features:
- * <ul>
- *   <li>~100ms smooth scale & alpha open animation.</li>
- *   <li>Screen edge aware clamping to prevent clipping.</li>
- *   <li>Outside click dismiss with click-through protection (via {@link Overlay}).</li>
- *   <li>Escape key closes menu before closing screen.</li>
- * </ul>
- */
 public class ModuleContextMenu implements Overlay {
 
     public static final int MENU_WIDTH = 135;
@@ -66,7 +49,6 @@ public class ModuleContextMenu implements Overlay {
         this.width = (screenW < 560 || screenH < 360) ? 140 : MENU_WIDTH;
         this.height = PADDING * 2 + this.itemHeight * 2 + 1;
 
-        // Screen-edge aware clamping
         int targetX = (int) Math.round(mouseX);
         int targetY = (int) Math.round(mouseY);
 
@@ -154,7 +136,6 @@ public class ModuleContextMenu implements Overlay {
         ActivityConfig config = ActivityConfigManager.getConfig();
         boolean isPinned = config != null && config.isPinned(this.moduleId);
 
-        // Update hovered index
         this.hoveredIndex = -1;
         int item0Y = this.y + PADDING;
         int item1Y = item0Y + this.itemHeight + 1;
@@ -170,18 +151,15 @@ public class ModuleContextMenu implements Overlay {
         int bgColor = ActivityColors.scaleAlpha(ActivityColors.WINDOW_BACKGROUND, eased);
         int borderColor = ActivityColors.scaleAlpha(ActivityColors.BORDER_HOVER, eased);
 
-        // Drop shadow & glass panel
         ActivityGuiRenderer.fill(context, this.x - 1, this.y - 1, this.width + 2, this.height + 2, ActivityColors.scaleAlpha(0x40000000, eased));
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bgColor, borderColor, true);
 
-        // 1px separator between items
         int sepY = item0Y + this.itemHeight;
         ActivityGuiRenderer.drawHorizontalLine(context, this.x + PADDING, sepY, this.width - PADDING * 2, ActivityColors.scaleAlpha(ActivityColors.BORDER_DIVIDER, eased));
 
         MinecraftClient mc = MinecraftClient.getInstance();
         TextRenderer textRenderer = mc != null ? mc.textRenderer : null;
 
-        // Item 0: Pin / Unpin
         renderItem(
             context,
             textRenderer,
@@ -196,7 +174,6 @@ public class ModuleContextMenu implements Overlay {
             eased
         );
 
-        // Item 1: About Module
         renderItem(
             context,
             textRenderer,
@@ -240,13 +217,11 @@ public class ModuleContextMenu implements Overlay {
         }
         textColor = ActivityColors.scaleAlpha(textColor, alphaFactor);
 
-        // Icon
         if (icon != null) {
             int iconY = itemY + (itemH - icon.getHeight()) / 2;
             ActivityIconRenderer.draw(context, icon, itemX + 4, iconY, textColor);
         }
 
-        // Label
         if (textRenderer != null) {
             int textX = itemX + (icon != null ? icon.getWidth() + 8 : 4);
             int textY = itemY + (itemH - textRenderer.fontHeight) / 2;
@@ -269,7 +244,7 @@ public class ModuleContextMenu implements Overlay {
 
         if (click.x() >= this.x + PADDING && click.x() < this.x + this.width - PADDING) {
             if (click.y() >= item0Y && click.y() < item0Y + this.itemHeight) {
-                // Item 0: Pin / Unpin
+
                 ActivityConfig config = ActivityConfigManager.getConfig();
                 if (config != null) {
                     boolean wasPinned = config.isPinned(this.moduleId);
@@ -280,7 +255,7 @@ public class ModuleContextMenu implements Overlay {
                 close();
                 return true;
             } else if (click.y() >= item1Y && click.y() < item1Y + this.itemHeight) {
-                // Item 1: About Module
+
                 SoundManager.playClick();
                 close();
                 if (this.screen != null) {

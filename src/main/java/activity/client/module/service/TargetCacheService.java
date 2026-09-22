@@ -11,12 +11,6 @@ import net.minecraft.util.hit.EntityHitResult;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Shared per-tick combat target resolution and caching service.
- *
- * <p>Avoids duplicate raycast and component inspections when multiple combat
- * modules query the crosshair target and shield blocking state in the same tick.
- */
 public final class TargetCacheService {
 
     private static long lastTickId = -1L;

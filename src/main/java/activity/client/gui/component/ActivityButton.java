@@ -16,12 +16,6 @@ import activity.client.gui.icon.ActivityIcon;
 import activity.client.gui.icon.ActivityIconRenderer;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Modern dark button component adhering to the Activity design system.
- * Supports SECONDARY, PRIMARY, and DANGER visual variants with smooth
- * 100ms hover transition progress (subtle fade in/out hover overlay and border highlight).
- * Also supports optional ActivityIcon displayed to the left of the label or centered standalone.
- */
 public class ActivityButton extends ActivityComponent {
 
     public enum Variant {
@@ -216,33 +210,28 @@ public class ActivityButton extends ActivityComponent {
             }
         }
 
-        // Brand hover highlight effect
         if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
             borderColor = ActivityColors.interpolateColor(borderColor, this.brandHoverColor, this.hoverProgress);
             textColor = ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress);
         }
 
-        // Draw background and 1px border
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bgColor, borderColor);
 
-        // Hover highlight overlay with brand color or default secondary subtle fade
         if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
             int overlayAlpha = (int) (0x28 * this.hoverProgress);
             int overlayColor = (overlayAlpha << 24) | (this.brandHoverColor & 0x00FFFFFF);
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, this.height - 2, overlayColor);
         } else if (this.variant == Variant.SECONDARY && this.hoverProgress > 0.001f) {
-            int maxAlpha = (ActivityColors.BUTTON_SECONDARY_HOVER >>> 24) & 0xFF; // 0x33 = 51
+            int maxAlpha = (ActivityColors.BUTTON_SECONDARY_HOVER >>> 24) & 0xFF;
             int overlayAlpha = (int) (maxAlpha * this.hoverProgress);
             int overlayColor = (overlayAlpha << 24) | (ActivityColors.BUTTON_SECONDARY_HOVER & 0x00FFFFFF);
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, this.height - 2, overlayColor);
         }
 
-        // Focused outline highlight
         if (this.focused && this.enabled) {
             ActivityGuiRenderer.drawBorder(context, this.x, this.y, this.width, this.height, ActivityColors.ACCENT_PRIMARY);
         }
 
-        // Draw button label and/or icon with responsive clipping
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         int fontH = activity.client.gui.font.UiTextRenderer.getFontHeight(tr);
         int textY = this.y + (this.height - fontH) / 2;
@@ -259,7 +248,7 @@ public class ActivityButton extends ActivityComponent {
                     : (this.icon != null ? this.icon.getWidth() : 16);
                 int gap = 5;
                 if (this.width < iconSize + 16) {
-                    // Ultra-narrow: show icon only
+
                     drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor);
                 } else {
                     int maxTextW = this.width - iconSize - gap - 6;

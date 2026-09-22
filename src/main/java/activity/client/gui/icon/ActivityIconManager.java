@@ -8,12 +8,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Centralized manager and resolver for the NivoratClient icon system.
- *
- * <p>Supports all 27 semantic IDs (case-insensitive) plus aliases,
- * state-aware color resolution, and rendering dispatch.
- */
 public final class ActivityIconManager {
 
     private static final Map<String, ActivityIcon> ICONS_BY_ID;
@@ -25,7 +19,6 @@ public final class ActivityIconManager {
             map.put(icon.name().toLowerCase(Locale.ROOT).replace("_", ""), icon);
         }
 
-        // Semantic IDs and aliases
         map.put("search", ActivityIcon.SEARCH);
         map.put("refresh", ActivityIcon.REFRESH);
         map.put("maximize", ActivityIcon.MAXIMIZE);
@@ -54,7 +47,6 @@ public final class ActivityIconManager {
         map.put("check", ActivityIcon.CHECK);
         map.put("warning", ActivityIcon.WARNING);
 
-        // Additional and legacy aliases
         map.put("reload", ActivityIcon.REFRESH);
         map.put("reset_layout", ActivityIcon.RESET_LAYOUT);
         map.put("recenter", ActivityIcon.RECENTER);
@@ -75,19 +67,10 @@ public final class ActivityIconManager {
 
     private ActivityIconManager() {}
 
-    /**
-     * Resolves an icon by its logical string ID (case-insensitive) with default fallback to INFO.
-     *
-     * @param id logical icon ID (e.g. "search", "settings", "trash")
-     * @return matching ActivityIcon or ActivityIcon.INFO if not found
-     */
     public static ActivityIcon getIcon(String id) {
         return getIcon(id, ActivityIcon.INFO);
     }
 
-    /**
-     * Resolves an icon by its logical string ID (case-insensitive) with custom fallback.
-     */
     public static ActivityIcon getIcon(String id, ActivityIcon fallback) {
         if (id == null || id.isBlank()) return fallback;
         String key = id.trim().toLowerCase(Locale.ROOT);

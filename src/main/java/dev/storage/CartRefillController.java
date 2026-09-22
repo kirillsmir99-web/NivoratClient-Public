@@ -8,17 +8,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
 
-/**
- * Humanized TNT minecart hotbar refill controller.
- *
- * <p>Key Guarantees:
- * <ul>
- *   <li>Visibly and physically opens the {@link InventoryScreen} to imitate realistic human behavior.</li>
- *   <li>Multi-tick humanized sequence: reaction delay -> open inventory -> cursor scan -> slot swap -> close delay -> close.</li>
- *   <li>Permanently enabled under-the-hood Gaussian timing randomizer for organic human variance.</li>
- *   <li>Safe GUI guard: never closes user-opened containers, chests, chat, or screens. Only closes screens opened by this controller.</li>
- * </ul>
- */
 public final class CartRefillController {
     private static final long COOLDOWN_MS = 250L;
 
@@ -74,13 +63,11 @@ public final class CartRefillController {
             return;
         }
 
-        // If player has a non-inventory screen open (container, chat, settings), suspend and update snapshot
         if (client.currentScreen != null && !(client.currentScreen instanceof InventoryScreen)) {
             updateSnapshot(client.player);
             return;
         }
 
-        // Do not interrupt active item usage (e.g. drawing bow, eating, blocking)
         if (client.player.isUsingItem()) {
             return;
         }
@@ -113,7 +100,7 @@ public final class CartRefillController {
             boolean hasCart = stack.isOf(Items.TNT_MINECART);
             if (hadCartInHotbar[i] && !hasCart) {
                 hadCartInHotbar[i] = false;
-                // Only refill if slot actually became empty! Never overwrite non-empty items (bow, sword, etc.)
+
                 if (stack.isEmpty()) {
                     scheduleRefill(i, client);
                     return;
@@ -148,13 +135,12 @@ public final class CartRefillController {
         invCartSlot = foundInvSlot;
 
         if (client.currentScreen instanceof InventoryScreen) {
-            // Screen is already open by player! Skip opening and proceed directly to swap delay.
-            // Retain screen safety: since the player opened this inventory, openedByRefill MUST remain false.
+
             openedByRefill = false;
             timer = sampleSwapDelayTicks();
             state = State.WAITING_SWAP;
         } else {
-            // Need to physically open screen after reaction delay.
+
             openedByRefill = false;
             timer = sampleOpenDelayTicks();
             state = State.WAITING_OPEN;
@@ -178,7 +164,6 @@ public final class CartRefillController {
             return;
         }
 
-        // Physically and visibly open the inventory screen!
         if (client.currentScreen == null) {
             client.setScreen(new InventoryScreen(player));
             openedByRefill = true;
@@ -186,7 +171,6 @@ public final class CartRefillController {
             openedByRefill = false;
         }
 
-        // Independently sample swap delay upon transitioning to WAITING_SWAP
         timer = sampleSwapDelayTicks();
         state = State.WAITING_SWAP;
     }
@@ -203,7 +187,6 @@ public final class CartRefillController {
             return;
         }
 
-        // If user manually closed the screen while we were waiting, abort safely
         if (openedByRefill && client.currentScreen == null) {
             reset();
             return;
@@ -214,7 +197,6 @@ public final class CartRefillController {
             return;
         }
 
-        // Check if target slot already got a cart
         ItemStack currentTargetStack = player.getInventory().getStack(targetSlot);
         if (currentTargetStack.isOf(Items.TNT_MINECART)) {
             hadCartInHotbar[targetSlot] = true;
@@ -222,26 +204,23 @@ public final class CartRefillController {
             return;
         }
 
-        // If target slot is NOT empty (e.g. user moved bow/sword/tool into it), NEVER overwrite user items!
         if (!currentTargetStack.isEmpty()) {
             int emptySlot = findEmptyHotbarSlot(player);
             if (emptySlot >= 0) {
                 targetSlot = emptySlot;
             } else {
-                // No empty hotbar slot available: abort refill safely without moving user items
+
                 finishRefill(client);
                 return;
             }
         }
 
-        // Re-scan inventory slot in case it moved
         int currentInvSlot = findInventoryCart(player);
         if (currentInvSlot < 0) {
             finishRefill(client);
             return;
         }
 
-        // Stop sprinting before clicking slot (GrimAC / Vulcan anti-cheat compliance)
         if (player.isSprinting()) {
             player.setSprinting(false);
             if (client.getNetworkHandler() != null) {
@@ -252,7 +231,6 @@ public final class CartRefillController {
             }
         }
 
-        // Perform slot swap
         client.interactionManager.clickSlot(
             player.playerScreenHandler.syncId,
             currentInvSlot,
@@ -264,7 +242,6 @@ public final class CartRefillController {
         lastRefillTime = System.currentTimeMillis();
         activity.client.module.service.CartStateService.notifyCartRefilled(targetSlot);
 
-        // Independently sample close delay upon transitioning to WAITING_CLOSE
         timer = sampleCloseDelayTicks();
         state = State.WAITING_CLOSE;
     }
@@ -279,8 +256,7 @@ public final class CartRefillController {
     }
 
     void finishRefill(MinecraftClient client) {
-        // Only close if it was opened by this controller and autoClose is enabled.
-        // Screen safety: player's manually opened inventory (openedByRefill == false) is NEVER closed!
+
         if (openedByRefill && RefillConfig.autoClose && client != null && client.currentScreen instanceof InventoryScreen) {
             if (client.player != null) {
                 client.player.closeHandledScreen();

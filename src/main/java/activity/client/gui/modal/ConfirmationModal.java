@@ -12,13 +12,6 @@ import net.minecraft.text.Text;
 
 import java.util.List;
 
-/**
- * Reusable confirmation modal dialog for dangerous or significant actions.
- *
- * <p>Supports custom titles, multi-line descriptions, semantic danger styling
- * for irreversible operations (such as Factory Reset or disabling Legit Mode),
- * and primary/secondary button pairs.
- */
 public class ConfirmationModal extends BaseModal {
 
     private final Text description;

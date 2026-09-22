@@ -276,16 +276,16 @@ public final class AutoToolEngine {
         boolean isTrident = stack.isOf(Items.TRIDENT);
 
         if (isSword) {
-            score = baseDmg * 2.0f; // Swords have high sustained DPS (1.6 attack speed)
+            score = baseDmg * 2.0f;
         } else if (isAxe) {
-            score = baseDmg * 1.5f; // High single-hit burst damage
+            score = baseDmg * 1.5f;
             if (target instanceof PlayerEntity pe && pe.isBlocking()) {
-                score += 60.0f; // Disables shield blocking!
+                score += 60.0f;
             }
         } else if (isMace) {
             score = baseDmg * 1.6f;
             if (player != null && player.fallDistance > 1.5f) {
-                score += 25.0f + player.fallDistance * 6.0f; // Massive falling smash attack
+                score += 25.0f + player.fallDistance * 6.0f;
             }
             int density = getEnchantmentLevel(stack, Enchantments.DENSITY, "density");
             if (density > 0) {
@@ -295,7 +295,6 @@ public final class AutoToolEngine {
             score = baseDmg * 1.3f;
         }
 
-        // Enchantments
         int sharpness = getEnchantmentLevel(stack, Enchantments.SHARPNESS, "sharpness");
         if (sharpness > 0) {
             score += (sharpness * 1.5f);
@@ -335,7 +334,6 @@ public final class AutoToolEngine {
             score += (knockback * 0.5f);
         }
 
-        // Status effects (Strength / Weakness)
         if (player != null) {
             try {
                 if (player.hasStatusEffect(StatusEffects.STRENGTH)) {
@@ -557,20 +555,20 @@ public final class AutoToolEngine {
             if (config.durabilitySaver && currentStack.isDamageable()) {
                 int remaining = currentStack.getMaxDamage() - currentStack.getDamage();
                 if (remaining <= config.durabilityThreshold) {
-                    // 1. Try empty hotbar slot
+
                     for (int i = 0; i < 9; i++) {
                         if (inv.getStack(i).isEmpty()) {
                             return i;
                         }
                     }
-                    // 2. Fallback to non-damageable item in hotbar (blocks, food, torches, etc.)
+
                     for (int i = 0; i < 9; i++) {
                         ItemStack s = inv.getStack(i);
                         if (!s.isEmpty() && !s.isDamageable()) {
                             return i;
                         }
                     }
-                    // 3. Fallback to any damageable item with safe durability
+
                     for (int i = 0; i < 9; i++) {
                         ItemStack s = inv.getStack(i);
                         if (!s.isEmpty() && s.isDamageable()) {
@@ -687,12 +685,10 @@ public final class AutoToolEngine {
         AutoToolConfig config = AutoToolClient.CONFIG;
         long now = System.currentTimeMillis();
 
-        // 1. Combat target check
         if (config.enabled && config.weaponSwitch && !isMiningSessionActive) {
             checkCombatTarget(client, config, now);
         }
 
-        // 2. Active combat session return
         if (isCombatSessionActive) {
             if (client.currentScreen != null || client.player.isDead() || client.player.getHealth() <= 0.0F || !config.enabled) {
                 isCombatSessionActive = false;
@@ -758,7 +754,6 @@ public final class AutoToolEngine {
             return;
         }
 
-        // 3. Active mining session return
         if (!isMiningSessionActive) {
             return;
         }

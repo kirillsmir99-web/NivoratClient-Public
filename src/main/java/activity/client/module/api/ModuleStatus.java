@@ -2,10 +2,6 @@ package activity.client.module.api;
 
 import net.minecraft.text.Text;
 
-/**
- * Honest operational status for an Activity module.
- * Explicitly distinguishes connected active logic cores from integration stubs.
- */
 public enum ModuleStatus {
     READY("activity.status.ready", "Готов", 0xFF36B37E),
     STUB_PENDING_CORE("activity.status.stub", "Заглушка (ожидает ядро)", 0xFFE5A93C),

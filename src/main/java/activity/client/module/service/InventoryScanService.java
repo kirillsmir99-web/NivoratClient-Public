@@ -9,12 +9,6 @@ import net.minecraft.registry.tag.ItemTags;
 
 import java.util.Locale;
 
-/**
- * Shared per-tick inventory and hotbar scanning service.
- *
- * <p>Avoids redundant traversals of player inventory (0..8 hotbar or 0..45 total)
- * performed by combat and defense modules within the same client tick.
- */
 public final class InventoryScanService {
 
     private static long lastTickId = -1L;

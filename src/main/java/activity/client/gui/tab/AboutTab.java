@@ -20,9 +20,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 
-/**
- * About and project information tab: Mod version, Authorship watermark, primary social actions, and secondary socials.
- */
 public class AboutTab extends ActivityTab {
 
     public static final String URL_TELEGRAM = "https://t.me/virionDEV";
@@ -79,13 +76,6 @@ public class AboutTab extends ActivityTab {
     public void saveToConfig(ActivityConfig config) {
     }
 
-    /**
-     * Attempts to open the specified URL in the system default browser.
-     * If opening fails, presents a non-blocking toast with a copy-to-clipboard action.
-     *
-     * @param url    the URL to open
-     * @param screen active ActivityScreen for displaying the error toast
-     */
     public static void openUrl(String url, @Nullable ActivityScreen screen) {
         if (url == null || url.trim().isEmpty()) return;
         try {
@@ -141,9 +131,6 @@ public class AboutTab extends ActivityTab {
         int col1Y = startY;
         int col2Y = startY;
 
-        // ==========================================
-        // CARD 1: HEADER & CLIENT INFORMATION
-        // ==========================================
         int card1X = col1X;
         int innerStartX = card1X + ActivityMetrics.PADDING_PANEL;
         int curY = col1Y;
@@ -160,7 +147,6 @@ public class AboutTab extends ActivityTab {
         int labelMaxW = Math.min(105, Math.max(50, (int) (innerRowW * 0.40f)));
         int valW = Math.min(190, Math.max(60, innerRowW - labelMaxW - 6));
 
-        // Row 1.1: Name
         ActivityLabel labelName = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.mod_name"));
         labelName.setMaxWidth(labelMaxW);
         ActivityLabel valName = new ActivityLabel(innerStartX + innerRowW - valW, rowY + 3, Text.translatable("activity.about.val_name"));
@@ -168,7 +154,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelName);
         addControl(container, valName);
 
-        // Row 1.2: Mod Version
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelVer = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.version"));
         labelVer.setMaxWidth(labelMaxW);
@@ -177,7 +162,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelVer);
         addControl(container, valVer);
 
-        // Row 1.3: Developer / Разработчик
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelAuthor = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.author"));
         labelAuthor.setMaxWidth(labelMaxW);
@@ -186,7 +170,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelAuthor);
         addControl(container, valAuthor);
 
-        // Row 1.4: Watermark
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelTg = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.watermark_label"));
         labelTg.setMaxWidth(labelMaxW);
@@ -195,7 +178,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelTg);
         addControl(container, valTg);
 
-        // Row 1.5: Copy Watermark
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityButton btnCopyTg = new ActivityButton(
             innerStartX, rowY, innerRowW, ActivityMetrics.CONTROL_HEIGHT,
@@ -209,9 +191,6 @@ public class AboutTab extends ActivityTab {
         btnCopyTg.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnCopyTg);
 
-        // ==========================================
-        // CARD 2: PRIMARY ACTIONS & SECONDARY SOCIALS
-        // ==========================================
         int card2X = twoColumns ? col2X : col1X;
         innerStartX = card2X + ActivityMetrics.PADDING_PANEL;
         curY = twoColumns ? col2Y : (col1Y + card1Height + 10);
@@ -230,7 +209,6 @@ public class AboutTab extends ActivityTab {
 
         rowY = curY + 22;
 
-        // Primary Action 1: Telegram (Prominent, height 24, Variant.PRIMARY)
         ActivityButton btnTg = new ActivityButton(
             innerStartX, rowY, innerRowW, primaryBtnH,
             ActivityIcon.TELEGRAM,
@@ -243,7 +221,6 @@ public class AboutTab extends ActivityTab {
         btnTg.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnTg);
 
-        // Primary Action 2: Поддержать автора (Prominent, height 24, Variant.PRIMARY)
         rowY += primaryBtnH + spacing;
         ActivityButton btnDonate = new ActivityButton(
             innerStartX, rowY, innerRowW, primaryBtnH,
@@ -257,7 +234,6 @@ public class AboutTab extends ActivityTab {
         btnDonate.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnDonate);
 
-        // Secondary Socials: Compact horizontal row (YouTube, TikTok, Discord)
         rowY += primaryBtnH + spacing;
         int secGap = 4;
         int secBtnW = Math.max(20, (innerRowW - secGap * 2) / 3);
@@ -302,9 +278,6 @@ public class AboutTab extends ActivityTab {
         btnDiscord.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnDiscord);
 
-        // ==========================================
-        // CARD 3: SYSTEM ENVIRONMENT & DIAGNOSTICS
-        // ==========================================
         int card3X = col1X;
         innerStartX = card3X + ActivityMetrics.PADDING_PANEL;
         curY = twoColumns ? (col1Y + card1Height + 10) : (rowY + secBtnH + 14);
@@ -318,7 +291,6 @@ public class AboutTab extends ActivityTab {
 
         rowY = curY + 22;
 
-        // Row 3.1: Minecraft
         ActivityLabel labelMc = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.minecraft"));
         labelMc.setMaxWidth(labelMaxW);
         ActivityLabel valMc = new ActivityLabel(innerStartX + innerRowW - valW, rowY + 3, Text.translatable("activity.about.val_minecraft"));
@@ -326,7 +298,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelMc);
         addControl(container, valMc);
 
-        // Row 3.2: Loader
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelLoader = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.loader"));
         labelLoader.setMaxWidth(labelMaxW);
@@ -335,7 +306,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelLoader);
         addControl(container, valLoader);
 
-        // Row 3.3: Build Info
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelBuild = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.build_info"));
         labelBuild.setMaxWidth(labelMaxW);
@@ -344,7 +314,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelBuild);
         addControl(container, valBuild);
 
-        // Row 3.4: Active Font
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelFont = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.active_font"));
         labelFont.setMaxWidth(labelMaxW);
@@ -356,7 +325,6 @@ public class AboutTab extends ActivityTab {
         addControl(container, labelFont);
         addControl(container, valFont);
 
-        // Row 3.5: Modules
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelMods = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.modules_count"));
         labelMods.setMaxWidth(labelMaxW);

@@ -745,9 +745,9 @@ public final class SpearSwapController {
         if (client == null || client.player == null) return;
         int cur = client.player.getInventory().getSelectedSlot();
         int target = originalSlot;
-        if (target < 0 || target >= 9 
+        if (target < 0 || target >= 9
                 || target == spearSlot
-                || client.player.getInventory().getStack(target).isEmpty() 
+                || client.player.getInventory().getStack(target).isEmpty()
                 || isSpear(client.player.getInventory().getStack(target))) {
             target = findWeaponSlot(client.player);
         }

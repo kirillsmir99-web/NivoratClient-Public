@@ -5,20 +5,11 @@ import net.minecraft.registry.Registry;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 
-/**
- * Registry of all custom NivoratClient sound events.
- *
- * <p>Pre-registers all 27 Serene events, 12 Classic events, and legacy backward-compatible aliases.
- * All sound event instances are pre-allocated constants to prevent dynamic allocations in audio ticks.
- */
 public final class ActivitySoundEvents {
 
     public static final String MOD_ID = "nivoratclient";
     public static final String ALT_MOD_ID = "activity";
 
-    // ==========================================
-    // 1. SERENE EVENTS (27 UI EVENTS)
-    // ==========================================
     public static final Identifier SERENE_OPEN_ID = Identifier.of(MOD_ID, "ui.serene.open");
     public static final SoundEvent SERENE_OPEN = SoundEvent.of(SERENE_OPEN_ID);
 
@@ -100,9 +91,6 @@ public final class ActivitySoundEvents {
     public static final Identifier SERENE_SEARCH_FOCUS_ID = Identifier.of(MOD_ID, "ui.serene.search_focus");
     public static final SoundEvent SERENE_SEARCH_FOCUS = SoundEvent.of(SERENE_SEARCH_FOCUS_ID);
 
-    // ==========================================
-    // 2. CLASSIC EVENTS (12 UI EVENTS)
-    // ==========================================
     public static final Identifier CLASSIC_OPEN_ID = Identifier.of(MOD_ID, "ui.classic.open");
     public static final SoundEvent CLASSIC_OPEN = SoundEvent.of(CLASSIC_OPEN_ID);
 
@@ -139,9 +127,6 @@ public final class ActivitySoundEvents {
     public static final Identifier CLASSIC_SLIDER_TICK_ID = Identifier.of(MOD_ID, "ui.classic.slider_tick");
     public static final SoundEvent CLASSIC_SLIDER_TICK = SoundEvent.of(CLASSIC_SLIDER_TICK_ID);
 
-    // ==========================================
-    // 3. LEGACY / COMPATIBILITY ALIASES
-    // ==========================================
     public static final Identifier MENU_OPEN_ID = SERENE_OPEN_ID;
     public static final Identifier MENU_CLOSE_ID = SERENE_CLOSE_ID;
     public static final Identifier HOVER_ID = SERENE_HOVER_ID;
@@ -176,11 +161,8 @@ public final class ActivitySoundEvents {
 
     private ActivitySoundEvents() {}
 
-    /**
-     * Registers all sound events into Minecraft's SoundEvent registry.
-     */
     public static void register() {
-        // Serene
+
         registerSafe(SERENE_OPEN_ID, SERENE_OPEN);
         registerSafe(SERENE_CLOSE_ID, SERENE_CLOSE);
         registerSafe(SERENE_BUTTON_PRIMARY_ID, SERENE_BUTTON_PRIMARY);
@@ -209,7 +191,6 @@ public final class ActivitySoundEvents {
         registerSafe(SERENE_RESTORE_ID, SERENE_RESTORE);
         registerSafe(SERENE_SEARCH_FOCUS_ID, SERENE_SEARCH_FOCUS);
 
-        // Classic
         registerSafe(CLASSIC_OPEN_ID, CLASSIC_OPEN);
         registerSafe(CLASSIC_CLOSE_ID, CLASSIC_CLOSE);
         registerSafe(CLASSIC_BUTTON_ID, CLASSIC_BUTTON);
@@ -223,7 +204,6 @@ public final class ActivitySoundEvents {
         registerSafe(CLASSIC_WARNING_ID, CLASSIC_WARNING);
         registerSafe(CLASSIC_SLIDER_TICK_ID, CLASSIC_SLIDER_TICK);
 
-        // Base ui.* events from sounds.json
         registerSafe(Identifier.of(MOD_ID, "ui.open"), SoundEvent.of(Identifier.of(MOD_ID, "ui.open")));
         registerSafe(Identifier.of(MOD_ID, "ui.close"), SoundEvent.of(Identifier.of(MOD_ID, "ui.close")));
         registerSafe(Identifier.of(MOD_ID, "ui.button"), SoundEvent.of(Identifier.of(MOD_ID, "ui.button")));
@@ -239,8 +219,6 @@ public final class ActivitySoundEvents {
     }
 
     private static void registerSafe(Identifier id, SoundEvent event) {
-        // Intentionally no-op to prevent polluting Minecraft's vanilla Registries.SOUND_EVENT.
-        // Client UI sounds are played via PositionedSoundInstance.ui(SoundEvent.of(id), ...)
-        // which resolves directly through assets/activity/sounds.json without global registry exposure.
+
     }
 }

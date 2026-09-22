@@ -44,11 +44,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Main window screen and GUI orchestrator for Activity.
- * Manages top-level layout, component dispatching, focus coordination,
- * overlay routing, and tab switching with full state preservation.
- */
 public class ActivityScreen extends Screen {
 
     private static final Text HEADER_TITLE = Text.translatable("activity.gui.header_title");
@@ -69,7 +64,6 @@ public class ActivityScreen extends Screen {
     private boolean closing = false;
     private boolean initializedOnce = false;
 
-    // Maximize / Restore animation bounds
     private boolean isMaximizingTransition = false;
     private float maximizeAnimTimer = 1.0f;
     private int maximizeOldX = 0;
@@ -81,7 +75,6 @@ public class ActivityScreen extends Screen {
     private int maximizeTargetW = 0;
     private int maximizeTargetH = 0;
 
-    // Layout cache
     private WindowLayout cachedLayout = null;
     private int lastScreenWidth = -1;
     private int lastScreenHeight = -1;
@@ -91,7 +84,6 @@ public class ActivityScreen extends Screen {
     private int lastDragWinH = -1;
     private boolean lastMaximized = false;
 
-    // Text measurement cache
     private Text cachedDisplayHeader = null;
     private int cachedHeaderW = -1;
     private int lastMaxHeaderTitleW = -1;
@@ -107,9 +99,6 @@ public class ActivityScreen extends Screen {
     private final activity.client.gui.layout.WindowDragController dragController = new activity.client.gui.layout.WindowDragController();
     private activity.client.gui.component.WindowControlButtons controlButtons;
 
-    // ==========================================
-    // GUI SESSION MEMORY (1-minute TTL)
-    // ==========================================
     public static final long SESSION_MEMORY_TTL_MS = 60_000L;
     private static String lastSessionTabId = null;
     private static String lastSessionModuleId = null;
@@ -426,18 +415,11 @@ public class ActivityScreen extends Screen {
         }
     }
 
-    /**
-     * Layout initialization hook. Arranges tab-specific components inside a scrollable container within the content area.
-     * Preserves state and scroll position across tab switches and window resizes.
-     *
-     * @param layout the calculated responsive window layout
-     */
     protected void initLayout(WindowLayout layout) {
         int padContent = layout.getContentPadding();
         int titleX = layout.contentX + padContent;
         int titleY = layout.contentY + padContent;
 
-        // Position search bar responsively at top-right of content header
         int maxSearchW = layout.isCompact() ? 100 : 130;
         int minSearchW = Math.min(layout.isSmallScreen() ? 50 : 70, (int) (layout.contentWidth * 0.38f));
         int searchW = Math.clamp((int) (layout.contentWidth * 0.32f), minSearchW, maxSearchW);
@@ -450,7 +432,6 @@ public class ActivityScreen extends Screen {
         this.searchBar.setHeight(searchH);
         this.addComponent(this.searchBar);
 
-        // Content vertical start coordinate: on small screens, save vertical room by omitting secondary subtitle
         int headerTextH;
         if (layout.isSmallScreen() || layout.contentHeight < 100) {
             headerTextH = this.textRenderer.fontHeight + 4;
@@ -466,7 +447,6 @@ public class ActivityScreen extends Screen {
 
         ActivityTab activeTab = this.tabManager.getSelectedTab();
 
-        // Create ScrollContainer taking the full content area
         ScrollContainer scrollContainer = new ScrollContainer(titleX, contentStartY, contentWidth, contentHeight);
         scrollContainer.setOverlayManager(this.overlayManager);
         scrollContainer.setScrollAmount(activeTab != null ? activeTab.getScrollAmount() : 0);
@@ -478,7 +458,6 @@ public class ActivityScreen extends Screen {
         int effectiveRowW = Math.min(rowW, ActivityMetrics.CONTENT_MAX_WIDTH);
         int effectiveStartX = titleX + (rowW - effectiveRowW) / 2;
 
-        // Build widgets and cards for the active tab inside the scroll container
         if (activeTab != null) {
             activeTab.buildTab(this, scrollContainer, effectiveStartX, contentStartY, effectiveRowW);
         }
@@ -651,10 +630,6 @@ public class ActivityScreen extends Screen {
         }
     }
 
-    /**
-     * Cycles focus between interactive components using Tab / Shift+Tab.
-     * Automatically scrolls the viewport if the focused component is inside a ScrollContainer.
-     */
     protected void cycleFocus(boolean forward) {
         List<ActivityComponent> focusable = new ArrayList<>();
         for (ActivityComponent comp : this.components) {
@@ -686,7 +661,6 @@ public class ActivityScreen extends Screen {
         next.setFocused(true);
         this.focusedComponent = next;
 
-        // Auto-scroll ScrollContainer to reveal newly focused widget
         for (ActivityComponent comp : this.components) {
             if (comp instanceof ScrollContainer sc) {
                 if (sc.hasChild(next)) {
@@ -815,10 +789,8 @@ public class ActivityScreen extends Screen {
             int pageTitleColor = ActivityColors.scaleAlpha(ActivityColors.ACCENT_LIGHT, alphaFactor * tabTransitionFactor);
             int pageSubtitleColor = ActivityColors.scaleAlpha(ActivityColors.TEXT_SECONDARY, alphaFactor * tabTransitionFactor);
 
-            // Step 1: Main window base, border, soft drop shadow, and glass highlights
             ActivityGuiRenderer.drawWindowFrame(context, layout.windowX, layout.windowY, layout.windowWidth, layout.windowHeight, windowBg, borderColor, glassEffect);
 
-            // Step 2: Dark header bar with centered title and top-right controls
             ActivityGuiRenderer.fill(context, layout.headerX, layout.headerY, layout.headerWidth, layout.headerHeight, headerBg);
             ActivityGuiRenderer.drawHorizontalLine(context, layout.headerX, layout.headerY + layout.headerHeight - 1, layout.headerWidth, borderColor);
             int headTextY = layout.headerY + (layout.headerHeight - this.textRenderer.fontHeight) / 2;
@@ -856,23 +828,18 @@ public class ActivityScreen extends Screen {
                 context.drawCenteredTextWithShadow(this.textRenderer, displayHeader, idealCenterX, headTextY, headTextColor);
             }
 
-            // Step 2.5: Top-right window controls (Recenter, Reload, Close)
             if (this.controlButtons != null) {
                 this.controlButtons.render(context, effectiveMouseX, effectiveMouseY, layout, alphaFactor);
             }
 
-            // Step 3: Sidebar background and vertical divider line
             ActivityGuiRenderer.fill(context, layout.sidebarX, layout.sidebarY, layout.sidebarWidth, layout.sidebarHeight, sidebarBg);
             ActivityGuiRenderer.drawVerticalLine(context, layout.sidebarX + layout.sidebarWidth, layout.sidebarY, layout.sidebarHeight, borderColor);
 
-            // Step 4: Collapsible hierarchical sidebar navigation tree
             this.sidebarTree.render(context, effectiveMouseX, effectiveMouseY, this.textRenderer, layout, this.tabManager, alphaFactor);
 
-            // Step 5: Content Area Panel
             ActivityGuiRenderer.drawPanel(context, layout.contentX, layout.contentY, layout.contentWidth, layout.contentHeight,
                 panelBg, borderColor, glassEffect);
 
-            // Content Area Header Texts
             int padContent = layout.getContentPadding();
             int titleX = layout.contentX + padContent;
             int titleY = layout.contentY + padContent;
@@ -915,7 +882,6 @@ public class ActivityScreen extends Screen {
                 ActivityGuiRenderer.drawText(context, this.textRenderer, displaySub, titleX, titleY + this.textRenderer.fontHeight + 3, pageSubtitleColor);
             }
 
-            // Step 6: Render active UI components with smooth tab transition
             boolean isTabSwitching = AnimationClock.isAnimationsEnabled() && this.tabSwitchProgress < 0.999f;
             float tabSlideOffsetY = isTabSwitching ? (1.0f - tabTransitionFactor) * 6.0f : 0.0f;
 
@@ -934,8 +900,8 @@ public class ActivityScreen extends Screen {
             } finally {
                 if (isTabSwitching) {
                     context.getMatrices().popMatrix();
-                    // Render soft translucent scrim / veil that smoothly dissolves as the new tab content emerges
-                    float fadeOutFactor = 1.0f - tabTransitionFactor; // 1.0 down to 0.0
+
+                    float fadeOutFactor = 1.0f - tabTransitionFactor;
                     if (fadeOutFactor > 0.005f) {
                         int veilAlpha = (int) (255 * fadeOutFactor * (panelOpacity / 100.0) * alphaFactor);
                         int veilColor = (veilAlpha << 24) | (panelBg & 0x00FFFFFF);
@@ -945,15 +911,12 @@ public class ActivityScreen extends Screen {
                 }
             }
 
-            // Step 7: Render active Overlay on top of all components (Z=7 Layer)
             this.overlayManager.render(context, effectiveMouseX, effectiveMouseY, delta);
 
-            // Step 7.5: Render search popup on top of all widgets
             if (!isAnimating && !isMaximizeAnimating) {
                 this.searchBar.renderPopup(context, mouseX, mouseY);
             }
 
-            // Step 8: Render tooltips for control buttons and scroll container
             if (!isAnimating && !isMaximizeAnimating && this.controlButtons != null) {
                 this.controlButtons.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
@@ -961,7 +924,6 @@ public class ActivityScreen extends Screen {
                 this.currentScrollContainer.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
 
-            // Step 8.5: Bottom footer text in main menu
             int footerX = layout.windowX + layout.windowWidth / 2;
             int footerY = Math.min(layout.windowY + layout.windowHeight + 4, this.height - this.textRenderer.fontHeight - 2);
             int footerColor = ActivityColors.scaleAlpha(ActivityColors.TEXT_MUTED, alphaFactor);
@@ -979,7 +941,6 @@ public class ActivityScreen extends Screen {
             return true;
         }
 
-        // Priority 1: Top-level Overlay layer intercepts clicks (click-through protection)
         if (this.overlayManager.mouseClicked(click, doubled)) {
             if (this.searchBar.isFocused()) {
                 this.searchBar.setFocused(false);
@@ -990,13 +951,11 @@ public class ActivityScreen extends Screen {
             return true;
         }
 
-        // Priority 1.1: Search dropdown popup click (click-through protection)
         if (this.searchBar.isMouseOverPopup(click.x(), click.y())) {
             this.searchBar.mouseClicked(click, doubled);
             return true;
         }
 
-        // Blur search bar focus and close popup if clicking outside the search bar
         boolean overSearch = this.searchBar.isMouseOver(click.x(), click.y()) || this.searchBar.isMouseOverPopup(click.x(), click.y());
         if (!overSearch && this.searchBar.isFocused()) {
             this.searchBar.setFocused(false);
@@ -1007,12 +966,10 @@ public class ActivityScreen extends Screen {
 
         WindowLayout layout = computeLayout();
 
-        // Priority 1.5: Top-right window controls (Recenter, Reload, Close)
         if (this.controlButtons != null && this.controlButtons.mouseClicked(click.x(), click.y(), click.button(), layout)) {
             return true;
         }
 
-        // Priority 1.6: Window dragging by header
         boolean overControls = this.controlButtons != null && this.controlButtons.isMouseOver(click.x(), click.y(), layout);
         boolean wasMaximized = this.dragController.isMaximized();
         if (click.button() == 0 && this.dragController.startDrag(click.x(), click.y(), layout, overControls)) {
@@ -1027,12 +984,10 @@ public class ActivityScreen extends Screen {
             return true;
         }
 
-        // Priority 2: Collapsible hierarchical sidebar navigation tree
         if (this.sidebarTree.mouseClicked(click.x(), click.y(), click.button(), layout, this)) {
             return true;
         }
 
-        // Priority 2.5: Right-click on module cards opens context menu
         if (click.button() == 1) {
             ActivityTab activeTab = this.tabManager.getSelectedTab();
             if (activeTab != null) {
@@ -1046,7 +1001,6 @@ public class ActivityScreen extends Screen {
             }
         }
 
-        // Priority 3: Interactive UI components (top-most component first)
         ActivityComponent clickedComponent = null;
         for (int i = this.components.size() - 1; i >= 0; i--) {
             ActivityComponent comp = this.components.get(i);
@@ -1058,7 +1012,6 @@ public class ActivityScreen extends Screen {
             }
         }
 
-        // Focus coordination: blur previously focused component if click was outside of it
         ActivityComponent focusTarget = clickedComponent;
         if (clickedComponent instanceof ScrollContainer sc && sc.getFocusedChild() != null) {
             focusTarget = sc.getFocusedChild();
@@ -1263,7 +1216,6 @@ public class ActivityScreen extends Screen {
             return true;
         }
 
-        // Hotkey: Ctrl+F immediately focuses search bar
         if (input.hasCtrl() && input.key() == GLFW.GLFW_KEY_F) {
             this.searchBar.setFocused(true);
             if (this.focusedComponent != null && this.focusedComponent != this.searchBar) {
@@ -1273,18 +1225,15 @@ public class ActivityScreen extends Screen {
             return true;
         }
 
-        // Priority 1: Overlays intercept keys (e.g. Esc closes dropdown without closing screen)
         if (this.overlayManager.keyPressed(input)) {
             return true;
         }
 
-        // Stale focus check on Escape blur (AUD-04)
         if (this.focusedComponent != null && !this.focusedComponent.isFocused()) {
             this.focusedComponent = null;
             clearAllContainerFocus();
         }
 
-        // Priority 2: Focused component gets first opportunity to handle key input
         if (this.focusedComponent != null && this.focusedComponent.isVisible() && this.focusedComponent.isEnabled()) {
             if (this.focusedComponent.keyPressed(input)) {
                 if (!this.focusedComponent.isFocused()) {
@@ -1299,7 +1248,6 @@ public class ActivityScreen extends Screen {
             clearAllContainerFocus();
         }
 
-        // Priority 3: Interactive components
         for (int i = this.components.size() - 1; i >= 0; i--) {
             ActivityComponent comp = this.components.get(i);
             if (comp != this.focusedComponent && comp.isVisible() && comp.isEnabled() && comp.keyPressed(input)) {
@@ -1307,7 +1255,6 @@ public class ActivityScreen extends Screen {
             }
         }
 
-        // Priority 4: Hotkey tab switching (Ctrl + 1..4)
         if (input.hasCtrl()) {
             int key = input.key();
             if (key >= GLFW.GLFW_KEY_1 && key <= GLFW.GLFW_KEY_4) {
@@ -1320,13 +1267,11 @@ public class ActivityScreen extends Screen {
             }
         }
 
-        // Priority 5: Keyboard Tab navigation
         if (input.isTab() && !this.components.isEmpty()) {
             this.cycleFocus(!input.hasShift());
             return true;
         }
 
-        // Priority 6: Hotkey screen close (menuKeybind when no text field is focused and no keybind listening)
         if (!isAnyTextFieldFocused() && !isAnyKeybindListening()) {
             ActivityConfig cfg = ActivityConfigManager.getConfig();
             if (cfg != null && cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound() && cfg.menuKeybind.matchesKeyInput(input)) {
@@ -1336,7 +1281,6 @@ public class ActivityScreen extends Screen {
             }
         }
 
-        // Priority 7: Screen escape closing
         if (input.isEscape() && this.shouldCloseOnEsc() && !isAnyKeybindListening()) {
             this.close();
             return true;

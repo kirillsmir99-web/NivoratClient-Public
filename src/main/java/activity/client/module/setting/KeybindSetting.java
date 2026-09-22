@@ -6,9 +6,6 @@ import net.minecraft.text.Text;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * Keybind configuration setting.
- */
 public class KeybindSetting extends Setting<Keybind> {
 
     private final Supplier<Keybind> getter;

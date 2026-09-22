@@ -21,20 +21,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * 5-second continuous hold modal dialog for Factory Reset confirmation.
- *
- * <p>Protects against accidental resets:
- * <ul>
- *   <li>Requires pressing and continuously holding Left Mouse Button for 5000 ms.</li>
- *   <li>Visual smooth 0% -&gt; 100% horizontal progress fill inside danger button.</li>
- *   <li>Dynamic countdown: "Удерживайте ещё 4.5 с", "Удерживайте ещё 3.2 с", etc.</li>
- *   <li>Early release (&lt; 5000ms), cursor exit, or Escape key resets progress to 0 and cancels action.</li>
- *   <li>At 100% (5000ms): executes reset exactly once, plays confirmation sound, closes modal,
- *       and triggers toast "Настройки восстановлены".</li>
- *   <li>User custom presets are fully preserved.</li>
- * </ul>
- */
 public class ResetHoldConfirmationModal extends BaseModal {
 
     private static final long HOLD_DURATION_MS = 5000L;
@@ -144,9 +130,6 @@ public class ResetHoldConfirmationModal extends BaseModal {
         return holdButton;
     }
 
-    /**
-     * Dedicated button component tracking 5000ms hold state and rendering danger progress fill.
-     */
     public static class HoldButton extends ActivityComponent {
 
         private final long holdDurationMs;
@@ -210,7 +193,6 @@ public class ResetHoldConfirmationModal extends BaseModal {
         protected void renderComponent(DrawContext context, int mouseX, int mouseY, float delta) {
             MinecraftClient mc = MinecraftClient.getInstance();
 
-            // Verify continuous hold: LMB pressed and cursor inside button hitbox
             if (this.holding && !this.executed) {
                 boolean lmbDown = true;
                 if (mc != null && mc.getWindow() != null) {
@@ -239,21 +221,17 @@ public class ResetHoldConfirmationModal extends BaseModal {
             int bgColor = ActivityColors.BUTTON_DANGER_BG;
             int borderColor = this.holding ? ActivityColors.DANGER : ActivityColors.BUTTON_DANGER_BORDER;
 
-            // Background & border
             ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bgColor, borderColor);
 
-            // Progress bar fill (0% -> 100% left to right)
             if (this.holdProgress > 0.001f) {
                 int fillW = Math.max(1, Math.round((this.width - 2) * this.holdProgress));
                 int fillColor = ActivityColors.withAlpha(0xE03535, Math.round(160 + 95 * this.holdProgress));
                 ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, fillW, this.height - 2, fillColor);
 
-                // Leading glow edge line
                 int glowColor = ActivityColors.withAlpha(0xFFFFFF, Math.round(180 * this.holdProgress));
                 ActivityGuiRenderer.fill(context, this.x + fillW, this.y + 1, 1, this.height - 2, glowColor);
             }
 
-            // Button label with dynamic countdown
             TextRenderer tr = mc != null ? mc.textRenderer : null;
             if (tr != null) {
                 Text displayLabel;

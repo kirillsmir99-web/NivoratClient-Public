@@ -16,20 +16,6 @@ import ru.elarion.autogg.AutoGGClient;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Modern, high-performance Radial Menu for AutoGG phrases.
- *
- * <p>Features:
- * <ul>
- *   <li>Solid 400+ FPS performance via coalesced 2D geometric block fills (under 70 draw calls total).</li>
- *   <li>Silk-smooth mathematical radial curves and neon cyan highlights (#00D2FF).</li>
- *   <li>Fluid ease-out scale opening animation.</li>
- *   <li>Clicking any sector sends phrase directly to chat without mutating default starred phrase.</li>
- *   <li>Pressing bound key (default G) closes the menu cleanly.</li>
- *   <li>Author's Telegram watermark (@virionDEV) with click-to-open support.</li>
- *   <li>Central Hub opens main AutoGG configuration card directly.</li>
- * </ul>
- */
 public final class AutoGGRadialScreen extends Screen {
 
     private final Screen parent;
@@ -45,7 +31,6 @@ public final class AutoGGRadialScreen extends Screen {
     private int lastHoveredSector = -1;
     private boolean lastHubHovered = false;
 
-    // Dimensions
     public static final int INNER_RADIUS = 56;
     public static final int OUTER_RADIUS = 148;
     public static final int HUB_RADIUS = 46;
@@ -109,7 +94,7 @@ public final class AutoGGRadialScreen extends Screen {
     }
 
     static {
-        // 1. Sector fills & Dividers (smooth, continuous, gap-free)
+
         int inner2 = INNER_RADIUS * INNER_RADIUS;
         int outer2 = OUTER_RADIUS * OUTER_RADIUS;
         int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
@@ -157,7 +142,6 @@ public final class AutoGGRadialScreen extends Screen {
                 SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 1);
             }
 
-            // Continuous Bresenham radial dividers for count > 1 (clean, gap-free, fast)
             DIVIDER_BLOCKS_CACHE[count] = new ArrayList<>();
             if (count > 1) {
                 List<Span> divSpans = new ArrayList<>();
@@ -196,7 +180,6 @@ public final class AutoGGRadialScreen extends Screen {
             }
         }
 
-        // 2. Base Ring (100% symmetric, matches sector fills exactly)
         List<Span> rawRing = new ArrayList<>();
         for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
             int y2 = y * y;
@@ -220,7 +203,6 @@ public final class AutoGGRadialScreen extends Screen {
         }
         RING_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawRing), 1));
 
-        // 3. Central Hub
         List<Span> rawHub = new ArrayList<>();
         int hub2 = HUB_RADIUS * HUB_RADIUS;
         for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y++) {
@@ -244,7 +226,6 @@ public final class AutoGGRadialScreen extends Screen {
         }
         HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 1));
 
-        // 4. Precomputed smooth border rings (zero gaps, symmetric, fast 400+ FPS)
         OUTER_BORDER_BLOCKS.addAll(generateCircleBorder(OUTER_RADIUS));
         INNER_BORDER_BLOCKS.addAll(generateCircleBorder(INNER_RADIUS));
         HUB_BORDER_BLOCKS.addAll(generateCircleBorder(HUB_RADIUS));
@@ -378,7 +359,6 @@ public final class AutoGGRadialScreen extends Screen {
         this.lastMouseX = mouseX;
         this.lastMouseY = mouseY;
 
-        // Hold-and-release check
         if (openedByHold && System.currentTimeMillis() - openTime > 150L) {
             if (client != null && client.getWindow() != null && boundKey != null && !boundKey.isUnbound()) {
                 boolean ctrl = InputUtil.isKeyPressed(client.getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) || InputUtil.isKeyPressed(client.getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL);
@@ -394,10 +374,8 @@ public final class AutoGGRadialScreen extends Screen {
         int cx = width / 2;
         int cy = height / 2 - 10;
 
-        // 1. Dark glass background overlay
         context.fill(0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
-        // Smooth opening animation (ease-out cubic scale)
         long elapsed = System.currentTimeMillis() - openTime;
         float progress = Math.min(1.0f, elapsed / 160.0f);
         float ease = 1.0f - (float) Math.pow(1.0f - progress, 3);
@@ -406,7 +384,6 @@ public final class AutoGGRadialScreen extends Screen {
         int count = phrases.size();
         this.hoveredSector = getHoveredSector(mouseX, mouseY, cx, cy, count);
 
-        // Hover audio feedback
         if (this.hoveredSector != this.lastHoveredSector) {
             if (this.hoveredSector != -1) {
                 SoundManager.playHoverImmediate();
@@ -425,15 +402,11 @@ public final class AutoGGRadialScreen extends Screen {
         context.getMatrices().pushMatrix();
         context.getMatrices().scaleAround(scale, scale, (float) cx, (float) cy);
 
-        // 2. Fast geometric rendering (400+ FPS)
-        // Base dark ring
         drawBlockList(context, cx, cy, RING_BLOCKS, 0xD00E1015);
 
-        // Outer and inner smooth crisp border rings
         drawBlockList(context, cx, cy, OUTER_BORDER_BLOCKS, 0x66353B49);
         drawBlockList(context, cx, cy, INNER_BORDER_BLOCKS, 0x66353B49);
 
-        // Hovered sector highlight
         if (count > 0 && this.hoveredSector >= 0 && this.hoveredSector < count) {
             List<BlockSpan> sectorSpans = SECTOR_BLOCKS_CACHE[count][this.hoveredSector];
             if (sectorSpans != null) {
@@ -441,18 +414,15 @@ public final class AutoGGRadialScreen extends Screen {
             }
         }
 
-        // Radial dividers between sectors
         if (count > 1 && DIVIDER_BLOCKS_CACHE[count] != null) {
             drawBlockList(context, cx, cy, DIVIDER_BLOCKS_CACHE[count], 0x66353B49);
         }
 
-        // Central Hub
         int hubBgColor = hubHovered ? 0xF2152835 : 0xF20A0C10;
         drawBlockList(context, cx, cy, HUB_BLOCKS, hubBgColor);
         int hubBorderColor = hubHovered ? 0xAA00D2FF : 0x66353B49;
         drawBlockList(context, cx, cy, HUB_BORDER_BLOCKS, hubBorderColor);
 
-        // 3. Sector text labels
         String defaultPhrase = AutoGGClient.CONFIG.currentPhrase();
         if (count > 0) {
             int[] offsets = (count <= 8) ? SECTOR_TEXT_OFFSETS[count] : null;
@@ -480,7 +450,6 @@ public final class AutoGGRadialScreen extends Screen {
             }
         }
 
-        // 4. Central Hub content
         int autoGgColor = hubHovered ? 0xFFFFFFFF : 0xFF00D2FF;
         context.drawCenteredTextWithShadow(textRenderer, TEXT_AUTOGG, cx, cy - 12, autoGgColor);
         int menuColor = hubHovered ? 0xFF00D2FF : 0xFF8D94A3;
@@ -488,7 +457,6 @@ public final class AutoGGRadialScreen extends Screen {
 
         context.getMatrices().popMatrix();
 
-        // 5. Telegram watermark (rendered outside matrix scale so click coordinates match)
         renderTelegramWatermark(context, cx, cy, mouseX, mouseY);
 
         super.render(context, mouseX, mouseY, delta);
@@ -558,7 +526,6 @@ public final class AutoGGRadialScreen extends Screen {
         int cx = width / 2;
         int cy = height / 2 - 10;
 
-        // 1. Central Hub click -> opens main mod menu directly
         if (click.button() == 0 && isInsideHub(mx, my, cx, cy, HUB_RADIUS)) {
             SoundManager.playClick();
             if (this.client != null) {
@@ -569,7 +536,6 @@ public final class AutoGGRadialScreen extends Screen {
             return true;
         }
 
-        // 2. Telegram watermark click -> open link / copy
         if (click.button() == 0 && isTelegramHovered(mx, my, cx, cy)) {
             try {
                 net.minecraft.util.Util.getOperatingSystem().open("https://t.me/virionDEV");
@@ -582,7 +548,6 @@ public final class AutoGGRadialScreen extends Screen {
             return true;
         }
 
-        // 3. Sector click -> sends selected phrase directly to chat without changing default
         if (click.button() == 0) {
             int selected = getHoveredSector(mx, my, cx, cy, phrases.size());
             if (selected >= 0 && selected < phrases.size()) {
@@ -626,7 +591,7 @@ public final class AutoGGRadialScreen extends Screen {
 
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Intentionally override to avoid vanilla dirt screen background
+
     }
 
     private static void drawBlockList(DrawContext context, int cx, int cy, List<BlockSpan> blocks, int color) {

@@ -3,10 +3,6 @@ package activity.client.gui.font;
 import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.util.Identifier;
 
-/**
- * Supported font families in the GUI framework.
- * Encapsulates identifiers, translation keys, and style sprite sources.
- */
 public enum FontFamily {
     MINECRAFT("minecraft", "activity.font.minecraft", Identifier.ofVanilla("default"), StyleSpriteSource.DEFAULT),
     ONEST("onest", "activity.font.onest", Identifier.of("activity", "onest"), new StyleSpriteSource.Font(Identifier.of("activity", "onest"))),
@@ -14,7 +10,6 @@ public enum FontFamily {
     MANROPE("manrope", "activity.font.manrope", Identifier.of("activity", "manrope"), new StyleSpriteSource.Font(Identifier.of("activity", "manrope"))),
     RUBIK("rubik", "activity.font.rubik", Identifier.of("activity", "rubik"), new StyleSpriteSource.Font(Identifier.of("activity", "rubik"))),
 
-    // Backward compatibility aliases
     DEFAULT("default", "activity.font.minecraft", Identifier.ofVanilla("default"), StyleSpriteSource.DEFAULT),
     RETRO_PIXEL("retro_pixel", "activity.font.retro_pixel", Identifier.of("activity", "retro_pixel"), new StyleSpriteSource.Font(Identifier.of("activity", "retro_pixel")));
 
@@ -46,12 +41,6 @@ public enum FontFamily {
         return this.spriteSource;
     }
 
-    /**
-     * Resolves a font family from its string identifier with graceful fallback to ONEST.
-     *
-     * @param id font family identifier ("minecraft", "onest", "inter", "manrope", "rubik", "default")
-     * @return matching FontFamily or ONEST if null or unrecognized
-     */
     public static FontFamily fromId(String id) {
         if (id == null || id.isBlank()) {
             return ONEST;

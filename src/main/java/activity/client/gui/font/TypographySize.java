@@ -1,9 +1,5 @@
 package activity.client.gui.font;
 
-/**
- * Supported typography sizes across the GUI framework.
- * Encapsulates scale factor, base height, and translation key.
- */
 public enum TypographySize {
     SMALL("small", "activity.typography.size.small", 0.90f, 8),
     NORMAL("normal", "activity.typography.size.normal", 1.00f, 9),
@@ -37,12 +33,6 @@ public enum TypographySize {
         return this.baseFontHeight;
     }
 
-    /**
-     * Resolves a TypographySize from its string identifier with graceful fallback to NORMAL.
-     *
-     * @param id typography size identifier ("small", "normal", "large")
-     * @return matching TypographySize or NORMAL if null or unrecognized
-     */
     public static TypographySize fromId(String id) {
         if (id == null || id.isBlank()) {
             return NORMAL;

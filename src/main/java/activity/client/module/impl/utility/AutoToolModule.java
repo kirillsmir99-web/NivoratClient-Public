@@ -36,7 +36,6 @@ public class AutoToolModule extends NivoratModule {
                 .aliases("autotool", "tool", "инструмент", "автоинструмент", "авто-инструмент", "кирка", "лопата", "шелк", "шёлковое касание", "silk touch", "прочность", "durability")
                 .build();
 
-        // 1. GENERAL (ordinal 0)
         registerBoolean("prefer_silk", Text.translatable("activity.setting.utility.prefer_silk"),
                 Text.translatable("activity.setting.utility.prefer_silk.desc"), SettingGroup.GENERAL,
                 false,
@@ -88,7 +87,6 @@ public class AutoToolModule extends NivoratModule {
                 }
         );
 
-        // 2. BEHAVIOR (ordinal 1)
         registerNumber("durability_threshold", Text.translatable("activity.setting.utility.durability_threshold"),
                 Text.translatable("activity.setting.utility.durability_threshold.desc"), SettingGroup.BEHAVIOR,
                 1.0, 50.0, 1.0, "%", true, 5.0,
@@ -106,7 +104,6 @@ public class AutoToolModule extends NivoratModule {
                 }
         );
 
-        // 3. EXTRA (ordinal 2)
         registerBoolean("combat_guard", Text.translatable("activity.setting.utility.combat_guard"),
                 Text.translatable("activity.setting.utility.combat_guard.desc"), SettingGroup.EXTRA,
                 true,
@@ -175,7 +172,6 @@ public class AutoToolModule extends NivoratModule {
                 }
         );
 
-        // 4. ADVANCED (ordinal 3)
         registerBoolean("legit_mode", Text.translatable("activity.setting.utility.legit_mode"),
                 Text.translatable("activity.setting.utility.legit_mode.desc"), SettingGroup.ADVANCED,
                 true,

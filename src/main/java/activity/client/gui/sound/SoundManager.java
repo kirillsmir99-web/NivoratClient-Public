@@ -8,27 +8,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 
-/**
- * Tactical audio manager for the NivoratClient GUI framework.
- *
- * <p>Supports three acoustic profiles:
- * <ul>
- *   <li>{@link SoundProfile#SERENE}: Default calm modern UI audio (27 discrete events).</li>
- *   <li>{@link SoundProfile#CLASSIC}: Legacy punchy sound pack (12 discrete events).</li>
- *   <li>{@link SoundProfile#MINECRAFT}: Vanilla Minecraft sound events.</li>
- * </ul>
- *
- * <p>Performance invariants:
- * <ul>
- *   <li>Zero disk I/O on clicks (all sounds are preloaded and pre-registered).</li>
- *   <li>Zero memory allocations per audio tick.</li>
- *   <li>Strict slider notch quantization (sounds strictly on notch change).</li>
- *   <li>Debounced hover and slider triggers (30-35ms for slider, 50ms for hover).</li>
- * </ul>
- */
 public final class SoundManager {
 
-    // Registry-free vanilla fallback events (safe for headless tests and runtime)
     private static final SoundEvent VANILLA_PLING = SoundEvent.of(Identifier.ofVanilla("block.note_block.pling"));
     private static final SoundEvent VANILLA_CLICK = SoundEvent.of(Identifier.ofVanilla("ui.button.click"));
     private static final SoundEvent VANILLA_BASS = SoundEvent.of(Identifier.ofVanilla("block.note_block.bass"));
@@ -59,34 +40,22 @@ public final class SoundManager {
 
     private SoundManager() {}
 
-    /**
-     * @return true if master UI sounds are enabled in configuration
-     */
     public static boolean isSoundEnabled() {
         ActivityConfig config = ActivityConfigManager.getConfig();
         return config == null || config.soundEnabled;
     }
 
-    /**
-     * @return true if discrete slider ratchet audio cues are enabled
-     */
     public static boolean isSliderSoundEnabled() {
         ActivityConfig config = ActivityConfigManager.getConfig();
         return isSoundEnabled() && (config == null || config.sliderSoundEnabled);
     }
 
-    /**
-     * @return master volume multiplier in [0.0, 1.0] from configuration
-     */
     public static float getVolumeMultiplier() {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config == null) return 0.8f;
         return (float) Math.clamp(config.soundVolume / 100.0, 0.0, 1.0);
     }
 
-    /**
-     * @return active sound profile from configuration
-     */
     public static SoundProfile getSoundProfile() {
         ActivityConfig config = ActivityConfigManager.getConfig();
         return config != null ? SoundProfile.fromId(config.soundProfile) : SoundProfile.SERENE;
@@ -102,10 +71,6 @@ public final class SoundManager {
             config.soundProfile = custom ? SoundProfile.SERENE.getId() : SoundProfile.MINECRAFT.getId();
         }
     }
-
-    // ==========================================
-    // 1. WINDOW TRANSITIONS
-    // ==========================================
 
     public static void playOpen() {
         playSound(
@@ -126,10 +91,6 @@ public final class SoundManager {
             0.75f
         );
     }
-
-    // ==========================================
-    // 2. BUTTONS & CLICKS
-    // ==========================================
 
     public static void playButtonPrimary() {
         playSound(
@@ -154,10 +115,6 @@ public final class SoundManager {
     public static void playClick() {
         playButtonPrimary();
     }
-
-    // ==========================================
-    // 3. HOVER & SELECTION
-    // ==========================================
 
     public static void playHover() {
         if (!isSoundEnabled()) return;
@@ -192,10 +149,6 @@ public final class SoundManager {
         playButtonSecondary();
     }
 
-    // ==========================================
-    // 4. TOGGLES
-    // ==========================================
-
     public static void playToggle(boolean state) {
         if (state) {
             playSound(
@@ -216,10 +169,6 @@ public final class SoundManager {
         }
     }
 
-    // ==========================================
-    // 5. DROPDOWNS
-    // ==========================================
-
     public static void playDropdownOpen() {
         playSound(
             ActivitySoundEvents.SERENE_DROPDOWN_OPEN,
@@ -239,10 +188,6 @@ public final class SoundManager {
             0.60f
         );
     }
-
-    // ==========================================
-    // 6. CATEGORY ACCORDION & TABS
-    // ==========================================
 
     public static void playCategoryExpand() {
         playSound(
@@ -274,10 +219,6 @@ public final class SoundManager {
         );
     }
 
-    // ==========================================
-    // 7. MODALS
-    // ==========================================
-
     public static void playModalOpen() {
         playSound(
             ActivitySoundEvents.SERENE_MODAL_OPEN,
@@ -297,10 +238,6 @@ public final class SoundManager {
             0.70f
         );
     }
-
-    // ==========================================
-    // 8. STATUS NOTIFICATIONS
-    // ==========================================
 
     public static void playSuccess() {
         playSound(
@@ -332,7 +269,6 @@ public final class SoundManager {
         );
     }
 
-    // Presets mapping to status
     public static void playPresetSave() {
         playSuccess();
     }
@@ -344,10 +280,6 @@ public final class SoundManager {
     public static void playPresetReset() {
         playWarning();
     }
-
-    // ==========================================
-    // 9. WINDOW & ACTIONS
-    // ==========================================
 
     public static void playPin() {
         playSound(
@@ -449,26 +381,11 @@ public final class SoundManager {
         );
     }
 
-    // ==========================================
-    // 10. SLIDER DIGITAL RATCHET ("трррк")
-    // ==========================================
-
-    /**
-     * Plays discrete digital ratchet ("трррк") audio cue for slider value increments.
-     *
-     * <p>Strict quantization invariant:
-     * Sound triggers strictly when quantized value/notch actually changes:
-     * <ul>
-     *   <li>50 -&gt; 55: tick</li>
-     *   <li>55 -&gt; 55: NO SOUND</li>
-     * </ul>
-     * Rate-limit debounce: strictly &gt;= 35ms.
-     */
     public static void playSliderTick(double value, double min, double max, double step) {
         if (!isSliderSoundEnabled()) return;
 
         long now = System.currentTimeMillis();
-        // Rate-limit debounce (35ms)
+
         if (now - lastSliderTickTime < 35L) {
             return;
         }
@@ -476,7 +393,6 @@ public final class SoundManager {
         double safeStep = (step > 0.0) ? step : Math.max(0.0001, (max - min) / 32.0);
         long notch = Math.round((value - min) / safeStep);
 
-        // Quantization check: NO SOUND if notch did not change!
         if (notch == lastSliderNotch) {
             return;
         }
@@ -500,10 +416,6 @@ public final class SoundManager {
     public static void playSliderRatchet(double value, double min, double max, double step) {
         playSliderTick(value, min, max, step);
     }
-
-    // ==========================================
-    // INTERNAL DISPATCH HELPER
-    // ==========================================
 
     private static void playSound(SoundEvent sereneEvent, SoundEvent classicEvent, SoundEvent vanillaEvent, float pitch, float eventGain) {
         if (!isSoundEnabled()) return;
@@ -540,7 +452,7 @@ public final class SoundManager {
                 );
             }
         } catch (Throwable ignored) {
-            // Guard in unit tests without Minecraft sound engine
+
         }
     }
 }

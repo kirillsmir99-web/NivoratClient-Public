@@ -2,10 +2,6 @@ package activity.client.module.stub;
 
 import net.minecraft.text.Text;
 
-/**
- * Backward compatibility alias stub for AutoStunSlime -> AutoStunSlam.
- * @deprecated Use {@link AutoStunSlamStub} instead.
- */
 @Deprecated
 public class AutoStunSlimeStub extends AutoStunSlamStub {
 

@@ -9,9 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Thread-safe central registry and event dispatcher for all registered NivoratClient modules.
- */
 public final class ModuleRegistry {
 
     private static final Map<String, IModule> MODULES = new LinkedHashMap<>();
@@ -103,9 +100,6 @@ public final class ModuleRegistry {
         }
     }
 
-    /**
-     * @return true if at least one registered module is currently enabled.
-     */
     public static synchronized boolean isAnyModuleEnabled() {
         for (IModule module : MODULES.values()) {
             if (module != null && module.isEnabled()) {
@@ -115,11 +109,6 @@ public final class ModuleRegistry {
         return false;
     }
 
-    /**
-     * Master toggle: enables or disables all registered modules, synchronizing config and event dispatchers.
-     *
-     * @param targetState true to enable all modules, false to disable all
-     */
     public static synchronized void setAllEnabled(boolean targetState) {
         activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
         for (IModule module : MODULES.values()) {
@@ -140,9 +129,6 @@ public final class ModuleRegistry {
         }
     }
 
-    /**
-     * Initializes global Fabric client event hooks for all modules via ModuleEventDispatcher.
-     */
     public static synchronized void initEvents() {
         ModuleEventDispatcher.init();
     }

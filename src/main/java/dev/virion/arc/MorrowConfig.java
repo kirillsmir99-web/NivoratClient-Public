@@ -27,7 +27,6 @@ public final class MorrowConfig {
     public static int maxDelayMs = 110;
     public static boolean useMainhandCart = true;
 
-    // Presets: 0 = Fast, 1 = Balance (Medium), 2 = Safe
     public static final int PRESET_FAST = 0;
     public static final int PRESET_MEDIUM = 1;
     public static final int PRESET_SAFE = 2;

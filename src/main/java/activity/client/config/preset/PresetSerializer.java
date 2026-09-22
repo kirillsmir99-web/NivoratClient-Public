@@ -10,16 +10,9 @@ import com.google.gson.JsonParser;
 
 import java.util.Set;
 
-/**
- * Serializer and validator for presets, handling JSON formatting for both
- * clipboard interchange and local disk storage.
- *
- * <p>Strictly excludes transient UI state (window coordinates, current search, active profile)
- * and verifies schema version and bounds during import.
- */
 public final class PresetSerializer {
 
-    public static final int MAX_IMPORT_BYTES = 65536; // 64 KB safety limit
+    public static final int MAX_IMPORT_BYTES = 65536;
 
     private static final Set<String> TRANSIENT_FIELDS = Set.of(
         "windowPosX",
@@ -53,10 +46,6 @@ public final class PresetSerializer {
 
     private PresetSerializer() {}
 
-    /**
-     * Extracts a clean snapshot of module and gameplay settings from the provided config,
-     * removing transient UI state.
-     */
     public static JsonObject extractSettingsSnapshot(ActivityConfig config) {
         if (config == null) return new JsonObject();
         config.syncModuleConfigEntries();
@@ -71,14 +60,9 @@ public final class PresetSerializer {
         return obj;
     }
 
-    /**
-     * Applies snapshot settings onto a target configuration instance, preserving
-     * existing transient UI state (window position, active profile, search filter).
-     */
     public static void applySettingsSnapshot(JsonObject snapshot, ActivityConfig target) {
         if (snapshot == null || target == null) return;
 
-        // Preserve transient UI state
         int origX = target.windowPosX;
         int origY = target.windowPosY;
         int origW = target.windowWidth;
@@ -102,12 +86,12 @@ public final class PresetSerializer {
                 if (snapshot.has("modules")) {
                     deserialized.syncFromModuleEntries();
                 }
-                // Copy all module and gameplay settings
+
                 copySettings(deserialized, target);
             }
         } catch (Exception ignored) {
         } finally {
-            // Restore transient UI state
+
             target.windowPosX = origX;
             target.windowPosY = origY;
             target.windowWidth = origW;
@@ -132,7 +116,6 @@ public final class PresetSerializer {
         src.syncClientSection();
         src.syncModuleConfigEntries();
 
-        // Combat
         dst.autoMaceEnabled = src.autoMaceEnabled;
         dst.autoMaceKeybind.copyFrom(src.autoMaceKeybind);
         dst.autoMaceSourceMode = src.autoMaceSourceMode;
@@ -179,7 +162,6 @@ public final class PresetSerializer {
             dst.pinnedModules = new java.util.ArrayList<>(src.pinnedModules);
         }
 
-        // Defense
         dst.autoTotemEnabled = src.autoTotemEnabled;
         dst.autoTotemKeybind.copyFrom(src.autoTotemKeybind);
         dst.autoTotemMode = src.autoTotemMode;
@@ -224,7 +206,6 @@ public final class PresetSerializer {
         dst.cartRefillRandomDelay = src.cartRefillRandomDelay;
         dst.cartRefillLegitMode = src.cartRefillLegitMode;
 
-        // Utility
         dst.hpReaperEnabled = src.hpReaperEnabled;
         dst.hpReaperKeybind.copyFrom(src.hpReaperKeybind);
         dst.hpReaperMode = src.hpReaperMode;
@@ -265,7 +246,6 @@ public final class PresetSerializer {
         dst.cartHudCustomX = src.cartHudCustomX;
         dst.cartHudCustomY = src.cartHudCustomY;
 
-        // Visuals & Themes
         dst.overlayEnabled = src.overlayEnabled;
         dst.darkThemeEnabled = src.darkThemeEnabled;
         dst.hudPosition = src.hudPosition;
@@ -301,7 +281,6 @@ public final class PresetSerializer {
         dst.animationsEnabled = src.animationsEnabled;
         dst.spatialOpenAnimation = src.spatialOpenAnimation;
 
-        // Structured Modules & Settings sync across all 12 modules
         dst.syncModuleConfigEntries();
         if (src.modules != null && !src.modules.isEmpty()) {
             for (java.util.Map.Entry<String, ActivityConfig.ModuleConfigEntry> entry : src.modules.entrySet()) {
@@ -322,7 +301,6 @@ public final class PresetSerializer {
             dst.syncFromModuleEntries();
         }
 
-        // Client section sync
         if (src.client != null) {
             if (src.client.ui != null) {
                 dst.client.ui.overlayEnabled = src.client.ui.overlayEnabled;
@@ -370,17 +348,6 @@ public final class PresetSerializer {
         dst.syncClientSection();
     }
 
-    /**
-     * Serializes a preset for clipboard copying in the required schema:
-     * <pre>
-     * {
-     *   "schemaVersion": 1,
-     *   "clientVersion": "v1.0.0",
-     *   "presetName": "...",
-     *   "settings": { ... }
-     * }
-     * </pre>
-     */
     public static String toClipboardJson(Preset preset) {
         if (preset == null) return "";
 
@@ -393,13 +360,6 @@ public final class PresetSerializer {
         return GSON.toJson(root);
     }
 
-    /**
-     * Validates and deserializes a clipboard JSON string into a new {@link Preset} instance.
-     *
-     * @param raw clipboard text
-     * @return deserialized preset
-     * @throws PresetValidationException if text is null, oversized, invalid JSON, or missing required fields
-     */
     public static Preset fromClipboardJson(String raw) throws PresetValidationException {
         if (raw == null || raw.isBlank()) {
             throw new PresetValidationException("Буфер обмена пуст");
@@ -423,7 +383,6 @@ public final class PresetSerializer {
 
         JsonObject obj = parsed.getAsJsonObject();
 
-        // 1. Validate schemaVersion
         int schema = Preset.CURRENT_SCHEMA_VERSION;
         if (obj.has("schemaVersion")) {
             try {
@@ -436,13 +395,11 @@ public final class PresetSerializer {
             throw new PresetValidationException("Неподдерживаемая версия схемы пресета: " + schema);
         }
 
-        // 2. Validate clientVersion
         String clientVer = Preset.CURRENT_CLIENT_VERSION;
         if (obj.has("clientVersion")) {
             clientVer = obj.get("clientVersion").getAsString();
         }
 
-        // 3. Validate presetName
         String name = null;
         if (obj.has("presetName")) {
             name = obj.get("presetName").getAsString();
@@ -457,9 +414,8 @@ public final class PresetSerializer {
             name = name.substring(0, 32);
         }
 
-        // 4. Validate settings object
         if (!obj.has("settings") || !obj.get("settings").isJsonObject()) {
-            // Check if root itself is a legacy config export
+
             if (obj.has("autoMaceEnabled") || obj.has("configVersion")) {
                 JsonObject legacySettings = obj.deepCopy();
                 for (String tf : TRANSIENT_FIELDS) {
