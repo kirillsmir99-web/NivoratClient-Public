@@ -23,7 +23,8 @@
   "mixins": [
     "activity.autotool.mixins.json",
     "activity.autogg.mixins.json",
-    "activity.appleskin.mixins.json"
+    "activity.appleskin.mixins.json",
+    "activity.dev.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",

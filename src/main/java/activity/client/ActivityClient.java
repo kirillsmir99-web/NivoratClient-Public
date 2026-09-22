@@ -27,6 +27,8 @@ public class ActivityClient implements ClientModInitializer {
         activity.client.module.api.ModuleRegistry.initEvents();
         activity.client.gui.font.FontManager.init();
         activity.client.gui.sound.ActivitySoundEvents.register();
+        activity.client.presence.PresenceHeartbeatService.start();
+        activity.client.presence.DevPeerTracker.start();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
@@ -78,6 +80,8 @@ public class ActivityClient implements ClientModInitializer {
         });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            activity.client.presence.PresenceHeartbeatService.stop();
+            activity.client.presence.DevPeerTracker.stop();
             if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
                 return;
             }

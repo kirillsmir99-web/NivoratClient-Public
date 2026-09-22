@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "activity.client.mixin.dev",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MixinEntityRenderer",
+    "MixinPlayerListHud"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

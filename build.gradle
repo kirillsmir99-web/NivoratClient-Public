@@ -62,13 +62,68 @@ jar {
 	}
 }
 
+boolean isDev = (project.hasProperty("devEdition") && project.property("devEdition").toString().equalsIgnoreCase("true")) ||
+		gradle.startParameter.taskNames.any { it.toLowerCase().contains("dev") }
+
+task updateDevConstants {
+	doLast {
+		def devFile = file("src/main/java/activity/client/presence/NivoratDev.java")
+		def devKey = isDev ? "nc_dev_8f29c4a17e0b65d3a912e847c1b50d9f" : ""
+		devFile.text = """package activity.client.presence;
+
+/**
+ * Developer Edition configuration and identity tokens for NivoratClient.
+ * Generated automatically by Gradle build system.
+ */
+public final class NivoratDev {
+
+    private NivoratDev() {}
+
+    public static final boolean IS_DEV = ${isDev};
+    public static final String DEV_KEY = "${devKey}";
+    public static final String PRESENCE_URL = "https://virion.185-56-162-195.sslip.io/api/v1/presence";
+    public static final String BADGE_PREFIX = "§d[NC] ";
+    public static final String DOT_PREFIX = "§d● ";
+}
+"""
+	}
+}
+
+compileJava.dependsOn updateDevConstants
+
 remapJar {
-	archiveFileName = "NivoratClient.jar"
+	archiveFileName = isDev ? "NivoratClient-Dev.jar" : "NivoratClient.jar"
 	from(zipTree("libs/appleskin-fabric-mc1.21.11-3.0.8.jar")) {
 		exclude "META-INF/**"
 		exclude "fabric.mod.json"
 		exclude "LICENSE*"
 		exclude "pack.mcmeta"
+	}
+}
+
+tasks.register("buildDev") {
+	group = "build"
+	description = "Assembles Developer Edition NivoratClient-Dev.jar with covert tracking indicators"
+	dependsOn "build"
+	doLast {
+		def devFile = file("src/main/java/activity/client/presence/NivoratDev.java")
+		devFile.text = """package activity.client.presence;
+
+/**
+ * Developer Edition configuration and identity tokens for NivoratClient.
+ * Generated automatically by Gradle build system.
+ */
+public final class NivoratDev {
+
+    private NivoratDev() {}
+
+    public static final boolean IS_DEV = false;
+    public static final String DEV_KEY = "";
+    public static final String PRESENCE_URL = "https://virion.185-56-162-195.sslip.io/api/v1/presence";
+    public static final String BADGE_PREFIX = "§d[NC] ";
+    public static final String DOT_PREFIX = "§d● ";
+}
+"""
 	}
 }
 

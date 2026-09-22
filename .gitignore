@@ -1,6 +1,7 @@
 # Gradle
 .gradle/
 build/
+release_dist/
 
 # Fabric Loom
 run/

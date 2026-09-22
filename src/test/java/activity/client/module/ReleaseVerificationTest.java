@@ -172,7 +172,7 @@ public class ReleaseVerificationTest {
         // Verify mixins section declares namespaced mixin configs
         assertTrue(root.has("mixins"), "fabric.mod.json must declare mixins");
         var mixinArray = root.getAsJsonArray("mixins");
-        assertEquals(3, mixinArray.size(), "Should declare exactly 3 mixin configs");
+        assertEquals(4, mixinArray.size(), "Should declare exactly 4 mixin configs");
         List<String> declaredMixins = new java.util.ArrayList<>();
         for (var m : mixinArray) {
             declaredMixins.add(m.getAsString());
@@ -180,6 +180,7 @@ public class ReleaseVerificationTest {
         assertTrue(declaredMixins.contains("activity.autotool.mixins.json"), "Must declare activity.autotool.mixins.json");
         assertTrue(declaredMixins.contains("activity.autogg.mixins.json"), "Must declare activity.autogg.mixins.json");
         assertTrue(declaredMixins.contains("activity.appleskin.mixins.json"), "Must declare activity.appleskin.mixins.json");
+        assertTrue(declaredMixins.contains("activity.dev.mixins.json"), "Must declare activity.dev.mixins.json");
         for (String mixin : declaredMixins) {
             assertTrue(mixin.startsWith("activity."), "Mixin config " + mixin + " must be namespaced with 'activity.'");
             assertNotNull(getClass().getResourceAsStream("/" + mixin), "Mixin config " + mixin + " must exist on classpath");
