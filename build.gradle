@@ -89,12 +89,6 @@ compileJava.dependsOn updateDevConstants
 
 remapJar {
 	archiveFileName = isDev ? "NivoratClient-Dev.jar" : "NivoratClient.jar"
-	from(zipTree("libs/appleskin-fabric-mc1.21.11-3.0.8.jar")) {
-		exclude "META-INF/**"
-		exclude "fabric.mod.json"
-		exclude "LICENSE*"
-		exclude "pack.mcmeta"
-	}
 }
 
 tasks.register("buildDev") {

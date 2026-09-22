@@ -13,17 +13,12 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "activity.client.NivoratClient",
-      "squeek.appleskin.AppleSkin"
-    ],
-    "main": [
-      "squeek.appleskin.AppleSkinCommon"
+      "activity.client.NivoratClient"
     ]
   },
   "mixins": [
     "activity.autotool.mixins.json",
     "activity.autogg.mixins.json",
-    "activity.appleskin.mixins.json",
     "activity.dev.mixins.json"
   ],
   "depends": {
@@ -33,8 +28,7 @@
     "fabric-api": "*"
   },
   "provides": [
-    "nivoratclient",
-    "appleskin"
+    "nivoratclient"
   ],
   "custom": {
     "modmenu": {
