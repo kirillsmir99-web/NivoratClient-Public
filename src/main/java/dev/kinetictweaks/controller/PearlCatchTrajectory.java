@@ -51,82 +51,101 @@ public final class PearlCatchTrajectory {
     ) {
         int safeDelay = Math.max(1, Math.min(5, delayTicks));
         Vec3d safeVel = playerVel != null ? playerVel : Vec3d.ZERO;
+        double horizontalSpeed = Math.hypot(safeVel.x, safeVel.z);
+        double verticalSpeed = onGround ? 0.0 : safeVel.y;
+        Vec3d inheritedPearlVel = new Vec3d(safeVel.x, verticalSpeed, safeVel.z);
+        Vec3d inheritedWindVel = new Vec3d(safeVel.x, verticalSpeed, safeVel.z);
 
-        // Player vertical displacement and velocity decay over delayTicks
+        // Optimal base pearl pitch
+        float bestPearlPitch = calculateOptimalPearlPitch(safeDelay, safeVel, horizontalSpeed > 0.18);
+
+        // Dynamic offset calculation:
+        // Base user/preset offset (defaults to 8.0°)
+        float baseOffset = customOffset > 0.0f ? customOffset : calculateWindChargePitchOffset(safeDelay);
+
+        // Running compensation: pitch down camera slightly (+1.5°) so wind charge does not fly above pearl
+        if (horizontalSpeed > 0.18) {
+            baseOffset += 1.5f;
+        }
+
+        // Wind jump / upward velocity compensation:
+        // When player is blasted upward by a wind charge (vy in [0.4, 1.5]), the player rises 1.5-2.5 blocks higher
+        // by the time the wind charge is fired, and the wind charge has ZERO gravity.
+        // Therefore, camera must tilt significantly lower (+vy * 7.5°) to intercept the pearl below.
+        if (verticalSpeed > 0.08) {
+            baseOffset += (float) (Math.min(verticalSpeed, 1.5) * 7.5);
+        } else if (verticalSpeed < -0.08) {
+            baseOffset -= (float) (Math.min(Math.abs(verticalSpeed), 1.5) * 3.0);
+        }
+
+        float bestWindPitch = bestPearlPitch + baseOffset;
+        float bestWindYaw = playerYaw;
+        int bestTick = safeDelay + 3;
+        double minError = Double.MAX_VALUE;
+        boolean foundSolution = false;
+
+        // Player displacement over delayTicks with player physics (gravity 0.08, drag 0.98)
         double plY = 0.0;
-        double curVy = onGround ? 0.0 : safeVel.y;
-        for (int i = 0; i < safeDelay; i++) {
+        double curVy = verticalSpeed;
+        for (int d = 0; d < safeDelay; d++) {
             plY += curVy;
             curVy = (curVy - 0.08) * 0.98;
         }
-
-        // Exact spawn geometry: pearl origin y = -0.1 relative to player eye, wind charge origin y = 0.0 relative to player eye.
-        Vec3d pearlOrigin = new Vec3d(0.0, -0.1, 0.0);
+        Vec3d pearlOrigin = Vec3d.ZERO;
         Vec3d windOrigin = new Vec3d(safeVel.x * safeDelay, plY, safeVel.z * safeDelay);
 
-        // Inherited wind velocity at tick delay: horizontal = (safeVel.x, safeVel.z), vertical = onGround ? 0.0 : curVy.
-        Vec3d inheritedPearlVel = new Vec3d(safeVel.x, onGround ? 0.0 : safeVel.y, safeVel.z);
-        Vec3d inheritedWindVel = new Vec3d(safeVel.x, onGround ? 0.0 : curVy, safeVel.z);
+        // Test candidate pearl pitches around the nominal pitch
+        float[] candidatePitches = new float[]{
+                bestPearlPitch,
+                bestPearlPitch - 1.0f,
+                bestPearlPitch + 1.0f,
+                bestPearlPitch - 2.0f,
+                bestPearlPitch + 2.0f
+        };
 
-        float bestPearlPitch = calculateOptimalPearlPitch(safeDelay, safeVel, Math.hypot(safeVel.x, safeVel.z) > 0.18);
-        float bestWindPitch = bestPearlPitch;
-        float bestWindYaw = playerYaw;
-        int bestTick = safeDelay + 14;
-        double minResidualError = Double.MAX_VALUE;
-
-        // Sweep pearl pitch over realistic horizontal launch window [-35.0f, -12.0f]
-        for (int pInt = -350; pInt <= -120; pInt += 2) {
-            float testPearlPitch = pInt / 10.0f;
+        for (float testPearlPitch : candidatePitches) {
             Vec3d pearlDir = getDirectionVector(testPearlPitch, playerYaw);
             Vec3d pearlVel0 = pearlDir.multiply(PEARL_SPEED).add(inheritedPearlVel);
 
-            // Compute pearl position using exact damped Euler integration (pearl speed 1.5, drag 0.99, gravity 0.03)
+            // Simulate pearl tick by tick
             Vec3d pPos = pearlOrigin;
             Vec3d pVel = pearlVel0;
 
-            int maxT = safeDelay + 36;
-            for (int t = 1; t <= maxT; t++) {
+            for (int t = 1; t <= 30; t++) {
                 pPos = pPos.add(pVel);
-                pVel = new Vec3d(pVel.x * PEARL_DRAG, pVel.y * PEARL_DRAG - PEARL_GRAVITY, pVel.z * PEARL_DRAG);
+                pVel = new Vec3d(pVel.x * PEARL_DRAG, (pVel.y - PEARL_GRAVITY) * PEARL_DRAG, pVel.z * PEARL_DRAG);
 
                 if (t <= safeDelay) {
                     continue;
                 }
 
                 double flightTicks = t - safeDelay;
-                if (flightTicks < 2.0) {
-                    continue;
-                }
+                if (flightTicks < 1.0) continue;
 
+                // Aim slightly below the pearl so the wind explosion pushes the pearl up and forward
                 Vec3d aimTarget = pPos.subtract(0.0, BURST_OFFSET_Y, 0.0);
                 Vec3d neededVel = aimTarget.subtract(windOrigin).multiply(1.0 / flightTicks).subtract(inheritedWindVel);
                 double neededSpeed = neededVel.length();
-                if (neededSpeed < 1.0E-6) {
-                    continue;
-                }
 
-                Vec3d dir = neededVel.normalize();
-                float candWindYaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
-                float candWindPitch = (float) Math.toDegrees(Math.atan2(-dir.y, Math.hypot(dir.x, dir.z)));
-
-                // Compute residualError using actual wind charge flight vector (direction from bestWindPitch/bestWindYaw * 1.5 + inheritedWindVel)
-                Vec3d candWindDir = getDirectionVector(candWindPitch, candWindYaw);
-                Vec3d actualWindVel = candWindDir.multiply(WIND_CHARGE_SPEED).add(inheritedWindVel);
-                Vec3d actualWindPos = windOrigin.add(actualWindVel.multiply(flightTicks));
-                double residualError = actualWindPos.distanceTo(aimTarget);
-
-                if (residualError < minResidualError) {
-                    minResidualError = residualError;
+                double speedError = Math.abs(neededSpeed - WIND_CHARGE_SPEED);
+                if (speedError < minError) {
+                    minError = speedError;
                     bestPearlPitch = testPearlPitch;
-                    bestWindPitch = candWindPitch;
-                    bestWindYaw = candWindYaw;
                     bestTick = t;
+
+                    Vec3d dir = neededVel.normalize();
+                    bestWindYaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
+
+                    if (speedError < 0.08) {
+                        foundSolution = true;
+                    }
                 }
             }
         }
 
-        float computedOffset = bestWindPitch - bestPearlPitch;
-        boolean valid = minResidualError <= 0.5;
+        // Apply tuned offset to final pearl pitch
+        bestWindPitch = bestPearlPitch + baseOffset;
+        float computedOffset = baseOffset;
 
         return new Solution(
                 bestPearlPitch,
@@ -134,8 +153,8 @@ public final class PearlCatchTrajectory {
                 bestWindYaw,
                 computedOffset,
                 bestTick,
-                minResidualError,
-                valid
+                minError,
+                foundSolution || minError < 0.25
         );
     }
 
