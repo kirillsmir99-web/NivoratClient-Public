@@ -145,6 +145,11 @@ public final class VirionArcController {
             return;
         }
 
+        // Hotbar cooldown check: server applied cooldown to minecart item
+        if (activity.client.module.service.CartStateService.isCartOnCooldown(client.player)) {
+            return;
+        }
+
         long now = System.currentTimeMillis();
         if (now - lastPlacementTime < MIN_PLACEMENT_INTERVAL_MS) {
             return;
@@ -152,7 +157,28 @@ public final class VirionArcController {
 
         int railSlot = findRailSlot(client.player);
         int minecartSlot = findTntMinecartSlot(client.player);
-        if (railSlot < 0 || minecartSlot < 0) {
+        boolean cartInOffhand = activity.client.module.service.CartStateService.isCartInOffhand(client.player);
+
+        boolean useMainHand;
+        if (MorrowConfig.useMainhandCart) {
+            if (minecartSlot >= 0) {
+                useMainHand = true;
+            } else if (cartInOffhand) {
+                useMainHand = false;
+            } else {
+                return;
+            }
+        } else {
+            if (cartInOffhand) {
+                useMainHand = false;
+            } else if (minecartSlot >= 0) {
+                useMainHand = true;
+            } else {
+                return;
+            }
+        }
+
+        if (railSlot < 0) {
             return;
         }
 
@@ -183,6 +209,7 @@ public final class VirionArcController {
             originalSlot,
             railSlot,
             minecartSlot,
+            useMainHand,
             now
         );
     }
@@ -463,8 +490,10 @@ public final class VirionArcController {
                     interactAtTop(client, activeJob.target.down());
                 }
 
-                selectSlot(client, activeJob.minecartSlot);
-                activeJob.lastSlotSwitchTimeMs = now;
+                if (activeJob.useMainHand) {
+                    selectSlot(client, activeJob.minecartSlot);
+                    activeJob.lastSlotSwitchTimeMs = now;
+                }
                 activeJob.stage = Stage.PLACE_CART;
                 int delay = getRandomDelay();
                 activeJob.scheduledTimeMs = now + delay;
@@ -474,11 +503,15 @@ public final class VirionArcController {
                     cancelJob(client);
                     return;
                 }
+                if (activity.client.module.service.CartStateService.isCartOnCooldown(client.player)) {
+                    cancelJob(client);
+                    return;
+                }
                 if (hasBlockingVehicle(client, activeJob.target)) {
                     finishJob(client);
                     return;
                 }
-                if (client.player.getInventory().getSelectedSlot() != activeJob.minecartSlot) {
+                if (activeJob.useMainHand && client.player.getInventory().getSelectedSlot() != activeJob.minecartSlot) {
                     selectSlot(client, activeJob.minecartSlot);
                     activeJob.lastSlotSwitchTimeMs = now;
                 }
@@ -495,7 +528,7 @@ public final class VirionArcController {
                     return;
                 }
 
-                interactOnRail(client, activeJob.target);
+                interactOnRail(client, activeJob.target, activeJob.useMainHand ? Hand.MAIN_HAND : Hand.OFF_HAND);
                 activity.client.module.service.CartStateService.notifyCartPlaced(activeJob.target);
                 activeJob.stage = Stage.RESTORE_SLOT;
                 int restoreDelay = getRandomDelay();
@@ -717,12 +750,12 @@ public final class VirionArcController {
         client.player.swingHand(Hand.MAIN_HAND);
     }
 
-    private void interactOnRail(MinecraftClient client, BlockPos railPos) {
+    private void interactOnRail(MinecraftClient client, BlockPos railPos, Hand hand) {
         Vec3d topPoint = nearestTopPoint(client.player.getEyePos(), railPos.down());
         Vec3d hitPosition = new Vec3d(topPoint.x, railPos.getY() + 0.1D, topPoint.z);
         BlockHitResult result = new BlockHitResult(hitPosition, Direction.UP, railPos, false);
-        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, result);
-        client.player.swingHand(Hand.MAIN_HAND);
+        client.interactionManager.interactBlock(client.player, hand, result);
+        client.player.swingHand(hand);
         activity.client.module.service.CartStateService.notifyCartPlaced(railPos);
     }
 
@@ -815,17 +848,19 @@ public final class VirionArcController {
         private final int originalSlot;
         private final int railSlot;
         private final int minecartSlot;
+        private final boolean useMainHand;
         private Stage stage;
         private final long startTimeMs;
         private long scheduledTimeMs;
         private long lastSlotSwitchTimeMs;
         private int railRetries;
 
-        private PlacementJob(BlockPos target, int originalSlot, int railSlot, int minecartSlot, long startTimeMs) {
+        private PlacementJob(BlockPos target, int originalSlot, int railSlot, int minecartSlot, boolean useMainHand, long startTimeMs) {
             this.target = target;
             this.originalSlot = originalSlot;
             this.railSlot = railSlot;
             this.minecartSlot = minecartSlot;
+            this.useMainHand = useMainHand;
             this.stage = Stage.SELECT_RAIL;
             this.startTimeMs = startTimeMs;
             this.scheduledTimeMs = startTimeMs;

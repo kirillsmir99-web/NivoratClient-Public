@@ -423,8 +423,22 @@ public final class AutoGGKillTracker {
         return null;
     }
 
+    public static boolean isSystemDuelMessage(String clean) {
+        if (clean == null || clean.isBlank()) return false;
+        String lower = clean.toLowerCase(Locale.ROOT);
+        return lower.contains("дуэл") || lower.contains("duel")
+                || lower.contains("победител") || lower.contains("победил")
+                || lower.contains("выиграл") || lower.contains("одержал победу")
+                || lower.contains("winner") || lower.contains("victory")
+                || lower.contains("поражение") || lower.contains("проиграл")
+                || lower.contains("проигравший") || lower.contains("loser")
+                || lower.contains("игра окончена") || lower.contains("раунд окончен")
+                || lower.contains("матч окончен") || lower.contains("конец дуэли");
+    }
+
     private static boolean isPlayerChatMessage(String clean) {
         if (clean == null || clean.isBlank()) return false;
+        // Standard vanilla/server player chat format: <PlayerName> ...
         if (clean.startsWith("<") && clean.contains(">")) {
             return true;
         }
@@ -437,14 +451,16 @@ public final class AutoGGKillTracker {
             if (prefix.contains("»")) {
                 prefix = prefix.substring(prefix.lastIndexOf('»') + 1).trim();
             }
-            if (!prefix.isEmpty() && !prefix.equals("победил") && !prefix.equals("победитель")
-                    && !prefix.equals("winner") && !prefix.equals("проиграл") && !prefix.equals("проигравший")
-                    && !prefix.equals("loser") && !prefix.equals("дуэли") && !prefix.equals("дуэль")
-                    && !prefix.equals("duel") && !prefix.equals("арена") && !prefix.equals("arena")
-                    && !prefix.equals("сервер") && !prefix.equals("server") && !prefix.equals("инфо")
-                    && !prefix.equals("info") && !prefix.equals("результат") && !prefix.equals("счет")
-                    && !prefix.equals("счёт") && !prefix.equals("убийство") && !prefix.equals("килл")
-                    && !prefix.equals("kill") && !prefix.equals("победа") && !prefix.equals("поражение")) {
+            if (prefix.contains("побед") || prefix.contains("выигр") || prefix.contains("дуэл")
+                    || prefix.contains("duel") || prefix.contains("winner") || prefix.contains("проигр")
+                    || prefix.contains("loser") || prefix.contains("арена") || prefix.contains("arena")
+                    || prefix.contains("сервер") || prefix.contains("server") || prefix.contains("инфо")
+                    || prefix.contains("info") || prefix.contains("результат") || prefix.contains("счет")
+                    || prefix.contains("счёт") || prefix.contains("убийство") || prefix.contains("килл")
+                    || prefix.contains("kill") || prefix.contains("окончен") || prefix.contains("завершен")) {
+                return false;
+            }
+            if (!prefix.isEmpty()) {
                 return true;
             }
         }
@@ -606,7 +622,63 @@ public final class AutoGGKillTracker {
             }
         }
 
+        // 4. Extracted winner check across Russian/English server formats
+        String winner = extractDuelWinner(clean);
+        if (winner != null && winner.equalsIgnoreCase(localPlayerName)) {
+            return true;
+        }
+
         return false;
+    }
+
+    /**
+     * Extracts declared duel winner name from chat message if present.
+     */
+    public static String extractDuelWinner(String clean) {
+        if (clean == null || clean.isBlank()) return null;
+
+        // 1. "победитель[: -—] <Winner>" / "winner[: -—] <Winner>"
+        Pattern p1 = Pattern.compile("(?i)(?u)(?:победител[ьяе]|winner)\\s*(?:дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+        Matcher m1 = p1.matcher(clean);
+        if (m1.find()) {
+            return m1.group(1).trim();
+        }
+
+        // 2. "победил[: -—] <Winner>" / "выиграл[: -—] <Winner>" / "победу одержал: <Winner>"
+        Pattern p2 = Pattern.compile("(?i)(?u)(?:победил|выиграл|одержал\\s+победу)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+        Matcher m2 = p2.matcher(clean);
+        if (m2.find()) {
+            return m2.group(1).trim();
+        }
+
+        // 3. "<Winner> победил/выиграл/одолел/разгромил/одержал победу/won/defeated"
+        Matcher m3 = DUEL_WIN_REGEX_PATTERN.matcher(clean);
+        if (m3.find()) {
+            return m3.group(1).trim();
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts declared duel loser name from chat message if present.
+     */
+    public static String extractDuelLoser(String clean) {
+        if (clean == null || clean.isBlank()) return null;
+
+        // "проиграл[: -—] <Loser>" / "проигравший[: -—] <Loser>" / "loser[: -—] <Loser>"
+        Pattern p1 = Pattern.compile("(?i)(?u)(?:проигравш[ийея]|проиграл|потерпел\\s+поражение|loser)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+        Matcher m1 = p1.matcher(clean);
+        if (m1.find()) {
+            return m1.group(1).trim();
+        }
+
+        Matcher m2 = DUEL_LOSS_REGEX_PATTERN.matcher(clean);
+        if (m2.find()) {
+            return m2.group(2) != null ? m2.group(2).trim() : null;
+        }
+
+        return null;
     }
 
     /**
@@ -671,6 +743,18 @@ public final class AutoGGKillTracker {
             if (loser != null && loser.equalsIgnoreCase(localPlayerName)) {
                 return true;
             }
+        }
+
+        // Extracted loser check
+        String loser = extractDuelLoser(clean);
+        if (loser != null && loser.equalsIgnoreCase(localPlayerName)) {
+            return true;
+        }
+
+        // When a duel completion notice declares someone else as the winner
+        String winner = extractDuelWinner(clean);
+        if (winner != null && !winner.equalsIgnoreCase(localPlayerName) && isSystemDuelMessage(clean)) {
+            return true;
         }
 
         return false;

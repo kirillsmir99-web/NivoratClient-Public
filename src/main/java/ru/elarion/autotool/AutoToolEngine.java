@@ -63,6 +63,10 @@ public final class AutoToolEngine {
         return expectedToolSlot;
     }
 
+    public static int getSwappedFromContainerSlot() {
+        return swappedFromContainerSlot;
+    }
+
     public static void setCombatSessionActiveForTest(boolean active, int origSlot, int expSlot) {
         isCombatSessionActive = active;
         originalHotbarSlot = origSlot;
@@ -73,6 +77,10 @@ public final class AutoToolEngine {
         isMiningSessionActive = active;
         originalHotbarSlot = origSlot;
         expectedToolSlot = expSlot;
+    }
+
+    public static void setSwappedFromContainerSlotForTest(int slot) {
+        swappedFromContainerSlot = slot;
     }
 
     public static void resetSession() {
@@ -146,7 +154,25 @@ public final class AutoToolEngine {
         }
         lastAttackEntityTimeMs = now;
 
-        if (bestSlot < 9) {
+        if (config.singleSlotMode) {
+            int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+            if (bestSlot != targetHotbar && bestSlot >= 0 && client.interactionManager != null) {
+                int containerSlot = (bestSlot < 9) ? (36 + bestSlot) : bestSlot;
+                try {
+                    client.interactionManager.clickSlot(
+                        player.playerScreenHandler.syncId,
+                        containerSlot,
+                        targetHotbar,
+                        net.minecraft.screen.slot.SlotActionType.SWAP,
+                        player
+                    );
+                    swappedFromContainerSlot = containerSlot;
+                } catch (Throwable ignored) {}
+            }
+            net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, targetHotbar);
+            expectedToolSlot = targetHotbar;
+            lastSwitchTimeMs = now;
+        } else if (bestSlot < 9) {
             net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, bestSlot);
             expectedToolSlot = bestSlot;
             lastSwitchTimeMs = now;
@@ -336,7 +362,8 @@ public final class AutoToolEngine {
         ItemStack currentStack = inv.getStack(currentSlot);
         float currentScore = evaluateWeaponScore(currentStack, target, config, client.player);
 
-        for (int i = 0; i < 9; i++) {
+        int maxSlots = config.singleSlotMode ? 36 : 9;
+        for (int i = 0; i < maxSlots; i++) {
             ItemStack stack = inv.getStack(i);
             if (stack.isEmpty()) continue;
             float score = evaluateWeaponScore(stack, target, config, client.player);
@@ -346,7 +373,12 @@ public final class AutoToolEngine {
             }
         }
 
-        if (currentScore >= bestScore && currentScore > 0.0F) {
+        if (config.singleSlotMode) {
+            int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+            if (currentSlot == targetHotbar && currentScore >= bestScore && currentScore > 0.0F) {
+                return -1;
+            }
+        } else if (currentScore >= bestScore && currentScore > 0.0F) {
             return -1;
         }
 
@@ -501,7 +533,8 @@ public final class AutoToolEngine {
         ItemStack currentStack = inv.getStack(currentSlot);
         float currentScore = evaluateToolScore(currentStack, state, config, client.player);
 
-        for (int i = 0; i < 9; i++) {
+        int maxSlots = config.singleSlotMode ? 36 : 9;
+        for (int i = 0; i < maxSlots; i++) {
             ItemStack stack = inv.getStack(i);
             if (stack.isEmpty()) continue;
             float score = evaluateToolScore(stack, state, config, client.player);
@@ -511,7 +544,12 @@ public final class AutoToolEngine {
             }
         }
 
-        if (currentScore >= bestScore && currentScore > 1.0F) {
+        if (config.singleSlotMode) {
+            int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+            if (currentSlot == targetHotbar && currentScore >= bestScore && currentScore > 1.0F) {
+                return -1;
+            }
+        } else if (currentScore >= bestScore && currentScore > 1.0F) {
             return -1;
         }
 
@@ -608,7 +646,25 @@ public final class AutoToolEngine {
         }
         lastMiningActivityMs = now;
 
-        if (bestSlot < 9) {
+        if (config.singleSlotMode) {
+            int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+            if (bestSlot != targetHotbar && bestSlot >= 0 && client.interactionManager != null) {
+                int containerSlot = (bestSlot < 9) ? (36 + bestSlot) : bestSlot;
+                try {
+                    client.interactionManager.clickSlot(
+                        player.playerScreenHandler.syncId,
+                        containerSlot,
+                        targetHotbar,
+                        net.minecraft.screen.slot.SlotActionType.SWAP,
+                        player
+                    );
+                    swappedFromContainerSlot = containerSlot;
+                } catch (Throwable ignored) {}
+            }
+            net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, targetHotbar);
+            expectedToolSlot = targetHotbar;
+            lastSwitchTimeMs = now;
+        } else if (bestSlot < 9) {
             net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, bestSlot);
             expectedToolSlot = bestSlot;
             lastSwitchTimeMs = now;
@@ -677,6 +733,19 @@ public final class AutoToolEngine {
             }
 
             if (now - lastAttackEntityTimeMs >= currentReturnDelayMs) {
+                if (swappedFromContainerSlot >= 0 && client.interactionManager != null) {
+                    int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+                    try {
+                        client.interactionManager.clickSlot(
+                            player.playerScreenHandler.syncId,
+                            swappedFromContainerSlot,
+                            targetHotbar,
+                            net.minecraft.screen.slot.SlotActionType.SWAP,
+                            player
+                        );
+                    } catch (Throwable ignored) {}
+                    swappedFromContainerSlot = -1;
+                }
                 if (originalHotbarSlot >= 0 && originalHotbarSlot < 9) {
                     if (player.getInventory().getSelectedSlot() == expectedToolSlot) {
                         net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, originalHotbarSlot);
@@ -732,6 +801,19 @@ public final class AutoToolEngine {
         }
 
         if (now - lastMiningActivityMs >= currentReturnDelayMs) {
+            if (swappedFromContainerSlot >= 0 && client.interactionManager != null) {
+                int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+                try {
+                    client.interactionManager.clickSlot(
+                        player.playerScreenHandler.syncId,
+                        swappedFromContainerSlot,
+                        targetHotbar,
+                        net.minecraft.screen.slot.SlotActionType.SWAP,
+                        player
+                    );
+                } catch (Throwable ignored) {}
+                swappedFromContainerSlot = -1;
+            }
             if (originalHotbarSlot >= 0 && originalHotbarSlot < 9) {
                 if (player.getInventory().getSelectedSlot() == expectedToolSlot) {
                     net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, originalHotbarSlot);

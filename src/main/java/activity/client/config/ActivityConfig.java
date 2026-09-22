@@ -87,6 +87,7 @@ public class ActivityConfig {
     public double autoShieldbreakerChance = 100.0;
     public double autoShieldbreakerSwitchDelayMs = 50.0;
     public double autoShieldbreakerRestoreDelayMs = 50.0;
+    public double autoShieldbreakerReactionDelaySec = 0.0;
     public boolean autoShieldbreakerRandomDelay = true;
     public boolean autoShieldbreakerAbortOnManualSwitch = true;
     public boolean autoShieldbreakerLegitMode = true;
@@ -117,6 +118,8 @@ public class ActivityConfig {
     public double autoPearlCatchRotationTimeMs = 135.0;
     public boolean autoPearlCatchLegitMode = true;
     public double autoPearlCatchHorizontalOffset = 8.0;
+    public boolean autoPearlCatchRandomDelay = true;
+    public double autoPearlCatchRandomSpreadMs = 15.0;
 
     // Backward-compatibility legacy alias fields for JSON deserialization
     public Boolean autoStunSlimeEnabled = null;
@@ -167,6 +170,7 @@ public class ActivityConfig {
     public double autoCartRailDelay = 2.0;
     public double autoCartCartDelay = 2.0;
     public double autoCartRestoreDelay = 2.0;
+    public boolean autoCartUseMainHand = true;
 
     // AutoAnchor
     public boolean autoAnchorEnabled = true;
@@ -187,6 +191,7 @@ public class ActivityConfig {
     public double cartRefillChance = 100.0;
     public boolean cartRefillAutoClose = true;
     public boolean cartRefillRandomDelay = true;
+    public double cartRefillRandomSpreadTicks = 1.0;
     public boolean cartRefillLegitMode = true;
 
     // ==========================================
@@ -217,6 +222,7 @@ public class ActivityConfig {
     public boolean autoToolRestorePrevious = true;
     public boolean autoToolLegitMode = true;
     public boolean autoToolSingleSlotMode = false;
+    public int autoToolSingleSlot = 0;
     public boolean autoToolIgnoreInstantBreak = true;
     public boolean autoToolLockWhileMining = true;
 
@@ -258,6 +264,9 @@ public class ActivityConfig {
     public double hudPadding = 8.0;
     public String customTitle = "Activity HUD";
     public boolean textShadow = true;
+    public int hudCustomX = -1;
+    public int hudCustomY = -1;
+    public boolean hudShowActiveModules = true;
 
     // ==========================================
     // 5. PROFILES & SYSTEM SETTINGS
@@ -370,6 +379,9 @@ public class ActivityConfig {
         public double windowOpacity = 85.0;
         public double panelOpacity = 65.0;
         public boolean glassEffect = true;
+        public int hudCustomX = -1;
+        public int hudCustomY = -1;
+        public boolean hudShowActiveModules = true;
         public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
         @Override
         public boolean equals(Object o) {
@@ -392,6 +404,9 @@ public class ActivityConfig {
                     animationsEnabled == that.animationsEnabled &&
                     spatialOpenAnimation == that.spatialOpenAnimation &&
                     glassEffect == that.glassEffect &&
+                    hudCustomX == that.hudCustomX &&
+                    hudCustomY == that.hudCustomY &&
+                    hudShowActiveModules == that.hudShowActiveModules &&
                     Double.compare(overlayOpacity, that.overlayOpacity) == 0 &&
                     Double.compare(hudPadding, that.hudPadding) == 0 &&
                     Double.compare(windowOpacity, that.windowOpacity) == 0 &&
@@ -528,6 +543,7 @@ public class ActivityConfig {
         this.autoShieldbreakerChance = 100.0;
         this.autoShieldbreakerSwitchDelayMs = 50.0;
         this.autoShieldbreakerRestoreDelayMs = 50.0;
+        this.autoShieldbreakerReactionDelaySec = 0.0;
         this.autoShieldbreakerRandomDelay = true;
         this.autoShieldbreakerAbortOnManualSwitch = true;
         this.autoShieldbreakerLegitMode = true;
@@ -556,6 +572,8 @@ public class ActivityConfig {
         this.autoPearlCatchRotationTimeMs = 135.0;
         this.autoPearlCatchLegitMode = true;
         this.autoPearlCatchHorizontalOffset = 8.0;
+        this.autoPearlCatchRandomDelay = true;
+        this.autoPearlCatchRandomSpreadMs = 15.0;
 
         this.autoStunSlimeEnabled = null;
         this.autoStunSlimeKeybind = null;
@@ -605,6 +623,7 @@ public class ActivityConfig {
         this.autoCartCartDelay = 2.0;
         this.autoCartRestoreDelay = 2.0;
         this.autoCartLegitMode = true;
+        this.autoCartUseMainHand = true;
 
         this.autoAnchorEnabled = true;
         this.autoAnchorKeybind.clear();
@@ -623,6 +642,7 @@ public class ActivityConfig {
         this.cartRefillChance = 100.0;
         this.cartRefillAutoClose = true;
         this.cartRefillRandomDelay = true;
+        this.cartRefillRandomSpreadTicks = 1.0;
         this.cartRefillLegitMode = true;
 
         // Utility
@@ -649,6 +669,7 @@ public class ActivityConfig {
         this.autoToolRestorePrevious = true;
         this.autoToolLegitMode = true;
         this.autoToolSingleSlotMode = false;
+        this.autoToolSingleSlot = 0;
         this.autoToolIgnoreInstantBreak = true;
         this.autoToolLockWhileMining = true;
 
@@ -697,6 +718,9 @@ public class ActivityConfig {
         this.hudPadding = 8.0;
         this.customTitle = "Activity HUD";
         this.textShadow = true;
+        this.hudCustomX = -1;
+        this.hudCustomY = -1;
+        this.hudShowActiveModules = true;
 
         this.debugLogging = false;
         this.profilerActive = false;
@@ -848,6 +872,7 @@ public class ActivityConfig {
         this.autoShieldbreakerChance = clampSanitize(this.autoShieldbreakerChance, 10.0, 100.0, 100.0);
         this.autoShieldbreakerSwitchDelayMs = clampSanitize(this.autoShieldbreakerSwitchDelayMs, 10.0, 200.0, 50.0);
         this.autoShieldbreakerRestoreDelayMs = clampSanitize(this.autoShieldbreakerRestoreDelayMs, 10.0, 200.0, 50.0);
+        this.autoShieldbreakerReactionDelaySec = clampSanitize(this.autoShieldbreakerReactionDelaySec, 0.0, 2.0, 0.0);
 
         this.autoStunSlamDistance = clampSanitize(this.autoStunSlamDistance, 1.5, 4.0, 2.4);
         this.autoStunSlamChance = clampSanitize(this.autoStunSlamChance, 10.0, 100.0, 75.0);
@@ -859,9 +884,16 @@ public class ActivityConfig {
         this.autoPearlCatchThrowDelay = clampSanitize(this.autoPearlCatchThrowDelay, 1.0, 20.0, 2.0);
         this.autoPearlCatchRotationTimeMs = clampSanitize(this.autoPearlCatchRotationTimeMs, 50.0, 500.0, 135.0);
         this.autoPearlCatchHorizontalOffset = clampSanitize(this.autoPearlCatchHorizontalOffset, 0.0, 25.0, 8.0);
+        this.autoPearlCatchRandomSpreadMs = clampSanitize(this.autoPearlCatchRandomSpreadMs, 0.0, 50.0, 15.0);
 
-        this.autoTotemTriggerHearts = clampSanitize(this.autoTotemTriggerHearts, 1.0, 9.0, 3.0);
-        this.autoTotemRestoreHearts = clampSanitize(this.autoTotemRestoreHearts, 4.0, 10.0, 6.0);
+        this.autoTotemTriggerHearts = clampSanitize(this.autoTotemTriggerHearts, 0.5, 10.0, 3.0);
+        this.autoTotemRestoreHearts = clampSanitize(this.autoTotemRestoreHearts, 0.5, 10.0, 6.0);
+        this.autoTotemMainhandTriggerHearts = clampSanitize(this.autoTotemMainhandTriggerHearts, 0.5, 10.0, 3.0);
+        this.autoTotemMainhandRestoreHearts = clampSanitize(this.autoTotemMainhandRestoreHearts, 0.5, 10.0, 6.0);
+        this.autoTotemOffhandTriggerHearts = clampSanitize(this.autoTotemOffhandTriggerHearts, 0.5, 10.0, 2.0);
+        this.autoTotemOffhandRestoreHearts = clampSanitize(this.autoTotemOffhandRestoreHearts, 0.5, 10.0, 5.0);
+        this.autoTotemCrystalTriggerHearts = clampSanitize(this.autoTotemCrystalTriggerHearts, 0.5, 10.0, 3.0);
+        this.autoTotemCrystalRestoreHearts = clampSanitize(this.autoTotemCrystalRestoreHearts, 0.5, 10.0, 6.0);
         this.autoTotemChance = clampSanitize(this.autoTotemChance, 10.0, 100.0, 100.0);
 
         this.autoCartPlacementChance = clampSanitize(this.autoCartPlacementChance, 0.0, 100.0, 100.0);
@@ -879,8 +911,10 @@ public class ActivityConfig {
 
         this.cartRefillDelayTicks = clampSanitize(this.cartRefillDelayTicks, 0.0, 10.0, 2.0);
         this.cartRefillChance = clampSanitize(this.cartRefillChance, 10.0, 100.0, 100.0);
+        this.cartRefillRandomSpreadTicks = clampSanitize(this.cartRefillRandomSpreadTicks, 0.0, 5.0, 1.0);
 
         this.autoToolDurabilityThreshold = clampSanitize(this.autoToolDurabilityThreshold, 1.0, 50.0, 5.0);
+        this.autoToolSingleSlot = Math.max(0, Math.min(8, this.autoToolSingleSlot));
         this.autoGGDelayMs = clampSanitize(this.autoGGDelayMs, 100.0, 3000.0, 950.0);
 
         this.overlayOpacity = clampSanitize(this.overlayOpacity, 10.0, 100.0, 85.0);
@@ -1046,6 +1080,9 @@ public class ActivityConfig {
         this.client.ui.windowOpacity = this.windowOpacity;
         this.client.ui.panelOpacity = this.panelOpacity;
         this.client.ui.glassEffect = this.glassEffect;
+        this.client.ui.hudCustomX = this.hudCustomX;
+        this.client.ui.hudCustomY = this.hudCustomY;
+        this.client.ui.hudShowActiveModules = this.hudShowActiveModules;
         this.client.ui.menuKeybind = this.menuKeybind;
 
         this.client.sound.soundEnabled = this.soundEnabled;
@@ -1086,6 +1123,9 @@ public class ActivityConfig {
             this.windowOpacity = this.client.ui.windowOpacity;
             this.panelOpacity = this.client.ui.panelOpacity;
             this.glassEffect = this.client.ui.glassEffect;
+            this.hudCustomX = this.client.ui.hudCustomX;
+            this.hudCustomY = this.client.ui.hudCustomY;
+            this.hudShowActiveModules = this.client.ui.hudShowActiveModules;
             if (this.client.ui.menuKeybind != null) this.menuKeybind = this.client.ui.menuKeybind;
         }
         if (this.client.sound != null) {
@@ -1185,6 +1225,7 @@ public class ActivityConfig {
         entry.settings.put("chance", this.autoShieldbreakerChance);
         entry.settings.put("switch_delay", this.autoShieldbreakerSwitchDelayMs);
         entry.settings.put("restore_delay", this.autoShieldbreakerRestoreDelayMs);
+        entry.settings.put("reaction_delay", this.autoShieldbreakerReactionDelaySec);
         entry.settings.put("random_delay", this.autoShieldbreakerRandomDelay);
         entry.settings.put("abort_on_manual_switch", this.autoShieldbreakerAbortOnManualSwitch);
         entry.settings.put("legit_mode", this.autoShieldbreakerLegitMode);
@@ -1215,6 +1256,7 @@ public class ActivityConfig {
         entry.settings.put("rotation_time_ms", this.autoPearlCatchRotationTimeMs);
         entry.settings.put("legit_mode", this.autoPearlCatchLegitMode);
         entry.settings.put("horizontal_offset", this.autoPearlCatchHorizontalOffset);
+        entry.settings.put("random_delay", this.autoPearlCatchRandomDelay);
     }
 
     private void populateTotemSettings(ModuleConfigEntry entry) {
@@ -1249,6 +1291,7 @@ public class ActivityConfig {
         entry.settings.put("cart_delay", this.autoCartCartDelay);
         entry.settings.put("restore_delay", this.autoCartRestoreDelay);
         entry.settings.put("legit_mode", this.autoCartLegitMode);
+        entry.settings.put("use_mainhand_cart", this.autoCartUseMainHand);
     }
 
     private void populateAnchorSettings(ModuleConfigEntry entry) {
@@ -1269,6 +1312,7 @@ public class ActivityConfig {
         entry.settings.put("chance", this.cartRefillChance);
         entry.settings.put("auto_close", this.cartRefillAutoClose);
         entry.settings.put("random_delay", this.cartRefillRandomDelay);
+        entry.settings.put("random_spread", this.cartRefillRandomSpreadTicks);
         entry.settings.put("legit_mode", this.cartRefillLegitMode);
     }
 
@@ -1296,6 +1340,7 @@ public class ActivityConfig {
         entry.settings.put("restore_previous", this.autoToolRestorePrevious);
         entry.settings.put("legit_mode", this.autoToolLegitMode);
         entry.settings.put("single_slot_mode", this.autoToolSingleSlotMode);
+        entry.settings.put("single_slot", this.autoToolSingleSlot);
         entry.settings.put("ignore_instant_break", this.autoToolIgnoreInstantBreak);
         entry.settings.put("lock_while_mining", this.autoToolLockWhileMining);
     }
@@ -1438,6 +1483,7 @@ public class ActivityConfig {
                 this.autoShieldbreakerChance = getSettingDouble(sb.settings, "chance", this.autoShieldbreakerChance);
                 this.autoShieldbreakerSwitchDelayMs = getSettingDouble(sb.settings, "switch_delay", this.autoShieldbreakerSwitchDelayMs);
                 this.autoShieldbreakerRestoreDelayMs = getSettingDouble(sb.settings, "restore_delay", this.autoShieldbreakerRestoreDelayMs);
+                this.autoShieldbreakerReactionDelaySec = getSettingDouble(sb.settings, "reaction_delay", this.autoShieldbreakerReactionDelaySec);
                 this.autoShieldbreakerRandomDelay = getSettingBoolean(sb.settings, "random_delay", this.autoShieldbreakerRandomDelay);
                 this.autoShieldbreakerAbortOnManualSwitch = getSettingBoolean(sb.settings, "abort_on_manual_switch", this.autoShieldbreakerAbortOnManualSwitch);
                 this.autoShieldbreakerLegitMode = getSettingBoolean(sb.settings, "legit_mode", this.autoShieldbreakerLegitMode);
@@ -1476,6 +1522,7 @@ public class ActivityConfig {
                 this.autoPearlCatchRotationTimeMs = getSettingDouble(pearlCatch.settings, "rotation_time_ms", this.autoPearlCatchRotationTimeMs);
                 this.autoPearlCatchLegitMode = getSettingBoolean(pearlCatch.settings, "legit_mode", this.autoPearlCatchLegitMode);
                 this.autoPearlCatchHorizontalOffset = getSettingDouble(pearlCatch.settings, "horizontal_offset", this.autoPearlCatchHorizontalOffset);
+                this.autoPearlCatchRandomDelay = getSettingBoolean(pearlCatch.settings, "random_delay", this.autoPearlCatchRandomDelay);
             }
         }
         ModuleConfigEntry totem = getModuleEntry("auto_totem");
@@ -1516,6 +1563,7 @@ public class ActivityConfig {
                 this.autoCartCartDelay = getSettingDouble(cart.settings, "cart_delay", this.autoCartCartDelay);
                 this.autoCartRestoreDelay = getSettingDouble(cart.settings, "restore_delay", this.autoCartRestoreDelay);
                 this.autoCartLegitMode = getSettingBoolean(cart.settings, "legit_mode", this.autoCartLegitMode);
+                this.autoCartUseMainHand = getSettingBoolean(cart.settings, "use_mainhand_cart", this.autoCartUseMainHand);
             }
         }
         ModuleConfigEntry anchor = getModuleEntry("auto_anchor");
@@ -1542,6 +1590,7 @@ public class ActivityConfig {
                 this.cartRefillChance = getSettingDouble(refill.settings, "chance", this.cartRefillChance);
                 this.cartRefillAutoClose = getSettingBoolean(refill.settings, "auto_close", this.cartRefillAutoClose);
                 this.cartRefillRandomDelay = getSettingBoolean(refill.settings, "random_delay", this.cartRefillRandomDelay);
+                this.cartRefillRandomSpreadTicks = getSettingDouble(refill.settings, "random_spread", this.cartRefillRandomSpreadTicks);
                 this.cartRefillLegitMode = getSettingBoolean(refill.settings, "legit_mode", this.cartRefillLegitMode);
             }
         }
@@ -1575,6 +1624,7 @@ public class ActivityConfig {
                 this.autoToolRestorePrevious = getSettingBoolean(tool.settings, "restore_previous", this.autoToolRestorePrevious);
                 this.autoToolLegitMode = getSettingBoolean(tool.settings, "legit_mode", this.autoToolLegitMode);
                 this.autoToolSingleSlotMode = getSettingBoolean(tool.settings, "single_slot_mode", this.autoToolSingleSlotMode);
+                this.autoToolSingleSlot = getSettingInt(tool.settings, "single_slot", this.autoToolSingleSlot);
                 this.autoToolIgnoreInstantBreak = getSettingBoolean(tool.settings, "ignore_instant_break", this.autoToolIgnoreInstantBreak);
                 this.autoToolLockWhileMining = getSettingBoolean(tool.settings, "lock_while_mining", this.autoToolLockWhileMining);
             }
@@ -1656,6 +1706,7 @@ public class ActivityConfig {
         copy.autoShieldbreakerChance = this.autoShieldbreakerChance;
         copy.autoShieldbreakerSwitchDelayMs = this.autoShieldbreakerSwitchDelayMs;
         copy.autoShieldbreakerRestoreDelayMs = this.autoShieldbreakerRestoreDelayMs;
+        copy.autoShieldbreakerReactionDelaySec = this.autoShieldbreakerReactionDelaySec;
         copy.autoShieldbreakerRandomDelay = this.autoShieldbreakerRandomDelay;
         copy.autoShieldbreakerAbortOnManualSwitch = this.autoShieldbreakerAbortOnManualSwitch;
         copy.autoShieldbreakerLegitMode = this.autoShieldbreakerLegitMode;
@@ -1684,6 +1735,8 @@ public class ActivityConfig {
         copy.autoPearlCatchRotationTimeMs = this.autoPearlCatchRotationTimeMs;
         copy.autoPearlCatchLegitMode = this.autoPearlCatchLegitMode;
         copy.autoPearlCatchHorizontalOffset = this.autoPearlCatchHorizontalOffset;
+        copy.autoPearlCatchRandomDelay = this.autoPearlCatchRandomDelay;
+        copy.autoPearlCatchRandomSpreadMs = this.autoPearlCatchRandomSpreadMs;
 
         // Defense
         copy.autoTotemEnabled = this.autoTotemEnabled;
@@ -1717,6 +1770,7 @@ public class ActivityConfig {
         copy.autoCartCartDelay = this.autoCartCartDelay;
         copy.autoCartRestoreDelay = this.autoCartRestoreDelay;
         copy.autoCartLegitMode = this.autoCartLegitMode;
+        copy.autoCartUseMainHand = this.autoCartUseMainHand;
 
         copy.autoAnchorEnabled = this.autoAnchorEnabled;
         copy.autoAnchorKeybind.copyFrom(this.autoAnchorKeybind);
@@ -1735,6 +1789,7 @@ public class ActivityConfig {
         copy.cartRefillChance = this.cartRefillChance;
         copy.cartRefillAutoClose = this.cartRefillAutoClose;
         copy.cartRefillRandomDelay = this.cartRefillRandomDelay;
+        copy.cartRefillRandomSpreadTicks = this.cartRefillRandomSpreadTicks;
         copy.cartRefillLegitMode = this.cartRefillLegitMode;
 
         // Utility
@@ -1760,6 +1815,7 @@ public class ActivityConfig {
         copy.autoToolRestorePrevious = this.autoToolRestorePrevious;
         copy.autoToolLegitMode = this.autoToolLegitMode;
         copy.autoToolSingleSlotMode = this.autoToolSingleSlotMode;
+        copy.autoToolSingleSlot = this.autoToolSingleSlot;
         copy.autoToolIgnoreInstantBreak = this.autoToolIgnoreInstantBreak;
         copy.autoToolLockWhileMining = this.autoToolLockWhileMining;
 
@@ -1808,6 +1864,9 @@ public class ActivityConfig {
         copy.hudPadding = this.hudPadding;
         copy.customTitle = this.customTitle;
         copy.textShadow = this.textShadow;
+        copy.hudCustomX = this.hudCustomX;
+        copy.hudCustomY = this.hudCustomY;
+        copy.hudShowActiveModules = this.hudShowActiveModules;
 
         copy.debugLogging = this.debugLogging;
         copy.profilerActive = this.profilerActive;
@@ -1882,6 +1941,7 @@ public class ActivityConfig {
                Double.compare(this.autoShieldbreakerChance, that.autoShieldbreakerChance) == 0 &&
                Double.compare(this.autoShieldbreakerSwitchDelayMs, that.autoShieldbreakerSwitchDelayMs) == 0 &&
                Double.compare(this.autoShieldbreakerRestoreDelayMs, that.autoShieldbreakerRestoreDelayMs) == 0 &&
+               Double.compare(this.autoShieldbreakerReactionDelaySec, that.autoShieldbreakerReactionDelaySec) == 0 &&
                Objects.equals(this.autoShieldbreakerKeybind, that.autoShieldbreakerKeybind) &&
                Objects.equals(this.autoShieldbreakerMode, that.autoShieldbreakerMode) &&
 
@@ -1902,9 +1962,11 @@ public class ActivityConfig {
                 this.autoPearlCatchLegitMode == that.autoPearlCatchLegitMode &&
                 this.autoPearlCatchRestoreSlot == that.autoPearlCatchRestoreSlot &&
                 this.autoPearlCatchRestoreCamera == that.autoPearlCatchRestoreCamera &&
+                this.autoPearlCatchRandomDelay == that.autoPearlCatchRandomDelay &&
                 Double.compare(this.autoPearlCatchThrowDelay, that.autoPearlCatchThrowDelay) == 0 &&
                 Double.compare(this.autoPearlCatchRotationTimeMs, that.autoPearlCatchRotationTimeMs) == 0 &&
                 Double.compare(this.autoPearlCatchHorizontalOffset, that.autoPearlCatchHorizontalOffset) == 0 &&
+                Double.compare(this.autoPearlCatchRandomSpreadMs, that.autoPearlCatchRandomSpreadMs) == 0 &&
                 Objects.equals(this.autoPearlCatchKeybind, that.autoPearlCatchKeybind) &&
                 Objects.equals(this.autoPearlCatchActionKeybind, that.autoPearlCatchActionKeybind) &&
                 Objects.equals(this.autoPearlCatchHorizontalKeybind, that.autoPearlCatchHorizontalKeybind) &&
@@ -1912,16 +1974,20 @@ public class ActivityConfig {
                 Objects.equals(this.autoPearlCatchDirection, that.autoPearlCatchDirection) &&
 
                  // Defense
-                this.autoTotemEnabled == that.autoTotemEnabled &&
-                this.autoTotemReturnItem == that.autoTotemReturnItem &&
-                this.autoTotemReturnOnPop == that.autoTotemReturnOnPop &&
-                Double.compare(this.autoTotemTriggerHearts, that.autoTotemTriggerHearts) == 0 &&
-                Double.compare(this.autoTotemRestoreHearts, that.autoTotemRestoreHearts) == 0 &&
-                Double.compare(this.autoTotemCrystalTriggerHearts, that.autoTotemCrystalTriggerHearts) == 0 &&
-                Double.compare(this.autoTotemCrystalRestoreHearts, that.autoTotemCrystalRestoreHearts) == 0 &&
-                Double.compare(this.autoTotemChance, that.autoTotemChance) == 0 &&
-                Objects.equals(this.autoTotemKeybind, that.autoTotemKeybind) &&
-                Objects.equals(this.autoTotemMode, that.autoTotemMode) &&
+                 this.autoTotemEnabled == that.autoTotemEnabled &&
+                 this.autoTotemReturnItem == that.autoTotemReturnItem &&
+                 this.autoTotemReturnOnPop == that.autoTotemReturnOnPop &&
+                 Double.compare(this.autoTotemTriggerHearts, that.autoTotemTriggerHearts) == 0 &&
+                 Double.compare(this.autoTotemRestoreHearts, that.autoTotemRestoreHearts) == 0 &&
+                 Double.compare(this.autoTotemMainhandTriggerHearts, that.autoTotemMainhandTriggerHearts) == 0 &&
+                 Double.compare(this.autoTotemMainhandRestoreHearts, that.autoTotemMainhandRestoreHearts) == 0 &&
+                 Double.compare(this.autoTotemOffhandTriggerHearts, that.autoTotemOffhandTriggerHearts) == 0 &&
+                 Double.compare(this.autoTotemOffhandRestoreHearts, that.autoTotemOffhandRestoreHearts) == 0 &&
+                 Double.compare(this.autoTotemCrystalTriggerHearts, that.autoTotemCrystalTriggerHearts) == 0 &&
+                 Double.compare(this.autoTotemCrystalRestoreHearts, that.autoTotemCrystalRestoreHearts) == 0 &&
+                 Double.compare(this.autoTotemChance, that.autoTotemChance) == 0 &&
+                 Objects.equals(this.autoTotemKeybind, that.autoTotemKeybind) &&
+                 Objects.equals(this.autoTotemMode, that.autoTotemMode) &&
 
                 this.autoCartEnabled == that.autoCartEnabled &&
                 this.autoCartAllowSelfCart == that.autoCartAllowSelfCart &&
@@ -1935,6 +2001,7 @@ public class ActivityConfig {
                 Double.compare(this.autoCartRailDelay, that.autoCartRailDelay) == 0 &&
                 Double.compare(this.autoCartCartDelay, that.autoCartCartDelay) == 0 &&
                 Double.compare(this.autoCartRestoreDelay, that.autoCartRestoreDelay) == 0 &&
+                this.autoCartUseMainHand == that.autoCartUseMainHand &&
                 Objects.equals(this.autoCartKeybind, that.autoCartKeybind) &&
                 Objects.equals(this.autoCartPreset, that.autoCartPreset) &&
 
@@ -1955,6 +2022,7 @@ public class ActivityConfig {
                 this.cartRefillRandomDelay == that.cartRefillRandomDelay &&
                 Double.compare(this.cartRefillDelayTicks, that.cartRefillDelayTicks) == 0 &&
                 Double.compare(this.cartRefillChance, that.cartRefillChance) == 0 &&
+                Double.compare(this.cartRefillRandomSpreadTicks, that.cartRefillRandomSpreadTicks) == 0 &&
                 Objects.equals(this.cartRefillKeybind, that.cartRefillKeybind) &&
 
                // Utility
@@ -1978,6 +2046,7 @@ public class ActivityConfig {
                this.autoToolRestorePrevious == that.autoToolRestorePrevious &&
                this.autoToolLegitMode == that.autoToolLegitMode &&
                this.autoToolSingleSlotMode == that.autoToolSingleSlotMode &&
+               this.autoToolSingleSlot == that.autoToolSingleSlot &&
                this.autoToolIgnoreInstantBreak == that.autoToolIgnoreInstantBreak &&
                this.autoToolLockWhileMining == that.autoToolLockWhileMining &&
                Double.compare(this.autoToolDurabilityThreshold, that.autoToolDurabilityThreshold) == 0 &&
@@ -2009,6 +2078,9 @@ public class ActivityConfig {
                this.showWorldTime == that.showWorldTime &&
                this.showDirection == that.showDirection &&
                this.textShadow == that.textShadow &&
+               this.hudCustomX == that.hudCustomX &&
+               this.hudCustomY == that.hudCustomY &&
+               this.hudShowActiveModules == that.hudShowActiveModules &&
                this.compactMode == that.compactMode &&
                this.tooltipsEnabled == that.tooltipsEnabled &&
                this.showKeyHints == that.showKeyHints &&
@@ -2071,26 +2143,26 @@ public class ActivityConfig {
             autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay,
             autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay,
             autoShieldbreakerEnabled, autoShieldbreakerKeybind, autoShieldbreakerMode, autoShieldbreakerDistance, autoShieldbreakerChance,
-            autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode,
+            autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerReactionDelaySec, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode,
             autoStunSlamEnabled, autoStunSlamKeybind, autoStunSlamMode, autoStunSlamDistance, autoStunSlamChance
         );
         result = 31 * result + Objects.hash(
             autoStunSlamAirTimeSec, autoStunSlamAxeDelayMs, autoStunSlamMaceDelayMs, autoStunSlamRestoreDelayMs, autoStunSlamRandomDelay, autoStunSlamLegitMode,
             autoPearlCatchEnabled, autoPearlCatchKeybind, autoPearlCatchActionKeybind, autoPearlCatchHorizontalKeybind,
             autoPearlCatchMode, autoPearlCatchDirection, autoPearlCatchThrowDelay, autoPearlCatchRestoreSlot,
-            autoPearlCatchRestoreCamera, autoPearlCatchRotationTimeMs, autoPearlCatchLegitMode, autoPearlCatchHorizontalOffset,
+            autoPearlCatchRestoreCamera, autoPearlCatchRotationTimeMs, autoPearlCatchLegitMode, autoPearlCatchHorizontalOffset, autoPearlCatchRandomDelay, autoPearlCatchRandomSpreadMs,
             // Defense
             autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemCrystalTriggerHearts, autoTotemCrystalRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
             autoCartEnabled, autoCartKeybind, autoCartPreset, autoCartPlacementChance, autoCartMaxDistance, autoCartMinDelayMs, autoCartMaxDelayMs,
-            autoCartAllowSelfCart, autoCartAllowPitPlacement, autoCartRandomDelay, autoCartRailDelay, autoCartCartDelay, autoCartRestoreDelay, autoCartLegitMode,
+            autoCartAllowSelfCart, autoCartAllowPitPlacement, autoCartRandomDelay, autoCartRailDelay, autoCartCartDelay, autoCartRestoreDelay, autoCartLegitMode, autoCartUseMainHand,
             autoAnchorEnabled, autoAnchorKeybind, autoAnchorPreset, autoAnchorAutoExplode, autoAnchorAutoReturn, autoAnchorChargeDelay, autoAnchorExplodeDelay, autoAnchorChance, autoAnchorTargetCharges, autoAnchorLegitMode,
-            cartRefillEnabled, cartRefillKeybind, cartRefillDelayTicks, cartRefillChance, cartRefillAutoClose, cartRefillRandomDelay, cartRefillLegitMode
+            cartRefillEnabled, cartRefillKeybind, cartRefillDelayTicks, cartRefillChance, cartRefillAutoClose, cartRefillRandomDelay, cartRefillRandomSpreadTicks, cartRefillLegitMode
         );
         result = 31 * result + Objects.hash(
             // Utility
             hpReaperEnabled, hpReaperKeybind, hpReaperMode, hpReaperTargetFilter,
             hpReaperOwnHealthX, hpReaperOwnHealthY, hpReaperCrosshairTargetX, hpReaperCrosshairTargetY, hpReaperTargetHealthX, hpReaperTargetHealthY, hpReaperDiffX, hpReaperDiffY,
-            autoToolEnabled, autoToolKeybind, autoToolCombatGuard, autoToolDurabilitySaver, autoToolDurabilityThreshold, autoToolPreferSilkTouch, autoToolRestorePrevious, autoToolLegitMode, autoToolSingleSlotMode, autoToolIgnoreInstantBreak, autoToolLockWhileMining,
+            autoToolEnabled, autoToolKeybind, autoToolCombatGuard, autoToolDurabilitySaver, autoToolDurabilityThreshold, autoToolPreferSilkTouch, autoToolRestorePrevious, autoToolLegitMode, autoToolSingleSlotMode, autoToolSingleSlot, autoToolIgnoreInstantBreak, autoToolLockWhileMining,
             autoGGEnabled, autoGGKeybind, autoGGMenuKeybind, autoGGPhrase, autoGGSendOnKill, autoGGSendOnOwnDeath, autoGGRandomOrder, autoGGDelayMs,
             cartHudEnabled, cartHudKeybind, cartHudCustomX, cartHudCustomY,
             // HUD & System
@@ -2099,7 +2171,7 @@ public class ActivityConfig {
         result = 31 * result + Objects.hash(
             activeProfile, themeVariant, compactMode, tooltipsEnabled, showKeyHints, smoothTransitions, soundVolume, audioClicks,
             customPrefix, toastStyle, showCoordinates, showFps, showBiome, showWorldTime, showDirection, coordFormat, hudPadding,
-            customTitle, textShadow, debugLogging, profilerActive, asyncTickEnabled, logLevel, benchmarksEnabled, maxCacheEntries,
+            customTitle, textShadow, hudCustomX, hudCustomY, hudShowActiveModules, debugLogging, profilerActive, asyncTickEnabled, logLevel, benchmarksEnabled, maxCacheEntries,
             scissorOpt, filterRegex, gcPolicy,
             fontFamily, typographySize, windowOpacity, panelOpacity, glassEffect, windowPosX, windowPosY, windowWidth, windowHeight, windowMaximized, unmaximizedX, unmaximizedY, unmaximizedWidth, unmaximizedHeight, soundEnabled, soundProfile, sliderSoundEnabled, animationsEnabled, spatialOpenAnimation
         );

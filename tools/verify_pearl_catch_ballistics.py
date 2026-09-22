@@ -64,28 +64,20 @@ def get_direction_vector(pitch: float, yaw: float) -> Vec3d:
 
 def calculate_optimal_pearl_pitch(delay_ticks: int, velocity: Vec3d, sprinting: bool) -> float:
     horizontal_speed = math.hypot(velocity.x, velocity.z) if velocity else 0.0
-    vertical_speed = velocity.y if velocity else 0.0
 
     if delay_ticks == 1:
-        base_pitch = -17.5
+        base_pitch = -26.5
     elif delay_ticks == 3:
-        base_pitch = -19.5
-    elif delay_ticks == 4:
-        base_pitch = -20.5
-    elif delay_ticks == 2:
-        base_pitch = -18.5
+        base_pitch = -29.5
+    elif delay_ticks >= 4:
+        base_pitch = -31.0
     else:
-        base_pitch = -18.5
+        base_pitch = -28.0
 
     if sprinting or horizontal_speed > 0.18:
         base_pitch += 1.0
 
-    if vertical_speed > 0.05:
-        base_pitch += min(vertical_speed, 1.5) * 2.0
-    elif vertical_speed < -0.05:
-        base_pitch -= min(abs(vertical_speed), 1.5) * 2.0
-
-    return clamp(base_pitch, -35.0, -10.0)
+    return clamp(base_pitch, -45.0, -15.0)
 
 class Solution(NamedTuple):
     pearl_pitch: float
@@ -143,7 +135,8 @@ def solve3D(
         p_pos = pearl_origin
         p_vel = pearl_vel0
 
-        for t in range(1, 31):
+        max_ticks = min(30, safe_delay + 20)
+        for t in range(1, max_ticks + 1):
             p_pos = p_pos.add(p_vel)
             p_vel = Vec3d(
                 p_vel.x * PEARL_DRAG,

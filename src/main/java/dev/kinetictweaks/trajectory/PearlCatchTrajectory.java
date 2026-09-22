@@ -93,7 +93,8 @@ public final class PearlCatchTrajectory {
             Vec3d pPos = pearlOrigin;
             Vec3d pVel = pearlVel0;
 
-            for (int t = 1; t <= 30; t++) {
+            int maxTicks = Math.min(30, safeDelay + 20);
+            for (int t = 1; t <= maxTicks; t++) {
                 pPos = pPos.add(pVel);
                 pVel = new Vec3d(pVel.x * PEARL_DRAG, (pVel.y - PEARL_GRAVITY) * PEARL_DRAG, pVel.z * PEARL_DRAG);
 
@@ -170,32 +171,21 @@ public final class PearlCatchTrajectory {
      */
     public static float calculateOptimalPearlPitch(int delayTicks, Vec3d velocity, boolean sprinting) {
         double horizontalSpeed = velocity != null ? Math.hypot(velocity.x, velocity.z) : 0.0;
-        double verticalSpeed = velocity != null ? velocity.y : 0.0;
 
         float basePitch;
         switch (delayTicks) {
-            case 1 -> basePitch = -17.5f;
-            case 3 -> basePitch = -19.5f;
-            case 4 -> basePitch = -20.5f;
-            case 2 -> basePitch = -18.5f;
-            default -> basePitch = -18.5f;
+            case 1 -> basePitch = -26.5f;
+            case 3 -> basePitch = -29.5f;
+            case 4 -> basePitch = -31.0f;
+            case 2 -> basePitch = -28.0f;
+            default -> basePitch = -28.0f;
         }
 
         if (sprinting || horizontalSpeed > 0.18) {
-            basePitch += 1.0f; // Flatter launch when running
+            basePitch += 1.0f; // Flatter launch when running: -27.0f for delay 2
         }
 
-        // Vertical velocity compensation:
-        // When jumping / wind jumping upward (verticalSpeed > 0), the pearl inherits player upward velocity.
-        // To prevent the pearl from rocketing too high, launch angle should be flatter (add positive pitch).
-        // When falling (verticalSpeed < 0), pearl inherits downward velocity, so pitch up (subtract pitch).
-        if (verticalSpeed > 0.05) {
-            basePitch += (float) (Math.min(verticalSpeed, 1.5) * 2.0);
-        } else if (verticalSpeed < -0.05) {
-            basePitch -= (float) (Math.min(Math.abs(verticalSpeed), 1.5) * 2.0);
-        }
-
-        return MathHelper.clamp(basePitch, -35.0f, -10.0f);
+        return MathHelper.clamp(basePitch, -45.0f, -15.0f);
     }
 
     /**

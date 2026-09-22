@@ -109,18 +109,48 @@ public final class CartStateService {
     }
 
     /**
-     * Finds the first slot in the hotbar (slots 0 to 8) containing a TNT minecart.
-     * Returns -1 if none found.
+     * Finds the first slot in the hotbar (slots 0 to 8) containing a TNT minecart that is NOT on cooldown.
+     * Returns -1 if none found or all carts are cooling down.
      */
     public static int findHotbarCart(ClientPlayerEntity player) {
         if (player == null) return -1;
+        boolean hasCooldownManager = player.getItemCooldownManager() != null;
         for (int slot = 0; slot < 9; slot++) {
             ItemStack stack = player.getInventory().getStack(slot);
             if (stack.isOf(Items.TNT_MINECART)) {
+                if (hasCooldownManager && player.getItemCooldownManager().isCoolingDown(stack)) {
+                    continue;
+                }
                 return slot;
             }
         }
         return -1;
+    }
+
+    /**
+     * Checks if TNT minecarts are currently cooling down for the player.
+     */
+    public static boolean isCartOnCooldown(ClientPlayerEntity player) {
+        if (player == null || player.getItemCooldownManager() == null) {
+            return false;
+        }
+        return player.getItemCooldownManager().isCoolingDown(Items.TNT_MINECART.getDefaultStack());
+    }
+
+    /**
+     * Checks if the player currently holds a TNT minecart in their off-hand (slot 40)
+     * that is NOT on cooldown.
+     */
+    public static boolean isCartInOffhand(ClientPlayerEntity player) {
+        if (player == null) return false;
+        ItemStack offhand = player.getOffHandStack();
+        if (!offhand.isOf(Items.TNT_MINECART)) {
+            return false;
+        }
+        if (player.getItemCooldownManager() != null && player.getItemCooldownManager().isCoolingDown(offhand)) {
+            return false;
+        }
+        return true;
     }
 
     /**

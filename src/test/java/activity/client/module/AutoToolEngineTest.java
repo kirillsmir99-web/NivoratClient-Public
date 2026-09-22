@@ -101,6 +101,17 @@ public class AutoToolEngineTest {
         assertTrue(cfg.lockWhileMining, "Lock while mining must be enabled by default");
         assertTrue(cfg.legitMode, "Legit mode must be enabled by default");
         assertFalse(cfg.singleSlotMode, "Single slot mode must be false by default");
+        assertEquals(0, cfg.singleSlot, "Single slot index must default to 0");
+    }
+
+    @Test
+    @DisplayName("Single slot swappedFromContainerSlot lifecycle and reset")
+    void testSingleSlotLifecycle() {
+        assertEquals(-1, AutoToolEngine.getSwappedFromContainerSlot());
+        AutoToolEngine.setSwappedFromContainerSlotForTest(24);
+        assertEquals(24, AutoToolEngine.getSwappedFromContainerSlot());
+        AutoToolEngine.resetSession();
+        assertEquals(-1, AutoToolEngine.getSwappedFromContainerSlot());
     }
 
     @Test

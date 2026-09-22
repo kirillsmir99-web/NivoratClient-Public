@@ -65,7 +65,7 @@ public class AutoTotemModule extends NivoratModule {
         // 2. BEHAVIOR
         registerNumber("trigger_hearts", Text.translatable("activity.setting.defense.trigger_hearts"),
                 Text.translatable("activity.setting.defense.trigger_hearts.desc"), SettingGroup.BEHAVIOR,
-                1.0, 9.0, 1.0, " ❤", true, 3.0,
+                0.5, 10.0, 0.5, " ❤", false, 3.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c == null) return 3.0;
@@ -92,7 +92,7 @@ public class AutoTotemModule extends NivoratModule {
 
         registerNumber("restore_hearts", Text.translatable("activity.setting.defense.restore_hearts"),
                 Text.translatable("activity.setting.defense.restore_hearts.desc"), SettingGroup.BEHAVIOR,
-                1.0, 10.0, 1.0, " ❤", true, 6.0,
+                0.5, 10.0, 0.5, " ❤", false, 6.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c == null) return 6.0;
@@ -213,12 +213,12 @@ public class AutoTotemModule extends NivoratModule {
         boolean isOffhand = "offhand".equals(c.autoTotemMode);
         boolean isCrystal = "crystal".equals(c.autoTotemMode);
         AutoTotemConfig.mode = isCrystal ? 3 : (isOffhand ? 2 : 1);
-        AutoTotemConfig.mainhandTriggerHearts = (int) Math.round(c.autoTotemMainhandTriggerHearts);
-        AutoTotemConfig.mainhandRestoreHearts = (int) Math.round(c.autoTotemMainhandRestoreHearts);
-        AutoTotemConfig.offhandTriggerHearts = (int) Math.round(c.autoTotemOffhandTriggerHearts);
-        AutoTotemConfig.offhandRestoreHearts = (int) Math.round(c.autoTotemOffhandRestoreHearts);
-        AutoTotemConfig.crystalTriggerHearts = (int) Math.round(c.autoTotemCrystalTriggerHearts);
-        AutoTotemConfig.crystalRestoreHearts = (int) Math.round(c.autoTotemCrystalRestoreHearts);
+        AutoTotemConfig.mainhandTriggerHearts = c.autoTotemMainhandTriggerHearts;
+        AutoTotemConfig.mainhandRestoreHearts = c.autoTotemMainhandRestoreHearts;
+        AutoTotemConfig.offhandTriggerHearts = c.autoTotemOffhandTriggerHearts;
+        AutoTotemConfig.offhandRestoreHearts = c.autoTotemOffhandRestoreHearts;
+        AutoTotemConfig.crystalTriggerHearts = c.autoTotemCrystalTriggerHearts;
+        AutoTotemConfig.crystalRestoreHearts = c.autoTotemCrystalRestoreHearts;
         if (isCrystal) {
             AutoTotemConfig.triggerHearts = AutoTotemConfig.crystalTriggerHearts;
             AutoTotemConfig.restoreHearts = AutoTotemConfig.crystalRestoreHearts;

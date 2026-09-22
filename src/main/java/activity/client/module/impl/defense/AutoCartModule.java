@@ -211,6 +211,23 @@ public class AutoCartModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("use_mainhand_cart", Text.translatable("activity.setting.defense.use_mainhand_cart"),
+                Text.translatable("activity.setting.defense.use_mainhand_cart.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoCartUseMainHand;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartUseMainHand = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         // 4. ADVANCED
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
@@ -238,6 +255,7 @@ public class AutoCartModule extends NivoratModule {
         MorrowConfig.maxDelayMs = (int) Math.round(c.autoCartMaxDelayMs);
         MorrowConfig.allowSelfCart = c.autoCartAllowSelfCart;
         MorrowConfig.allowPitPlacement = c.autoCartAllowPitPlacement;
+        MorrowConfig.useMainhandCart = c.autoCartUseMainHand;
         MorrowConfig.randomDelay = c.autoCartRandomDelay;
         MorrowConfig.legitMode = c.autoCartLegitMode;
 

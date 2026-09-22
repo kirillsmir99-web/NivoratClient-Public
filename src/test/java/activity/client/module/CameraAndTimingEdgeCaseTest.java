@@ -43,9 +43,9 @@ public class CameraAndTimingEdgeCaseTest {
 
         // Backward compatibility helpers
         float p0 = PearlCatchTrajectory.calculateOptimalPearlPitch(0, Vec3d.ZERO, false);
-        assertEquals(-18.5f, p0, 0.001f);
+        assertEquals(-28.0f, p0, 0.001f);
         float pNeg = PearlCatchTrajectory.calculateOptimalPearlPitch(-3, Vec3d.ZERO, false);
-        assertEquals(-18.5f, pNeg, 0.001f);
+        assertEquals(-28.0f, pNeg, 0.001f);
 
         float off0 = PearlCatchTrajectory.calculateWindChargePitchOffset(0);
         assertEquals(8.0f, off0, 0.001f);

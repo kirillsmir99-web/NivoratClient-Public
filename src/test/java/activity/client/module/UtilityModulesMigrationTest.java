@@ -187,6 +187,7 @@ public class UtilityModulesMigrationTest {
         assertNotNull(mod.getSetting("lock_while_mining"));
         assertNotNull(mod.getSetting("legit_mode"));
         assertNotNull(mod.getSetting("single_slot_mode"));
+        assertNotNull(mod.getSetting("single_slot"));
 
         // Test prefer_silk sync
         BooleanSetting silkSetting = (BooleanSetting) mod.getSetting("prefer_silk");
@@ -272,9 +273,24 @@ public class UtilityModulesMigrationTest {
 
         // Test single slot mode sync
         BooleanSetting singleSlot = (BooleanSetting) mod.getSetting("single_slot_mode");
+        EnumSetting singleSlotSelector = (EnumSetting) mod.getSetting("single_slot");
+        assertNotNull(singleSlotSelector);
+        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"), singleSlotSelector.getOptions());
+
+        singleSlot.set(false);
+        assertFalse(config.autoToolSingleSlotMode);
+        assertFalse(AutoToolClient.CONFIG.singleSlotMode);
+        assertFalse(singleSlotSelector.isVisible());
+
         singleSlot.set(true);
         assertTrue(config.autoToolSingleSlotMode);
         assertTrue(AutoToolClient.CONFIG.singleSlotMode);
+        assertTrue(singleSlotSelector.isVisible());
+
+        singleSlotSelector.set("4");
+        assertEquals(3, config.autoToolSingleSlot);
+        assertEquals(3, AutoToolClient.CONFIG.singleSlot);
+
         singleSlot.set(false);
         assertFalse(config.autoToolSingleSlotMode);
         assertFalse(AutoToolClient.CONFIG.singleSlotMode);
@@ -434,6 +450,7 @@ public class UtilityModulesMigrationTest {
             assertTrue(ruJson.contains("\"activity.setting.utility.lock_while_mining\": \"Блокировка при копании\""));
             assertTrue(ruJson.contains("\"activity.setting.utility.legit_mode\": \"Легитный режим\""));
             assertTrue(ruJson.contains("\"activity.setting.utility.single_slot_mode\": \"Один слот\""));
+            assertTrue(ruJson.contains("\"activity.setting.utility.single_slot\": \"Слот для свапа\""));
             assertTrue(ruJson.contains("\"activity.setting.utility.phrase\": \"Фраза GG\""));
             assertTrue(ruJson.contains("\"activity.setting.utility.random_order\": \"Случайный порядок\""));
             assertTrue(ruJson.contains("\"activity.setting.utility.delay_ms\": \"Задержка отправки\""));
@@ -463,6 +480,7 @@ public class UtilityModulesMigrationTest {
             assertTrue(enJson.contains("\"activity.setting.utility.lock_while_mining\": \"Lock While Mining\""));
             assertTrue(enJson.contains("\"activity.setting.utility.legit_mode\": \"Legit Mode\""));
             assertTrue(enJson.contains("\"activity.setting.utility.single_slot_mode\": \"Single Slot Mode\""));
+            assertTrue(enJson.contains("\"activity.setting.utility.single_slot\": \"Swap Slot\""));
             assertTrue(enJson.contains("\"activity.setting.utility.phrase\": \"GG Phrase\""));
             assertTrue(enJson.contains("\"activity.setting.utility.random_order\": \"Random Order\""));
             assertTrue(enJson.contains("\"activity.setting.utility.delay_ms\": \"Send Delay\""));
@@ -519,11 +537,15 @@ public class UtilityModulesMigrationTest {
         src.autoToolPreferSilkTouch = true;
         src.autoToolLegitMode = false;
         src.autoToolSingleSlotMode = true;
+        src.autoToolSingleSlot = 3;
         src.autoGGSendOnKill = false;
         src.autoGGDelayMs = 1500.0;
         src.cartHudEnabled = false;
         src.cartHudCustomX = 180;
         src.cartHudCustomY = 240;
+        src.hudCustomX = 120;
+        src.hudCustomY = 80;
+        src.hudShowActiveModules = false;
 
         ActivityConfig dst = new ActivityConfig();
         PresetSerializer.copySettings(src, dst);
@@ -535,11 +557,15 @@ public class UtilityModulesMigrationTest {
         assertEquals(src.autoToolPreferSilkTouch, dst.autoToolPreferSilkTouch);
         assertEquals(src.autoToolLegitMode, dst.autoToolLegitMode);
         assertEquals(src.autoToolSingleSlotMode, dst.autoToolSingleSlotMode);
+        assertEquals(src.autoToolSingleSlot, dst.autoToolSingleSlot);
         assertEquals(src.autoGGSendOnKill, dst.autoGGSendOnKill);
         assertEquals(src.autoGGDelayMs, dst.autoGGDelayMs, 0.001);
         assertEquals(src.cartHudEnabled, dst.cartHudEnabled);
         assertEquals(src.cartHudCustomX, dst.cartHudCustomX);
         assertEquals(src.cartHudCustomY, dst.cartHudCustomY);
+        assertEquals(src.hudCustomX, dst.hudCustomX);
+        assertEquals(src.hudCustomY, dst.hudCustomY);
+        assertEquals(src.hudShowActiveModules, dst.hudShowActiveModules);
     }
 
     @Test
@@ -588,6 +614,18 @@ public class UtilityModulesMigrationTest {
             assertNotNull(dev.hpreaper.HpHudEditorScreen.class.getConstructor());
             if (net.minecraft.client.MinecraftClient.getInstance() != null) {
                 dev.hpreaper.HpHudEditorScreen screen = new dev.hpreaper.HpHudEditorScreen(null);
+                assertNotNull(screen);
+            }
+        });
+    }
+
+    @Test
+    void testNivoratHudEditorScreenConstruction() {
+        assertDoesNotThrow(() -> {
+            assertNotNull(activity.client.gui.hud.NivoratHudEditorScreen.class.getConstructor(net.minecraft.client.gui.screen.Screen.class));
+            assertNotNull(activity.client.gui.hud.NivoratHudEditorScreen.class.getConstructor());
+            if (net.minecraft.client.MinecraftClient.getInstance() != null) {
+                activity.client.gui.hud.NivoratHudEditorScreen screen = new activity.client.gui.hud.NivoratHudEditorScreen(null);
                 assertNotNull(screen);
             }
         });

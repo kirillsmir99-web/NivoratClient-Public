@@ -119,23 +119,23 @@ public class DefenseModulesMigrationTest {
 
         // Trigger hearts sync
         NumberSetting triggerSetting = (NumberSetting) mod.getSetting("trigger_hearts");
-        assertEquals(1.0, triggerSetting.getMin(), 0.001);
-        assertEquals(9.0, triggerSetting.getMax(), 0.001);
-        assertEquals(1.0, triggerSetting.getStep(), 0.001);
-        assertTrue(triggerSetting.isIntegerOnly());
-        triggerSetting.set(4.0);
-        assertEquals(4.0, config.autoTotemTriggerHearts, 0.001);
-        assertEquals(4, AutoTotemConfig.triggerHearts);
+        assertEquals(0.5, triggerSetting.getMin(), 0.001);
+        assertEquals(10.0, triggerSetting.getMax(), 0.001);
+        assertEquals(0.5, triggerSetting.getStep(), 0.001);
+        assertFalse(triggerSetting.isIntegerOnly());
+        triggerSetting.set(4.5);
+        assertEquals(4.5, config.autoTotemTriggerHearts, 0.001);
+        assertEquals(4.5, AutoTotemConfig.triggerHearts, 0.001);
 
         // Restore hearts sync
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
-        assertEquals(1.0, restoreSetting.getMin(), 0.001);
+        assertEquals(0.5, restoreSetting.getMin(), 0.001);
         assertEquals(10.0, restoreSetting.getMax(), 0.001);
-        assertEquals(1.0, restoreSetting.getStep(), 0.001);
-        assertTrue(restoreSetting.isIntegerOnly());
-        restoreSetting.set(8.0);
-        assertEquals(8.0, config.autoTotemRestoreHearts, 0.001);
-        assertEquals(8, AutoTotemConfig.restoreHearts);
+        assertEquals(0.5, restoreSetting.getStep(), 0.001);
+        assertFalse(restoreSetting.isIntegerOnly());
+        restoreSetting.set(8.5);
+        assertEquals(8.5, config.autoTotemRestoreHearts, 0.001);
+        assertEquals(8.5, AutoTotemConfig.restoreHearts, 0.001);
 
         // Chance sync
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
@@ -186,6 +186,36 @@ public class DefenseModulesMigrationTest {
     }
 
     @Test
+    void testAutoTotemFractionalHearts() {
+        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
+        assertNotNull(mod);
+        ActivityConfig config = ActivityConfigManager.getConfig();
+
+        NumberSetting triggerSetting = (NumberSetting) mod.getSetting("trigger_hearts");
+        NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
+
+        // 0.5 ❤ threshold
+        triggerSetting.set(0.5);
+        assertEquals(0.5, config.autoTotemTriggerHearts, 0.001);
+        assertEquals(0.5, AutoTotemConfig.triggerHearts, 0.001);
+
+        // 1.5 ❤ threshold
+        triggerSetting.set(1.5);
+        assertEquals(1.5, config.autoTotemTriggerHearts, 0.001);
+        assertEquals(1.5, AutoTotemConfig.triggerHearts, 0.001);
+
+        // 2.5 ❤ threshold
+        triggerSetting.set(2.5);
+        assertEquals(2.5, config.autoTotemTriggerHearts, 0.001);
+        assertEquals(2.5, AutoTotemConfig.triggerHearts, 0.001);
+
+        // 5.5 ❤ restore threshold
+        restoreSetting.set(5.5);
+        assertEquals(5.5, config.autoTotemRestoreHearts, 0.001);
+        assertEquals(5.5, AutoTotemConfig.restoreHearts, 0.001);
+    }
+
+    @Test
     void testAutoCartSettingsAndEngineSync() {
         IModule mod = ModuleRegistry.get(AutoCartModule.ID);
         assertInstanceOf(AutoCartModule.class, mod);
@@ -207,6 +237,7 @@ public class DefenseModulesMigrationTest {
         assertNotNull(mod.getSetting("allow_pit_placement"));
         assertNotNull(mod.getSetting("random_delay"));
         assertNotNull(mod.getSetting("legit_mode"));
+        assertNotNull(mod.getSetting("use_mainhand_cart"));
 
         // Preset setting sync
         EnumSetting presetSetting = (EnumSetting) mod.getSetting("preset");
@@ -269,6 +300,16 @@ public class DefenseModulesMigrationTest {
         legitSetting.set(true);
         assertTrue(config.autoCartLegitMode);
         assertTrue(MorrowConfig.legitMode);
+
+        // Use main-hand cart
+        BooleanSetting useMainhandSetting = (BooleanSetting) mod.getSetting("use_mainhand_cart");
+        assertNotNull(useMainhandSetting);
+        useMainhandSetting.set(false);
+        assertFalse(config.autoCartUseMainHand);
+        assertFalse(MorrowConfig.useMainhandCart);
+        useMainhandSetting.set(true);
+        assertTrue(config.autoCartUseMainHand);
+        assertTrue(MorrowConfig.useMainhandCart);
 
         // Controller toggle
         cartMod.setEnabled(false);

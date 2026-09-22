@@ -34,6 +34,8 @@ public final class ShieldAxeController {
     private int targetDelayTicks = 0;
     private int restoreDelayTicks = 0;
     private int cooldownTicks = 0;
+    private UUID trackingShieldTargetId = null;
+    private long shieldSeenStartTimeMs = 0L;
 
     public ShieldAxeController() {}
 
@@ -115,28 +117,51 @@ public final class ShieldAxeController {
 
     private void handleIdle(MinecraftClient client) {
         if (cooldownTicks > 0 || client.currentScreen != null || client.player == null) {
+            trackingShieldTargetId = null;
+            shieldSeenStartTimeMs = 0L;
             return;
         }
 
         if (isPlayerBusy(client.player)) {
+            trackingShieldTargetId = null;
+            shieldSeenStartTimeMs = 0L;
             return;
         }
 
         if (net.fabricmc.pack.api.CombatLockManager.isLocked(net.fabricmc.pack.api.CombatLockManager.SUNDER)) {
+            trackingShieldTargetId = null;
+            shieldSeenStartTimeMs = 0L;
             return;
         }
 
         if (dev.sunder.SunderConfig.enabled && !client.player.isOnGround()) {
+            trackingShieldTargetId = null;
+            shieldSeenStartTimeMs = 0L;
             return;
         }
 
         int axeSlot = findAxeHotbarSlot(client.player);
         if (axeSlot < 0) {
+            trackingShieldTargetId = null;
+            shieldSeenStartTimeMs = 0L;
             return;
         }
 
         PlayerEntity target = findBlockingPlayer(client);
         if (target == null) {
+            trackingShieldTargetId = null;
+            shieldSeenStartTimeMs = 0L;
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        if (trackingShieldTargetId == null || !trackingShieldTargetId.equals(target.getUuid())) {
+            trackingShieldTargetId = target.getUuid();
+            shieldSeenStartTimeMs = now;
+        }
+
+        long reactionDelayMs = (long) (ShieldBreakerConfig.reactionDelaySec * 1000.0);
+        if (reactionDelayMs > 0 && (now - shieldSeenStartTimeMs) < reactionDelayMs) {
             return;
         }
 
@@ -391,6 +416,8 @@ public final class ShieldAxeController {
         stageTicks = 0;
         targetDelayTicks = 0;
         restoreDelayTicks = 0;
+        trackingShieldTargetId = null;
+        shieldSeenStartTimeMs = 0L;
         net.fabricmc.pack.api.CombatLockManager.setLock(COMBO_LOCK_PROPERTY, false);
     }
 

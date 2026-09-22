@@ -12,6 +12,7 @@ public final class AutoToolConfig {
     
     
     public boolean singleSlotMode = false;     
+    public int singleSlot = 0;
     public boolean legitMode = true;           
     
     

@@ -178,6 +178,22 @@ public class AutoPearlCatchModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_jitter"),
+                Text.translatable("activity.setting.combat.random_jitter.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoPearlCatchRandomDelay;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoPearlCatchRandomDelay = val;
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         // 3. ADVANCED - Legit mode is strictly last
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,

@@ -8,6 +8,7 @@ import activity.client.module.api.ModuleMetadata;
 import activity.client.module.api.NivoratModule;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
+import java.util.List;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -192,7 +193,7 @@ public class AutoToolModule extends NivoratModule {
                 }
         );
 
-        registerBoolean("single_slot_mode", Text.translatable("activity.setting.utility.single_slot_mode"),
+        activity.client.module.setting.BooleanSetting singleSlotSetting = registerBoolean("single_slot_mode", Text.translatable("activity.setting.utility.single_slot_mode"),
                 Text.translatable("activity.setting.utility.single_slot_mode.desc"), SettingGroup.ADVANCED,
                 false,
                 () -> {
@@ -208,6 +209,28 @@ public class AutoToolModule extends NivoratModule {
                     }
                 }
         );
+
+        registerEnum("single_slot", Text.translatable("activity.setting.utility.single_slot"),
+                Text.translatable("activity.setting.utility.single_slot.desc"), SettingGroup.ADVANCED,
+                List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"), "1",
+                opt -> Text.translatable("activity.setting.utility.single_slot.slot", opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? String.valueOf(c.autoToolSingleSlot + 1) : "1";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        try {
+                            c.autoToolSingleSlot = Math.max(0, Math.min(8, Integer.parseInt(val) - 1));
+                        } catch (Exception e) {
+                            c.autoToolSingleSlot = 0;
+                        }
+                        syncEngineConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(singleSlotSetting);
     }
 
     @Override
@@ -232,6 +255,7 @@ public class AutoToolModule extends NivoratModule {
         AutoToolClient.CONFIG.durabilitySaver = c.autoToolDurabilitySaver;
         AutoToolClient.CONFIG.legitMode = c.autoToolLegitMode;
         AutoToolClient.CONFIG.singleSlotMode = c.autoToolSingleSlotMode;
+        AutoToolClient.CONFIG.singleSlot = c.autoToolSingleSlot;
         AutoToolClient.CONFIG.ignoreInstantBreak = c.autoToolIgnoreInstantBreak;
         AutoToolClient.CONFIG.lockWhileMining = c.autoToolLockWhileMining;
     }
@@ -282,6 +306,7 @@ public class AutoToolModule extends NivoratModule {
             c.autoToolRestorePrevious = config.autoToolRestorePrevious;
             c.autoToolPreferSilkTouch = config.autoToolPreferSilkTouch;
             c.autoToolSingleSlotMode = config.autoToolSingleSlotMode;
+            c.autoToolSingleSlot = config.autoToolSingleSlot;
             c.autoToolLegitMode = config.autoToolLegitMode;
             c.autoToolLockWhileMining = config.autoToolLockWhileMining;
             c.autoToolDurabilityThreshold = config.autoToolDurabilityThreshold;
@@ -303,6 +328,7 @@ public class AutoToolModule extends NivoratModule {
             config.autoToolRestorePrevious = c.autoToolRestorePrevious;
             config.autoToolPreferSilkTouch = c.autoToolPreferSilkTouch;
             config.autoToolSingleSlotMode = c.autoToolSingleSlotMode;
+            config.autoToolSingleSlot = c.autoToolSingleSlot;
             config.autoToolLegitMode = c.autoToolLegitMode;
             config.autoToolLockWhileMining = c.autoToolLockWhileMining;
             config.autoToolDurabilityThreshold = c.autoToolDurabilityThreshold;

@@ -45,6 +45,7 @@
   "autoShieldbreakerChance": 100.0,
   "autoShieldbreakerSwitchDelayMs": 50.0,
   "autoShieldbreakerRestoreDelayMs": 50.0,
+  "autoShieldbreakerReactionDelaySec": 0.0,
   "autoShieldbreakerRandomDelay": true,
   "autoShieldbreakerAbortOnManualSwitch": true,
   "autoShieldbreakerLegitMode": true,
@@ -91,6 +92,8 @@
   "autoPearlCatchRotationTimeMs": 135.0,
   "autoPearlCatchLegitMode": true,
   "autoPearlCatchHorizontalOffset": 8.0,
+  "autoPearlCatchRandomDelay": true,
+  "autoPearlCatchRandomSpreadMs": 15.0,
   "autoTotemEnabled": true,
   "autoTotemKeybind": {
     "keyCode": -1,
@@ -131,6 +134,7 @@
   "autoCartRailDelay": 2.0,
   "autoCartCartDelay": 2.0,
   "autoCartRestoreDelay": 2.0,
+  "autoCartUseMainHand": true,
   "autoAnchorEnabled": true,
   "autoAnchorKeybind": {
     "keyCode": -1,
@@ -157,6 +161,7 @@
   "cartRefillChance": 100.0,
   "cartRefillAutoClose": true,
   "cartRefillRandomDelay": true,
+  "cartRefillRandomSpreadTicks": 1.0,
   "cartRefillLegitMode": true,
   "hpReaperEnabled": true,
   "hpReaperKeybind": {
@@ -190,6 +195,7 @@
   "autoToolRestorePrevious": true,
   "autoToolLegitMode": true,
   "autoToolSingleSlotMode": false,
+  "autoToolSingleSlot": 0,
   "autoToolIgnoreInstantBreak": true,
   "autoToolLockWhileMining": true,
   "autoGGEnabled": true,
@@ -237,6 +243,9 @@
   "hudPadding": 8.0,
   "customTitle": "Activity HUD",
   "textShadow": true,
+  "hudCustomX": -1,
+  "hudCustomY": -1,
+  "hudShowActiveModules": true,
   "activeProfile": "default",
   "themeVariant": "Фирменная тёмная",
   "compactMode": false,
@@ -336,6 +345,7 @@
         "chance": 100.0,
         "switch_delay": 50.0,
         "restore_delay": 50.0,
+        "reaction_delay": 0.0,
         "random_delay": true,
         "abort_on_manual_switch": true,
         "legit_mode": true
@@ -389,7 +399,8 @@
         "restore_camera": false,
         "rotation_time_ms": 135.0,
         "legit_mode": true,
-        "horizontal_offset": 8.0
+        "horizontal_offset": 8.0,
+        "random_delay": true
       }
     },
     "auto_totem": {
@@ -437,7 +448,8 @@
         "rail_delay": 2.0,
         "cart_delay": 2.0,
         "restore_delay": 2.0,
-        "legit_mode": true
+        "legit_mode": true,
+        "use_mainhand_cart": true
       }
     },
     "auto_anchor": {
@@ -472,6 +484,7 @@
         "chance": 100.0,
         "auto_close": true,
         "random_delay": true,
+        "random_spread": 1.0,
         "legit_mode": true
       }
     },
@@ -513,6 +526,7 @@
         "restore_previous": true,
         "legit_mode": true,
         "single_slot_mode": false,
+        "single_slot": 0,
         "ignore_instant_break": true,
         "lock_while_mining": true,
         "prefer_silk": false
@@ -582,6 +596,9 @@
       "windowOpacity": 85.0,
       "panelOpacity": 65.0,
       "glassEffect": true,
+      "hudCustomX": -1,
+      "hudCustomY": -1,
+      "hudShowActiveModules": true,
       "menuKeybind": {
         "keyCode": 79,
         "ctrl": false,

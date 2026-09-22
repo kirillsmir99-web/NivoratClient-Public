@@ -64,6 +64,23 @@ public class CartRefillModule extends NivoratModule {
                 }
         );
 
+        registerNumber("random_spread", Text.translatable("activity.setting.defense.random_spread"),
+                Text.translatable("activity.setting.defense.random_spread.desc"), SettingGroup.BEHAVIOR,
+                0.0, 3.0, 0.5, " t", false, 1.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.cartRefillRandomSpreadTicks : 1.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.cartRefillRandomSpreadTicks = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerBoolean("random_delay", Text.translatable("activity.setting.defense.random_delay"),
                 Text.translatable("activity.setting.defense.random_delay.desc"), SettingGroup.BEHAVIOR,
                 true,
@@ -125,6 +142,7 @@ public class CartRefillModule extends NivoratModule {
         RefillConfig.chance = (int) c.cartRefillChance;
         RefillConfig.autoClose = c.cartRefillAutoClose;
         RefillConfig.randomDelay = c.cartRefillRandomDelay;
+        RefillConfig.randomSpreadTicks = c.cartRefillRandomSpreadTicks;
         RefillConfig.legitMode = c.cartRefillLegitMode;
     }
 
@@ -166,6 +184,7 @@ public class CartRefillModule extends NivoratModule {
             c.cartRefillChance = config.cartRefillChance;
             c.cartRefillAutoClose = config.cartRefillAutoClose;
             c.cartRefillRandomDelay = config.cartRefillRandomDelay;
+            c.cartRefillRandomSpreadTicks = config.cartRefillRandomSpreadTicks;
             c.cartRefillLegitMode = config.cartRefillLegitMode;
         }
         if (controller.isEnabled() != this.enabled) {
@@ -185,6 +204,7 @@ public class CartRefillModule extends NivoratModule {
             config.cartRefillChance = c.cartRefillChance;
             config.cartRefillAutoClose = c.cartRefillAutoClose;
             config.cartRefillRandomDelay = c.cartRefillRandomDelay;
+            config.cartRefillRandomSpreadTicks = c.cartRefillRandomSpreadTicks;
             config.cartRefillLegitMode = c.cartRefillLegitMode;
         }
         syncControllerConfig(config);

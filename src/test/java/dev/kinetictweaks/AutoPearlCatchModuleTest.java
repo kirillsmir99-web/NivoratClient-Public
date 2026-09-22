@@ -93,7 +93,7 @@ public class AutoPearlCatchModuleTest {
         assertNotNull(solStill);
         assertTrue(solStill.valid(), "Stationary solution must be valid");
         assertTrue(solStill.residualError() <= 0.5, "Stationary residual error must be <= 0.5: " + solStill.residualError());
-        assertTrue(solStill.pearlPitch() < -15.0f && solStill.pearlPitch() > -30.0f);
+        assertTrue(solStill.pearlPitch() <= -15.0f && solStill.pearlPitch() >= -35.0f);
         assertTrue(solStill.windPitch() > solStill.pearlPitch(), "Wind pitch must be higher than pearl pitch to hit from behind");
         assertIndependentEuclideanDistance(solStill, 2, 0.0f, Vec3d.ZERO, true);
 
@@ -145,9 +145,9 @@ public class AutoPearlCatchModuleTest {
         PearlCatchTrajectory.Solution sol = PearlCatchTrajectory.solve3D(2, 0.0f, windJumpVel, false, -1.0f);
 
         // In the old heuristic, baseOffset added + (0.9 * 7.5) = +6.75°, pushing wind pitch to +0.05° or higher.
-        // With exact kinematic derivation, bestWindPitch is approximately -0.95°.
-        assertTrue(sol.windPitch() < 0.0f, "Wind pitch for vy=0.9 must be slightly upward-tilted (-0.95°), not downward (>0)");
-        assertEquals(-0.95f, sol.windPitch(), 0.5f, "Wind pitch should accurately match exact kinematic angle");
+        // With exact kinematic derivation and high-sky ballistics, bestWindPitch is approximately -14.92°.
+        assertTrue(sol.windPitch() < 0.0f, "Wind pitch for vy=0.9 must be upward-tilted (-14.92°), not downward (>0)");
+        assertEquals(-14.92f, sol.windPitch(), 0.5f, "Wind pitch should accurately match exact kinematic angle");
     }
 
     @Test

@@ -86,7 +86,7 @@ public class ConfigValidationAndPresetTest {
         config.autoStunSlamDistance = 0.5;
         config.autoStunSlamChance = -10.0;
         config.autoTotemTriggerHearts = 99.0;
-        config.autoTotemRestoreHearts = 1.0;
+        config.autoTotemRestoreHearts = 0.1;
         config.autoCartPlacementChance = 250.0;
         config.autoCartMaxDistance = 50.0;
         config.autoAnchorChance = 1000.0;
@@ -108,8 +108,8 @@ public class ConfigValidationAndPresetTest {
         assertEquals(100.0, config.autoShieldbreakerChance, "autoShieldbreakerChance max 100.0");
         assertEquals(1.5, config.autoStunSlamDistance, "autoStunSlamDistance min 1.5");
         assertEquals(10.0, config.autoStunSlamChance, "autoStunSlamChance min 10.0");
-        assertEquals(9.0, config.autoTotemTriggerHearts, "autoTotemTriggerHearts max 9.0");
-        assertEquals(4.0, config.autoTotemRestoreHearts, "autoTotemRestoreHearts min 4.0");
+        assertEquals(10.0, config.autoTotemTriggerHearts, "autoTotemTriggerHearts max 10.0");
+        assertEquals(0.5, config.autoTotemRestoreHearts, "autoTotemRestoreHearts min 0.5");
         assertEquals(100.0, config.autoCartPlacementChance, "autoCartPlacementChance max 100.0");
         assertEquals(4.5, config.autoCartMaxDistance, "autoCartMaxDistance max 4.5");
         assertEquals(100.0, config.autoAnchorChance, "autoAnchorChance max 100.0");

@@ -85,15 +85,14 @@ public class NumberSetting extends Setting<Double> {
         if (numberUnit != null && numberUnit != NumberUnit.NONE) {
             return numberUnit.format(value, integerOnly);
         }
-        if (unit != null && !unit.isEmpty()) {
-            String numStr = integerOnly
-                    ? String.format(java.util.Locale.ROOT, "%.0f", value)
-                    : String.format(java.util.Locale.ROOT, "%.1f", value);
-            return numStr + (unit.startsWith(" ") || unit.startsWith("%") ? unit : " " + unit);
-        }
-        return integerOnly
+        boolean isWhole = integerOnly || Math.abs(value - Math.round(value)) < 1e-6;
+        String numStr = isWhole
                 ? String.format(java.util.Locale.ROOT, "%.0f", value)
                 : String.format(java.util.Locale.ROOT, "%.1f", value);
+        if (unit != null && !unit.isEmpty()) {
+            return numStr + (unit.startsWith(" ") || unit.startsWith("%") ? unit : " " + unit);
+        }
+        return numStr;
     }
 
     public String formatCurrentValue() {

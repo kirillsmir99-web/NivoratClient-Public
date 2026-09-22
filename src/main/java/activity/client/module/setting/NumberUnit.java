@@ -58,7 +58,8 @@ public enum NumberUnit {
      * @return formatted string (e.g. "90 ms", "2.5 bl", "75%")
      */
     public String format(double value, boolean integerOnly) {
-        String numStr = integerOnly
+        boolean isWhole = integerOnly || Math.abs(value - Math.round(value)) < 1e-6;
+        String numStr = isWhole
                 ? String.format(Locale.ROOT, "%.0f", value)
                 : String.format(Locale.ROOT, "%.1f", value);
         return numStr + suffix;

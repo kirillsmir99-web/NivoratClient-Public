@@ -41,6 +41,10 @@ build_run.ps1
 
 # Local backups
 .backups/
+backup/
+libs/
+__pycache__/
+*.pyc
 
 # Agent working files
 .agents/

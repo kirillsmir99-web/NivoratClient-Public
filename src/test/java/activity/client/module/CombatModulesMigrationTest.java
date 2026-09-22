@@ -272,6 +272,12 @@ public class CombatModulesMigrationTest {
         restoreSetting.set(60.0);
         assertEquals(60, ShieldBreakerConfig.restoreDelayMs);
 
+        assertNotNull(mod.getSetting("reaction_delay"));
+        NumberSetting reactSetting = (NumberSetting) mod.getSetting("reaction_delay");
+        reactSetting.set(0.35);
+        assertEquals(0.35, ShieldBreakerConfig.reactionDelaySec, 0.001);
+        assertEquals(0.35, config.autoShieldbreakerReactionDelaySec, 0.001);
+
         // Verify random_delay sync
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         randSetting.set(false);

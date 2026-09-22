@@ -20,6 +20,7 @@ public final class ShieldBreakerConfig {
     public static int randomMaxDelayMs = 70;
     public static int restoreDelayMs = 50;
     public static int randomMaxRestoreDelayMs = 65;
+    public static double reactionDelaySec = 0.0;
     public static int cooldownTicks = 4;
 
     private ShieldBreakerConfig() {}

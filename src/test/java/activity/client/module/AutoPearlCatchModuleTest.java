@@ -192,7 +192,7 @@ public class AutoPearlCatchModuleTest {
         assertNotNull(solStill);
         assertTrue(solStill.valid(), "3D solver must find valid solution when stationary");
         assertTrue(solStill.residualError() <= 0.5, "Stationary residual error must be <= 0.5: " + solStill.residualError());
-        assertTrue(solStill.pearlPitch() < -15.0f && solStill.pearlPitch() > -30.0f, "Pearl pitch must be in realistic launch window");
+        assertTrue(solStill.pearlPitch() <= -15.0f && solStill.pearlPitch() >= -35.0f, "Pearl pitch must be in realistic launch window");
         assertTrue(solStill.windPitch() > solStill.pearlPitch(), "Wind pitch must be higher than pearl pitch to hit from behind");
         assertTrue(solStill.interceptTick() >= 3 && solStill.interceptTick() <= 20, "Intercept tick must be within reasonable range");
 
@@ -240,13 +240,13 @@ public class AutoPearlCatchModuleTest {
     @DisplayName("PearlCatchTrajectory legacy helpers remain backward-compatible")
     void testPearlCatchTrajectoryBallistics() {
         float normalPitch = PearlCatchTrajectory.calculateOptimalPearlPitch(2, null, false);
-        assertEquals(-18.5f, normalPitch, 0.001f);
+        assertEquals(-28.0f, normalPitch, 0.001f);
 
         float sprintPitch = PearlCatchTrajectory.calculateOptimalPearlPitch(2, null, true);
-        assertEquals(-17.5f, sprintPitch, 0.001f);
+        assertEquals(-27.0f, sprintPitch, 0.001f);
 
         float delay1Pitch = PearlCatchTrajectory.calculateOptimalPearlPitch(1, null, false);
-        assertEquals(-17.5f, delay1Pitch, 0.001f);
+        assertEquals(-26.5f, delay1Pitch, 0.001f);
 
         float offsetDelay2 = PearlCatchTrajectory.calculateWindChargePitchOffset(2);
         assertEquals(8.0f, offsetDelay2, 0.001f);

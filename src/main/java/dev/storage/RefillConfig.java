@@ -14,6 +14,7 @@ public final class RefillConfig {
     public static boolean autoClose = true;
     public static boolean showHud = true;
     public static boolean randomDelay = true;
+    public static double randomSpreadTicks = 1.0;
     public static int customX = -1;
     public static int customY = -1;
 
@@ -47,6 +48,7 @@ public final class RefillConfig {
                     case "auto_close" -> autoClose = Boolean.parseBoolean(value);
                     case "show_hud" -> showHud = Boolean.parseBoolean(value);
                     case "random_delay" -> randomDelay = Boolean.parseBoolean(value);
+                    case "random_spread_ticks", "random_spread" -> randomSpreadTicks = Double.parseDouble(value);
                     case "custom_x", "hud_x" -> customX = Integer.parseInt(value);
                     case "custom_y", "hud_y" -> customY = Integer.parseInt(value);
                 }
@@ -107,6 +109,7 @@ public final class RefillConfig {
                 writer.write("auto_close=" + autoClose + "\n");
                 writer.write("show_hud=" + showHud + "\n");
                 writer.write("random_delay=" + randomDelay + "\n");
+                writer.write("random_spread_ticks=" + randomSpreadTicks + "\n");
                 writer.write("hud_x=" + customX + "\n");
                 writer.write("hud_y=" + customY + "\n");
             } catch (IOException ignored) {

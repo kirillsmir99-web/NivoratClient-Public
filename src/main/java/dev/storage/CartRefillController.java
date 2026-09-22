@@ -305,9 +305,19 @@ public final class CartRefillController {
 
     public int sampleOpenDelayTicks() {
         if (!RefillConfig.randomDelay) {
-            return Math.max(2, Math.min(4, RefillConfig.refillDelayTicks));
+            return Math.max(1, Math.min(10, RefillConfig.refillDelayTicks));
         }
-        return GaussianTimingEngine.getFastLegitRefillOpenDelayTicks();
+        if (RefillConfig.refillDelayTicks == 2 && Math.abs(RefillConfig.randomSpreadTicks - 1.0) < 0.01) {
+            return GaussianTimingEngine.getFastLegitRefillOpenDelayTicks();
+        }
+        double baseTicks = Math.max(1.0, RefillConfig.refillDelayTicks);
+        double spreadTicks = Math.max(0.0, RefillConfig.randomSpreadTicks);
+        double meanMs = baseTicks * 50.0;
+        double stdDevMs = spreadTicks * 22.0;
+        long minMs = Math.max(40L, Math.round((baseTicks - spreadTicks) * 50.0));
+        long maxMs = Math.round((baseTicks + spreadTicks) * 50.0 + 35.0);
+        long sampleMs = GaussianTimingEngine.getDelay(meanMs, stdDevMs, minMs, maxMs);
+        return Math.max(1, (int) Math.round(sampleMs / 50.0D));
     }
 
     public long sampleOpenDelayMs() {
@@ -315,14 +325,33 @@ public final class CartRefillController {
             return Math.max(GaussianTimingEngine.FAST_LEGIT_MIN_MS,
                 Math.min(GaussianTimingEngine.FAST_LEGIT_MAX_MS, RefillConfig.refillDelayTicks * 50L));
         }
-        return GaussianTimingEngine.getFastLegitRefillOpenDelayMs();
+        if (RefillConfig.refillDelayTicks == 2 && Math.abs(RefillConfig.randomSpreadTicks - 1.0) < 0.01) {
+            return GaussianTimingEngine.getFastLegitRefillOpenDelayMs();
+        }
+        double baseTicks = Math.max(1.0, RefillConfig.refillDelayTicks);
+        double spreadTicks = Math.max(0.0, RefillConfig.randomSpreadTicks);
+        double meanMs = baseTicks * 50.0;
+        double stdDevMs = spreadTicks * 22.0;
+        long minMs = Math.max(40L, Math.round((baseTicks - spreadTicks) * 50.0));
+        long maxMs = Math.round((baseTicks + spreadTicks) * 50.0 + 35.0);
+        return GaussianTimingEngine.getDelay(meanMs, stdDevMs, minMs, maxMs);
     }
 
     public int sampleSwapDelayTicks() {
         if (!RefillConfig.randomDelay) {
-            return Math.max(2, Math.min(4, RefillConfig.refillDelayTicks));
+            return Math.max(1, Math.min(10, RefillConfig.refillDelayTicks));
         }
-        return GaussianTimingEngine.getFastLegitRefillSwapDelayTicks();
+        if (RefillConfig.refillDelayTicks == 2 && Math.abs(RefillConfig.randomSpreadTicks - 1.0) < 0.01) {
+            return GaussianTimingEngine.getFastLegitRefillSwapDelayTicks();
+        }
+        double baseTicks = Math.max(1.0, RefillConfig.refillDelayTicks);
+        double spreadTicks = Math.max(0.0, RefillConfig.randomSpreadTicks);
+        double meanMs = (baseTicks + 0.2) * 50.0;
+        double stdDevMs = spreadTicks * 25.0;
+        long minMs = Math.max(40L, Math.round((baseTicks - spreadTicks) * 50.0));
+        long maxMs = Math.round((baseTicks + spreadTicks) * 50.0 + 40.0);
+        long sampleMs = GaussianTimingEngine.getDelay(meanMs, stdDevMs, minMs, maxMs);
+        return Math.max(1, (int) Math.round(sampleMs / 50.0D));
     }
 
     public long sampleSwapDelayMs() {
@@ -330,14 +359,33 @@ public final class CartRefillController {
             return Math.max(GaussianTimingEngine.FAST_LEGIT_MIN_MS,
                 Math.min(GaussianTimingEngine.FAST_LEGIT_MAX_MS, (RefillConfig.refillDelayTicks + 1) * 50L));
         }
-        return GaussianTimingEngine.getFastLegitRefillSwapDelayMs();
+        if (RefillConfig.refillDelayTicks == 2 && Math.abs(RefillConfig.randomSpreadTicks - 1.0) < 0.01) {
+            return GaussianTimingEngine.getFastLegitRefillSwapDelayMs();
+        }
+        double baseTicks = Math.max(1.0, RefillConfig.refillDelayTicks);
+        double spreadTicks = Math.max(0.0, RefillConfig.randomSpreadTicks);
+        double meanMs = (baseTicks + 0.2) * 50.0;
+        double stdDevMs = spreadTicks * 25.0;
+        long minMs = Math.max(40L, Math.round((baseTicks - spreadTicks) * 50.0));
+        long maxMs = Math.round((baseTicks + spreadTicks) * 50.0 + 40.0);
+        return GaussianTimingEngine.getDelay(meanMs, stdDevMs, minMs, maxMs);
     }
 
     public int sampleCloseDelayTicks() {
         if (!RefillConfig.randomDelay) {
-            return Math.max(2, Math.min(4, RefillConfig.refillDelayTicks));
+            return Math.max(1, Math.min(10, RefillConfig.refillDelayTicks));
         }
-        return GaussianTimingEngine.getFastLegitRefillCloseDelayTicks();
+        if (RefillConfig.refillDelayTicks == 2 && Math.abs(RefillConfig.randomSpreadTicks - 1.0) < 0.01) {
+            return GaussianTimingEngine.getFastLegitRefillCloseDelayTicks();
+        }
+        double baseTicks = Math.max(1.0, RefillConfig.refillDelayTicks);
+        double spreadTicks = Math.max(0.0, RefillConfig.randomSpreadTicks);
+        double meanMs = (baseTicks - 0.2) * 50.0;
+        double stdDevMs = spreadTicks * 20.0;
+        long minMs = Math.max(40L, Math.round((baseTicks - spreadTicks) * 50.0));
+        long maxMs = Math.round((baseTicks + spreadTicks) * 50.0 + 30.0);
+        long sampleMs = GaussianTimingEngine.getDelay(meanMs, stdDevMs, minMs, maxMs);
+        return Math.max(1, (int) Math.round(sampleMs / 50.0D));
     }
 
     public long sampleCloseDelayMs() {
@@ -345,7 +393,16 @@ public final class CartRefillController {
             return Math.max(GaussianTimingEngine.FAST_LEGIT_MIN_MS,
                 Math.min(GaussianTimingEngine.FAST_LEGIT_MAX_MS, RefillConfig.refillDelayTicks * 50L));
         }
-        return GaussianTimingEngine.getFastLegitRefillCloseDelayMs();
+        if (RefillConfig.refillDelayTicks == 2 && Math.abs(RefillConfig.randomSpreadTicks - 1.0) < 0.01) {
+            return GaussianTimingEngine.getFastLegitRefillCloseDelayMs();
+        }
+        double baseTicks = Math.max(1.0, RefillConfig.refillDelayTicks);
+        double spreadTicks = Math.max(0.0, RefillConfig.randomSpreadTicks);
+        double meanMs = (baseTicks - 0.2) * 50.0;
+        double stdDevMs = spreadTicks * 20.0;
+        long minMs = Math.max(40L, Math.round((baseTicks - spreadTicks) * 50.0));
+        long maxMs = Math.round((baseTicks + spreadTicks) * 50.0 + 30.0);
+        return GaussianTimingEngine.getDelay(meanMs, stdDevMs, minMs, maxMs);
     }
 
     public State getState() {

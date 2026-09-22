@@ -128,6 +128,10 @@ public final class PresetSerializer {
     }
 
     public static void copySettings(ActivityConfig src, ActivityConfig dst) {
+        if (src == null || dst == null) return;
+        src.syncClientSection();
+        src.syncModuleConfigEntries();
+
         // Combat
         dst.autoMaceEnabled = src.autoMaceEnabled;
         dst.autoMaceKeybind.copyFrom(src.autoMaceKeybind);
@@ -154,6 +158,7 @@ public final class PresetSerializer {
         dst.autoShieldbreakerChance = src.autoShieldbreakerChance;
         dst.autoShieldbreakerSwitchDelayMs = src.autoShieldbreakerSwitchDelayMs;
         dst.autoShieldbreakerRestoreDelayMs = src.autoShieldbreakerRestoreDelayMs;
+        dst.autoShieldbreakerReactionDelaySec = src.autoShieldbreakerReactionDelaySec;
         dst.autoShieldbreakerRandomDelay = src.autoShieldbreakerRandomDelay;
         dst.autoShieldbreakerAbortOnManualSwitch = src.autoShieldbreakerAbortOnManualSwitch;
         dst.autoShieldbreakerLegitMode = src.autoShieldbreakerLegitMode;
@@ -198,6 +203,7 @@ public final class PresetSerializer {
         dst.autoCartCartDelay = src.autoCartCartDelay;
         dst.autoCartRestoreDelay = src.autoCartRestoreDelay;
         dst.autoCartLegitMode = src.autoCartLegitMode;
+        dst.autoCartUseMainHand = src.autoCartUseMainHand;
 
         dst.autoAnchorEnabled = src.autoAnchorEnabled;
         dst.autoAnchorKeybind.copyFrom(src.autoAnchorKeybind);
@@ -242,6 +248,7 @@ public final class PresetSerializer {
         dst.autoToolRestorePrevious = src.autoToolRestorePrevious;
         dst.autoToolLegitMode = src.autoToolLegitMode;
         dst.autoToolSingleSlotMode = src.autoToolSingleSlotMode;
+        dst.autoToolSingleSlot = src.autoToolSingleSlot;
         dst.autoToolIgnoreInstantBreak = src.autoToolIgnoreInstantBreak;
         dst.autoToolLockWhileMining = src.autoToolLockWhileMining;
 
@@ -274,6 +281,9 @@ public final class PresetSerializer {
         dst.hudPadding = src.hudPadding;
         dst.customTitle = src.customTitle;
         dst.textShadow = src.textShadow;
+        dst.hudCustomX = src.hudCustomX;
+        dst.hudCustomY = src.hudCustomY;
+        dst.hudShowActiveModules = src.hudShowActiveModules;
         dst.themeVariant = src.themeVariant;
         dst.compactMode = src.compactMode;
         dst.tooltipsEnabled = src.tooltipsEnabled;
@@ -340,6 +350,9 @@ public final class PresetSerializer {
                 dst.client.ui.windowOpacity = src.client.ui.windowOpacity;
                 dst.client.ui.panelOpacity = src.client.ui.panelOpacity;
                 dst.client.ui.glassEffect = src.client.ui.glassEffect;
+                dst.client.ui.hudCustomX = src.client.ui.hudCustomX;
+                dst.client.ui.hudCustomY = src.client.ui.hudCustomY;
+                dst.client.ui.hudShowActiveModules = src.client.ui.hudShowActiveModules;
             }
             if (src.client.sound != null) {
                 dst.client.sound.soundEnabled = src.client.sound.soundEnabled;

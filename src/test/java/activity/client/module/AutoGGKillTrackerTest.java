@@ -384,4 +384,38 @@ public class AutoGGKillTrackerTest {
         AutoGGKillTracker.reset();
         assertFalse(AutoGGKillTracker.isRecentlyAttacked(targetId));
     }
+
+    @Test
+    @DisplayName("Duel results: Russian & English duel server announcements with colons parsed accurately")
+    void testDuelAnnouncementsWithColons() {
+        String local = "Nivorat";
+
+        // Wins
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Дуэль завершена! Победитель: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Дуэль окончена! Победитель: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Результаты дуэли: Победитель: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Дуэли » Победитель: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("[Дуэли] Игра окончена. Победил: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Победитель дуэли — Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Winner: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelWinMessage("Nivorat won the duel", local));
+
+        // When someone else wins, local did not win
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Дуэль завершена! Победитель: OtherGuy", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Winner: OtherGuy", local));
+
+        // Losses
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Дуэль окончена! Проигравший: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Дуэль завершена! Победитель: OtherGuy, Проиграл: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Loser: Nivorat", local));
+        assertTrue(AutoGGKillTracker.isDuelLossMessage("Winner: OtherGuy, Loser: Nivorat", local));
+
+        // When local won, it's not a loss
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Дуэль завершена! Победитель: Nivorat", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Winner: Nivorat", local));
+
+        // False positives: regular player chatting in angle brackets should NOT trigger duel win/loss
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("<RandomPlayer> Дуэль завершена! Победитель: Nivorat", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("<RandomPlayer> Дуэль окончена! Проигравший: Nivorat", local));
+    }
 }

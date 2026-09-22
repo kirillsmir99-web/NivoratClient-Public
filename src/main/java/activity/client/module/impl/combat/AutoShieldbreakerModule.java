@@ -126,6 +126,23 @@ public class AutoShieldbreakerModule extends NivoratModule {
                 }
         );
 
+        registerNumber("reaction_delay", Text.translatable("activity.setting.combat.reaction_delay"),
+                Text.translatable("activity.setting.combat.reaction_delay.desc"), SettingGroup.BEHAVIOR,
+                0.0, 2.0, 0.05, " s", false, 0.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoShieldbreakerReactionDelaySec : 0.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoShieldbreakerReactionDelaySec = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         // 3. ADVANCED
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
@@ -187,6 +204,7 @@ public class AutoShieldbreakerModule extends NivoratModule {
         ShieldBreakerConfig.chance = (int) c.autoShieldbreakerChance;
         ShieldBreakerConfig.switchDelayMs = (int) c.autoShieldbreakerSwitchDelayMs;
         ShieldBreakerConfig.restoreDelayMs = (int) c.autoShieldbreakerRestoreDelayMs;
+        ShieldBreakerConfig.reactionDelaySec = c.autoShieldbreakerReactionDelaySec;
         ShieldBreakerConfig.randomDelay = c.autoShieldbreakerRandomDelay;
         ShieldBreakerConfig.abortOnManualSwitch = c.autoShieldbreakerAbortOnManualSwitch;
         ShieldBreakerConfig.legitMode = c.autoShieldbreakerLegitMode;

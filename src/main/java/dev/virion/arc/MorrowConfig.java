@@ -25,6 +25,7 @@ public final class MorrowConfig {
     public static boolean allowPitPlacement = true;
     public static int minDelayMs = 70;
     public static int maxDelayMs = 110;
+    public static boolean useMainhandCart = true;
 
     // Presets: 0 = Fast, 1 = Balance (Medium), 2 = Safe
     public static final int PRESET_FAST = 0;
@@ -108,6 +109,7 @@ public final class MorrowConfig {
             allowSelfCart = Boolean.parseBoolean(properties.getProperty("allowSelfCart", "false"));
             minDelayMs = clamp(Integer.parseInt(properties.getProperty("minDelayMs", "70")), 10, 200);
             maxDelayMs = clamp(Integer.parseInt(properties.getProperty("maxDelayMs", "110")), 10, 300);
+            useMainhandCart = Boolean.parseBoolean(properties.getProperty("useMainhandCart", "true"));
             if (maxDelayMs < minDelayMs) maxDelayMs = minDelayMs;
         } catch (Exception ignored) {
             resetDefaults();
@@ -130,6 +132,7 @@ public final class MorrowConfig {
             properties.setProperty("allowSelfCart", String.valueOf(allowSelfCart));
             properties.setProperty("minDelayMs", String.valueOf(minDelayMs));
             properties.setProperty("maxDelayMs", String.valueOf(maxDelayMs));
+            properties.setProperty("useMainhandCart", String.valueOf(useMainhandCart));
             try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
                 properties.store(output, "AutoCart settings");
             }
@@ -146,6 +149,7 @@ public final class MorrowConfig {
         allowSelfCart = false;
         minDelayMs = 70;
         maxDelayMs = 110;
+        useMainhandCart = true;
         save();
     }
 

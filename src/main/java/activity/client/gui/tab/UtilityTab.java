@@ -4,14 +4,17 @@ import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 import activity.client.gui.ActivityScreen;
 import activity.client.gui.builder.ModuleCardBuilder;
+import activity.client.gui.component.ActivityButton;
 import activity.client.gui.component.ActivityDropdown;
 import activity.client.gui.component.ActivityLabel;
 import activity.client.gui.component.ActivitySlider;
 import activity.client.gui.component.ActivityToggle;
+import activity.client.gui.hud.NivoratHudEditorScreen;
 import activity.client.gui.icon.ActivityIcon;
 import activity.client.gui.layout.ScrollContainer;
 import activity.client.gui.theme.ActivityMetrics;
 import activity.client.module.api.IModule;
+import net.minecraft.client.MinecraftClient;
 import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleRegistry;
 import activity.client.module.setting.Setting;
@@ -93,6 +96,9 @@ public class UtilityTab extends ActivityTab {
             config.overlayEnabled = true;
             config.hudPosition = "top_right";
             config.overlayOpacity = 85.0;
+            config.hudCustomX = -1;
+            config.hudCustomY = -1;
+            config.hudShowActiveModules = true;
 
             for (IModule mod : ModuleRegistry.getByCategory(getCategory())) {
                 mod.loadFromConfig(config);
@@ -146,9 +152,9 @@ public class UtilityTab extends ActivityTab {
             }
         }
 
-        // Card 5: HUD ACTIVITY (Оверлей)
+        // Card 5: HUD NIVORATCLIENT (Оверлей)
         int curY = Math.max(col1Y, col2Y);
-        int hudRows = 3;
+        int hudRows = 5;
         int hudHeight = 22 + hudRows * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         registerModuleCard("hud_activity", createCard(container, startX, curY, rowWidth, hudHeight, Text.translatable("activity.card.utility.hud_activity")));
 
@@ -176,7 +182,22 @@ public class UtilityTab extends ActivityTab {
         addControl(container, labelHud);
         addControl(container, toggleHud);
 
-        // Row 5.2: HUD Anchor Dropdown
+        // Row 5.2: Show Active Modules Toggle
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        ActivityLabel labelModules = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.setting.general.hud_show_active_modules"));
+        labelModules.setMaxWidth(toggleLabelMaxW);
+        ActivityToggle toggleModules = new ActivityToggle(
+            innerStartX + fullInnerRowW - ActivityMetrics.TOGGLE_WIDTH, rowY,
+            config.hudShowActiveModules,
+            state -> {
+                config.hudShowActiveModules = state;
+                ActivityConfigManager.markDirty();
+            }
+        );
+        addControl(container, labelModules);
+        addControl(container, toggleModules);
+
+        // Row 5.3: HUD Anchor Dropdown
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelHudPos = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.setting.general.hud_anchor"));
         labelHudPos.setMaxWidth(dropdownLabelMaxW);
@@ -192,7 +213,7 @@ public class UtilityTab extends ActivityTab {
         addControl(container, labelHudPos);
         addControl(container, dropdownHudPos);
 
-        // Row 5.3: Overlay Opacity Slider
+        // Row 5.4: Overlay Opacity Slider
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelOpacity = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.setting.general.overlay_opacity"));
         labelOpacity.setMaxWidth(sliderLabelMaxW);
@@ -208,5 +229,20 @@ public class UtilityTab extends ActivityTab {
         );
         addControl(container, labelOpacity);
         addControl(container, sliderOpacity);
+
+        // Row 5.5: Open HUD Editor Button
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        ActivityButton btnOpenEditor = new ActivityButton(
+            innerStartX, rowY, fullInnerRowW, ActivityMetrics.CONTROL_HEIGHT,
+            Text.translatable("activity.setting.general.open_hud_editor"),
+            ActivityButton.Variant.SECONDARY,
+            btn -> {
+                MinecraftClient mc = MinecraftClient.getInstance();
+                if (mc != null) {
+                    mc.setScreen(new NivoratHudEditorScreen(screen));
+                }
+            }
+        );
+        addControl(container, btnOpenEditor);
     }
 }

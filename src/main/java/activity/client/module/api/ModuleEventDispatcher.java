@@ -194,6 +194,10 @@ public final class ModuleEventDispatcher {
             return;
         }
 
+        try {
+            activity.client.gui.hud.ActivityHudOverlay.render(context, tickCounter);
+        } catch (Throwable ignored) {}
+
         IModule[] modules = activeHudModules;
         if (modules.length == 0) return;
 

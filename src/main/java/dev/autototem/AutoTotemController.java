@@ -33,6 +33,8 @@ public final class AutoTotemController {
     private int lastTotemHotbarSlot = -1;
     private int savedMainSlot = -1;
     private boolean userCancelled = false;
+    private long userCancelledTime = 0L;
+    private float lastHp = 20.0F;
     private boolean awaitingHealAfterPop = false;
     private int userOverrideCount = 0;
     private int lastControllerAssignedSlot = -1;
@@ -66,58 +68,69 @@ public final class AutoTotemController {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.player == null || !client.player.isAlive()) return;
 
-        // Immediately return to the previous slot (e.g. sword) on pop
-        if (savedMainSlot >= 0 && savedMainSlot < 9) {
-            SafeSlotManager.selectSlot(client, savedMainSlot);
-        } else {
-            int weaponSlot = findPreferredWeaponSlot(client.player);
-            if (weaponSlot >= 0 && weaponSlot < 9) {
-                SafeSlotManager.selectSlot(client, weaponSlot);
-            }
-        }
-        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
-        awaitingHealAfterPop = true;
+        float hp = client.player.getHealth();
+        float triggerHp = (float) (AutoTotemConfig.triggerHearts * 2.0);
+
         userOverrideCount = 0;
+        awaitingHealAfterPop = false;
 
-        if (AutoTotemConfig.mode == 3) {
-            // Mode 3: Crystal - refill into designated crystal slot
-            int crystalSlot = getDesignatedCrystalSlot(client.player);
-            if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
-                startRefill(client, crystalSlot);
-            } else {
-                clear();
+        // Mode 1: Main Hand or Mode 3: Crystal
+        if (AutoTotemConfig.mode == 1 || AutoTotemConfig.mode == 3) {
+            int nextTotem = findHotbarTotem(client.player);
+            if (nextTotem >= 0) {
+                // If another totem is readily available in hotbar, equip it immediately!
+                heldTotemHotbarSlot = nextTotem;
+                lastTotemHotbarSlot = nextTotem;
+                lastControllerAssignedSlot = nextTotem;
+                userCancelled = false;
+                net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
+                SafeSlotManager.selectSlot(client, nextTotem);
+                state = State.HOLD_IN_HAND;
+                return;
             }
-            return;
-        }
 
-        if (state == State.HOLD_IN_HAND || AutoTotemConfig.mode == 1) {
+            // No totem in hotbar; if inventory has totems, trigger auto-refill
             if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
-                int targetRefill = resolveRefillTargetSlot(client.player, heldTotemHotbarSlot);
+                int targetRefill = (AutoTotemConfig.mode == 3)
+                        ? getDesignatedCrystalSlot(client.player)
+                        : resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
                 if (targetRefill >= 0) {
                     startRefill(client, targetRefill);
-                } else {
-                    clear();
+                    return;
                 }
-            } else {
-                clear();
             }
+
+            // No totems left anywhere, restore weapon
+            int weaponSlot = savedMainSlot >= 0 ? savedMainSlot : findPreferredWeaponSlot(client.player);
+            SafeSlotManager.selectSlot(client, weaponSlot);
+            clear();
             return;
         }
 
-        if (state == State.ACTIVE) {
+        // Mode 2: Offhand
+        if (AutoTotemConfig.mode == 2) {
+            int nextTotem = findHotbarTotem(client.player);
+            if (nextTotem >= 0 && hp <= triggerHp) {
+                swappedHotbarSlot = nextTotem;
+                lastTotemHotbarSlot = nextTotem;
+                SafeSlotManager.selectSlot(client, swappedHotbarSlot);
+                timer = 1;
+                state = State.SWAP_OFFHAND;
+                return;
+            }
+
+            if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
+                int targetRefill = resolveRefillTargetSlot(client.player, swappedHotbarSlot);
+                if (targetRefill >= 0) {
+                    startRefill(client, targetRefill);
+                    return;
+                }
+            }
+
             if (AutoTotemConfig.returnOnPop && swappedHotbarSlot >= 0) {
                 state = State.RESTORE_SWAP_SELECT;
             } else {
-                if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
-                    int targetRefill = resolveRefillTargetSlot(client.player, swappedHotbarSlot);
-                    if (targetRefill >= 0) {
-                        startRefill(client, targetRefill);
-                    } else {
-                        clear();
-                    }
-                } else {
-                    clear();
-                }
+                clear();
             }
         }
     }
@@ -135,15 +148,16 @@ public final class AutoTotemController {
         long now = System.currentTimeMillis();
         float hp = client.player.getHealth();
         float maxHp = client.player.getMaxHealth();
-        float triggerHp = AutoTotemConfig.triggerHearts * 2.0F;
-        float restoreHp = AutoTotemConfig.restoreHearts * 2.0F;
+        float triggerHp = (float) (AutoTotemConfig.triggerHearts * 2.0);
+        float restoreHp = (float) (AutoTotemConfig.restoreHearts * 2.0);
 
         boolean isHealed = (hp >= maxHp - 1.0F) || (restoreHp > triggerHp && hp >= restoreHp);
-        if (isHealed) {
+        if (isHealed || (userCancelled && (now - userCancelledTime > 1500L || hp < lastHp - 0.5F))) {
             userCancelled = false;
             userOverrideCount = 0;
             awaitingHealAfterPop = false;
         }
+        lastHp = hp;
 
         switch (state) {
             case WAITING_REACTION -> {
@@ -193,21 +207,30 @@ public final class AutoTotemController {
 
                 if (!slotHasTotem) {
                     // Totem in target slot was consumed/popped!
-                    if (savedMainSlot >= 0 && savedMainSlot < 9) {
-                        SafeSlotManager.selectSlot(client, savedMainSlot);
-                    } else {
-                        int weaponSlot = findPreferredWeaponSlot(client.player);
-                        if (weaponSlot >= 0 && weaponSlot < 9) {
-                            SafeSlotManager.selectSlot(client, weaponSlot);
-                        }
+                    int nextTotem = findHotbarTotem(client.player);
+                    if (nextTotem >= 0 && hp <= triggerHp) {
+                        heldTotemHotbarSlot = nextTotem;
+                        lastTotemHotbarSlot = nextTotem;
+                        lastControllerAssignedSlot = nextTotem;
+                        userOverrideCount = 0;
+                        userCancelled = false;
+                        SafeSlotManager.selectSlot(client, nextTotem);
+                        return;
                     }
-                    net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
-                    awaitingHealAfterPop = true;
-                    userOverrideCount = 0;
 
+                    userOverrideCount = 0;
                     if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
                         startRefill(client, targetSlot);
                     } else {
+                        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
+                        if (savedMainSlot >= 0 && savedMainSlot < 9) {
+                            SafeSlotManager.selectSlot(client, savedMainSlot);
+                        } else {
+                            int weaponSlot = findPreferredWeaponSlot(client.player);
+                            if (weaponSlot >= 0 && weaponSlot < 9) {
+                                SafeSlotManager.selectSlot(client, weaponSlot);
+                            }
+                        }
                         clear();
                     }
                     return;
@@ -224,6 +247,7 @@ public final class AutoTotemController {
                     } else {
                         // 2nd attempt: mod yields to player, allows keeping the chosen slot
                         userCancelled = true;
+                        userCancelledTime = now;
                         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
                         state = State.IDLE;
                         return;
@@ -391,11 +415,9 @@ public final class AutoTotemController {
                     int empty = findEmptyHotbarSlot(client.player);
                     if (empty >= 0) {
                         targetHotbar = empty;
-                    } else {
-                        // Protect user's weapons/items by aborting refill if no empty slot exists
-                        finishRefill(client);
-                        return;
                     }
+                    // Continue with targetHotbar! SlotActionType.SWAP safely exchanges the totem
+                    // with whatever item is currently in targetHotbar into player inventory.
                 }
 
                 // Stop sprinting before clicking slot (GrimAC / Vulcan anti-cheat compliance)
@@ -431,7 +453,7 @@ public final class AutoTotemController {
             }
 
             case IDLE -> {
-                if (userCancelled || awaitingHealAfterPop) {
+                if (userCancelled) {
                     return;
                 }
                 if (hp <= triggerHp) {
@@ -550,11 +572,42 @@ public final class AutoTotemController {
         }
         lastRefillTime = System.currentTimeMillis();
         openedByRefill = false;
+        int refilledSlot = refillTargetHotbarSlot;
         refillTargetHotbarSlot = -1;
         refillInvSlot = -1;
         timer = 0;
 
         if (client.player != null && client.player.isAlive()) {
+            float hp = client.player.getHealth();
+            float triggerHp = (float) (AutoTotemConfig.triggerHearts * 2.0);
+
+            if (hp <= triggerHp) {
+                if (AutoTotemConfig.mode == 1 || AutoTotemConfig.mode == 3) {
+                    int slotToHold = (refilledSlot >= 0 && refilledSlot < 9) ? refilledSlot : findHotbarTotem(client.player);
+                    if (slotToHold >= 0) {
+                        heldTotemHotbarSlot = slotToHold;
+                        lastTotemHotbarSlot = slotToHold;
+                        lastControllerAssignedSlot = slotToHold;
+                        userOverrideCount = 0;
+                        userCancelled = false;
+                        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
+                        SafeSlotManager.selectSlot(client, slotToHold);
+                        state = State.HOLD_IN_HAND;
+                        return;
+                    }
+                } else if (AutoTotemConfig.mode == 2) {
+                    int slotToSwap = (refilledSlot >= 0 && refilledSlot < 9) ? refilledSlot : findHotbarTotem(client.player);
+                    if (slotToSwap >= 0) {
+                        swappedHotbarSlot = slotToSwap;
+                        lastTotemHotbarSlot = slotToSwap;
+                        SafeSlotManager.selectSlot(client, slotToSwap);
+                        timer = 1;
+                        state = State.SWAP_OFFHAND;
+                        return;
+                    }
+                }
+            }
+
             if (savedMainSlot >= 0 && savedMainSlot < 9) {
                 SafeSlotManager.selectSlot(client, savedMainSlot);
             }
@@ -667,25 +720,27 @@ public final class AutoTotemController {
                 return target;
             }
             int empty = findEmptyHotbarSlot(player);
-            return empty >= 0 ? empty : -1;
+            return empty >= 0 ? empty : target;
         }
 
         // 2. "Auto" mode: refill into the slot where the totem was
         if (preferredSlot >= 0 && preferredSlot < 9) {
-            ItemStack stack = player.getInventory().getStack(preferredSlot);
-            if (stack.isEmpty() || stack.isOf(Items.TOTEM_OF_UNDYING)) {
-                return preferredSlot;
-            }
+            return preferredSlot;
         }
         if (lastTotemHotbarSlot >= 0 && lastTotemHotbarSlot < 9) {
-            ItemStack stack = player.getInventory().getStack(lastTotemHotbarSlot);
-            if (stack.isEmpty() || stack.isOf(Items.TOTEM_OF_UNDYING)) {
-                return lastTotemHotbarSlot;
-            }
+            return lastTotemHotbarSlot;
         }
 
         // 3. Fallback: find any empty hotbar slot
-        return findEmptyHotbarSlot(player);
+        int empty = findEmptyHotbarSlot(player);
+        if (empty >= 0) return empty;
+
+        // 4. Fallback: find non-weapon slot avoiding savedMainSlot
+        for (int i = 8; i >= 0; i--) {
+            if (savedMainSlot >= 0 && i == savedMainSlot) continue;
+            return i;
+        }
+        return 8;
     }
 
     private void clear() {

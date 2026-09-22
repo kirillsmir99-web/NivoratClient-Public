@@ -176,7 +176,7 @@ public final class AutoGGClient implements ClientModInitializer {
         if (!lower.contains("побед") && !lower.contains("выигр") && !lower.contains("won") && !lower.contains("victor")
                 && !lower.contains("убил") && !lower.contains("умер") && !lower.contains("погиб") && !lower.contains("died")
                 && !lower.contains("kill") && !lower.contains("dead") && !lower.contains("defeat") && !lower.contains("проигр")
-                && !lower.contains("поражен")
+                && !lower.contains("поражен") && !lower.contains("дуэл") && !lower.contains("duel")
                 && !lower.contains("lost") && !lower.contains("slain") && !lower.contains("ранил") && !lower.contains("одолел")) {
             return;
         }
