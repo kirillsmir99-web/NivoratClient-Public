@@ -90,7 +90,7 @@ public final class CooldownHudOverlay {
             }
 
             String timeText = entry.getFormattedRemaining();
-            int color = getCooldownColor(entry.getRemainingSeconds());
+            int color = getCooldownColor(entry.getRemainingSeconds()) | 0xFF000000;
 
             int textX = curX + ITEM_SIZE + 2;
             int textY = curY + (ITEM_HEIGHT - textRenderer.fontHeight) / 2;

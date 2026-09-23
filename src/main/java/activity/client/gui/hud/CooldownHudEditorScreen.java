@@ -21,21 +21,6 @@ import java.util.List;
 
 public final class CooldownHudEditorScreen extends Screen {
 
-    private static final int[] SHELL_RADII = { 16, 14, 12, 10, 8, 6, 4, 2 };
-    private static final float[] SHELL_WEIGHTS = { 0.0381f, 0.1084f, 0.1622f, 0.1913f, 0.1913f, 0.1622f, 0.1084f, 0.0381f };
-    private static final int[][] PRECOMPUTED_DX;
-
-    static {
-        PRECOMPUTED_DX = new int[SHELL_RADII.length][];
-        for (int i = 0; i < SHELL_RADII.length; i++) {
-            int r = SHELL_RADII[i];
-            PRECOMPUTED_DX[i] = new int[2 * r + 1];
-            for (int dy = -r; dy <= r; dy++) {
-                PRECOMPUTED_DX[i][dy + r] = (int) Math.round(Math.sqrt(r * r - dy * dy));
-            }
-        }
-    }
-
     private final Screen parent;
     private boolean isDragging = false;
     private int dragOffsetX = 0;
@@ -59,14 +44,8 @@ public final class CooldownHudEditorScreen extends Screen {
         this.parent = parent;
     }
 
-    public CooldownHudEditorScreen() {
-        this(null);
-    }
-
     @Override
     public void close() {
-        isDragging = false;
-        isPanelDragging = false;
         SoundManager.playClose();
         ActivityConfig c = ActivityConfigManager.getConfig();
         if (c != null) {
@@ -178,7 +157,12 @@ public final class CooldownHudEditorScreen extends Screen {
         int totalW = CooldownHudOverlay.calculateTotalWidth(textRenderer, mockEntries, vertical);
         int totalH = CooldownHudOverlay.calculateTotalHeight(mockEntries, vertical);
 
-        boolean insideWidget = mx >= curX - 8 && mx <= curX + totalW + 8 && my >= curY - 8 && my <= curY + totalH + 8;
+        int boxX = curX - 6;
+        int boxY = curY - 6;
+        int boxW = totalW + 12;
+        int boxH = totalH + 12;
+
+        boolean insideWidget = mx >= boxX && mx <= boxX + boxW && my >= boxY && my <= boxY + boxH;
 
         if (button == 0 && insideWidget) {
             isDragging = true;
@@ -307,22 +291,18 @@ public final class CooldownHudEditorScreen extends Screen {
             }
         }
 
-        boolean hovered = mouseX >= curX - 8 && mouseX <= curX + totalW + 8 && mouseY >= curY - 8 && mouseY <= curY + totalH + 8;
+        int boxX = curX - 6;
+        int boxY = curY - 6;
+        int boxW = totalW + 12;
+        int boxH = totalH + 12;
 
-        long timeMs = System.currentTimeMillis();
-        double phase = (timeMs % 2400L) / 2400.0 * 2.0 * Math.PI;
-        float pulse = (float) (0.5 + 0.5 * Math.sin(phase));
+        boolean hovered = mouseX >= boxX && mouseX <= boxX + boxW && mouseY >= boxY && mouseY <= boxY + boxH;
 
-        float stateMultiplier = isDragging ? 1.25f : (hovered ? 1.12f : 1.00f);
-        float peakAlpha = (0.10f + 0.08f * pulse) * stateMultiplier;
+        int fillAlpha = (isDragging || hovered) ? 0x30FFFFFF : 0x18FFFFFF;
+        ActivityGuiRenderer.fill(context, boxX, boxY, boxW, boxH, fillAlpha);
 
-        int hudCenterX = curX + totalW / 2;
-        int hudCenterY = curY + totalH / 2;
-
-        renderCircularPulse(context, hudCenterX, hudCenterY, peakAlpha);
-
-        int outlineColor = (isDragging || hovered) ? 0x80FFFFFF : 0x25FFFFFF;
-        ActivityGuiRenderer.drawBorder(context, curX - 4, curY - 4, totalW + 8, totalH + 8, outlineColor);
+        int borderColor = (isDragging || hovered) ? 0x90FFFFFF : 0x35FFFFFF;
+        ActivityGuiRenderer.drawBorder(context, boxX, boxY, boxW, boxH, borderColor);
 
         CooldownHudOverlay.renderCooldownList(context, textRenderer, mockEntries, curX, curY, vertical);
 
@@ -411,21 +391,6 @@ public final class CooldownHudEditorScreen extends Screen {
         if (textRenderer != null) {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Тяните мышкой или ПКМ"), panelX + PANEL_W / 2, panelY + 86, ActivityColors.TEXT_MUTED);
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Стрелки — подгонка"), panelX + PANEL_W / 2, panelY + 100, ActivityColors.TEXT_MUTED);
-        }
-    }
-
-    private void renderCircularPulse(DrawContext context, int cx, int cy, float peakAlpha) {
-        for (int i = 0; i < SHELL_RADII.length; i++) {
-            int r = SHELL_RADII[i];
-            int a = Math.max(0, Math.min(255, Math.round(SHELL_WEIGHTS[i] * peakAlpha * 255.0f)));
-            if (a > 0) {
-                int color = (a << 24) | 0x00FFFFFF;
-                int[] dxTable = PRECOMPUTED_DX[i];
-                for (int dy = -r; dy <= r; dy++) {
-                    int dx = dxTable[dy + r];
-                    context.fill(cx - dx, cy + dy, cx + dx + 1, cy + dy + 1, color);
-                }
-            }
         }
     }
 

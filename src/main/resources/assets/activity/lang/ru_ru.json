@@ -56,6 +56,7 @@
   "activity.card.utility.auto_gg": "AUTOGG (АВТО-GG)",
   "activity.card.utility.auto_tool": "AUTOTOOL (АВТО-ИНСТРУМЕНТ)",
   "activity.card.utility.cart_hud": "CARTHUD (ИНДИКАТОР ВАГОНЕТОК)",
+  "activity.card.utility.cooldown_hud": "COOLDOWN HUD (КУЛДАУНЫ)",
   "activity.card.utility.hp_reaper": "HPREAPER (ИНДИКАТОР HP)",
   "activity.card.utility.hud_activity": "HUD NIVORATCLIENT",
   "activity.sidebar.about": "О проекте",

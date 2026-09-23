@@ -51,27 +51,6 @@ public class CooldownHudModule extends NivoratModule {
                 }
         );
 
-        registerDouble(
-                "min_duration",
-                Text.literal("Минимальный порог (сек)"),
-                Text.literal("Игнорировать ванильные микро-КД меньше этого значения (например, 0.5с заряда ветра)"),
-                SettingGroup.GENERAL,
-                0.5,
-                10.0,
-                0.5,
-                NumberUnit.SECONDS,
-                2.5,
-                () -> this.minDuration,
-                val -> {
-                    this.minDuration = val;
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.cooldownHudMinDuration = val;
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        );
-
         registerAction("open_editor", Text.literal("Открыть редактор HUD"),
                 Text.literal("Интерактивное перемещение и настройка отображения кулдаунов"), SettingGroup.EXTRA,
                 () -> {
