@@ -16,10 +16,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class NivoratFontManager {
 
-    private static FontFamily activeFontFamily = FontFamily.ONEST;
+    private static FontFamily activeFontFamily = FontFamily.MINECRAFT;
     private static TypographySize activeTypographySize = TypographySize.NORMAL;
-    private static TypographyMetrics activeMetrics = TypographyMetrics.get(FontFamily.ONEST, TypographySize.NORMAL);
-    private static StyleSpriteSource activeFontSource = FontFamily.ONEST.getSpriteSource();
+    private static TypographyMetrics activeMetrics = TypographyMetrics.get(FontFamily.MINECRAFT, TypographySize.NORMAL);
+    private static StyleSpriteSource activeFontSource = FontFamily.MINECRAFT.getSpriteSource();
 
     private static final List<Runnable> CHANGE_LISTENERS = new CopyOnWriteArrayList<>();
 
@@ -32,7 +32,7 @@ public final class NivoratFontManager {
             TypographySize size = TypographySize.fromId(config.typographySize);
             setFont(family, size, false);
         } else {
-            setFont(FontFamily.ONEST, TypographySize.NORMAL, false);
+            setFont(FontFamily.MINECRAFT, TypographySize.NORMAL, false);
         }
     }
 
@@ -122,7 +122,7 @@ public final class NivoratFontManager {
     }
 
     public static void setFont(FontFamily family, TypographySize size, boolean saveConfig) {
-        FontFamily targetFamily = family != null ? family : FontFamily.ONEST;
+        FontFamily targetFamily = family != null ? family : FontFamily.MINECRAFT;
         TypographySize targetSize = size != null ? size : TypographySize.NORMAL;
 
         if (targetFamily != FontFamily.MINECRAFT && targetFamily != FontFamily.DEFAULT && !isFontAvailable(targetFamily)) {

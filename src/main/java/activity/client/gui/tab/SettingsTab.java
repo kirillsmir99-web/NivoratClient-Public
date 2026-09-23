@@ -75,7 +75,7 @@ public class SettingsTab extends ActivityTab {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null) {
             config.menuKeybind.set(org.lwjgl.glfw.GLFW.GLFW_KEY_O, false, false, false);
-            config.fontFamily = "onest";
+            config.fontFamily = "minecraft";
             config.typographySize = "normal";
             config.windowOpacity = 85.0;
             config.panelOpacity = 65.0;
@@ -336,9 +336,10 @@ public class SettingsTab extends ActivityTab {
         int curY3 = col1Y;
 
         List<Preset> presets = PresetManager.getPresets();
-        Preset currentPreset = PresetManager.getPresetById(config.activeProfile);
-        if (currentPreset == null) currentPreset = PresetManager.getPresetByName(config.activeProfile);
-        if (currentPreset == null) currentPreset = PresetManager.getDefaultPreset();
+        Preset resolvedPreset = PresetManager.getPresetById(config.activeProfile);
+        if (resolvedPreset == null) resolvedPreset = PresetManager.getPresetByName(config.activeProfile);
+        if (resolvedPreset == null) resolvedPreset = PresetManager.getDefaultPreset();
+        final Preset currentPreset = resolvedPreset;
 
         boolean isCustom = !currentPreset.isBuiltin();
         boolean compactButtons = innerRowW < 240;
@@ -352,9 +353,9 @@ public class SettingsTab extends ActivityTab {
         rowY = curY3 + 22;
 
         ActivityLabel labelPreset = new ActivityLabel(innerStartX3, rowY + 3, Text.translatable("activity.setting.settings.active_preset"));
-        int trashBtnW = ActivityMetrics.CONTROL_HEIGHT;
+        int presetActionBtnW = ActivityMetrics.CONTROL_HEIGHT;
         int presetDropdownW = Math.min(160, (int) (innerRowW * 0.55f));
-        int activeDropdownW = isCustom ? (presetDropdownW - trashBtnW - 4) : presetDropdownW;
+        int activeDropdownW = isCustom ? (presetDropdownW - presetActionBtnW * 2 - 8) : presetDropdownW;
         labelPreset.setMaxWidth(Math.max(20, innerRowW - presetDropdownW - 6));
 
         ActivityDropdown<Preset> dropdownPreset = new ActivityDropdown<>(
@@ -372,10 +373,55 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelPreset);
         addControl(container, dropdownPreset);
 
+        Runnable showRenameModal = () -> {
+            Preset toRename = currentPreset;
+            if (toRename == null || toRename.isBuiltin()) return;
+            screen.getModalManager().showTextInput(
+                Text.translatable("activity.modal.rename_preset.title"),
+                Text.translatable("activity.modal.rename_preset.desc", toRename.getName()),
+                Text.translatable("activity.modal.preset_name.placeholder"),
+                toRename.getName(),
+                newName -> {
+                    if (newName == null || newName.trim().isEmpty() || newName.trim().length() > 32) return false;
+                    String clean = newName.trim();
+                    if (clean.equalsIgnoreCase(toRename.getName())) return true;
+                    return !PresetManager.hasPresetNamed(clean);
+                },
+                newName -> {
+                    String clean = newName.trim();
+                    if (!clean.equalsIgnoreCase(toRename.getName())) {
+                        PresetManager.renamePreset(toRename, clean);
+                        this.presetStatusText = Text.translatable("activity.status.preset_renamed");
+                        this.presetStatusColor = ActivityColors.SUCCESS;
+                        screen.reloadCurrentTab();
+                    }
+                },
+                null
+            );
+        };
+
+        dropdownPreset.setOnRightClick(p -> {
+            if (p != null && !p.isBuiltin()) {
+                showRenameModal.run();
+            }
+        });
+
         if (isCustom) {
+            ActivityButton btnRename = new ActivityButton(
+                innerStartX3 + innerRowW - presetActionBtnW * 2 - 4, rowY, presetActionBtnW, ActivityMetrics.CONTROL_HEIGHT,
+                ActivityIcon.EDIT,
+                Text.empty(),
+                ActivityButton.Variant.SECONDARY,
+                btn -> showRenameModal.run()
+            );
+            btnRename.setOnRightClick(btn -> showRenameModal.run());
+            btnRename.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
+            btnRename.setTooltip(Text.translatable("activity.tooltip.rename_preset"));
+            addControl(container, btnRename);
+
             Preset toDelete = currentPreset;
             ActivityButton btnDelete = new ActivityButton(
-                innerStartX3 + innerRowW - trashBtnW, rowY, trashBtnW, ActivityMetrics.CONTROL_HEIGHT,
+                innerStartX3 + innerRowW - presetActionBtnW, rowY, presetActionBtnW, ActivityMetrics.CONTROL_HEIGHT,
                 ActivityIcon.TRASH,
                 Text.empty(),
                 ActivityButton.Variant.DANGER,
@@ -400,6 +446,7 @@ public class SettingsTab extends ActivityTab {
                 }
             );
             btnDelete.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
+            btnDelete.setTooltip(Text.translatable("activity.button.delete_preset"));
             addControl(container, btnDelete);
         }
 

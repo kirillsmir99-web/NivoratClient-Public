@@ -101,7 +101,8 @@ public final class Keybind {
         boolean shiftDown = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
         boolean altDown = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
 
-        return this.ctrl == ctrlDown && this.shift == shiftDown && this.alt == altDown;
+        if (this.ctrl && !ctrlDown) return false;
+        return this.shift == shiftDown && this.alt == altDown;
     }
 
     public boolean matchesButton(int button, int modifiers) {
@@ -112,7 +113,8 @@ public final class Keybind {
         boolean shiftDown = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
         boolean altDown = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
 
-        return this.ctrl == ctrlDown && this.shift == shiftDown && this.alt == altDown;
+        if (this.ctrl && !ctrlDown) return false;
+        return this.shift == shiftDown && this.alt == altDown;
     }
 
     public boolean matchesKeyInput(KeyInput input) {
@@ -122,7 +124,8 @@ public final class Keybind {
 
     public boolean matchesWindow(Window window, boolean ctrlDown, boolean shiftDown, boolean altDown) {
         if (isUnbound() || window == null || window.getHandle() == 0L) return false;
-        if (this.ctrl != ctrlDown || this.shift != shiftDown || this.alt != altDown) return false;
+        if (this.ctrl && !ctrlDown) return false;
+        if (this.shift != shiftDown || this.alt != altDown) return false;
 
         if (isMouseButton()) {
             int button = getMouseButton();

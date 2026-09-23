@@ -30,9 +30,9 @@ public class NivoratFontSystemTest {
         assertEquals(FontFamily.MINECRAFT, FontFamily.fromId("default"));
 
         // Fallbacks
-        assertEquals(FontFamily.ONEST, FontFamily.fromId(null));
-        assertEquals(FontFamily.ONEST, FontFamily.fromId(""));
-        assertEquals(FontFamily.ONEST, FontFamily.fromId("unknown_font_123"));
+        assertEquals(FontFamily.MINECRAFT, FontFamily.fromId(null));
+        assertEquals(FontFamily.MINECRAFT, FontFamily.fromId(""));
+        assertEquals(FontFamily.MINECRAFT, FontFamily.fromId("unknown_font_123"));
     }
 
     @Test

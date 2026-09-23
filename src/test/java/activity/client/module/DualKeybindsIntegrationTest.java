@@ -120,4 +120,42 @@ public class DualKeybindsIntegrationTest {
         setting.triggerPress(null);
         assertTrue(triggered[0], "onPress callback must be invoked when triggerPress is called");
     }
+
+    @Test
+    @DisplayName("Keybind: matchesKey matches when Ctrl is held unless Ctrl is explicitly required")
+    void testKeybindMatchingWithCtrlHeld() {
+        Keybind tabWithoutCtrl = new Keybind(GLFW.GLFW_KEY_TAB, false, false, false);
+        assertTrue(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, 0));
+        assertTrue(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_CONTROL),
+                "Keybind without Ctrl must still trigger when Ctrl is held (e.g. sprinting)");
+        assertFalse(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_SHIFT));
+        assertFalse(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_ALT));
+
+        Keybind tabWithCtrl = new Keybind(GLFW.GLFW_KEY_TAB, true, false, false);
+        assertFalse(tabWithCtrl.matchesKey(GLFW.GLFW_KEY_TAB, 0));
+        assertTrue(tabWithCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_CONTROL));
+        assertFalse(tabWithCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT));
+    }
+
+    @Test
+    @DisplayName("KeybindManager: findConflict and unbindConflict behavior")
+    void testKeybindConflictAndUnbind() {
+        AutoSpearModule spear = (AutoSpearModule) ModuleRegistry.get(AutoSpearModule.ID);
+        assertNotNull(spear);
+        KeybindSetting triggerSetting = (KeybindSetting) spear.getSetting("trigger_keybind");
+        assertNotNull(triggerSetting);
+        triggerSetting.get().set(GLFW.GLFW_KEY_TAB, false, false, false);
+
+        Keybind candidateTab = new Keybind(GLFW.GLFW_KEY_TAB, false, false, false);
+        Keybind cartKeybind = new Keybind(GLFW.GLFW_KEY_C, false, false, false);
+
+        String conflict = activity.client.module.keybind.KeybindManager.findConflict(candidateTab, cartKeybind);
+        assertNotNull(conflict, "Must find conflict when candidateTab is already used by AutoSpear");
+
+        assertNull(activity.client.module.keybind.KeybindManager.findConflict(candidateTab, triggerSetting.get()),
+                "Must not report conflict with self");
+
+        activity.client.module.keybind.KeybindManager.unbindConflict(candidateTab, cartKeybind);
+        assertTrue(triggerSetting.get().isUnbound(), "Conflicting keybind in AutoSpear must be unbound after unbindConflict");
+    }
 }

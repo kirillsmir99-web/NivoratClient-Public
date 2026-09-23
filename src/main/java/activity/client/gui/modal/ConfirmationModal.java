@@ -25,7 +25,7 @@ public class ConfirmationModal extends BaseModal {
 
     public ConfirmationModal(Text title, Text description, Text confirmText, Text cancelText,
                              boolean isDanger, Runnable onConfirm, Runnable onCancel) {
-        super(title, 290, 136);
+        super(title, 310, 144);
         this.description = description != null ? description : Text.empty();
         this.confirmText = confirmText != null ? confirmText : Text.translatable("activity.button.confirm");
         this.cancelText = cancelText != null ? cancelText : Text.translatable("activity.button.cancel");
@@ -90,6 +90,11 @@ public class ConfirmationModal extends BaseModal {
 
     @Override
     protected void renderContent(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (this.isDanger) {
+            activity.client.gui.render.ActivityGuiRenderer.drawBorder(context, this.x, this.y, this.width, this.height, ActivityColors.withAlpha(ActivityColors.DANGER, 220));
+            activity.client.gui.render.ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, 2, ActivityColors.DANGER);
+        }
+
         MinecraftClient mc = MinecraftClient.getInstance();
         TextRenderer tr = mc != null ? mc.textRenderer : null;
         if (tr == null || this.description == null) return;

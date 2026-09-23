@@ -241,11 +241,35 @@ public class ActivityKeybindButton extends ActivityComponent {
                     return false;
                 }
             } else {
-
                 boolean ctrl = hasCtrlModifier();
                 boolean shift = hasShiftModifier();
                 boolean alt = hasAltModifier();
-                this.keybind.set(Keybind.MOUSE_OFFSET - button, ctrl, shift, alt);
+                Keybind candidate = new Keybind(Keybind.MOUSE_OFFSET - button, ctrl, shift, alt);
+                if (candidate.equals(this.keybind)) {
+                    setListening(false);
+                    ActivityGuiRenderer.playClickSound();
+                    return true;
+                }
+                String conflict = activity.client.module.keybind.KeybindManager.findConflict(candidate, this.keybind);
+                if (conflict != null && MinecraftClient.getInstance().currentScreen instanceof activity.client.gui.ActivityScreen screen) {
+                    setListening(false);
+                    screen.getModalManager().showConfirmation(
+                        Text.translatable("activity.keybind.conflict.title").styled(s -> s.withColor(0xFFFF5555)),
+                        Text.translatable("activity.keybind.conflict.desc", conflict),
+                        Text.translatable("activity.keybind.conflict.rebind"),
+                        Text.translatable("activity.button.cancel"),
+                        true,
+                        () -> {
+                            activity.client.module.keybind.KeybindManager.unbindConflict(candidate, this.keybind);
+                            this.keybind.set(candidate.getKeyCode(), candidate.isCtrl(), candidate.isShift(), candidate.isAlt());
+                            notifyChanged();
+                            ActivityGuiRenderer.playClickSound();
+                        },
+                        null
+                    );
+                    return true;
+                }
+                this.keybind.set(candidate.getKeyCode(), candidate.isCtrl(), candidate.isShift(), candidate.isAlt());
                 setListening(false);
                 notifyChanged();
                 ActivityGuiRenderer.playClickSound();
@@ -292,6 +316,31 @@ public class ActivityKeybindButton extends ActivityComponent {
             boolean ctrl = input.hasCtrl() || (mods & GLFW.GLFW_MOD_CONTROL) != 0;
             boolean shift = input.hasShift() || (mods & GLFW.GLFW_MOD_SHIFT) != 0;
             boolean alt = input.hasAlt() || (mods & GLFW.GLFW_MOD_ALT) != 0;
+            Keybind candidate = new Keybind(code, ctrl, shift, alt);
+            if (candidate.equals(this.keybind)) {
+                setListening(false);
+                ActivityGuiRenderer.playClickSound();
+                return true;
+            }
+            String conflict = activity.client.module.keybind.KeybindManager.findConflict(candidate, this.keybind);
+            if (conflict != null && MinecraftClient.getInstance().currentScreen instanceof activity.client.gui.ActivityScreen screen) {
+                setListening(false);
+                screen.getModalManager().showConfirmation(
+                    Text.translatable("activity.keybind.conflict.title").styled(s -> s.withColor(0xFFFF5555)),
+                    Text.translatable("activity.keybind.conflict.desc", conflict),
+                    Text.translatable("activity.keybind.conflict.rebind"),
+                    Text.translatable("activity.button.cancel"),
+                    true,
+                    () -> {
+                        activity.client.module.keybind.KeybindManager.unbindConflict(candidate, this.keybind);
+                        this.keybind.set(candidate.getKeyCode(), candidate.isCtrl(), candidate.isShift(), candidate.isAlt());
+                        notifyChanged();
+                        ActivityGuiRenderer.playClickSound();
+                    },
+                    null
+                );
+                return true;
+            }
 
             this.keybind.set(code, ctrl, shift, alt);
             setListening(false);

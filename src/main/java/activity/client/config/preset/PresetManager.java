@@ -181,6 +181,30 @@ public final class PresetManager {
         return removed;
     }
 
+    public static synchronized boolean renamePreset(Preset preset, String newName) {
+        if (preset == null || preset.isBuiltin()) return false;
+        String cleanName = validatePresetName(newName);
+        ensureInitialized();
+        if (Preset.DEFAULT_PRESET_NAME.equalsIgnoreCase(cleanName) || "default".equalsIgnoreCase(cleanName)) {
+            return false;
+        }
+        for (Preset p : customPresets) {
+            if (p != preset && p.getName().equalsIgnoreCase(cleanName)) {
+                return false;
+            }
+        }
+        ActivityConfig cfg = ActivityConfigManager.getConfig();
+        if (cfg != null && (preset.getName().equalsIgnoreCase(cfg.activeProfile) || preset.getId().equalsIgnoreCase(cfg.activeProfile))) {
+            cfg.activeProfile = cleanName;
+            ActivityConfigManager.markDirty();
+            ActivityConfigManager.save();
+        }
+        preset.setName(cleanName);
+        preset.setUpdatedAt(System.currentTimeMillis());
+        saveAll();
+        return true;
+    }
+
     public static synchronized void applyPreset(Preset preset, ActivityConfig target) {
         if (preset == null || target == null) return;
 

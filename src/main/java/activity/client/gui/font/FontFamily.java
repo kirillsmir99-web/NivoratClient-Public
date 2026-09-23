@@ -43,7 +43,7 @@ public enum FontFamily {
 
     public static FontFamily fromId(String id) {
         if (id == null || id.isBlank()) {
-            return ONEST;
+            return MINECRAFT;
         }
         String normalized = id.trim().toLowerCase();
         if ("default".equals(normalized)) {
@@ -54,6 +54,6 @@ public enum FontFamily {
                 return family;
             }
         }
-        return ONEST;
+        return MINECRAFT;
     }
 }

@@ -37,7 +37,7 @@ public final class TypographyMetrics {
     }
 
     public static TypographyMetrics get(FontFamily family, TypographySize size) {
-        FontFamily resolvedFamily = family != null ? family : FontFamily.ONEST;
+        FontFamily resolvedFamily = family != null ? family : FontFamily.MINECRAFT;
         TypographySize resolvedSize = size != null ? size : TypographySize.NORMAL;
 
         Map<TypographySize, TypographyMetrics> sizeMap = CACHE.get(resolvedFamily);
@@ -57,7 +57,7 @@ public final class TypographyMetrics {
         int baseline = 8;
         int hPadding = 0;
 
-        switch (family != null ? family : FontFamily.ONEST) {
+        switch (family != null ? family : FontFamily.MINECRAFT) {
             case MINECRAFT, DEFAULT, RETRO_PIXEL -> {
                 baseHeight = 9;
                 vOffset = 0.0f;

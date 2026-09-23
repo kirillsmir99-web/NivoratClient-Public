@@ -25,7 +25,7 @@ public final class CooldownHudOverlay {
     }
 
     public static int getDefaultY(int screenHeight) {
-        return screenHeight - 44;
+        return screenHeight - 64;
     }
 
     public static int getEffectiveX(int screenWidth) {

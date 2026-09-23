@@ -239,6 +239,88 @@ public final class KeybindManager {
         return null;
     }
 
+    public static String findConflict(Keybind targetKeybind, Keybind currentKeybind) {
+        if (targetKeybind == null || targetKeybind.isUnbound()) return null;
+        if (targetKeybind.equals(currentKeybind)) return null;
+
+        if (!targetKeybind.isCtrl() && !targetKeybind.isShift() && !targetKeybind.isAlt() && !targetKeybind.isMouseButton()) {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.options != null && mc.options.inventoryKey != null) {
+                try {
+                    int invCode = mc.options.inventoryKey.getDefaultKey().getCode();
+                    if (targetKeybind.getKeyCode() == invCode) {
+                        return "Minecraft: Инвентарь";
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        if (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound()) {
+            if (config.menuKeybind != currentKeybind && targetKeybind.equals(config.menuKeybind)) {
+                return "NivoratClient: Меню";
+            }
+        }
+
+        for (IModule module : ModuleRegistry.getAll()) {
+            if (module == null) continue;
+
+            Keybind primary = module.getKeybind();
+            if (primary != null && primary != currentKeybind && primary.equals(targetKeybind)) {
+                return module.getDisplayName().getString();
+            }
+
+            for (Setting<?> setting : module.getSettings()) {
+                if (setting instanceof KeybindSetting ks) {
+                    Keybind sec = ks.get();
+                    if (sec != null && sec != currentKeybind && targetKeybind.equals(sec)) {
+                        return module.getDisplayName().getString() + " (" + ks.getName().getString() + ")";
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public static void unbindConflict(Keybind targetKeybind, Keybind currentKeybind) {
+        if (targetKeybind == null || targetKeybind.isUnbound()) return;
+
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        if (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound()) {
+            if (config.menuKeybind != currentKeybind && targetKeybind.equals(config.menuKeybind)) {
+                config.menuKeybind.clear();
+            }
+        }
+
+        for (IModule module : ModuleRegistry.getAll()) {
+            if (module == null) continue;
+
+            Keybind primary = module.getKeybind();
+            if (primary != null && primary != currentKeybind && primary.equals(targetKeybind)) {
+                primary.clear();
+                if (config != null) {
+                    module.saveToConfig(config);
+                }
+            }
+
+            for (Setting<?> setting : module.getSettings()) {
+                if (setting instanceof KeybindSetting ks) {
+                    Keybind sec = ks.get();
+                    if (sec != null && sec != currentKeybind && targetKeybind.equals(sec)) {
+                        sec.clear();
+                        if (config != null) {
+                            module.saveToConfig(config);
+                        }
+                    }
+                }
+            }
+        }
+
+        ActivityConfigManager.markDirty();
+        rebuildBoundKeybinds();
+    }
+
     public static BoundPrimary[] getBoundPrimaries() {
         return boundPrimaries;
     }

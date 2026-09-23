@@ -34,6 +34,8 @@ public class ActivityButton extends ActivityComponent {
     private Text message;
     private Variant variant = Variant.SECONDARY;
     private PressAction onPress;
+    @Nullable
+    private PressAction onRightClick;
 
     private float hoverProgress = 0.0f;
     private int touchPadding = 0;
@@ -301,9 +303,21 @@ public class ActivityButton extends ActivityComponent {
         }
     }
 
+    public void setOnRightClick(@Nullable PressAction onRightClick) {
+        this.onRightClick = onRightClick;
+    }
+
+    @Nullable
+    public PressAction getOnRightClick() {
+        return this.onRightClick;
+    }
+
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
-        if (this.enabled && this.visible && click.button() == 0 && this.isMouseOver(click.x(), click.y())) {
+        if (!this.enabled || !this.visible || !this.isMouseOver(click.x(), click.y())) {
+            return false;
+        }
+        if (click.button() == 0) {
             if (this.variant == Variant.PRIMARY) {
                 activity.client.gui.sound.SoundManager.playButtonPrimary();
             } else {
@@ -312,6 +326,10 @@ public class ActivityButton extends ActivityComponent {
             if (this.onPress != null) {
                 this.onPress.onPress(this);
             }
+            return true;
+        } else if (click.button() == 1 && this.onRightClick != null) {
+            activity.client.gui.sound.SoundManager.playButtonSecondary();
+            this.onRightClick.onPress(this);
             return true;
         }
         return false;

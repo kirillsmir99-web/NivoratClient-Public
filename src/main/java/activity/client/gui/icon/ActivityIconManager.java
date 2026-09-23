@@ -25,6 +25,8 @@ public final class ActivityIconManager {
         map.put("restore", ActivityIcon.RESTORE);
         map.put("close", ActivityIcon.CLOSE);
         map.put("trash", ActivityIcon.TRASH);
+        map.put("edit", ActivityIcon.EDIT);
+        map.put("rename", ActivityIcon.EDIT);
         map.put("pin", ActivityIcon.PIN);
         map.put("info", ActivityIcon.INFO);
         map.put("settings", ActivityIcon.SETTINGS);

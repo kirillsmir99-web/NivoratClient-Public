@@ -261,7 +261,7 @@ public class ActivityConfig {
     public String gcPolicy = "Консервативный";
 
     public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
-    public String fontFamily = "onest";
+    public String fontFamily = "minecraft";
     public String typographySize = "normal";
     public double windowOpacity = 85.0;
     public double panelOpacity = 65.0;
@@ -414,7 +414,7 @@ public class ActivityConfig {
     }
 
     public static class FontsSection {
-        public String fontFamily = "onest";
+        public String fontFamily = "minecraft";
         public String typographySize = "normal";
 
         @Override
@@ -685,7 +685,7 @@ public class ActivityConfig {
         this.filterRegex = ".*";
         this.gcPolicy = "Консервативный";
 
-        this.fontFamily = "onest";
+        this.fontFamily = "minecraft";
         this.typographySize = "normal";
         this.windowOpacity = 85.0;
         this.panelOpacity = 65.0;
@@ -965,7 +965,7 @@ public class ActivityConfig {
             !"inter".equals(this.fontFamily) && !"manrope".equals(this.fontFamily) &&
             !"rubik".equals(this.fontFamily) && !"default".equals(this.fontFamily) &&
             !"retro_pixel".equals(this.fontFamily)) {
-            this.fontFamily = "onest";
+            this.fontFamily = "minecraft";
         }
         if (!"small".equals(this.typographySize) && !"normal".equals(this.typographySize) && !"large".equals(this.typographySize)) {
             this.typographySize = "normal";

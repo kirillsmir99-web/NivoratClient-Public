@@ -282,7 +282,7 @@
     "shift": false,
     "alt": false
   },
-  "fontFamily": "onest",
+  "fontFamily": "minecraft",
   "typographySize": "normal",
   "windowOpacity": 85.0,
   "panelOpacity": 65.0,
@@ -640,7 +640,7 @@
       "sliderSoundEnabled": true
     },
     "fonts": {
-      "fontFamily": "onest",
+      "fontFamily": "minecraft",
       "typographySize": "normal"
     }
   },

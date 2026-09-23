@@ -157,7 +157,7 @@ public class ConfigValidationAndPresetTest {
         assertEquals("target_hp", config.hpReaperMode);
         assertEquals("all_entities", config.hpReaperTargetFilter);
         assertEquals("top_right", config.hudPosition);
-        assertEquals("onest", config.fontFamily);
+        assertEquals("minecraft", config.fontFamily);
         assertEquals("normal", config.typographySize);
         assertEquals("serene", config.soundProfile);
     }
@@ -763,5 +763,25 @@ public class ConfigValidationAndPresetTest {
         assertTrue(target.profilerActive, "profilerActive must remain true after applying preset");
         assertTrue(target.legacyMigrationDone, "legacyMigrationDone must remain true after applying preset");
         assertEquals(1, target.legacyMigrationVersion, "legacyMigrationVersion must remain 1 after applying preset");
+    }
+
+    @Test
+    void testRenamePreset() {
+        ActivityConfig cfg = ActivityConfigManager.getConfig();
+        Preset custom = PresetManager.createPreset("Original Name", cfg);
+        assertNotNull(custom);
+        assertEquals("Original Name", custom.getName());
+
+        cfg.activeProfile = "Original Name";
+
+        boolean renamed = PresetManager.renamePreset(custom, "Renamed Name");
+        assertTrue(renamed);
+        assertEquals("Renamed Name", custom.getName());
+        assertEquals("Renamed Name", cfg.activeProfile);
+
+        Preset custom2 = PresetManager.createPreset("Second Preset", cfg);
+        assertFalse(PresetManager.renamePreset(custom2, "Renamed Name"));
+
+        assertFalse(PresetManager.renamePreset(PresetManager.getDefaultPreset(), "Any Name"));
     }
 }

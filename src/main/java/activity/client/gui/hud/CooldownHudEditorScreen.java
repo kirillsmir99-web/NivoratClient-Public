@@ -29,7 +29,7 @@ public final class CooldownHudEditorScreen extends Screen {
     private int panelX = -1;
     private int panelY = -1;
     private static final int PANEL_W = 160;
-    private static final int PANEL_H = 126;
+    private static final int PANEL_H = 86;
     private boolean isPanelDragging = false;
     private int panelDragOffsetX = 0;
     private int panelDragOffsetY = 0;
@@ -64,7 +64,12 @@ public final class CooldownHudEditorScreen extends Screen {
         isDragging = false;
         isPanelDragging = false;
         if (panelX < 0 || panelY < 0) {
-            panelX = 20;
+            int curX = CooldownHudOverlay.getEffectiveX(width);
+            if (curX < width / 2) {
+                panelX = Math.max(20, width - PANEL_W - 24);
+            } else {
+                panelX = 24;
+            }
             panelY = Math.max(20, (height - PANEL_H) / 2);
         }
         SoundManager.playOpen();
@@ -322,11 +327,6 @@ public final class CooldownHudEditorScreen extends Screen {
 
         renderControlPanel(context, mouseX, mouseY, vertical);
 
-        if (textRenderer != null) {
-            String hint = "ЛКМ — перемещение • ПКМ / R — сброс • Стрелки — подгонка (+Shift x5)";
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(hint), width / 2, height - 16, ActivityColors.TEXT_MUTED);
-        }
-
         super.render(context, mouseX, mouseY, delta);
     }
 
@@ -386,11 +386,6 @@ public final class CooldownHudEditorScreen extends Screen {
         if (hoveredBtn != lastHoveredBtn) {
             if (hoveredBtn != -1) SoundManager.playHoverImmediate();
             lastHoveredBtn = hoveredBtn;
-        }
-
-        if (textRenderer != null) {
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Тяните мышкой или ПКМ"), panelX + PANEL_W / 2, panelY + 86, ActivityColors.TEXT_MUTED);
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Стрелки — подгонка"), panelX + PANEL_W / 2, panelY + 100, ActivityColors.TEXT_MUTED);
         }
     }
 

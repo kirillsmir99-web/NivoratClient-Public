@@ -28,6 +28,8 @@ public class ActivityDropdown<T> extends ActivityComponent {
     private T selectedOption;
     private Function<T, Text> nameProvider;
     private Consumer<T> onSelect;
+    @Nullable
+    private Consumer<T> onRightClick = null;
 
     private boolean expanded = false;
     @Nullable
@@ -175,10 +177,25 @@ public class ActivityDropdown<T> extends ActivityComponent {
             this.x + this.width - 16, this.y, 14, this.height, arrowColor);
     }
 
+    public void setOnRightClick(@Nullable Consumer<T> onRightClick) {
+        this.onRightClick = onRightClick;
+    }
+
+    @Nullable
+    public Consumer<T> getOnRightClick() {
+        return this.onRightClick;
+    }
+
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
-        if (this.enabled && this.visible && click.button() == 0 && this.isMouseOver(click.x(), click.y())) {
+        if (!this.enabled || !this.visible || !this.isMouseOver(click.x(), click.y())) {
+            return false;
+        }
+        if (click.button() == 0) {
             this.toggle();
+            return true;
+        } else if (click.button() == 1 && this.onRightClick != null && this.selectedOption != null) {
+            this.onRightClick.accept(this.selectedOption);
             return true;
         }
         return false;
