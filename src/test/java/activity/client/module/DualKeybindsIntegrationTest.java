@@ -157,5 +157,12 @@ public class DualKeybindsIntegrationTest {
 
         activity.client.module.keybind.KeybindManager.unbindConflict(candidateTab, cartKeybind);
         assertTrue(triggerSetting.get().isUnbound(), "Conflicting keybind in AutoSpear must be unbound after unbindConflict");
+
+        spear.getKeybind().set(GLFW.GLFW_KEY_V, false, false, false);
+        Keybind candidateV = new Keybind(GLFW.GLFW_KEY_V, false, false, false);
+        String primaryConflict = activity.client.module.keybind.KeybindManager.findConflict(candidateV, cartKeybind);
+        assertNotNull(primaryConflict, "Must detect conflict on primary module keybind");
+        activity.client.module.keybind.KeybindManager.unbindConflict(candidateV, cartKeybind);
+        assertTrue(spear.getKeybind().isUnbound(), "Primary keybind must be cleared after unbindConflict");
     }
 }

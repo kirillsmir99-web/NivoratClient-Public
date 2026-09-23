@@ -783,5 +783,39 @@ public class ConfigValidationAndPresetTest {
         assertFalse(PresetManager.renamePreset(custom2, "Renamed Name"));
 
         assertFalse(PresetManager.renamePreset(PresetManager.getDefaultPreset(), "Any Name"));
+        assertFalse(PresetManager.renamePreset(custom, null));
+        assertFalse(PresetManager.renamePreset(custom, ""));
+        assertFalse(PresetManager.renamePreset(custom, "   "));
+        assertFalse(PresetManager.renamePreset(custom, "This Name Is Exceeding Thirty Two Characters Limit"));
+        assertFalse(PresetManager.renamePreset(custom, "Invalid\nName"));
+    }
+
+    @Test
+    void testSettingsTabResetToDefaultFont() {
+        activity.client.gui.tab.SettingsTab settingsTab = new activity.client.gui.tab.SettingsTab();
+        ActivityConfig cfg = ActivityConfigManager.getConfig();
+        activity.client.gui.font.FontManager.setFontFamily("rubik");
+        cfg.fontFamily = "rubik";
+        settingsTab.resetDefaults();
+        assertEquals("minecraft", cfg.fontFamily);
+        assertEquals(activity.client.gui.font.FontFamily.MINECRAFT, activity.client.gui.font.FontManager.getActiveFontFamily());
+    }
+
+    @Test
+    void testDropdownRightClick() {
+        ActivityConfig cfg = ActivityConfigManager.getConfig();
+        Preset p = PresetManager.createPreset("RightClickTarget", cfg);
+        activity.client.gui.overlay.OverlayManager om = new activity.client.gui.overlay.OverlayManager();
+        activity.client.gui.component.ActivityDropdown<Preset> dropdown = new activity.client.gui.component.ActivityDropdown<>(
+            10, 10, 100, 20, om, java.util.List.of(p), p, pr -> net.minecraft.text.Text.literal(pr.getName()), null
+        );
+        java.util.concurrent.atomic.AtomicReference<Preset> rightClicked = new java.util.concurrent.atomic.AtomicReference<>();
+        dropdown.setOnRightClick(rightClicked::set);
+        assertNotNull(dropdown.getOnRightClick());
+
+        net.minecraft.client.gui.Click rmb = new net.minecraft.client.gui.Click(15.0, 15.0, new net.minecraft.client.input.MouseInput(1, 0));
+        boolean handled = dropdown.mouseClicked(rmb, false);
+        assertTrue(handled);
+        assertEquals(p, rightClicked.get());
     }
 }

@@ -113,8 +113,8 @@ public class ConfigTab extends ActivityTab {
         addControl(container, labelProfile);
         addControl(container, dropdownProfile);
 
-        Runnable showRenameModal = () -> {
-            Preset toRename = currentPreset;
+        java.util.function.Consumer<Preset> showRenameModal = target -> {
+            Preset toRename = target != null ? target : dropdownProfile.getSelectedOption();
             if (toRename == null || toRename.isBuiltin()) return;
             screen.getModalManager().showTextInput(
                 Text.translatable("activity.modal.rename_preset.title"),
@@ -142,7 +142,7 @@ public class ConfigTab extends ActivityTab {
 
         dropdownProfile.setOnRightClick(p -> {
             if (p != null && !p.isBuiltin()) {
-                showRenameModal.run();
+                showRenameModal.accept(p);
             }
         });
 
@@ -152,9 +152,9 @@ public class ConfigTab extends ActivityTab {
                 ActivityIcon.EDIT,
                 Text.empty(),
                 ActivityButton.Variant.SECONDARY,
-                btn -> showRenameModal.run()
+                btn -> showRenameModal.accept(dropdownProfile.getSelectedOption())
             );
-            btnRename.setOnRightClick(btn -> showRenameModal.run());
+            btnRename.setOnRightClick(btn -> showRenameModal.accept(dropdownProfile.getSelectedOption()));
             btnRename.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
             btnRename.setTooltip(Text.translatable("activity.tooltip.rename_preset"));
             addControl(container, btnRename);

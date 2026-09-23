@@ -183,7 +183,13 @@ public final class PresetManager {
 
     public static synchronized boolean renamePreset(Preset preset, String newName) {
         if (preset == null || preset.isBuiltin()) return false;
-        String cleanName = validatePresetName(newName);
+        if (newName == null || newName.trim().isEmpty() || newName.trim().length() > 32) return false;
+        String cleanName;
+        try {
+            cleanName = validatePresetName(newName);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
         ensureInitialized();
         if (Preset.DEFAULT_PRESET_NAME.equalsIgnoreCase(cleanName) || "default".equalsIgnoreCase(cleanName)) {
             return false;

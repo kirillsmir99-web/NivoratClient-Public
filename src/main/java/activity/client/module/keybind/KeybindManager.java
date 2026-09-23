@@ -309,6 +309,7 @@ public final class KeybindManager {
                     Keybind sec = ks.get();
                     if (sec != null && sec != currentKeybind && targetKeybind.equals(sec)) {
                         sec.clear();
+                        ks.set(sec);
                         if (config != null) {
                             module.saveToConfig(config);
                         }

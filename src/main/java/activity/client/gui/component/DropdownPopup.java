@@ -211,7 +211,7 @@ public class DropdownPopup<T> implements Overlay {
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
-        if (click.button() != 0 || !contains(click.x(), click.y())) {
+        if (!contains(click.x(), click.y())) {
             return false;
         }
 
@@ -222,12 +222,21 @@ public class DropdownPopup<T> implements Overlay {
         int targetIndex = this.scrollOffset + row;
 
         if (targetIndex >= 0 && targetIndex < options.size()) {
-            T selected = options.get(targetIndex);
-            this.dropdown.setSelectedOption(selected);
-            activity.client.gui.sound.SoundManager.playSelect();
-            this.close();
-            this.dropdown.getOverlayManager().close(this);
-            return true;
+            T targetOption = options.get(targetIndex);
+            if (click.button() == 1 && this.dropdown.getOnRightClick() != null) {
+                this.close();
+                this.dropdown.getOverlayManager().close(this);
+                this.dropdown.setSelectedOption(targetOption);
+                this.dropdown.getOnRightClick().accept(targetOption);
+                return true;
+            }
+            if (click.button() == 0) {
+                this.dropdown.setSelectedOption(targetOption);
+                activity.client.gui.sound.SoundManager.playSelect();
+                this.close();
+                this.dropdown.getOverlayManager().close(this);
+                return true;
+            }
         }
 
         return true;

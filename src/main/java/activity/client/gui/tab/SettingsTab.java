@@ -85,7 +85,7 @@ public class SettingsTab extends ActivityTab {
             config.soundEnabled = true;
             config.sliderSoundEnabled = true;
             config.soundVolume = 80.0;
-            FontManager.setFontFamily("onest");
+            FontManager.setFontFamily("minecraft");
             FontManager.setTypographySize(TypographySize.NORMAL);
         }
     }
@@ -373,8 +373,8 @@ public class SettingsTab extends ActivityTab {
         addControl(container, labelPreset);
         addControl(container, dropdownPreset);
 
-        Runnable showRenameModal = () -> {
-            Preset toRename = currentPreset;
+        java.util.function.Consumer<Preset> showRenameModal = target -> {
+            Preset toRename = target != null ? target : dropdownPreset.getSelectedOption();
             if (toRename == null || toRename.isBuiltin()) return;
             screen.getModalManager().showTextInput(
                 Text.translatable("activity.modal.rename_preset.title"),
@@ -402,7 +402,7 @@ public class SettingsTab extends ActivityTab {
 
         dropdownPreset.setOnRightClick(p -> {
             if (p != null && !p.isBuiltin()) {
-                showRenameModal.run();
+                showRenameModal.accept(p);
             }
         });
 
@@ -412,9 +412,9 @@ public class SettingsTab extends ActivityTab {
                 ActivityIcon.EDIT,
                 Text.empty(),
                 ActivityButton.Variant.SECONDARY,
-                btn -> showRenameModal.run()
+                btn -> showRenameModal.accept(dropdownPreset.getSelectedOption())
             );
-            btnRename.setOnRightClick(btn -> showRenameModal.run());
+            btnRename.setOnRightClick(btn -> showRenameModal.accept(dropdownPreset.getSelectedOption()));
             btnRename.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
             btnRename.setTooltip(Text.translatable("activity.tooltip.rename_preset"));
             addControl(container, btnRename);
