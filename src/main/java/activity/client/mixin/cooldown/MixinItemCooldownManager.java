@@ -26,4 +26,11 @@ public class MixinItemCooldownManager {
             CooldownTrackerService.onCooldownSet(Registries.ITEM.get(id), duration);
         }
     }
+
+    @Inject(method = "remove(Lnet/minecraft/util/Identifier;)V", at = @At("HEAD"))
+    private void onRemoveCooldownId(Identifier id, CallbackInfo ci) {
+        if (id != null) {
+            CooldownTrackerService.onCooldownRemoved(Registries.ITEM.get(id));
+        }
+    }
 }

@@ -78,7 +78,16 @@ public final class CooldownHudOverlay {
         int curY = startY;
 
         for (CooldownTrackerService.CooldownEntry entry : entries) {
-            context.drawItem(entry.iconStack, curX, curY);
+            ItemStack stack = entry.iconStack;
+            if (stack == null && entry.item != null) {
+                try {
+                    stack = new ItemStack(entry.item);
+                } catch (Throwable ignored) {
+                }
+            }
+            if (stack != null) {
+                context.drawItem(stack, curX, curY);
+            }
 
             String timeText = entry.getFormattedRemaining();
             int color = getCooldownColor(entry.getRemainingSeconds());
@@ -144,7 +153,13 @@ public final class CooldownHudOverlay {
         return List.of(
                 new CooldownTrackerService.CooldownEntry(Items.ENDER_PEARL, 290),
                 new CooldownTrackerService.CooldownEntry(Items.TNT_MINECART, 3200),
-                new CooldownTrackerService.CooldownEntry(Items.WIND_CHARGE, 84)
+                new CooldownTrackerService.CooldownEntry(Items.WIND_CHARGE, 160),
+                new CooldownTrackerService.CooldownEntry(Items.TRIDENT, 60),
+                new CooldownTrackerService.CooldownEntry(Items.GOLDEN_APPLE, 84),
+                new CooldownTrackerService.CooldownEntry(Items.CHORUS_FRUIT, 42),
+                new CooldownTrackerService.CooldownEntry(Items.COOKED_BEEF, 120),
+                new CooldownTrackerService.CooldownEntry(Items.SHIELD, 100),
+                new CooldownTrackerService.CooldownEntry(Items.MACE, 20)
         );
     }
 }

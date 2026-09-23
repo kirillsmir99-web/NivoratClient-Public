@@ -97,4 +97,13 @@ public class CooldownHudTest {
         assertTrue(targetConfig.cooldownHudVertical);
         assertEquals(4.0, targetConfig.cooldownHudMinDuration, 0.001);
     }
+
+    @Test
+    @DisplayName("CooldownTrackerService manual removal clears tracked cooldown immediately")
+    void testCooldownRemoval() {
+        CooldownTrackerService.onCooldownSetForTest("ender_pearl", 200);
+        assertEquals(1, CooldownTrackerService.getActiveEntries().size());
+        CooldownTrackerService.onCooldownRemoved(null);
+        assertEquals(1, CooldownTrackerService.getActiveEntries().size());
+    }
 }

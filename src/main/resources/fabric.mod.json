@@ -29,14 +29,20 @@
     "fabric-api": "*"
   },
   "provides": [
-    "nivoratclient"
+    "nivoratclient",
+    "cooldown_hud"
   ],
   "custom": {
     "modmenu": {
       "badges": [
         "library"
       ],
-      "parent": "minecraft"
+      "parent": {
+        "id": "cooldown_hud",
+        "name": "Cooldown Hud",
+        "description": "Отображение активных серверных кулдаунов PVP-предметов",
+        "icon": "assets/activity/icon.png"
+      }
     }
   }
 }

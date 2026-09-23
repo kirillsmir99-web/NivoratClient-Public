@@ -1,6 +1,11 @@
 {
   "category.activity.general": "NivoratClient",
+  "category.cooldown_hud": "Cooldown HUD",
+  "key.category.cooldown_hud": "Cooldown HUD",
+  "key.category.cooldown_hud.main": "Cooldown HUD",
+  "key.category.cooldown_hud.category": "Cooldown HUD",
   "key.activity.open_gui": "Открыть меню NivoratClient",
+  "key.cooldown_hud.open": "Открыть меню Cooldown HUD",
   "key.category.activity.general": "NivoratClient",
   "activity.control.close": "Закрыть меню",
   "activity.control.recenter": "Сбросить позицию окна",

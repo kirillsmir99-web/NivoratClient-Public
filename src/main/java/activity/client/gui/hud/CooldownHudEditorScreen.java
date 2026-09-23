@@ -2,9 +2,13 @@ package activity.client.gui.hud;
 
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
+import activity.client.gui.font.UiTextRenderer;
 import activity.client.gui.render.ActivityGuiRenderer;
 import activity.client.gui.sound.SoundManager;
 import activity.client.gui.theme.ActivityColors;
+import activity.client.module.api.IModule;
+import activity.client.module.api.ModuleRegistry;
+import activity.client.module.impl.utility.CooldownHudModule;
 import activity.client.module.service.CooldownTrackerService;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
@@ -17,6 +21,21 @@ import java.util.List;
 
 public final class CooldownHudEditorScreen extends Screen {
 
+    private static final int[] SHELL_RADII = { 16, 14, 12, 10, 8, 6, 4, 2 };
+    private static final float[] SHELL_WEIGHTS = { 0.0381f, 0.1084f, 0.1622f, 0.1913f, 0.1913f, 0.1622f, 0.1084f, 0.0381f };
+    private static final int[][] PRECOMPUTED_DX;
+
+    static {
+        PRECOMPUTED_DX = new int[SHELL_RADII.length][];
+        for (int i = 0; i < SHELL_RADII.length; i++) {
+            int r = SHELL_RADII[i];
+            PRECOMPUTED_DX[i] = new int[2 * r + 1];
+            for (int dy = -r; dy <= r; dy++) {
+                PRECOMPUTED_DX[i][dy + r] = (int) Math.round(Math.sqrt(r * r - dy * dy));
+            }
+        }
+    }
+
     private final Screen parent;
     private boolean isDragging = false;
     private int dragOffsetX = 0;
@@ -25,7 +44,7 @@ public final class CooldownHudEditorScreen extends Screen {
     private int panelX = -1;
     private int panelY = -1;
     private static final int PANEL_W = 160;
-    private static final int PANEL_H = 100;
+    private static final int PANEL_H = 126;
     private boolean isPanelDragging = false;
     private int panelDragOffsetX = 0;
     private int panelDragOffsetY = 0;
@@ -33,6 +52,7 @@ public final class CooldownHudEditorScreen extends Screen {
     private int btnToggleOrientX, btnToggleOrientY, btnToggleOrientW, btnToggleOrientH;
     private int btnResetX, btnResetY, btnResetW, btnResetH;
     private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
+    private int lastHoveredBtn = -1;
 
     public CooldownHudEditorScreen(Screen parent) {
         super(Text.literal("Cooldown HUD • Настройка позиции"));
@@ -62,10 +82,57 @@ public final class CooldownHudEditorScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        isDragging = false;
+        isPanelDragging = false;
         if (panelX < 0 || panelY < 0) {
             panelX = 20;
-            panelY = 20;
+            panelY = Math.max(20, (height - PANEL_H) / 2);
         }
+        SoundManager.playOpen();
+    }
+
+    private void nudge(int dx, int dy) {
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        boolean vertical = config != null && config.cooldownHudVertical;
+        List<CooldownTrackerService.CooldownEntry> mockEntries = CooldownHudOverlay.getMockEntriesForPreview();
+        int totalW = CooldownHudOverlay.calculateTotalWidth(textRenderer, mockEntries, vertical);
+        int totalH = CooldownHudOverlay.calculateTotalHeight(mockEntries, vertical);
+
+        int curX = CooldownHudOverlay.getEffectiveX(width);
+        int curY = CooldownHudOverlay.getEffectiveY(height);
+
+        int newX = Math.max(2, Math.min(width - totalW - 2, curX + dx));
+        int newY = Math.max(2, Math.min(height - totalH - 2, curY + dy));
+
+        if (config != null) {
+            config.cooldownHudCustomX = newX;
+            config.cooldownHudCustomY = newY;
+            ActivityConfigManager.save();
+        }
+    }
+
+    private void resetPosition() {
+        ActivityConfig c = ActivityConfigManager.getConfig();
+        if (c != null) {
+            c.cooldownHudCustomX = -1;
+            c.cooldownHudCustomY = -1;
+            ActivityConfigManager.save();
+        }
+        SoundManager.playSelect();
+    }
+
+    private void toggleOrientation() {
+        ActivityConfig c = ActivityConfigManager.getConfig();
+        if (c != null) {
+            boolean newVertical = !c.cooldownHudVertical;
+            c.cooldownHudVertical = newVertical;
+            IModule mod = ModuleRegistry.get(CooldownHudModule.ID);
+            if (mod instanceof CooldownHudModule chm) {
+                chm.vertical = newVertical;
+            }
+            ActivityConfigManager.save();
+        }
+        SoundManager.playClick();
     }
 
     @Override
@@ -77,29 +144,19 @@ public final class CooldownHudEditorScreen extends Screen {
         if (button == 0) {
             if (mx >= btnToggleOrientX && mx <= btnToggleOrientX + btnToggleOrientW &&
                 my >= btnToggleOrientY && my <= btnToggleOrientY + btnToggleOrientH) {
-                ActivityConfig c = ActivityConfigManager.getConfig();
-                if (c != null) {
-                    c.cooldownHudVertical = !c.cooldownHudVertical;
-                    ActivityConfigManager.markDirty();
-                }
-                SoundManager.playClick();
+                toggleOrientation();
                 return true;
             }
 
             if (mx >= btnResetX && mx <= btnResetX + btnResetW &&
                 my >= btnResetY && my <= btnResetY + btnResetH) {
-                ActivityConfig c = ActivityConfigManager.getConfig();
-                if (c != null) {
-                    c.cooldownHudCustomX = -1;
-                    c.cooldownHudCustomY = -1;
-                    ActivityConfigManager.markDirty();
-                }
-                SoundManager.playClick();
+                resetPosition();
                 return true;
             }
 
             if (mx >= btnDoneX && mx <= btnDoneX + btnDoneW &&
                 my >= btnDoneY && my <= btnDoneY + btnDoneH) {
+                SoundManager.playClick();
                 close();
                 return true;
             }
@@ -121,7 +178,7 @@ public final class CooldownHudEditorScreen extends Screen {
         int totalW = CooldownHudOverlay.calculateTotalWidth(textRenderer, mockEntries, vertical);
         int totalH = CooldownHudOverlay.calculateTotalHeight(mockEntries, vertical);
 
-        boolean insideWidget = mx >= curX - 4 && mx <= curX + totalW + 4 && my >= curY - 4 && my <= curY + totalH + 4;
+        boolean insideWidget = mx >= curX - 8 && mx <= curX + totalW + 8 && my >= curY - 8 && my <= curY + totalH + 8;
 
         if (button == 0 && insideWidget) {
             isDragging = true;
@@ -130,12 +187,7 @@ public final class CooldownHudEditorScreen extends Screen {
             SoundManager.playClick();
             return true;
         } else if (button == 1 && insideWidget) {
-            if (config != null) {
-                config.cooldownHudCustomX = -1;
-                config.cooldownHudCustomY = -1;
-                ActivityConfigManager.markDirty();
-            }
-            SoundManager.playSelect();
+            resetPosition();
             return true;
         }
 
@@ -145,7 +197,10 @@ public final class CooldownHudEditorScreen extends Screen {
     @Override
     public boolean mouseReleased(Click click) {
         if (click.buttonInfo().button() == 0) {
-            isPanelDragging = false;
+            if (isPanelDragging) {
+                isPanelDragging = false;
+                return true;
+            }
             if (isDragging) {
                 isDragging = false;
                 ActivityConfigManager.save();
@@ -175,6 +230,15 @@ public final class CooldownHudEditorScreen extends Screen {
             int newX = (int) Math.round(click.x() - dragOffsetX);
             int newY = (int) Math.round(click.y() - dragOffsetY);
 
+            int centerX = width / 2 - totalW / 2;
+            if (Math.abs(newX - centerX) <= 4) {
+                newX = centerX;
+            }
+            int centerY = height / 2 - totalH / 2;
+            if (Math.abs(newY - centerY) <= 4) {
+                newY = centerY;
+            }
+
             int clampedX = Math.max(2, Math.min(width - totalW - 2, newX));
             int clampedY = Math.max(2, Math.min(height - totalH - 2, newY));
 
@@ -191,7 +255,30 @@ public final class CooldownHudEditorScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyInput input) {
-        if (input.key() == GLFW.GLFW_KEY_ESCAPE) {
+        int key = input.key();
+        int step = input.hasShift() ? 5 : 1;
+
+        if (key == GLFW.GLFW_KEY_LEFT) {
+            nudge(-step, 0);
+            return true;
+        }
+        if (key == GLFW.GLFW_KEY_RIGHT) {
+            nudge(step, 0);
+            return true;
+        }
+        if (key == GLFW.GLFW_KEY_UP) {
+            nudge(0, -step);
+            return true;
+        }
+        if (key == GLFW.GLFW_KEY_DOWN) {
+            nudge(0, step);
+            return true;
+        }
+        if (key == GLFW.GLFW_KEY_R) {
+            resetPosition();
+            return true;
+        }
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
             close();
             return true;
         }
@@ -200,7 +287,7 @@ public final class CooldownHudEditorScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.fill(0, 0, width, height, 0x55000000);
+        ActivityGuiRenderer.fill(context, 0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
         ActivityConfig config = ActivityConfigManager.getConfig();
         boolean vertical = config != null && config.cooldownHudVertical;
@@ -211,56 +298,139 @@ public final class CooldownHudEditorScreen extends Screen {
         int totalW = CooldownHudOverlay.calculateTotalWidth(textRenderer, mockEntries, vertical);
         int totalH = CooldownHudOverlay.calculateTotalHeight(mockEntries, vertical);
 
-        boolean hovered = mouseX >= curX - 4 && mouseX <= curX + totalW + 4 && mouseY >= curY - 4 && mouseY <= curY + totalH + 4;
-        int outlineColor = (isDragging || hovered) ? 0xAA7C4DFF : 0x44FFFFFF;
+        if (isDragging) {
+            if (Math.abs(curX + totalW / 2 - width / 2) <= 1) {
+                ActivityGuiRenderer.drawVerticalLine(context, width / 2, 0, height, 0x40FFFFFF);
+            }
+            if (Math.abs(curY + totalH / 2 - height / 2) <= 1) {
+                ActivityGuiRenderer.drawHorizontalLine(context, 0, height / 2, width, 0x40FFFFFF);
+            }
+        }
+
+        boolean hovered = mouseX >= curX - 8 && mouseX <= curX + totalW + 8 && mouseY >= curY - 8 && mouseY <= curY + totalH + 8;
+
+        long timeMs = System.currentTimeMillis();
+        double phase = (timeMs % 2400L) / 2400.0 * 2.0 * Math.PI;
+        float pulse = (float) (0.5 + 0.5 * Math.sin(phase));
+
+        float stateMultiplier = isDragging ? 1.25f : (hovered ? 1.12f : 1.00f);
+        float peakAlpha = (0.10f + 0.08f * pulse) * stateMultiplier;
+
+        int hudCenterX = curX + totalW / 2;
+        int hudCenterY = curY + totalH / 2;
+
+        renderCircularPulse(context, hudCenterX, hudCenterY, peakAlpha);
+
+        int outlineColor = (isDragging || hovered) ? 0x80FFFFFF : 0x25FFFFFF;
         ActivityGuiRenderer.drawBorder(context, curX - 4, curY - 4, totalW + 8, totalH + 8, outlineColor);
 
         CooldownHudOverlay.renderCooldownList(context, textRenderer, mockEntries, curX, curY, vertical);
 
+        if (hovered || isDragging) {
+            int chipW = 96;
+            int chipH = 15;
+            int chipX = curX + (totalW - chipW) / 2;
+            chipX = Math.max(4, Math.min(width - chipW - 4, chipX));
+            int chipY = (curY - chipH - 8 >= 4) ? (curY - chipH - 8) : (curY + totalH + 8);
+
+            ActivityGuiRenderer.drawPanel(context, chipX, chipY, chipW, chipH, ActivityColors.PANEL_INNER_BG, ActivityColors.BORDER, true);
+            ActivityGuiRenderer.fill(context, chipX + 5, chipY + 5, 4, 4, ActivityColors.ACCENT_PRIMARY);
+            if (textRenderer != null) {
+                UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("X: " + curX + "  Y: " + curY), chipX + 13, chipY + 4, ActivityColors.TEXT_PRIMARY);
+            }
+        }
+
         renderControlPanel(context, mouseX, mouseY, vertical);
+
+        if (textRenderer != null) {
+            String hint = "ЛКМ — перемещение • ПКМ / R — сброс • Стрелки — подгонка (+Shift x5)";
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(hint), width / 2, height - 16, ActivityColors.TEXT_MUTED);
+        }
 
         super.render(context, mouseX, mouseY, delta);
     }
 
     private void renderControlPanel(DrawContext context, int mouseX, int mouseY, boolean vertical) {
-        ActivityGuiRenderer.drawPanel(context, panelX, panelY, PANEL_W, PANEL_H, 0xDD12131A, 0x447C4DFF, true);
+        ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
+        ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 24, ActivityColors.HEADER_BACKGROUND);
+        ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
 
-        context.drawTextWithShadow(textRenderer, "Cooldown HUD", panelX + 10, panelY + 8, ActivityColors.TEXT_PRIMARY);
+        if (textRenderer != null) {
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Cooldown HUD"), panelX + PANEL_W / 2, panelY + 7, ActivityColors.TEXT_PRIMARY);
+        }
 
         btnToggleOrientX = panelX + 10;
-        btnToggleOrientY = panelY + 24;
+        btnToggleOrientY = panelY + 30;
         btnToggleOrientW = PANEL_W - 20;
-        btnToggleOrientH = 18;
+        btnToggleOrientH = 20;
 
         String orientText = vertical ? "Вид: Вертикальный" : "Вид: Горизонтальный";
         boolean hoverOrient = mouseX >= btnToggleOrientX && mouseX <= btnToggleOrientX + btnToggleOrientW &&
                              mouseY >= btnToggleOrientY && mouseY <= btnToggleOrientY + btnToggleOrientH;
-        int bgOrient = hoverOrient ? 0xFF2A2D3D : 0xFF1C1E29;
-        ActivityGuiRenderer.drawPanel(context, btnToggleOrientX, btnToggleOrientY, btnToggleOrientW, btnToggleOrientH, bgOrient, ActivityColors.BORDER, false);
-        context.drawTextWithShadow(textRenderer, orientText, btnToggleOrientX + 8, btnToggleOrientY + 5, ActivityColors.TEXT_PRIMARY);
+        int bgOrient = hoverOrient ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
+        int borderOrient = hoverOrient ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER;
+        ActivityGuiRenderer.drawPanel(context, btnToggleOrientX, btnToggleOrientY, btnToggleOrientW, btnToggleOrientH, bgOrient, borderOrient, true);
+        if (textRenderer != null) {
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(orientText), btnToggleOrientX + btnToggleOrientW / 2, btnToggleOrientY + 6, ActivityColors.TEXT_PRIMARY);
+        }
 
         btnResetX = panelX + 10;
-        btnResetY = panelY + 48;
-        btnResetW = (PANEL_W - 25) / 2;
-        btnResetH = 18;
+        btnResetY = panelY + 56;
+        btnResetW = (PANEL_W - 26) / 2;
+        btnResetH = 22;
 
         boolean hoverReset = mouseX >= btnResetX && mouseX <= btnResetX + btnResetW &&
                             mouseY >= btnResetY && mouseY <= btnResetY + btnResetH;
-        int bgReset = hoverReset ? 0xFF352020 : 0xFF241515;
-        ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, bgReset, ActivityColors.BORDER, false);
-        context.drawTextWithShadow(textRenderer, "Сброс", btnResetX + 12, btnResetY + 5, 0xFFFF7777);
+        int bgReset = hoverReset ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
+        int borderReset = hoverReset ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER;
+        ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, bgReset, borderReset, true);
+        if (textRenderer != null) {
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Сбросить"), btnResetX + btnResetW / 2, btnResetY + 7, 0xFFFF7777);
+        }
 
-        btnDoneX = btnResetX + btnResetW + 5;
+        btnDoneX = btnResetX + btnResetW + 6;
         btnDoneY = btnResetY;
         btnDoneW = btnResetW;
-        btnDoneH = 18;
+        btnDoneH = 22;
 
         boolean hoverDone = mouseX >= btnDoneX && mouseX <= btnDoneX + btnDoneW &&
                            mouseY >= btnDoneY && mouseY <= btnDoneY + btnDoneH;
-        int bgDone = hoverDone ? 0xFF203520 : 0xFF152415;
-        ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, bgDone, ActivityColors.BORDER, false);
-        context.drawTextWithShadow(textRenderer, "Готово", btnDoneX + 10, btnDoneY + 5, 0xFF77FF77);
+        int bgDone = hoverDone ? ActivityColors.BUTTON_PRIMARY_HOVER : ActivityColors.BUTTON_PRIMARY_BG;
+        int borderDone = hoverDone ? ActivityColors.ACCENT_LIGHT : ActivityColors.ACCENT_PRIMARY;
+        ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, bgDone, borderDone, true);
+        if (textRenderer != null) {
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Готово"), btnDoneX + btnDoneW / 2, btnDoneY + 7, 0xFFFFFFFF);
+        }
 
-        context.drawTextWithShadow(textRenderer, "Тяните мышкой или ПКМ", panelX + 10, panelY + 75, 0x88AAAAAA);
+        int hoveredBtn = hoverOrient ? 0 : (hoverReset ? 1 : (hoverDone ? 2 : -1));
+        if (hoveredBtn != lastHoveredBtn) {
+            if (hoveredBtn != -1) SoundManager.playHoverImmediate();
+            lastHoveredBtn = hoveredBtn;
+        }
+
+        if (textRenderer != null) {
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Тяните мышкой или ПКМ"), panelX + PANEL_W / 2, panelY + 86, ActivityColors.TEXT_MUTED);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Стрелки — подгонка"), panelX + PANEL_W / 2, panelY + 100, ActivityColors.TEXT_MUTED);
+        }
+    }
+
+    private void renderCircularPulse(DrawContext context, int cx, int cy, float peakAlpha) {
+        for (int i = 0; i < SHELL_RADII.length; i++) {
+            int r = SHELL_RADII[i];
+            int a = Math.max(0, Math.min(255, Math.round(SHELL_WEIGHTS[i] * peakAlpha * 255.0f)));
+            if (a > 0) {
+                int color = (a << 24) | 0x00FFFFFF;
+                int[] dxTable = PRECOMPUTED_DX[i];
+                for (int dy = -r; dy <= r; dy++) {
+                    int dx = dxTable[dy + r];
+                    context.fill(cx - dx, cy + dy, cx + dx + 1, cy + dy + 1, color);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean shouldPause() {
+        return false;
     }
 }

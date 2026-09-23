@@ -84,6 +84,12 @@ public final class CooldownTrackerService {
         ACTIVE_COOLDOWNS.put(key, new CooldownEntry(item, durationTicks));
     }
 
+    public static void onCooldownRemoved(Item item) {
+        if (item != null) {
+            ACTIVE_COOLDOWNS.remove(item);
+        }
+    }
+
     public static void tick(MinecraftClient client) {
         if (ACTIVE_COOLDOWNS.isEmpty()) {
             return;
@@ -100,7 +106,7 @@ public final class CooldownTrackerService {
                 continue;
             }
 
-            if (hasPlayer && entry.iconStack != null && !client.player.getItemCooldownManager().isCoolingDown(entry.iconStack)) {
+            if (hasPlayer && entry.iconStack != null && System.currentTimeMillis() - entry.startTimestampMs > 250L && !client.player.getItemCooldownManager().isCoolingDown(entry.iconStack)) {
                 ACTIVE_COOLDOWNS.remove(mapEntry.getKey());
             }
         }
