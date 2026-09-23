@@ -63,6 +63,8 @@ public class PresenceSystemTest {
         assertTrue(NivoratDev.BADGE_PREFIX.startsWith("§d"), "Badge prefix must use light purple / magenta formatting §d");
         assertTrue(NivoratDev.BADGE_PREFIX.contains("[NC]"), "Badge must display [NC]");
         assertTrue(NivoratDev.DOT_PREFIX.contains("●"), "Dot prefix must contain circle glyph");
+        assertTrue(NivoratDev.BADGE_SUFFIX.contains("§d"), "Badge suffix must use purple formatting §d");
+        assertTrue(NivoratDev.BADGE_SUFFIX.contains("●"), "Badge suffix must contain circle glyph");
     }
 
     @Test

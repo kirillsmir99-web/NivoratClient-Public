@@ -22,8 +22,8 @@ public abstract class MixinPlayerListHud {
         String name = entry.getProfile().name();
         if (DevPeerTracker.isPeer(name)) {
             Text original = cir.getReturnValue();
-            MutableText badge = Text.literal(NivoratDev.BADGE_PREFIX);
-            cir.setReturnValue(badge.append(original != null ? original : Text.literal(name)));
+            MutableText base = original != null ? original.copy() : Text.literal(name);
+            cir.setReturnValue(base.append(Text.literal(NivoratDev.BADGE_SUFFIX)));
         }
     }
 }

@@ -9,4 +9,5 @@ public final class NivoratDev {
     public static final String PRESENCE_URL = "https://virion.185-56-162-195.sslip.io/api/v1/presence";
     public static final String BADGE_PREFIX = "§d[NC] ";
     public static final String DOT_PREFIX = "§d● ";
+    public static final String BADGE_SUFFIX = " §d●";
 }

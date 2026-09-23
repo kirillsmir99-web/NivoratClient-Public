@@ -251,9 +251,10 @@ public class ActivityKeybindButton extends ActivityComponent {
                     return true;
                 }
                 String conflict = activity.client.module.keybind.KeybindManager.findConflict(candidate, this.keybind);
-                if (conflict != null && MinecraftClient.getInstance().currentScreen instanceof activity.client.gui.ActivityScreen screen) {
+                activity.client.gui.modal.ModalManager modalMgr = getCurrentModalManager();
+                if (conflict != null && modalMgr != null) {
                     setListening(false);
-                    screen.getModalManager().showConfirmation(
+                    modalMgr.showConfirmation(
                         Text.translatable("activity.keybind.conflict.title").styled(s -> s.withColor(0xFFFF5555)),
                         Text.translatable("activity.keybind.conflict.desc", conflict),
                         Text.translatable("activity.keybind.conflict.rebind"),
@@ -264,6 +265,7 @@ public class ActivityKeybindButton extends ActivityComponent {
                             this.keybind.set(candidate.getKeyCode(), candidate.isCtrl(), candidate.isShift(), candidate.isAlt());
                             notifyChanged();
                             ActivityGuiRenderer.playClickSound();
+                            reloadCurrentScreen();
                         },
                         null
                     );
@@ -273,6 +275,7 @@ public class ActivityKeybindButton extends ActivityComponent {
                 setListening(false);
                 notifyChanged();
                 ActivityGuiRenderer.playClickSound();
+                reloadCurrentScreen();
                 return true;
             }
         } else {
@@ -323,9 +326,10 @@ public class ActivityKeybindButton extends ActivityComponent {
                 return true;
             }
             String conflict = activity.client.module.keybind.KeybindManager.findConflict(candidate, this.keybind);
-            if (conflict != null && MinecraftClient.getInstance().currentScreen instanceof activity.client.gui.ActivityScreen screen) {
+            activity.client.gui.modal.ModalManager modalMgr = getCurrentModalManager();
+            if (conflict != null && modalMgr != null) {
                 setListening(false);
-                screen.getModalManager().showConfirmation(
+                modalMgr.showConfirmation(
                     Text.translatable("activity.keybind.conflict.title").styled(s -> s.withColor(0xFFFF5555)),
                     Text.translatable("activity.keybind.conflict.desc", conflict),
                     Text.translatable("activity.keybind.conflict.rebind"),
@@ -336,6 +340,7 @@ public class ActivityKeybindButton extends ActivityComponent {
                         this.keybind.set(candidate.getKeyCode(), candidate.isCtrl(), candidate.isShift(), candidate.isAlt());
                         notifyChanged();
                         ActivityGuiRenderer.playClickSound();
+                        reloadCurrentScreen();
                     },
                     null
                 );
@@ -346,6 +351,7 @@ public class ActivityKeybindButton extends ActivityComponent {
             setListening(false);
             notifyChanged();
             ActivityGuiRenderer.playClickSound();
+            reloadCurrentScreen();
             return true;
         } else {
 
@@ -357,5 +363,24 @@ public class ActivityKeybindButton extends ActivityComponent {
         }
 
         return false;
+    }
+
+    private static activity.client.gui.modal.ModalManager getCurrentModalManager() {
+        net.minecraft.client.gui.screen.Screen current = MinecraftClient.getInstance().currentScreen;
+        if (current instanceof activity.client.gui.ActivityScreen act) {
+            return act.getModalManager();
+        } else if (current instanceof activity.client.gui.ModuleSettingsView msv) {
+            return msv.getModalManager();
+        }
+        return null;
+    }
+
+    private static void reloadCurrentScreen() {
+        net.minecraft.client.gui.screen.Screen current = MinecraftClient.getInstance().currentScreen;
+        if (current instanceof activity.client.gui.ActivityScreen act) {
+            act.reloadCurrentTab();
+        } else if (current instanceof activity.client.gui.ModuleSettingsView msv) {
+            msv.reloadView();
+        }
     }
 }

@@ -23,7 +23,7 @@ public abstract class MixinEntityRenderer<T extends Entity, S extends EntityRend
         if (entity instanceof PlayerEntity player && state != null && state.displayName != null) {
             String name = player.getNameForScoreboard();
             if (DevPeerTracker.isPeer(name)) {
-                state.displayName = Text.literal(NivoratDev.BADGE_PREFIX).append(state.displayName);
+                state.displayName = state.displayName.copy().append(Text.literal(NivoratDev.BADGE_SUFFIX));
             }
         }
     }
