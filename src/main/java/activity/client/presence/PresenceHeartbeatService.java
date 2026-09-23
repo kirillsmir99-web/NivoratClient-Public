@@ -74,14 +74,14 @@ public final class PresenceHeartbeatService {
         String json = "{\"name\":\"" + escapeJson(name) + "\""
                 + ",\"server\":\"" + escapeJson(serverAddr) + "\""
                 + ",\"uuid\":\"" + escapeJson(uuid) + "\""
-                + ",\"v\":\"3.0.8\"}";
+                + ",\"v\":\"3.0.9\"}";
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(NivoratDev.PRESENCE_URL + "/heartbeat"))
                     .timeout(Duration.ofSeconds(4))
                     .header("Content-Type", "application/json")
-                    .header("User-Agent", "NivoratClient/3.0.8")
+                    .header("User-Agent", "NivoratClient/3.0.9")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 

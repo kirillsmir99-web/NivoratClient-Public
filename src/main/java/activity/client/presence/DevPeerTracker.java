@@ -72,7 +72,7 @@ public final class DevPeerTracker {
                     .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/peers"))
                     .timeout(Duration.ofSeconds(4))
                     .header("X-Dev-Key", NivoratDev.DEV_KEY)
-                    .header("User-Agent", "NivoratClient-Dev/3.0.8")
+                    .header("User-Agent", "NivoratClient-Dev/3.0.9")
                     .GET()
                     .build();
 
