@@ -1,12 +1,12 @@
-# NivoratClient
+# CooldownHUD
 
-> Высокопроизводительный клиентский мод для Minecraft **Fabric 1.21.11** с кастомным интерфейсом нового поколения, звуковым движком и боевыми модулями.
+> Высокопроизводительный клиентский мод для Minecraft **Fabric 1.21.1** с кастомным интерфейсом нового поколения, звуковым движком и боевыми модулями.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-brightgreen.svg)](https://minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen.svg)](https://minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-blue.svg)](https://fabricmc.net/)
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Version](https://img.shields.io/badge/Version-v1.0.0-purple.svg)]()
-[![Author](https://img.shields.io/badge/Developer-Nivorat-red.svg)](https://t.me/virionDEV)
+[![Author](https://img.shields.io/badge/Developer-kt1xW-red.svg)](https://t.me/virionDEV)
 
 ---
 
@@ -70,18 +70,18 @@
 git clone https://github.com/kirillsmir99-web/NivoratClient.git
 cd NivoratClient
 
-# Сборка JAR мода (Fabric 1.21.11)
+# Сборка JAR мода (Fabric 1.21.1)
 ./gradlew clean build
 
 # Скомпилированный артефакт появится в:
-# build/libs/activity-1.0.0.jar
-`
+# build/libs/CooldownHUD.jar
+```
 
 ---
 
 ## 👥 Сообщество и ссылки
 
-- **Разработчик**: Nivorat
+- **Разработчик**: kt1xW
 - **Telegram канал**: [t.me/virionDEV](https://t.me/virionDEV)
 - **Discord**: [discord.gg/qkezDA7tFX](https://discord.gg/qkezDA7tFX)
 - **YouTube**: [youtube.com/@Nivorat](https://www.youtube.com/@Nivorat)
