@@ -273,7 +273,9 @@ public class AutoToolModule extends NivoratModule {
             ActivityConfigManager.markDirty();
         }
         AutoToolClient.CONFIG.enabled = enabled;
-        activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.autotool.dev_warning"));
+        if (enabled) {
+            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.autotool.dev_warning"));
+        }
     }
 
     @Override

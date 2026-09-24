@@ -10,7 +10,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.UUID;
 
 public final class PresenceHeartbeatService {
@@ -24,6 +26,18 @@ public final class PresenceHeartbeatService {
 
     private PresenceHeartbeatService() {}
 
+    public static String normalizeServer(String address) {
+        if (address == null || address.isBlank()) return "";
+        String s = address.trim().toLowerCase(Locale.ROOT);
+        while (s.endsWith(".")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        if (s.endsWith(":25565")) {
+            s = s.substring(0, s.length() - 6);
+        }
+        return s;
+    }
+
     public static synchronized void start() {
         if (running) return;
         running = true;
@@ -35,7 +49,8 @@ public final class PresenceHeartbeatService {
                     authenticatedServer = "";
                 }
                 try {
-                    Thread.sleep(25_000L);
+                    long sleepMs = authenticatedServer.isEmpty() ? 2_000L : 25_000L;
+                    Thread.sleep(sleepMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -75,12 +90,16 @@ public final class PresenceHeartbeatService {
         Session session = client == null ? null : client.getSession();
         if (client == null || client.player == null || client.world == null
                 || serverInfo == null || serverInfo.address == null || serverInfo.address.isBlank()
-                || session == null || session.getUuidOrNull() == null) {
+                || session == null) {
             authenticatedServer = "";
             return;
         }
 
-        String server = serverInfo.address;
+        String server = normalizeServer(serverInfo.address);
+        if (server.isEmpty()) {
+            authenticatedServer = "";
+            return;
+        }
         if (accessToken().isEmpty()) authenticate(client, session);
         String token = accessToken();
         if (token.isEmpty()) return;
@@ -104,9 +123,12 @@ public final class PresenceHeartbeatService {
     }
 
     private static void authenticate(MinecraftClient client, Session session) throws Exception {
-        UUID uuid = session.getUuidOrNull();
         String name = session.getUsername();
-        if (uuid == null || name == null || !name.matches("[A-Za-z0-9_]{3,16}")) return;
+        if (name == null || !name.matches("[A-Za-z0-9_]{3,16}")) return;
+        UUID uuid = session.getUuidOrNull();
+        if (uuid == null) {
+            uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
+        }
 
         JsonObject requestBody = new JsonObject();
         requestBody.addProperty("name", name);

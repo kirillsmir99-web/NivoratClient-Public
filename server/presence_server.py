@@ -21,7 +21,7 @@ HOST = "127.0.0.1"
 PORT = 18790
 DATA_DIR = Path(os.environ.get("NIVORAT_PRESENCE_DATA_DIR", "/var/lib/nivorat-presence"))
 USERS_FILE = DATA_DIR / "dev-users.json"
-PEER_TTL = 45
+PEER_TTL = 90
 AUTH_TTL = 3600
 DEV_TTL = 43200
 MAX_PEERS = 5000
@@ -251,7 +251,7 @@ class PresenceHandler(BaseHTTPRequestHandler):
                 return
             viewer = peers.get(presence["uuid"])
             if not viewer or viewer["server"] != presence["server"] or viewer["seen"] + PEER_TTL <= now:
-                self.send_json(403, {"error": "viewer_offline"})
+                self.send_json(200, {"peers": []})
                 return
             names = [p["name"] for p in peers.values()
                      if p["server"] == presence["server"] and p["seen"] + PEER_TTL > now]

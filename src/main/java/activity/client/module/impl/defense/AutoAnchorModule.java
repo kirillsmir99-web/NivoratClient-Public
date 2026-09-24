@@ -52,11 +52,12 @@ public class AutoAnchorModule extends NivoratModule {
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
+                        String old = c.autoAnchorMode;
                         c.autoAnchorMode = val;
                         controller.cancelState(MinecraftClient.getInstance());
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
-                        if ("double".equalsIgnoreCase(val)) {
+                        if ("double".equalsIgnoreCase(val) && !"double".equalsIgnoreCase(old)) {
                             activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.anchor.double_dev_warning"));
                         }
                     }
@@ -350,6 +351,9 @@ public class AutoAnchorModule extends NivoratModule {
             controller.toggle();
         }
         AnchorConfig.enabled = enabled;
+        if (enabled && c != null && "double".equalsIgnoreCase(c.autoAnchorMode)) {
+            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.anchor.double_dev_warning"));
+        }
     }
 
     @Override

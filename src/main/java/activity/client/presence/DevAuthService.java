@@ -36,7 +36,7 @@ public final class DevAuthService {
         String oldToken = token();
         logoutLocal();
         if (oldToken.isEmpty()) return;
-        CompletableFuture.runAsync(() -> {
+        Thread logoutThread = new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/logout"))
@@ -48,7 +48,9 @@ public final class DevAuthService {
                 HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
             } catch (Exception ignored) {
             }
-        });
+        }, "Nivorat-Dev-Logout");
+        logoutThread.setDaemon(true);
+        logoutThread.start();
     }
 
     public static CompletableFuture<String> login(String username, String password) {

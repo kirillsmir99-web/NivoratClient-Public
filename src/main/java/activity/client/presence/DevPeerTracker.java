@@ -38,7 +38,8 @@ public final class DevPeerTracker {
                     activePeers = Set.of();
                 }
                 try {
-                    Thread.sleep(8_000L);
+                    long sleepMs = activePeers.isEmpty() ? 2_500L : 8_000L;
+                    Thread.sleep(sleepMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -63,8 +64,8 @@ public final class DevPeerTracker {
     private static void pollPeers() throws Exception {
         MinecraftClient client = MinecraftClient.getInstance();
         ServerInfo serverInfo = client == null ? null : client.getCurrentServerEntry();
-        String server = serverInfo == null ? "" : serverInfo.address;
-        if (server == null || server.isBlank() || !server.equals(PresenceHeartbeatService.authenticatedServer())) {
+        String server = PresenceHeartbeatService.normalizeServer(serverInfo == null ? "" : serverInfo.address);
+        if (server.isEmpty() || !server.equals(PresenceHeartbeatService.authenticatedServer())) {
             activePeers = Set.of();
             activeServer = "";
             return;
@@ -89,6 +90,12 @@ public final class DevPeerTracker {
         HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 401 || response.statusCode() == 403) {
             activePeers = Set.of();
+            try {
+                JsonObject errObj = JsonParser.parseString(response.body()).getAsJsonObject();
+                if ("viewer_offline".equals(errObj.get("error").getAsString())) {
+                    return;
+                }
+            } catch (Exception ignored) {}
             DevAuthService.logoutLocal();
             return;
         }

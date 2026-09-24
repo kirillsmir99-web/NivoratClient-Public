@@ -1,15 +1,21 @@
 package activity.client.gui.dev;
 
+import activity.client.gui.component.ActivityButton;
 import activity.client.gui.render.ActivityGuiRenderer;
+import activity.client.gui.theme.ActivityColors;
 import activity.client.presence.DevAuthService;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class DevLoginScreen extends Screen {
     private final Screen parent;
+    private final List<ActivityButton> buttons = new ArrayList<>();
     private TextFieldWidget usernameField;
     private TextFieldWidget passwordField;
     private volatile String status = "";
@@ -22,6 +28,7 @@ public final class DevLoginScreen extends Screen {
 
     @Override
     protected void init() {
+        buttons.clear();
         int boxW = Math.min(220, width - 24);
         int left = (width - boxW) / 2;
         int top = Math.max(26, height / 2 - 62);
@@ -33,14 +40,16 @@ public final class DevLoginScreen extends Screen {
         passwordField.setMaxLength(128);
         passwordField.setPlaceholder(Text.literal("Пароль"));
         passwordField.addFormatter((value, start) -> Text.literal("●".repeat(value.length())).asOrderedText());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Войти"), button -> submit())
-                .dimensions(left, top + 54, halfBtnW, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Назад"), button -> close())
-                .dimensions(left + halfBtnW + 10, top + 54, halfBtnW, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Выйти из Dev"), button -> {
+        ActivityButton btnLogin = new ActivityButton(left, top + 54, halfBtnW, 20, Text.literal("Войти"), ActivityButton.Variant.PRIMARY, button -> submit());
+        ActivityButton btnBack = new ActivityButton(left + halfBtnW + 10, top + 54, halfBtnW, 20, Text.literal("Назад"), ActivityButton.Variant.SECONDARY, button -> close());
+        btnBack.setBrandHoverColor(ActivityColors.ACCENT_PRIMARY);
+        ActivityButton btnLogout = new ActivityButton(left, top + 80, boxW, 20, Text.literal("Выйти из дев"), ActivityButton.Variant.DANGER, button -> {
             DevAuthService.logout();
             status = "Dev-доступ отключён";
-        }).dimensions(left, top + 80, boxW, 20).build());
+        });
+        buttons.add(btnLogin);
+        buttons.add(btnBack);
+        buttons.add(btnLogout);
         if (DevAuthService.isLoggedIn()) status = "Dev-доступ активен";
         setInitialFocus(usernameField);
     }
@@ -71,12 +80,33 @@ public final class DevLoginScreen extends Screen {
         int boxW = Math.min(220, width - 24);
         int left = (width - boxW) / 2;
         int top = Math.max(26, height / 2 - 62);
-        ActivityGuiRenderer.drawPanel(context, left - 12, top - 22, boxW + 24, 142, 0xF012141A, 0x38FFFFFF, false);
+        ActivityGuiRenderer.drawPanel(context, left - 12, top - 22, boxW + 24, 150, 0xF012141A, 0x38FFFFFF, false);
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, top - 15, 0xFFFFFF);
         if (status != null && !status.isEmpty()) {
             context.drawCenteredTextWithShadow(textRenderer, Text.literal(status), width / 2, top + 114, 0xCCBBDD);
         }
         super.render(context, mouseX, mouseY, deltaTicks);
+        for (ActivityButton btn : buttons) {
+            btn.render(context, mouseX, mouseY, deltaTicks);
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(Click click, boolean doubled) {
+        for (ActivityButton btn : buttons) {
+            if (btn.mouseClicked(click, doubled)) {
+                return true;
+            }
+        }
+        return super.mouseClicked(click, doubled);
+    }
+
+    @Override
+    public void mouseMoved(double mouseX, double mouseY) {
+        for (ActivityButton btn : buttons) {
+            btn.mouseMoved(mouseX, mouseY);
+        }
+        super.mouseMoved(mouseX, mouseY);
     }
 
     @Override

@@ -9,15 +9,23 @@ import net.minecraft.util.Identifier;
 public final class DevBadgeText {
     private static final Style BADGE_STYLE = Style.EMPTY.withFont(
         new StyleSpriteSource.Font(Identifier.of("nivoratclient", "dev_badge")));
+    private static final Style SEPARATOR_STYLE = Style.EMPTY
+        .withFont(StyleSpriteSource.DEFAULT)
+        .withColor(0xC184FF);
 
     private DevBadgeText() {}
 
     public static Text prefix(Text original) {
-        if (original == null || original.getString().contains(NivoratDev.BADGE_GLYPH)) {
+        if (original == null) {
+            return null;
+        }
+        if (original.getString().contains(NivoratDev.BADGE_GLYPH)) {
             return original;
         }
-        MutableText badge = Text.literal(NivoratDev.BADGE_GLYPH).setStyle(BADGE_STYLE);
-        badge.append(Text.literal(NivoratDev.BADGE_SEPARATOR).styled(style -> style.withColor(0xC184FF)));
-        return badge.append(original);
+        MutableText root = Text.empty();
+        root.append(Text.literal(NivoratDev.BADGE_GLYPH).setStyle(BADGE_STYLE));
+        root.append(Text.literal(NivoratDev.BADGE_SEPARATOR).setStyle(SEPARATOR_STYLE));
+        root.append(original);
+        return root;
     }
 }
