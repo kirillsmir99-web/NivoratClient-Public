@@ -157,7 +157,7 @@ public class AboutTab extends ActivityTab {
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelVer = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.version"));
         labelVer.setMaxWidth(labelMaxW);
-        ActivityLabel valVer = new ActivityLabel(innerStartX + innerRowW - valW, rowY + 3, Text.translatable("activity.about.val_version"));
+        ActivityLabel valVer = new ActivityLabel(innerStartX + innerRowW - valW, rowY + 3, Text.translatable("activity.about.val_version"), ActivityColors.TEXT_ACCENT);
         valVer.setMaxWidth(valW);
         addControl(container, labelVer);
         addControl(container, valVer);
@@ -186,6 +186,7 @@ public class AboutTab extends ActivityTab {
             btn -> {
                 copyToClipboard(WATERMARK);
                 SoundManager.playPresetSave();
+                btn.flashSuccess(2000L, Text.translatable("activity.button.copied_telegram"), ActivityIcon.CHECK);
             }
         );
         btnCopyTg.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
@@ -282,7 +283,7 @@ public class AboutTab extends ActivityTab {
         innerStartX = card3X + ActivityMetrics.PADDING_PANEL;
         curY = twoColumns ? (col1Y + card1Height + 10) : (rowY + secBtnH + 14);
 
-        int rows3 = 5;
+        int rows3 = 4;
         int card3Height = 22 + rows3 * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         ActivityPanel card3 = createCard(container, card3X, curY, cardW, card3Height, Text.translatable("activity.card.about.system"));
         registerModuleCard("about_system", card3);
@@ -297,14 +298,6 @@ public class AboutTab extends ActivityTab {
         valMc.setMaxWidth(valW);
         addControl(container, labelMc);
         addControl(container, valMc);
-
-        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
-        ActivityLabel labelLoader = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.loader"));
-        labelLoader.setMaxWidth(labelMaxW);
-        ActivityLabel valLoader = new ActivityLabel(innerStartX + innerRowW - valW, rowY + 3, Text.translatable("activity.about.val_loader"));
-        valLoader.setMaxWidth(valW);
-        addControl(container, labelLoader);
-        addControl(container, valLoader);
 
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelBuild = new ActivityLabel(innerStartX, rowY + 3, Text.translatable("activity.about.build_info"));

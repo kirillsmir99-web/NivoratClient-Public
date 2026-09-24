@@ -253,9 +253,20 @@ public class ConfigTab extends ActivityTab {
         };
 
         Runnable doCopy = () -> {
-            Preset toExport = activePresetTarget.isBuiltin()
-                ? Preset.createCustom(activePresetTarget.getName(), PresetSerializer.extractSettingsSnapshot(config))
-                : activePresetTarget;
+            ModuleRegistry.saveAll(config);
+            ActivityConfigManager.markDirty();
+            ActivityConfigManager.save();
+
+            com.google.gson.JsonObject currentSnapshot = PresetSerializer.extractSettingsSnapshot(config);
+            if (activePresetTarget != null && !activePresetTarget.isBuiltin()) {
+                activePresetTarget.setSettings(currentSnapshot);
+                PresetManager.overwritePresetWithSettings(activePresetTarget, currentSnapshot);
+            }
+
+            String exportName = (activePresetTarget != null && !activePresetTarget.isBuiltin())
+                ? activePresetTarget.getName()
+                : "Пресет";
+            Preset toExport = Preset.createCustom(exportName, currentSnapshot);
             String json = PresetSerializer.toClipboardJson(toExport);
             MinecraftClient.getInstance().keyboard.setClipboard(json);
             activity.client.gui.sound.SoundManager.playPresetSave();
@@ -288,38 +299,64 @@ public class ConfigTab extends ActivityTab {
                 return;
             }
 
-            if (PresetManager.hasPresetNamed(imported.getName())) {
-                screen.getModalManager().showDuplicatePreset(
-                    imported.getName(),
-                    () -> {
-                        Preset p = PresetManager.addOrOverwriteImported(imported, true);
+            String rawName = imported.getName();
+            String initialName = (rawName == null || rawName.isBlank()
+                || "default".equalsIgnoreCase(rawName)
+                || "По умолчанию".equalsIgnoreCase(rawName))
+                ? "Импортированный пресет"
+                : rawName.trim();
+
+            screen.getModalManager().showTextInput(
+                Text.translatable("activity.modal.import_preset_name.title"),
+                Text.translatable("activity.modal.import_preset_name.desc"),
+                Text.translatable("activity.modal.preset_name.placeholder"),
+                initialName,
+                name -> {
+                    if (name == null || name.trim().isEmpty() || name.trim().length() > 32) return false;
+                    for (int i = 0; i < name.length(); i++) {
+                        char c = name.charAt(i);
+                        if (Character.isISOControl(c) || c == '\n' || c == '\r' || c == '\t') return false;
+                    }
+                    return true;
+                },
+                chosenName -> {
+                    String cleanName = chosenName.trim();
+                    Preset candidate = Preset.createCustom(cleanName, imported.getSettings());
+                    Preset existing = PresetManager.getPresetByName(cleanName);
+                    if (existing != null && !existing.isBuiltin()) {
+                        screen.getModalManager().showDuplicatePreset(
+                            cleanName,
+                            () -> {
+                                Preset p = PresetManager.addOrOverwriteImported(candidate, true);
+                                config.activeProfile = p.getName();
+                                PresetManager.applyPreset(p, config);
+                                activity.client.gui.sound.SoundManager.playPresetApply();
+                                this.presetStatusText = Text.translatable("activity.status.preset_imported");
+                                this.presetStatusColor = ActivityColors.SUCCESS;
+                                screen.reloadCurrentTab();
+                            },
+                            () -> {
+                                Preset p = PresetManager.addOrOverwriteImported(candidate, false);
+                                config.activeProfile = p.getName();
+                                PresetManager.applyPreset(p, config);
+                                activity.client.gui.sound.SoundManager.playPresetApply();
+                                this.presetStatusText = Text.translatable("activity.status.preset_imported");
+                                this.presetStatusColor = ActivityColors.SUCCESS;
+                                screen.reloadCurrentTab();
+                            },
+                            null
+                        );
+                    } else {
+                        Preset p = PresetManager.addOrOverwriteImported(candidate, false);
                         config.activeProfile = p.getName();
                         PresetManager.applyPreset(p, config);
                         activity.client.gui.sound.SoundManager.playPresetApply();
                         this.presetStatusText = Text.translatable("activity.status.preset_imported");
                         this.presetStatusColor = ActivityColors.SUCCESS;
                         screen.reloadCurrentTab();
-                    },
-                    () -> {
-                        Preset p = PresetManager.addOrOverwriteImported(imported, false);
-                        config.activeProfile = p.getName();
-                        PresetManager.applyPreset(p, config);
-                        activity.client.gui.sound.SoundManager.playPresetApply();
-                        this.presetStatusText = Text.translatable("activity.status.preset_imported");
-                        this.presetStatusColor = ActivityColors.SUCCESS;
-                        screen.reloadCurrentTab();
-                    },
-                    null
-                );
-            } else {
-                Preset p = PresetManager.addOrOverwriteImported(imported, false);
-                config.activeProfile = p.getName();
-                PresetManager.applyPreset(p, config);
-                activity.client.gui.sound.SoundManager.playPresetApply();
-                this.presetStatusText = Text.translatable("activity.status.preset_imported");
-                this.presetStatusColor = ActivityColors.SUCCESS;
-                screen.reloadCurrentTab();
-            }
+                    }
+                }
+            );
         };
 
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;

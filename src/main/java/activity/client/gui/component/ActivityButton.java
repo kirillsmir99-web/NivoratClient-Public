@@ -47,6 +47,12 @@ public class ActivityButton extends ActivityComponent {
     private int cachedDisplayWidth = -1;
     private int lastCalculatedWidth = -1;
 
+    private long successFlashUntil = 0L;
+    @Nullable
+    private Text flashMessage = null;
+    @Nullable
+    private ActivityIcon flashIcon = null;
+
     public ActivityButton(int x, int y, int width, int height, Text message, PressAction onPress) {
         this(x, y, width, height, null, message, Variant.SECONDARY, onPress);
     }
@@ -136,6 +142,18 @@ public class ActivityButton extends ActivityComponent {
         this.customTexture = customTexture;
     }
 
+    public void flashSuccess(long durationMs, Text flashText, @Nullable ActivityIcon flashIcon) {
+        this.successFlashUntil = System.currentTimeMillis() + durationMs;
+        this.flashMessage = flashText;
+        this.flashIcon = flashIcon != null ? flashIcon : ActivityIcon.CHECK;
+        this.cachedDisplayText = null;
+        this.cachedDisplayWidth = -1;
+    }
+
+    public void flashSuccess(long durationMs, Text flashText) {
+        this.flashSuccess(durationMs, flashText, ActivityIcon.CHECK);
+    }
+
     public void setOnPress(PressAction onPress) {
         this.onPress = onPress;
     }
@@ -147,12 +165,17 @@ public class ActivityButton extends ActivityComponent {
     }
 
     private void drawButtonIcon(DrawContext context, int x, int y, int size, int color) {
-        if (this.customTexture != null) {
+        drawButtonIcon(context, x, y, size, color, this.icon, this.customTexture);
+    }
+
+    private void drawButtonIcon(DrawContext context, int x, int y, int size, int color,
+                                @Nullable ActivityIcon icon, @Nullable net.minecraft.util.Identifier customTexture) {
+        if (customTexture != null) {
             try {
                 int textureColor = this.enabled ? 0xFFFFFFFF : 0x80FFFFFF;
                 context.drawTexture(
                     net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-                    this.customTexture,
+                    customTexture,
                     x, y,
                     0.0f, 0.0f,
                     size, size,
@@ -162,22 +185,35 @@ public class ActivityButton extends ActivityComponent {
                 return;
             } catch (Throwable ignored) {}
         }
-        if (this.icon != null) {
-            ActivityIconRenderer.draw(context, this.icon, x, y, size, color, 1.0f);
+        if (icon != null) {
+            ActivityIconRenderer.draw(context, icon, x, y, size, color, 1.0f);
         }
     }
 
     private void drawButtonIconCentered(DrawContext context, int boxX, int boxY, int boxW, int boxH, int color) {
-        int size = (this.customTexture != null)
+        drawButtonIconCentered(context, boxX, boxY, boxW, boxH, color, this.icon, this.customTexture);
+    }
+
+    private void drawButtonIconCentered(DrawContext context, int boxX, int boxY, int boxW, int boxH, int color,
+                                        @Nullable ActivityIcon icon, @Nullable net.minecraft.util.Identifier customTexture) {
+        int size = (customTexture != null)
             ? (boxH >= 24 ? 16 : 14)
-            : (this.icon != null ? this.icon.getWidth() : 16);
+            : (icon != null ? icon.getWidth() : 16);
         int x = boxX + (boxW - size) / 2;
         int y = boxY + (boxH - size) / 2;
-        drawButtonIcon(context, x, y, size, color);
+        drawButtonIcon(context, x, y, size, color, icon, customTexture);
     }
 
     @Override
     protected void renderComponent(DrawContext context, int mouseX, int mouseY, float delta) {
+        boolean isSuccess = System.currentTimeMillis() < this.successFlashUntil;
+        if (!isSuccess && this.flashMessage != null) {
+            this.flashMessage = null;
+            this.flashIcon = null;
+            this.cachedDisplayText = null;
+            this.cachedDisplayWidth = -1;
+        }
+
         boolean isHovered = this.enabled && this.hovered;
         float targetHover = isHovered ? 1.0f : 0.0f;
         this.hoverProgress = AnimationClock.approach(this.hoverProgress, targetHover, AnimationClock.DURATION_HOVER);
@@ -186,86 +222,95 @@ public class ActivityButton extends ActivityComponent {
         int borderColor;
         int textColor;
 
-        switch (this.variant) {
-            case PRIMARY -> {
-                bgColor = ActivityColors.interpolateColor(ActivityColors.BUTTON_PRIMARY_BG, ActivityColors.BUTTON_PRIMARY_HOVER, this.hoverProgress);
-                borderColor = ActivityColors.interpolateColor(ActivityColors.ACCENT_PRIMARY, ActivityColors.ACCENT_LIGHT, this.hoverProgress);
-                textColor = this.enabled ? ActivityColors.TEXT_PRIMARY : ActivityColors.TEXT_DISABLED;
+        if (isSuccess) {
+            bgColor = 0x332ED573;
+            borderColor = 0xFF2ED573;
+            textColor = 0xFF2ED573;
+        } else {
+            switch (this.variant) {
+                case PRIMARY -> {
+                    bgColor = ActivityColors.interpolateColor(ActivityColors.BUTTON_PRIMARY_BG, ActivityColors.BUTTON_PRIMARY_HOVER, this.hoverProgress);
+                    borderColor = ActivityColors.interpolateColor(ActivityColors.ACCENT_PRIMARY, ActivityColors.ACCENT_LIGHT, this.hoverProgress);
+                    textColor = this.enabled ? ActivityColors.TEXT_PRIMARY : ActivityColors.TEXT_DISABLED;
+                }
+                case DANGER -> {
+                    bgColor = ActivityColors.BUTTON_DANGER_BG;
+                    borderColor = ActivityColors.interpolateColor(ActivityColors.BUTTON_DANGER_BORDER, ActivityColors.BUTTON_DANGER_HOVER_BORDER, this.hoverProgress);
+                    int activeTextColor = ActivityColors.interpolateColor(ActivityColors.DANGER, 0xFFFF8080, this.hoverProgress);
+                    textColor = this.enabled ? activeTextColor : ActivityColors.TEXT_DISABLED;
+                }
+                case SECONDARY -> {
+                    int targetBg = ActivityColors.withAlpha(ActivityColors.BUTTON_SECONDARY_BG, 0xF0);
+                    bgColor = ActivityColors.interpolateColor(ActivityColors.BUTTON_SECONDARY_BG, targetBg, this.hoverProgress);
+                    borderColor = ActivityColors.interpolateColor(ActivityColors.BORDER, ActivityColors.BORDER_HOVER, this.hoverProgress);
+                    int activeTextColor = ActivityColors.interpolateColor(ActivityColors.TEXT_SECONDARY, ActivityColors.TEXT_PRIMARY, this.hoverProgress);
+                    textColor = this.enabled ? activeTextColor : ActivityColors.TEXT_DISABLED;
+                }
+                default -> {
+                    bgColor = ActivityColors.BUTTON_SECONDARY_BG;
+                    borderColor = ActivityColors.BORDER;
+                    textColor = ActivityColors.TEXT_PRIMARY;
+                }
             }
-            case DANGER -> {
-                bgColor = ActivityColors.BUTTON_DANGER_BG;
-                borderColor = ActivityColors.interpolateColor(ActivityColors.BUTTON_DANGER_BORDER, ActivityColors.BUTTON_DANGER_HOVER_BORDER, this.hoverProgress);
-                int activeTextColor = ActivityColors.interpolateColor(ActivityColors.DANGER, 0xFFFF8080, this.hoverProgress);
-                textColor = this.enabled ? activeTextColor : ActivityColors.TEXT_DISABLED;
-            }
-            case SECONDARY -> {
-                int targetBg = ActivityColors.withAlpha(ActivityColors.BUTTON_SECONDARY_BG, 0xF0);
-                bgColor = ActivityColors.interpolateColor(ActivityColors.BUTTON_SECONDARY_BG, targetBg, this.hoverProgress);
-                borderColor = ActivityColors.interpolateColor(ActivityColors.BORDER, ActivityColors.BORDER_HOVER, this.hoverProgress);
-                int activeTextColor = ActivityColors.interpolateColor(ActivityColors.TEXT_SECONDARY, ActivityColors.TEXT_PRIMARY, this.hoverProgress);
-                textColor = this.enabled ? activeTextColor : ActivityColors.TEXT_DISABLED;
-            }
-            default -> {
-                bgColor = ActivityColors.BUTTON_SECONDARY_BG;
-                borderColor = ActivityColors.BORDER;
-                textColor = ActivityColors.TEXT_PRIMARY;
-            }
-        }
 
-        if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
-            borderColor = ActivityColors.interpolateColor(borderColor, this.brandHoverColor, this.hoverProgress);
-            textColor = ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress);
+            if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
+                borderColor = ActivityColors.interpolateColor(borderColor, this.brandHoverColor, this.hoverProgress);
+                textColor = ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress);
+            }
         }
 
         ActivityGuiRenderer.drawPanel(context, this.x, this.y, this.width, this.height, bgColor, borderColor);
 
-        if (this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
+        if (!isSuccess && this.brandHoverColor != 0 && this.hoverProgress > 0.001f) {
             int overlayAlpha = (int) (0x28 * this.hoverProgress);
             int overlayColor = (overlayAlpha << 24) | (this.brandHoverColor & 0x00FFFFFF);
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, this.height - 2, overlayColor);
-        } else if (this.variant == Variant.SECONDARY && this.hoverProgress > 0.001f) {
+        } else if (!isSuccess && this.variant == Variant.SECONDARY && this.hoverProgress > 0.001f) {
             int maxAlpha = (ActivityColors.BUTTON_SECONDARY_HOVER >>> 24) & 0xFF;
             int overlayAlpha = (int) (maxAlpha * this.hoverProgress);
             int overlayColor = (overlayAlpha << 24) | (ActivityColors.BUTTON_SECONDARY_HOVER & 0x00FFFFFF);
             ActivityGuiRenderer.fill(context, this.x + 1, this.y + 1, this.width - 2, this.height - 2, overlayColor);
         }
 
-        if (this.focused && this.enabled) {
+        if (this.focused && this.enabled && !isSuccess) {
             ActivityGuiRenderer.drawBorder(context, this.x, this.y, this.width, this.height, ActivityColors.ACCENT_PRIMARY);
         }
 
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         int fontH = activity.client.gui.font.UiTextRenderer.getFontHeight(tr);
         int textY = this.y + (this.height - fontH) / 2;
-        int iconColor = (this.brandHoverColor != 0 && this.hoverProgress > 0.001f)
+        int iconColor = isSuccess ? 0xFF2ED573 : ((this.brandHoverColor != 0 && this.hoverProgress > 0.001f)
             ? ActivityColors.interpolateColor(textColor, this.brandHoverColor, this.hoverProgress)
-            : textColor;
+            : textColor);
+
+        Text activeMessage = isSuccess ? this.flashMessage : this.message;
+        ActivityIcon activeIcon = isSuccess ? this.flashIcon : this.icon;
+        net.minecraft.util.Identifier activeCustomTexture = isSuccess ? null : this.customTexture;
 
         ScissorHelper.pushScissor(context, this.x + 2, this.y + 1, Math.max(1, this.width - 4), Math.max(1, this.height - 2));
         try {
-            boolean hasIcon = (this.icon != null || this.customTexture != null);
-            if (hasIcon && this.message != null) {
-                int iconSize = (this.customTexture != null)
+            boolean hasIcon = (activeIcon != null || activeCustomTexture != null);
+            if (hasIcon && activeMessage != null) {
+                int iconSize = (activeCustomTexture != null)
                     ? (this.height >= 24 ? 16 : 14)
-                    : (this.icon != null ? this.icon.getWidth() : 16);
+                    : (activeIcon != null ? activeIcon.getWidth() : 16);
                 int gap = 5;
                 if (this.width < iconSize + 16) {
-
-                    drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor);
+                    drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor, activeIcon, activeCustomTexture);
                 } else {
                     int maxTextW = this.width - iconSize - gap - 6;
                     if (this.cachedDisplayText == null || this.lastCalculatedWidth != this.width) {
-                        int fullWidth = activity.client.gui.font.UiTextRenderer.getWidth(tr, this.message);
+                        int fullWidth = activity.client.gui.font.UiTextRenderer.getWidth(tr, activeMessage);
                         if (maxTextW > 8 && fullWidth > maxTextW) {
                             int ellW = activity.client.gui.font.UiTextRenderer.getWidth(tr, "…");
                             int targetW = Math.max(0, maxTextW - ellW);
-                            String trimmed = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, this.message.getString(), targetW) + "…";
+                            String trimmed = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, activeMessage.getString(), targetW) + "…";
                             if (activity.client.gui.font.UiTextRenderer.getWidth(tr, trimmed) > maxTextW) {
                                 trimmed = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, trimmed, Math.max(0, maxTextW));
                             }
                             this.cachedDisplayText = Text.literal(trimmed);
                         } else {
-                            this.cachedDisplayText = this.message;
+                            this.cachedDisplayText = activeMessage;
                         }
                         this.cachedDisplayWidth = activity.client.gui.font.UiTextRenderer.getWidth(tr, this.cachedDisplayText);
                         this.lastCalculatedWidth = this.width;
@@ -273,25 +318,25 @@ public class ActivityButton extends ActivityComponent {
                     int totalContentWidth = iconSize + gap + this.cachedDisplayWidth;
                     int startX = Math.max(this.x + 3, this.x + (this.width - totalContentWidth) / 2);
                     int iconY = this.y + (this.height - iconSize) / 2;
-                    drawButtonIcon(context, startX, iconY, iconSize, iconColor);
+                    drawButtonIcon(context, startX, iconY, iconSize, iconColor, activeIcon, activeCustomTexture);
                     activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, this.cachedDisplayText, startX + iconSize + gap, textY, textColor);
                 }
             } else if (hasIcon) {
-                drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor);
-            } else if (this.message != null) {
+                drawButtonIconCentered(context, this.x, this.y, this.width, this.height, iconColor, activeIcon, activeCustomTexture);
+            } else if (activeMessage != null) {
                 if (this.cachedDisplayText == null || this.lastCalculatedWidth != this.width) {
                     int maxTextW = this.width - 6;
-                    int fullWidth = activity.client.gui.font.UiTextRenderer.getWidth(tr, this.message);
+                    int fullWidth = activity.client.gui.font.UiTextRenderer.getWidth(tr, activeMessage);
                     if (maxTextW > 8 && fullWidth > maxTextW) {
                         int ellW = activity.client.gui.font.UiTextRenderer.getWidth(tr, "…");
                         int targetW = Math.max(0, maxTextW - ellW);
-                        String trimmed = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, this.message.getString(), targetW) + "…";
+                        String trimmed = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, activeMessage.getString(), targetW) + "…";
                         if (activity.client.gui.font.UiTextRenderer.getWidth(tr, trimmed) > maxTextW) {
                             trimmed = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, trimmed, Math.max(0, maxTextW));
                         }
                         this.cachedDisplayText = Text.literal(trimmed);
                     } else {
-                        this.cachedDisplayText = this.message;
+                        this.cachedDisplayText = activeMessage;
                     }
                     this.cachedDisplayWidth = activity.client.gui.font.UiTextRenderer.getWidth(tr, this.cachedDisplayText);
                     this.lastCalculatedWidth = this.width;

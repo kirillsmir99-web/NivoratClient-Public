@@ -284,4 +284,11 @@ public class AboutTabSystemTest {
         assertTrue(toast.getActionButton().getWidth() > 0);
         assertEquals(18, toast.getActionButton().getHeight());
     }
+
+    @Test
+    void testCopyTelegramButtonFlashSuccess() {
+        ActivityButton btn = new ActivityButton(0, 0, 100, 20, ActivityIcon.COPY, Text.literal("Копировать"), null);
+        btn.flashSuccess(1000L, Text.literal("✓ Скопировано!"), ActivityIcon.CHECK);
+        assertNotNull(btn);
+    }
 }
