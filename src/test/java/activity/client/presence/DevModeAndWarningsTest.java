@@ -99,4 +99,31 @@ class DevModeAndWarningsTest {
         module.setEnabled(false);
         assertFalse(module.isEnabled());
     }
+
+    @Test
+    void testDevBadgeTextPreservesPlaceholderAndFormatting() {
+        Text original = Text.literal("[VIP] ").styled(s -> s.withColor(0x55FF55))
+                .append(Text.literal("PlayerName").styled(s -> s.withColor(0xFFFFFF)));
+        Text prefixed = DevBadgeText.prefix(original);
+
+        assertNotNull(prefixed);
+        var siblings = prefixed.getSiblings();
+        assertEquals(3, siblings.size());
+        assertEquals(NivoratDev.BADGE_GLYPH, siblings.get(0).getString());
+        assertEquals(NivoratDev.BADGE_SEPARATOR, siblings.get(1).getString());
+        assertTrue(siblings.get(2).getString().contains("[VIP]"));
+        assertTrue(siblings.get(2).getString().contains("PlayerName"));
+    }
+
+    @Test
+    void testAutoToolRedundantToggleNoCrash() {
+        AutoToolModule module = new AutoToolModule();
+        module.setEnabled(true);
+        module.setEnabled(true);
+        assertTrue(module.isEnabled());
+
+        module.setEnabled(false);
+        module.setEnabled(false);
+        assertFalse(module.isEnabled());
+    }
 }

@@ -25,7 +25,7 @@ public final class DevBadgeText {
         MutableText root = Text.empty();
         root.append(Text.literal(NivoratDev.BADGE_GLYPH).setStyle(BADGE_STYLE));
         root.append(Text.literal(NivoratDev.BADGE_SEPARATOR).setStyle(SEPARATOR_STYLE));
-        root.append(original);
+        root.append(original.copy());
         return root;
     }
 }

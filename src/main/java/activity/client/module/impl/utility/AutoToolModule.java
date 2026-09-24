@@ -266,6 +266,7 @@ public class AutoToolModule extends NivoratModule {
 
     @Override
     public void setEnabled(boolean enabled) {
+        boolean changed = this.enabled != enabled;
         super.setEnabled(enabled);
         ActivityConfig c = ActivityConfigManager.getConfig();
         if (c != null) {
@@ -273,7 +274,7 @@ public class AutoToolModule extends NivoratModule {
             ActivityConfigManager.markDirty();
         }
         AutoToolClient.CONFIG.enabled = enabled;
-        if (enabled) {
+        if (enabled && changed) {
             activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.autotool.dev_warning"));
         }
     }

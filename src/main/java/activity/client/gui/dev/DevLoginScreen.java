@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -107,6 +108,15 @@ public final class DevLoginScreen extends Screen {
             btn.mouseMoved(mouseX, mouseY);
         }
         super.mouseMoved(mouseX, mouseY);
+    }
+
+    @Override
+    public boolean keyPressed(KeyInput input) {
+        if (input != null && input.isEnterOrSpace()) {
+            submit();
+            return true;
+        }
+        return super.keyPressed(input);
     }
 
     @Override

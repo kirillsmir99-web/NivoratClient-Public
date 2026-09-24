@@ -49,7 +49,10 @@ public final class PresenceHeartbeatService {
                     authenticatedServer = "";
                 }
                 try {
-                    long sleepMs = authenticatedServer.isEmpty() ? 2_000L : 25_000L;
+                    MinecraftClient mc = MinecraftClient.getInstance();
+                    ServerInfo si = mc == null ? null : mc.getCurrentServerEntry();
+                    String curr = si == null ? "" : normalizeServer(si.address);
+                    long sleepMs = (authenticatedServer.isEmpty() || !authenticatedServer.equals(curr)) ? 1_500L : 20_000L;
                     Thread.sleep(sleepMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -159,7 +162,7 @@ public final class PresenceHeartbeatService {
         HttpResponse<String> verifyResponse = HTTP_CLIENT.send(verifyRequest, HttpResponse.BodyHandlers.ofString());
         if (verifyResponse.statusCode() != 200 || verifyResponse.body().length() > 1024) return;
         JsonObject verified = JsonParser.parseString(verifyResponse.body()).getAsJsonObject();
-        if (!uuid.toString().equalsIgnoreCase(verified.get("uuid").getAsString())) return;
+        if (!verified.has("token") || !verified.has("expires_in")) return;
         String token = verified.get("token").getAsString();
         int expiresIn = verified.get("expires_in").getAsInt();
         if (!token.matches("[A-Za-z0-9_-]{32,256}") || expiresIn < 60 || expiresIn > 3600) return;

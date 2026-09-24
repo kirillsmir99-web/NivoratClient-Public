@@ -125,10 +125,8 @@ def mojang_has_joined(name, challenge):
             if len(body) > 1024:
                 return None
             data = json.loads(body)
-    except urllib.error.HTTPError as error:
-        if error.code in (204, 404):
-            return None
-        raise
+    except Exception:
+        return None
     return data
 
 
@@ -317,8 +315,7 @@ class PresenceHandler(BaseHTTPRequestHandler):
         now = time.monotonic()
         with state_lock:
             item = pending.pop(challenge, None)
-        if not item or item["expires"] <= now or item["ip"] != self.client_ip() \
-                or item["name"].lower() != name.lower():
+        if not item or item["expires"] <= now or item["name"].lower() != name.lower():
             self.send_json(401, {"error": "unauthorized"})
             return
         verified = None
