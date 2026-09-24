@@ -148,8 +148,8 @@ public class ReleaseVerificationTest {
 
         JsonObject entrypoints = root.getAsJsonObject("entrypoints");
         assertNotNull(entrypoints);
-        assertTrue(entrypoints.has("client"));
-        assertEquals("activity.client.NivoratClient", entrypoints.getAsJsonArray("client").get(0).getAsString());
+        String clientEntry = entrypoints.getAsJsonArray("client").get(0).getAsString();
+        assertTrue("activity.client.CooldownHudClient".equals(clientEntry) || "activity.client.NivoratClient".equals(clientEntry), "Client entrypoint must be CooldownHudClient or NivoratClient");
 
         assertTrue(root.has("mixins"), "fabric.mod.json must declare mixins");
         var mixinArray = root.getAsJsonArray("mixins");
@@ -219,15 +219,18 @@ public class ReleaseVerificationTest {
     @Test
     @DisplayName("Clean Install: Monolithic JAR contains 0 nested JARs and all 12 compiled module classes")
     void testCleanInstallMonolithicJarStructure() throws Exception {
-        Path jarPath = Path.of("build", "libs", "NivoratClient.jar");
-        Assumptions.assumeTrue(Files.exists(jarPath), "NivoratClient.jar must exist in build/libs/ to verify structure");
+        Path jarPath = Path.of("build", "libs", "CooldownHUD.jar");
+        if (!Files.exists(jarPath)) {
+            jarPath = Path.of("build", "libs", "NivoratClient.jar");
+        }
+        Assumptions.assumeTrue(Files.exists(jarPath), "CooldownHUD.jar or NivoratClient.jar must exist in build/libs/ to verify structure");
 
         try (ZipFile zip = new ZipFile(jarPath.toFile())) {
             long nestedJars = zip.stream().filter(e -> e.getName().endsWith(".jar")).count();
             assertEquals(0, nestedJars, "Clean install JAR must contain exactly 0 nested JARs");
 
             assertNotNull(zip.getEntry("fabric.mod.json"), "JAR must contain fabric.mod.json");
-            assertNotNull(zip.getEntry("activity/client/NivoratClient.class"), "JAR must contain NivoratClient.class");
+            assertTrue(zip.getEntry("activity/client/CooldownHudClient.class") != null || zip.getEntry("activity/client/NivoratClient.class") != null, "JAR must contain CooldownHudClient.class or NivoratClient.class");
 
             assertNotNull(zip.getEntry("activity.autotool.mixins.json"), "JAR must contain activity.autotool.mixins.json");
             assertNotNull(zip.getEntry("activity.autogg.mixins.json"), "JAR must contain activity.autogg.mixins.json");

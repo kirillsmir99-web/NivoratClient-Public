@@ -48,7 +48,7 @@ public final class DevAuthService {
                 HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
             } catch (Exception ignored) {
             }
-        }, "Nivorat-Dev-Logout");
+        }, "Cooldown-Dev-Logout");
         logoutThread.setDaemon(true);
         logoutThread.start();
     }

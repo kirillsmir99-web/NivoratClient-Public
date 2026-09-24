@@ -53,9 +53,9 @@ java {
 jar {
 	manifest {
 		attributes(
-			"Specification-Title": "NivoratClient",
+			"Specification-Title": "CooldownHUD",
 			"Specification-Version": project.version,
-			"Implementation-Title": "NivoratClient",
+			"Implementation-Title": "CooldownHUD",
 			"Implementation-Version": project.version
 		)
 	}
@@ -70,15 +70,17 @@ tasks.register("generateEditionResource") {
 	inputs.property("devEdition", isDev)
 	outputs.dir(editionResourcesDir)
 	doLast {
-		def marker = editionResourcesDir.get().file("nivorat-edition.txt").asFile
+		def marker = editionResourcesDir.get().file("cooldownhud-edition.txt").asFile
 		marker.parentFile.mkdirs()
 		marker.text = isDev ? "dev\n" : "public\n"
+		def legacyMarker = editionResourcesDir.get().file("nivorat-edition.txt").asFile
+		legacyMarker.text = isDev ? "dev\n" : "public\n"
 	}
 }
 processResources.dependsOn("generateEditionResource")
 
 remapJar {
-	archiveFileName = isDev ? "NivoratClient-Dev.jar" : "NivoratClient.jar"
+	archiveFileName = isDev ? "CooldownHUD-Dev.jar" : "CooldownHUD.jar"
 }
 
 tasks.register("buildDev") {

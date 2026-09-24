@@ -28,106 +28,106 @@ public final class FontManager {
     private FontManager() {}
 
     public static void init() {
-        NivoratFontManager.init();
+        CooldownFontManager.init();
     }
 
     public static boolean isFontAvailable(FontFamily family) {
-        return NivoratFontManager.isFontAvailable(family);
+        return CooldownFontManager.isFontAvailable(family);
     }
 
     public static String getActiveFamily() {
-        return NivoratFontManager.getActiveFamily();
+        return CooldownFontManager.getActiveFamily();
     }
 
     public static FontFamily getActiveFontFamily() {
-        return NivoratFontManager.getActiveFontFamily();
+        return CooldownFontManager.getActiveFontFamily();
     }
 
     public static TypographySize getActiveTypographySize() {
-        return NivoratFontManager.getActiveTypographySize();
+        return CooldownFontManager.getActiveTypographySize();
     }
 
     public static TypographyMetrics getMetrics() {
-        return NivoratFontManager.getMetrics();
+        return CooldownFontManager.getMetrics();
     }
 
     public static StyleSpriteSource getActiveFontSource() {
-        return NivoratFontManager.getActiveFontSource();
+        return CooldownFontManager.getActiveFontSource();
     }
 
     public static boolean isRetroPixel() {
-        return NivoratFontManager.getActiveFontFamily() == FontFamily.RETRO_PIXEL;
+        return CooldownFontManager.getActiveFontFamily() == FontFamily.RETRO_PIXEL;
     }
 
     public static void setFontFamily(FontFamily family) {
-        NivoratFontManager.setFontFamily(family);
+        CooldownFontManager.setFontFamily(family);
     }
 
     public static void setFontFamily(FontFamily family, boolean saveConfig) {
-        NivoratFontManager.setFontFamily(family, saveConfig);
+        CooldownFontManager.setFontFamily(family, saveConfig);
     }
 
     public static void setFontFamily(String family) {
-        NivoratFontManager.setFontFamily(family);
+        CooldownFontManager.setFontFamily(family);
     }
 
     public static void setFontFamily(String family, boolean saveConfig) {
-        NivoratFontManager.setFontFamily(family, saveConfig);
+        CooldownFontManager.setFontFamily(family, saveConfig);
     }
 
     public static void setTypographySize(TypographySize size) {
-        NivoratFontManager.setTypographySize(size);
+        CooldownFontManager.setTypographySize(size);
     }
 
     public static void setTypographySize(TypographySize size, boolean saveConfig) {
-        NivoratFontManager.setTypographySize(size, saveConfig);
+        CooldownFontManager.setTypographySize(size, saveConfig);
     }
 
     public static void toggleFont() {
-        NivoratFontManager.setFontFamily(NivoratFontManager.isMinecraftFont() ? FontFamily.ONEST : FontFamily.MINECRAFT);
+        CooldownFontManager.setFontFamily(CooldownFontManager.isMinecraftFont() ? FontFamily.ONEST : FontFamily.MINECRAFT);
     }
 
     public static Style getStyle() {
-        return NivoratFontManager.getStyle();
+        return CooldownFontManager.getStyle();
     }
 
     public static Style getStyle(FontFamily family) {
-        return NivoratFontManager.getStyle(family);
+        return CooldownFontManager.getStyle(family);
     }
 
     public static Text wrap(Text text) {
-        return NivoratFontManager.wrap(text);
+        return CooldownFontManager.wrap(text);
     }
 
     public static Text wrap(Text text, FontFamily family) {
-        return NivoratFontManager.wrap(text, family);
+        return CooldownFontManager.wrap(text, family);
     }
 
     public static MutableText literal(String text) {
-        return NivoratFontManager.literal(text);
+        return CooldownFontManager.literal(text);
     }
 
     public static MutableText translatable(String key, Object... args) {
-        return NivoratFontManager.translatable(key, args);
+        return CooldownFontManager.translatable(key, args);
     }
 
     public static int getWidth(TextRenderer tr, Text text) {
-        return NivoratFontManager.getWidth(tr, text);
+        return CooldownFontManager.getWidth(tr, text);
     }
 
     public static int getWidth(TextRenderer tr, String text) {
-        return NivoratFontManager.getWidth(tr, text);
+        return CooldownFontManager.getWidth(tr, text);
     }
 
     public static void invalidateMetricsCache() {
-        NivoratFontManager.invalidateMetricsCache();
+        CooldownFontManager.invalidateMetricsCache();
     }
 
     public static void addListener(Runnable listener) {
-        NivoratFontManager.addListener(listener);
+        CooldownFontManager.addListener(listener);
     }
 
     public static void removeListener(Runnable listener) {
-        NivoratFontManager.removeListener(listener);
+        CooldownFontManager.removeListener(listener);
     }
 }

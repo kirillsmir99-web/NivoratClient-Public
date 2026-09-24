@@ -45,7 +45,7 @@ public final class DevPeerTracker {
                     break;
                 }
             }
-        }, "Nivorat-Dev-Tracker");
+        }, "Cooldown-Dev-Tracker");
         workerThread.setDaemon(true);
         workerThread.start();
     }

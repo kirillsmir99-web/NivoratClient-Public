@@ -69,9 +69,9 @@ public final class ActivityConfigManager {
         config.sanitize();
         currentConfig = config;
         ModuleRegistry.loadAll(currentConfig);
-        NivoratConfigManager.syncFromModules(currentConfig);
+        CooldownConfigManager.syncFromModules(currentConfig);
         currentConfig.syncModuleConfigEntries();
-        NivoratConfigManager.syncToModules(currentConfig);
+        CooldownConfigManager.syncToModules(currentConfig);
         checkDirty();
     }
 
@@ -91,7 +91,7 @@ public final class ActivityConfigManager {
     public static synchronized void resetDefaults() {
         currentConfig.resetToDefaults();
         ModuleRegistry.loadAll(currentConfig);
-        NivoratConfigManager.syncToModules(currentConfig);
+        CooldownConfigManager.syncToModules(currentConfig);
         checkDirty();
     }
 
@@ -186,9 +186,9 @@ public final class ActivityConfigManager {
                         loaded.sanitize();
                         activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(loaded);
                         currentConfig = loaded;
-                        NivoratConfigManager.syncFromModules(currentConfig);
+                        CooldownConfigManager.syncFromModules(currentConfig);
                         ModuleRegistry.loadAll(currentConfig);
-                        NivoratConfigManager.syncToModules(currentConfig);
+                        CooldownConfigManager.syncToModules(currentConfig);
                         savedSnapshot = currentConfig.copy();
                         manualDirty = false;
                         save();
@@ -202,7 +202,7 @@ public final class ActivityConfigManager {
             currentConfig = new ActivityConfig();
             activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(currentConfig);
             ModuleRegistry.loadAll(currentConfig);
-            NivoratConfigManager.syncToModules(currentConfig);
+            CooldownConfigManager.syncToModules(currentConfig);
             savedSnapshot = currentConfig.copy();
             manualDirty = false;
             save();
@@ -252,9 +252,9 @@ public final class ActivityConfigManager {
             loaded.sanitize();
             activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(loaded);
             currentConfig = loaded;
-            NivoratConfigManager.syncFromModules(currentConfig);
+            CooldownConfigManager.syncFromModules(currentConfig);
             ModuleRegistry.loadAll(currentConfig);
-            NivoratConfigManager.syncToModules(currentConfig);
+            CooldownConfigManager.syncToModules(currentConfig);
             savedSnapshot = currentConfig.copy();
             manualDirty = false;
             cleanLegacyFiles();
@@ -273,7 +273,7 @@ public final class ActivityConfigManager {
         }
         try {
             ModuleRegistry.saveAll(currentConfig);
-            NivoratConfigManager.syncToModules(currentConfig);
+            CooldownConfigManager.syncToModules(currentConfig);
             currentConfig.sanitize();
 
             JsonObject root = new JsonObject();

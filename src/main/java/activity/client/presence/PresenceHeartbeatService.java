@@ -59,7 +59,7 @@ public final class PresenceHeartbeatService {
                     break;
                 }
             }
-        }, "Nivorat-Presence-Heartbeat");
+        }, "Cooldown-Presence-Heartbeat");
         workerThread.setDaemon(true);
         workerThread.start();
     }

@@ -13,17 +13,17 @@ public final class UiTextRenderer {
     private UiTextRenderer() {}
 
     public static float getScaleFactor() {
-        return NivoratFontManager.getActiveTypographySize().getScaleFactor();
+        return CooldownFontManager.getActiveTypographySize().getScaleFactor();
     }
 
     public static int getWidth(TextRenderer tr, Text text) {
         if (tr == null || text == null) return 0;
-        return NivoratFontManager.getWidth(tr, text);
+        return CooldownFontManager.getWidth(tr, text);
     }
 
     public static int getWidth(TextRenderer tr, String text) {
         if (tr == null || text == null || text.isEmpty()) return 0;
-        return NivoratFontManager.getWidth(tr, text);
+        return CooldownFontManager.getWidth(tr, text);
     }
 
     public static int getFontHeight(TextRenderer tr) {
@@ -33,11 +33,11 @@ public final class UiTextRenderer {
     }
 
     public static int getLineHeight() {
-        return NivoratFontManager.getMetrics().getLineHeight();
+        return CooldownFontManager.getMetrics().getLineHeight();
     }
 
     public static float getVerticalOffset() {
-        return NivoratFontManager.getMetrics().getVerticalOffset();
+        return CooldownFontManager.getMetrics().getVerticalOffset();
     }
 
     public static int getCenterY(int parentY, int parentHeight, TextRenderer tr) {
@@ -46,7 +46,7 @@ public final class UiTextRenderer {
 
     public static void drawText(DrawContext context, TextRenderer tr, Text text, int x, int y, int color, boolean shadow) {
         if (context == null || tr == null || text == null) return;
-        Text wrapped = NivoratFontManager.wrap(text);
+        Text wrapped = CooldownFontManager.wrap(text);
         float scale = getScaleFactor();
 
         if (Math.abs(scale - 1.0f) < 0.001f) {
@@ -69,7 +69,7 @@ public final class UiTextRenderer {
     }
 
     public static void drawText(DrawContext context, TextRenderer tr, String text, int x, int y, int color, boolean shadow) {
-        drawText(context, tr, NivoratFontManager.literal(text), x, y, color, shadow);
+        drawText(context, tr, CooldownFontManager.literal(text), x, y, color, shadow);
     }
 
     public static void drawTextWithShadow(DrawContext context, TextRenderer tr, Text text, int x, int y, int color) {
@@ -117,7 +117,7 @@ public final class UiTextRenderer {
         if (tr == null || text == null) return List.of();
         float scale = getScaleFactor();
         int unscaledMaxW = scale > 0.001f ? Math.max(1, Math.round(maxWidth / scale)) : maxWidth;
-        return tr.wrapLines(NivoratFontManager.wrap(text), unscaledMaxW);
+        return tr.wrapLines(CooldownFontManager.wrap(text), unscaledMaxW);
     }
 
     public static String trimToWidth(TextRenderer tr, String text, int maxWidth) {
@@ -132,6 +132,6 @@ public final class UiTextRenderer {
         float scale = getScaleFactor();
         int unscaledMaxW = scale > 0.001f ? Math.max(1, Math.round(maxWidth / scale)) : maxWidth;
         String trimmed = tr.trimToWidth(text.getString(), unscaledMaxW);
-        return NivoratFontManager.literal(trimmed);
+        return CooldownFontManager.literal(trimmed);
     }
 }

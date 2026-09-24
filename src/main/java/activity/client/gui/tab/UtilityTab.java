@@ -9,7 +9,7 @@ import activity.client.gui.component.ActivityDropdown;
 import activity.client.gui.component.ActivityLabel;
 import activity.client.gui.component.ActivitySlider;
 import activity.client.gui.component.ActivityToggle;
-import activity.client.gui.hud.NivoratHudEditorScreen;
+import activity.client.gui.hud.CooldownHudEditorScreen;
 import activity.client.gui.icon.ActivityIcon;
 import activity.client.gui.layout.ScrollContainer;
 import activity.client.gui.theme.ActivityMetrics;
@@ -230,7 +230,7 @@ public class UtilityTab extends ActivityTab {
             btn -> {
                 MinecraftClient mc = MinecraftClient.getInstance();
                 if (mc != null) {
-                    mc.setScreen(new NivoratHudEditorScreen(screen));
+                    mc.setScreen(new CooldownHudEditorScreen(screen));
                 }
             }
         );

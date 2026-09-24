@@ -16,7 +16,7 @@ import java.util.Locale;
 
 public final class ActivityHudOverlay {
 
-    public static final String DEFAULT_TITLE = "NivoratClient";
+    public static final String DEFAULT_TITLE = "CooldownHUD";
     private static String cachedTitle = null;
     private static Text cachedTitleText = null;
     public static final int PILL_HEIGHT = 14;

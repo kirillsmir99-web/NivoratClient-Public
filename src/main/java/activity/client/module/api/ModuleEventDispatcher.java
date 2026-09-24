@@ -187,6 +187,7 @@ public final class ModuleEventDispatcher {
             Class<?> declaring = method.getDeclaringClass();
             return declaring != IModule.class
                     && declaring != AbstractModule.class
+                    && declaring != CooldownModule.class
                     && declaring != NivoratModule.class
                     && declaring != activity.client.module.stub.AbstractModuleStub.class;
         } catch (NoSuchMethodException e) {
