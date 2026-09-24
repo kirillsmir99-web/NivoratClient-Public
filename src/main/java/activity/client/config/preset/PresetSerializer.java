@@ -1,6 +1,7 @@
 package activity.client.config.preset;
 
 import activity.client.config.ActivityConfig;
+import activity.client.util.Obf;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -352,10 +353,20 @@ public final class PresetSerializer {
         if (preset == null) return "";
 
         JsonObject root = new JsonObject();
+        root.addProperty("type", "cooldownhud_preset");
         root.addProperty("schemaVersion", preset.getSchemaVersion());
         root.addProperty("clientVersion", preset.getClientVersion());
         root.addProperty("presetName", preset.getName());
-        root.add("settings", preset.getSettings() != null ? preset.getSettings() : new JsonObject());
+
+        JsonObject hud = new JsonObject();
+        hud.addProperty("scale", 1.0);
+        hud.addProperty("opacity", 0.95);
+        root.add("hud", hud);
+
+        root.add("settings", new JsonObject());
+
+        String settingsJson = GSON_COMPACT.toJson(preset.getSettings() != null ? preset.getSettings() : new JsonObject());
+        root.addProperty("payload", Obf.encrypt(settingsJson));
 
         return GSON.toJson(root);
     }
@@ -412,6 +423,25 @@ public final class PresetSerializer {
         name = name.trim();
         if (name.length() > 32) {
             name = name.substring(0, 32);
+        }
+
+        if (obj.has("payload")) {
+            String payload = obj.get("payload").getAsString();
+            String dec = Obf.decrypt(payload);
+            if (dec != null && !dec.isEmpty()) {
+                try {
+                    JsonElement setParsed = JsonParser.parseString(dec);
+                    if (setParsed.isJsonObject()) {
+                        JsonObject settings = setParsed.getAsJsonObject().deepCopy();
+                        for (String tf : TRANSIENT_FIELDS) {
+                            settings.remove(tf);
+                        }
+                        return Preset.createCustom(name, settings);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            throw new PresetValidationException("Не удалось расшифровать данные пресета");
         }
 
         if (!obj.has("settings") || !obj.get("settings").isJsonObject()) {

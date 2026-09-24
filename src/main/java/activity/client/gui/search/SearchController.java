@@ -134,7 +134,7 @@ public final class SearchController {
     }
 
     private static void addCategory(String categoryId, Text title, ActivityIcon icon, List<String> keywords) {
-        INDEX.add(new SearchEntry(categoryId, categoryId, null, title, Text.translatable("activity.gui.header_title"), icon, keywords));
+        INDEX.add(new SearchEntry(categoryId, categoryId, null, title, Text.empty(), icon, keywords));
     }
 
     private static void addModule(String categoryId, String moduleId, Text title, Text breadcrumb, ActivityIcon icon, List<String> keywords) {

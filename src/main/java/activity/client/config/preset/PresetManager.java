@@ -4,6 +4,7 @@ import activity.client.ActivityClient;
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 import activity.client.module.api.ModuleRegistry;
+import activity.client.util.Obf;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -33,15 +34,28 @@ public final class PresetManager {
         .serializeSpecialFloatingPointValues()
         .create();
 
-    private static Path resolvePresetsPath() {
+    private static final Gson GSON_COMPACT = new GsonBuilder()
+        .disableHtmlEscaping()
+        .serializeSpecialFloatingPointValues()
+        .create();
+
+    private static Path resolveConfigDir() {
         try {
             FabricLoader loader = FabricLoader.getInstance();
             if (loader != null && loader.getConfigDir() != null) {
-                return loader.getConfigDir().resolve("activity_presets.json");
+                return loader.getConfigDir();
             }
         } catch (Throwable ignored) {
         }
-        return Path.of("config", "activity_presets.json");
+        return Path.of("config");
+    }
+
+    private static Path resolvePresetsPath() {
+        return resolveConfigDir().resolve("cooldown_presets.json");
+    }
+
+    private static Path resolveLegacyPresetsPath() {
+        return resolveConfigDir().resolve("activity_presets.json");
     }
 
     private static final Path PRESETS_PATH = resolvePresetsPath();
@@ -211,11 +225,16 @@ public final class PresetManager {
         return true;
     }
 
+    public static synchronized boolean renamePreset(String id, String newName) {
+        Preset p = getPresetById(id);
+        if (p == null) return false;
+        return renamePreset(p, newName);
+    }
+
     public static synchronized void applyPreset(Preset preset, ActivityConfig target) {
         if (preset == null || target == null) return;
 
         if (preset.isBuiltin()) {
-
             int origX = target.windowPosX;
             int origY = target.windowPosY;
             int origW = target.windowWidth;
@@ -285,12 +304,25 @@ public final class PresetManager {
         initialized = true;
         customPresets.clear();
 
-        if (!Files.exists(PRESETS_PATH)) {
+        Path presetsPath = resolvePresetsPath();
+        Path legacyPath = resolveLegacyPresetsPath();
+
+        Path targetToRead = null;
+        boolean isLegacy = false;
+
+        if (Files.exists(presetsPath)) {
+            targetToRead = presetsPath;
+        } else if (Files.exists(legacyPath)) {
+            targetToRead = legacyPath;
+            isLegacy = true;
+        }
+
+        if (targetToRead == null) {
             return;
         }
 
         try {
-            String json = Files.readString(PRESETS_PATH, StandardCharsets.UTF_8);
+            String json = Files.readString(targetToRead, StandardCharsets.UTF_8);
             if (json == null || json.isBlank()) return;
 
             JsonElement parsed = JsonParser.parseString(json);
@@ -311,12 +343,37 @@ public final class PresetManager {
                 long updatedAt = obj.has("updatedAt") ? obj.get("updatedAt").getAsLong() : createdAt;
                 int schema = obj.has("schemaVersion") ? obj.get("schemaVersion").getAsInt() : Preset.CURRENT_SCHEMA_VERSION;
                 String clientVer = obj.has("clientVersion") ? obj.get("clientVersion").getAsString() : Preset.CURRENT_CLIENT_VERSION;
-                JsonObject settings = obj.has("settings") && obj.get("settings").isJsonObject() ? obj.getAsJsonObject("settings") : new JsonObject();
+
+                JsonObject settings = new JsonObject();
+                if (obj.has("profileData")) {
+                    String enc = obj.get("profileData").getAsString();
+                    String dec = Obf.decrypt(enc);
+                    if (dec != null && !dec.isEmpty()) {
+                        try {
+                            JsonElement setParsed = JsonParser.parseString(dec);
+                            if (setParsed.isJsonObject()) {
+                                settings = setParsed.getAsJsonObject();
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } else if (obj.has("settings") && obj.get("settings").isJsonObject()) {
+                    settings = obj.getAsJsonObject("settings");
+                }
 
                 customPresets.add(new Preset(id, name, createdAt, updatedAt, schema, clientVer, false, settings));
             }
+
+            if (isLegacy) {
+                saveAll();
+                try {
+                    Files.deleteIfExists(legacyPath);
+                    Files.deleteIfExists(resolveConfigDir().resolve("activity_presets.json.tmp"));
+                } catch (Throwable ignored) {
+                }
+            }
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Failed to load custom presets from {}: {}", PRESETS_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[Activity] Failed to load custom presets from {}: {}", targetToRead, e.getMessage());
         }
     }
 
@@ -325,7 +382,8 @@ public final class PresetManager {
             return;
         }
         try {
-            Path parent = PRESETS_PATH.getParent();
+            Path presetsPath = resolvePresetsPath();
+            Path parent = presetsPath.getParent();
             if (parent != null && !Files.exists(parent)) {
                 Files.createDirectories(parent);
             }
@@ -340,22 +398,35 @@ public final class PresetManager {
                 obj.addProperty("updatedAt", p.getUpdatedAt());
                 obj.addProperty("schemaVersion", p.getSchemaVersion());
                 obj.addProperty("clientVersion", p.getClientVersion());
-                obj.add("settings", p.getSettings());
+
+                JsonObject hudLayout = new JsonObject();
+                hudLayout.addProperty("scale", 1.0);
+                hudLayout.addProperty("opacity", 0.95);
+                obj.add("hudLayout", hudLayout);
+
+                String settingsJson = GSON_COMPACT.toJson(p.getSettings() != null ? p.getSettings() : new JsonObject());
+                obj.addProperty("profileData", Obf.encrypt(settingsJson));
                 array.add(obj);
             }
 
             String json = GSON.toJson(array);
-            Path tempPath = PRESETS_PATH.resolveSibling(PRESETS_PATH.getFileName().toString() + ".tmp");
+            Path tempPath = presetsPath.resolveSibling("cooldown_presets.json.tmp");
             Files.writeString(tempPath, json, StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 
             try {
-                Files.move(tempPath, PRESETS_PATH, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempPath, presetsPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             } catch (AtomicMoveNotSupportedException e) {
-                Files.move(tempPath, PRESETS_PATH, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempPath, presetsPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            try {
+                Files.deleteIfExists(resolveLegacyPresetsPath());
+                Files.deleteIfExists(resolveConfigDir().resolve("activity_presets.json.tmp"));
+            } catch (Throwable ignored) {
             }
         } catch (IOException e) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Failed to save custom presets to {}: {}", PRESETS_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[Activity] Failed to save custom presets: {}", e.getMessage());
         }
     }
 

@@ -124,7 +124,8 @@ public class ReleaseVerificationTest {
 
         JsonObject root = JsonParser.parseReader(new InputStreamReader(is, StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals("activity", root.get("id").getAsString(), "Mod ID must be activity");
-        assertEquals("NivoratClient", root.get("name").getAsString(), "Mod Name must be NivoratClient");
+        String modName = root.get("name").getAsString();
+        assertTrue("CooldownHUD".equals(modName) || "NivoratClient".equals(modName), "Mod Name must be CooldownHUD or NivoratClient");
 
         JsonObject depends = root.getAsJsonObject("depends");
         assertNotNull(depends, "depends section must exist");

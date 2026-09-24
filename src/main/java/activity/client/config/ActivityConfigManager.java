@@ -2,9 +2,13 @@ package activity.client.config;
 
 import activity.client.ActivityClient;
 import activity.client.module.api.ModuleRegistry;
+import activity.client.util.Obf;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -24,15 +28,28 @@ public final class ActivityConfigManager {
         .serializeSpecialFloatingPointValues()
         .create();
 
-    private static Path resolveConfigPath() {
+    private static final Gson GSON_COMPACT = new GsonBuilder()
+        .disableHtmlEscaping()
+        .serializeSpecialFloatingPointValues()
+        .create();
+
+    private static Path resolveConfigDir() {
         try {
             net.fabricmc.loader.api.FabricLoader loader = FabricLoader.getInstance();
             if (loader != null && loader.getConfigDir() != null) {
-                return loader.getConfigDir().resolve("activity.json");
+                return loader.getConfigDir();
             }
         } catch (Throwable ignored) {
         }
-        return Path.of("config", "activity.json");
+        return Path.of("config");
+    }
+
+    private static Path resolveConfigPath() {
+        return resolveConfigDir().resolve("cooldownhud.json");
+    }
+
+    private static Path resolveLegacyConfigPath() {
+        return resolveConfigDir().resolve("activity.json");
     }
 
     private static final Path CONFIG_PATH = resolveConfigPath();
@@ -89,12 +106,16 @@ public final class ActivityConfigManager {
     public static synchronized String exportPresetString() {
         currentConfig.syncModuleConfigEntries();
         currentConfig.sanitize();
-        return GSON.toJson(currentConfig);
+        JsonObject root = new JsonObject();
+        root.addProperty("type", "cooldownhud_config");
+        root.addProperty("configVersion", currentConfig.configVersion);
+        root.addProperty("activeProfile", currentConfig.activeProfile != null ? currentConfig.activeProfile : "default");
+        root.addProperty("payload", Obf.encrypt(GSON_COMPACT.toJson(currentConfig)));
+        return GSON.toJson(root);
     }
 
     public static synchronized String exportPresetCompact() {
-        String json = exportPresetString();
-        return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(exportPresetString().getBytes(StandardCharsets.UTF_8));
     }
 
     public static synchronized boolean importPresetString(String data) {
@@ -106,12 +127,25 @@ public final class ActivityConfigManager {
                 try {
                     byte[] decoded = Base64.getMimeDecoder().decode(trimmed);
                     jsonToParse = new String(decoded, StandardCharsets.UTF_8);
-                } catch (IllegalArgumentException exMime) {
+                } catch (Exception exMime) {
                     try {
                         byte[] decoded = Base64.getDecoder().decode(trimmed);
                         jsonToParse = new String(decoded, StandardCharsets.UTF_8);
-                    } catch (IllegalArgumentException ignored) {
+                    } catch (Exception ignored) {
                     }
+                }
+            }
+
+            if (jsonToParse.contains("\"payload\"")) {
+                try {
+                    JsonObject obj = JsonParser.parseString(jsonToParse).getAsJsonObject();
+                    if (obj.has("payload")) {
+                        String decrypted = Obf.decrypt(obj.get("payload").getAsString());
+                        if (decrypted != null && !decrypted.isEmpty()) {
+                            jsonToParse = decrypted;
+                        }
+                    }
+                } catch (Exception ignored) {
                 }
             }
 
@@ -138,8 +172,33 @@ public final class ActivityConfigManager {
     }
 
     public static synchronized ActivityConfig load() {
-        if (!Files.exists(CONFIG_PATH)) {
-            ActivityClient.LOGGER.debug("[Activity] Config file not found at {}. Generating default configuration.", CONFIG_PATH);
+        Path configPath = resolveConfigPath();
+        Path legacyPath = resolveLegacyConfigPath();
+
+        if (!Files.exists(configPath)) {
+            if (Files.exists(legacyPath)) {
+                try {
+                    String legacyJson = Files.readString(legacyPath, StandardCharsets.UTF_8);
+                    ActivityConfig loaded = GSON.fromJson(legacyJson, ActivityConfig.class);
+                    if (loaded != null) {
+                        if (legacyJson.contains("\"client\"")) loaded.syncFromClientSection();
+                        if (legacyJson.contains("\"modules\"")) loaded.syncFromModuleEntries();
+                        loaded.sanitize();
+                        activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(loaded);
+                        currentConfig = loaded;
+                        NivoratConfigManager.syncFromModules(currentConfig);
+                        ModuleRegistry.loadAll(currentConfig);
+                        NivoratConfigManager.syncToModules(currentConfig);
+                        savedSnapshot = currentConfig.copy();
+                        manualDirty = false;
+                        save();
+                        cleanLegacyFiles();
+                        return currentConfig;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
             currentConfig = new ActivityConfig();
             activity.client.config.migration.LegacyConfigMigrator.checkAndMigrate(currentConfig);
             ModuleRegistry.loadAll(currentConfig);
@@ -147,22 +206,47 @@ public final class ActivityConfigManager {
             savedSnapshot = currentConfig.copy();
             manualDirty = false;
             save();
+            cleanLegacyFiles();
             return currentConfig;
         }
 
         try {
-            String json = Files.readString(CONFIG_PATH, StandardCharsets.UTF_8);
-            ActivityConfig loaded = GSON.fromJson(json, ActivityConfig.class);
+            String json = Files.readString(configPath, StandardCharsets.UTF_8);
+            ActivityConfig loaded = null;
+
+            if (json.contains("\"profileData\"")) {
+                try {
+                    JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+                    if (root.has("profileData")) {
+                        String enc = root.get("profileData").getAsString();
+                        String dec = Obf.decrypt(enc);
+                        if (dec != null && !dec.isEmpty()) {
+                            loaded = GSON.fromJson(dec, ActivityConfig.class);
+                            if (dec.contains("\"client\"")) loaded.syncFromClientSection();
+                            if (dec.contains("\"modules\"")) loaded.syncFromModuleEntries();
+                        }
+                    }
+                    if (loaded != null && root.has("hud") && root.get("hud").isJsonObject()) {
+                        JsonObject hud = root.getAsJsonObject("hud");
+                        if (hud.has("enabled")) loaded.cooldownHudEnabled = hud.get("enabled").getAsBoolean();
+                        if (hud.has("customX")) loaded.cooldownHudCustomX = hud.get("customX").getAsInt();
+                        if (hud.has("customY")) loaded.cooldownHudCustomY = hud.get("customY").getAsInt();
+                        if (hud.has("vertical")) loaded.cooldownHudVertical = hud.get("vertical").getAsBoolean();
+                        if (hud.has("minDuration")) loaded.cooldownHudMinDuration = hud.get("minDuration").getAsDouble();
+                        if (hud.has("activeProfile")) loaded.activeProfile = hud.get("activeProfile").getAsString();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (loaded == null) {
+                loaded = GSON.fromJson(json, ActivityConfig.class);
+                if (json.contains("\"client\"")) loaded.syncFromClientSection();
+                if (json.contains("\"modules\"")) loaded.syncFromModuleEntries();
+            }
 
             if (loaded == null) {
                 throw new JsonParseException("Parsed configuration resulted in null object");
-            }
-
-            if (json.contains("\"client\"")) {
-                loaded.syncFromClientSection();
-            }
-            if (json.contains("\"modules\"")) {
-                loaded.syncFromModuleEntries();
             }
 
             loaded.sanitize();
@@ -173,11 +257,12 @@ public final class ActivityConfigManager {
             NivoratConfigManager.syncToModules(currentConfig);
             savedSnapshot = currentConfig.copy();
             manualDirty = false;
-            ActivityClient.LOGGER.debug("[Activity] Successfully loaded configuration from {}.", CONFIG_PATH);
+            cleanLegacyFiles();
             return currentConfig;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[Activity] Failed to parse configuration at {}: {}", CONFIG_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[Activity] Failed to parse configuration at {}: {}", configPath, e.getMessage());
             handleCorruptedConfig(e);
+            cleanLegacyFiles();
             return currentConfig;
         }
     }
@@ -190,27 +275,61 @@ public final class ActivityConfigManager {
             ModuleRegistry.saveAll(currentConfig);
             NivoratConfigManager.syncToModules(currentConfig);
             currentConfig.sanitize();
-            String json = GSON.toJson(currentConfig);
 
-            Path parentDir = CONFIG_PATH.getParent();
+            JsonObject root = new JsonObject();
+            root.addProperty("configVersion", currentConfig.configVersion);
+
+            JsonObject hud = new JsonObject();
+            hud.addProperty("enabled", currentConfig.cooldownHudEnabled);
+            hud.addProperty("customX", currentConfig.cooldownHudCustomX);
+            hud.addProperty("customY", currentConfig.cooldownHudCustomY);
+            hud.addProperty("vertical", currentConfig.cooldownHudVertical);
+            hud.addProperty("scale", 1.0);
+            hud.addProperty("minDuration", currentConfig.cooldownHudMinDuration);
+            hud.addProperty("opacity", 0.95);
+            hud.addProperty("showLabels", true);
+            hud.addProperty("activeProfile", currentConfig.activeProfile != null ? currentConfig.activeProfile : "По умолчанию");
+
+            JsonArray items = new JsonArray();
+            items.add("minecraft:ender_pearl");
+            items.add("minecraft:wind_charge");
+            items.add("minecraft:golden_apple");
+            items.add("minecraft:enchanted_golden_apple");
+            items.add("minecraft:totem_of_undying");
+            items.add("minecraft:tnt_minecart");
+            items.add("minecraft:respawn_anchor");
+            items.add("minecraft:shield");
+            items.add("minecraft:mace");
+            items.add("minecraft:trident");
+            hud.add("trackedItems", items);
+
+            root.add("hud", hud);
+
+            String fullJson = GSON_COMPACT.toJson(currentConfig);
+            root.addProperty("profileData", Obf.encrypt(fullJson));
+
+            String outputJson = GSON.toJson(root);
+
+            Path configPath = resolveConfigPath();
+            Path parentDir = configPath.getParent();
             if (parentDir != null) {
                 Files.createDirectories(parentDir);
             }
 
-            Path tempPath = CONFIG_PATH.resolveSibling("activity.json.tmp");
-            Files.writeString(tempPath, json, StandardCharsets.UTF_8,
+            Path tempPath = configPath.resolveSibling("cooldownhud.json.tmp");
+            Files.writeString(tempPath, outputJson, StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 
             try {
-                Files.move(tempPath, CONFIG_PATH, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempPath, configPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             } catch (AtomicMoveNotSupportedException moveEx) {
-
-                Files.move(tempPath, CONFIG_PATH, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempPath, configPath, StandardCopyOption.REPLACE_EXISTING);
             }
+
+            cleanLegacyFiles();
 
             savedSnapshot = currentConfig.copy();
             manualDirty = false;
-            ActivityClient.LOGGER.debug("[Activity] Configuration atomically saved to {}.", CONFIG_PATH);
             return true;
         } catch (IOException e) {
             ActivityClient.LOGGER.debug("[Activity] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
@@ -218,14 +337,31 @@ public final class ActivityConfigManager {
         }
     }
 
+    private static void cleanLegacyFiles() {
+        try {
+            Path legacy = resolveLegacyConfigPath();
+            if (Files.exists(legacy)) {
+                Files.deleteIfExists(legacy);
+            }
+            Path dir = legacy.getParent();
+            if (dir != null) {
+                Files.deleteIfExists(dir.resolve("autogg.json"));
+                Files.deleteIfExists(dir.resolve("autotool.json"));
+                Files.deleteIfExists(dir.resolve("activity_presets.json"));
+                Files.deleteIfExists(dir.resolve("activity.json.tmp"));
+                Files.deleteIfExists(dir.resolve("activity_presets.json.tmp"));
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     private static void handleCorruptedConfig(Exception cause) {
         try {
+            Path configPath = resolveConfigPath();
             long timestamp = System.currentTimeMillis();
-            Path backupPath = CONFIG_PATH.resolveSibling("activity.json.corrupted_" + timestamp + ".bak");
-            Files.copy(CONFIG_PATH, backupPath, StandardCopyOption.REPLACE_EXISTING);
-            ActivityClient.LOGGER.debug("[Activity] Emergency backup of corrupted configuration saved to {}.", backupPath);
-        } catch (IOException ioException) {
-            ActivityClient.LOGGER.debug("[Activity] Could not create backup of corrupted configuration: {}", ioException.getMessage());
+            Path backupPath = configPath.resolveSibling("cooldownhud.json.corrupted_" + timestamp + ".bak");
+            Files.copy(configPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ignored) {
         }
 
         currentConfig = new ActivityConfig();
@@ -233,11 +369,10 @@ public final class ActivityConfigManager {
         ModuleRegistry.loadAll(currentConfig);
         NivoratConfigManager.syncToModules(currentConfig);
         save();
-        ActivityClient.LOGGER.debug("[Activity] Factory default configuration restored.");
     }
 
     public static Path getConfigPath() {
-        return CONFIG_PATH;
+        return resolveConfigPath();
     }
 
     public static synchronized void purgeForCapitulation() {
