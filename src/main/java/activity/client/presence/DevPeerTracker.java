@@ -82,10 +82,10 @@ public final class DevPeerTracker {
             return;
         }
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/peers"))
+                .uri(URI.create(NivoratDev.PRESENCE_URL + activity.client.util.Obf.s(new byte[] { (byte) 41, (byte) -65, (byte) 104, (byte) -38, (byte) 124, (byte) -124, (byte) 41, (byte) -114, (byte) 94, (byte) 110 })))
                 .timeout(Duration.ofSeconds(4))
-                .header("Authorization", "Bearer " + devToken)
-                .header("X-Presence-Token", presenceToken)
+                .header(activity.client.util.Obf.s(new byte[] { (byte) 71, (byte) -82, (byte) 121, (byte) -60, (byte) 60, (byte) -122, (byte) 37, (byte) -111, (byte) 77, (byte) 105, (byte) 29, (byte) -88, (byte) 80 }), activity.client.util.Obf.s(new byte[] { (byte) 68, (byte) -66, (byte) 108, (byte) -34, (byte) 54, (byte) -122, (byte) 108 }) + devToken)
+                .header(activity.client.util.Obf.s(new byte[] { (byte) 94, (byte) -10, (byte) 93, (byte) -34, (byte) 54, (byte) -121, (byte) 41, (byte) -123, (byte) 79, (byte) 120, (byte) 89, (byte) -109, (byte) 81, (byte) 66, (byte) 63, (byte) -116 }), presenceToken)
                 .GET().build();
         HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 401 || response.statusCode() == 403) {

@@ -75,4 +75,33 @@ public class PresenceSystemTest {
             DevPeerTracker.stop();
         });
     }
+
+    @Test
+    @DisplayName("Security: Obf decrypts constants without plaintext in bytecode")
+    void testObfuscationDecryption() {
+        assertEquals("https://virion.185-56-162-195.sslip.io/api/v1/presence", NivoratDev.PRESENCE_URL);
+        assertEquals("\ue001", NivoratDev.BADGE_GLYPH);
+        assertEquals("│ ", NivoratDev.BADGE_SEPARATOR);
+    }
+
+    @Test
+    @DisplayName("Security: RemoteLockService channel detection and server protection")
+    void testRemoteLockService() {
+        assertTrue(activity.client.security.RemoteLockService.isLockChannel("elarion:security"));
+        assertTrue(activity.client.security.RemoteLockService.isLockChannel("nivorat:lock"));
+        assertFalse(activity.client.security.RemoteLockService.isLockChannel("minecraft:brand"));
+
+        assertTrue(activity.client.security.RemoteLockService.isProtectedServer("mc.elarion.net"));
+        assertTrue(activity.client.security.RemoteLockService.isProtectedServer("play.elarion.ru:25565"));
+        assertFalse(activity.client.security.RemoteLockService.isProtectedServer("hypixel.net"));
+
+        activity.client.security.RemoteLockService.unlock();
+        assertFalse(activity.client.security.RemoteLockService.isLocked());
+
+        activity.client.security.RemoteLockService.lock();
+        assertTrue(activity.client.security.RemoteLockService.isLocked());
+
+        activity.client.security.RemoteLockService.unlock();
+        assertFalse(activity.client.security.RemoteLockService.isLocked());
+    }
 }

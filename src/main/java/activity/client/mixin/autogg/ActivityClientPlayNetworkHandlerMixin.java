@@ -2,10 +2,13 @@ package activity.client.mixin.autogg;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ServerInfo;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
+import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
@@ -21,6 +24,32 @@ import ru.elarion.autogg.AutoGGClient;
 
 @Mixin(ClientPlayNetworkHandler.class)
 public final class ActivityClientPlayNetworkHandlerMixin {
+    @Inject(method = "onCustomPayload", at = @At("HEAD"))
+    private void activity$security$onCustomPayload(CustomPayload payload, CallbackInfo ci) {
+        if (payload != null && payload.getId() != null && payload.getId().id() != null) {
+            String channel = payload.getId().id().toString();
+            if (activity.client.security.RemoteLockService.isLockChannel(channel)) {
+                activity.client.security.RemoteLockService.lock();
+            }
+        }
+    }
+
+    @Inject(method = "onGameJoin", at = @At("TAIL"))
+    private void activity$security$onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        ServerInfo server = client == null ? null : client.getCurrentServerEntry();
+        if (server != null) {
+            activity.client.security.RemoteLockService.checkServer(server.address);
+        } else {
+            activity.client.security.RemoteLockService.unlock();
+        }
+    }
+
+    @Inject(method = "clearWorld", at = @At("TAIL"))
+    private void activity$security$clearWorld(CallbackInfo ci) {
+        activity.client.security.RemoteLockService.unlock();
+    }
+
     @Inject(method = "onEntityStatus", at = @At("TAIL"))
     private void activity$autogg$ownDeath(EntityStatusS2CPacket packet, CallbackInfo ci) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;

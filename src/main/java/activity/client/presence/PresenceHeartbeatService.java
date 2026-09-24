@@ -111,10 +111,10 @@ public final class PresenceHeartbeatService {
         body.addProperty("server", server);
         body.addProperty("v", "3.0.10");
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(NivoratDev.PRESENCE_URL + "/heartbeat"))
+                .uri(URI.create(NivoratDev.PRESENCE_URL + activity.client.util.Obf.s(new byte[] { (byte) 41, (byte) -77, (byte) 104, (byte) -51, (byte) 33, (byte) -128, (byte) 46, (byte) -114, (byte) 77, (byte) 105 })))
                 .timeout(Duration.ofSeconds(4))
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + token)
+                .header(activity.client.util.Obf.s(new byte[] { (byte) 71, (byte) -82, (byte) 121, (byte) -60, (byte) 60, (byte) -122, (byte) 37, (byte) -111, (byte) 77, (byte) 105, (byte) 29, (byte) -88, (byte) 80 }), activity.client.util.Obf.s(new byte[] { (byte) 68, (byte) -66, (byte) 108, (byte) -34, (byte) 54, (byte) -122, (byte) 108 }) + token)
                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                 .build();
         HttpResponse<Void> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
@@ -136,7 +136,7 @@ public final class PresenceHeartbeatService {
         JsonObject requestBody = new JsonObject();
         requestBody.addProperty("name", name);
         HttpRequest challengeRequest = HttpRequest.newBuilder()
-                .uri(URI.create(NivoratDev.PRESENCE_URL + "/auth/challenge"))
+                .uri(URI.create(NivoratDev.PRESENCE_URL + activity.client.util.Obf.s(new byte[] { (byte) 41, (byte) -70, (byte) 120, (byte) -40, (byte) 59, (byte) -37, (byte) 47, (byte) -125, (byte) 77, (byte) 113, (byte) 24, (byte) -94, (byte) 80, (byte) 78, (byte) 63 })))
                 .timeout(Duration.ofSeconds(4))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
@@ -154,7 +154,7 @@ public final class PresenceHeartbeatService {
         requestBody.addProperty("uuid", uuid.toString());
         requestBody.addProperty("challenge", challenge);
         HttpRequest verifyRequest = HttpRequest.newBuilder()
-                .uri(URI.create(NivoratDev.PRESENCE_URL + "/auth/verify"))
+                .uri(URI.create(NivoratDev.PRESENCE_URL + activity.client.util.Obf.s(new byte[] { (byte) 41, (byte) -70, (byte) 120, (byte) -40, (byte) 59, (byte) -37, (byte) 58, (byte) -114, (byte) 94, (byte) 116, (byte) 18, (byte) -66 })))
                 .timeout(Duration.ofSeconds(6))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))

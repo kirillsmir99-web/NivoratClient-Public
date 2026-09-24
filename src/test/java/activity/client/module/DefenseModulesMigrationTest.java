@@ -562,15 +562,15 @@ public class DefenseModulesMigrationTest {
         try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json")) {
             assertNotNull(ruStream);
             String ruJson = new String(ruStream.readAllBytes(), StandardCharsets.UTF_8);
-            assertTrue(ruJson.contains("\"activity.anchor.double_dev_warning\": \"Данная функция находится в разработке\""));
-            assertTrue(ruJson.contains("\"activity.autotool.dev_warning\": \"Данная функция находится ещё в разработке и использовать её небезопасно\""));
+            assertTrue(ruJson.contains("\"activity.anchor.double_dev_warning\": \"Данный режим находится в режиме бета-тестирования\""));
+            assertTrue(ruJson.contains("\"activity.autotool.dev_warning\": \"Данная функция находится в режиме экспериментальной настройки\""));
         }
 
         try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/lang/en_us.json")) {
             assertNotNull(enStream);
             String enJson = new String(enStream.readAllBytes(), StandardCharsets.UTF_8);
-            assertTrue(enJson.contains("\"activity.anchor.double_dev_warning\": \"This feature is currently in development\""));
-            assertTrue(enJson.contains("\"activity.autotool.dev_warning\": \"This feature is still in development and unsafe to use\""));
+            assertTrue(enJson.contains("\"activity.anchor.double_dev_warning\": \"This mode is currently in beta testing\""));
+            assertTrue(enJson.contains("\"activity.autotool.dev_warning\": \"This feature is currently in experimental tuning\""));
         }
     }
 }

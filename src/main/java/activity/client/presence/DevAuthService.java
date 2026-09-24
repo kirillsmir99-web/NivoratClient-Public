@@ -39,9 +39,9 @@ public final class DevAuthService {
         Thread logoutThread = new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/logout"))
+                        .uri(URI.create(NivoratDev.PRESENCE_URL + activity.client.util.Obf.s(new byte[] { (byte) 41, (byte) -65, (byte) 104, (byte) -38, (byte) 124, (byte) -104, (byte) 35, (byte) -116, (byte) 67, (byte) 104, (byte) 0 })))
                         .timeout(Duration.ofSeconds(4))
-                        .header("Authorization", "Bearer " + oldToken)
+                        .header(activity.client.util.Obf.s(new byte[] { (byte) 71, (byte) -82, (byte) 121, (byte) -60, (byte) 60, (byte) -122, (byte) 37, (byte) -111, (byte) 77, (byte) 105, (byte) 29, (byte) -88, (byte) 80 }), activity.client.util.Obf.s(new byte[] { (byte) 68, (byte) -66, (byte) 108, (byte) -34, (byte) 54, (byte) -122, (byte) 108 }) + oldToken)
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString("{}"))
                         .build();
@@ -66,11 +66,11 @@ public final class DevAuthService {
                 body.addProperty("username", username);
                 body.addProperty("password", password);
                 HttpRequest.Builder builder = HttpRequest.newBuilder()
-                        .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/login"))
+                        .uri(URI.create(NivoratDev.PRESENCE_URL + activity.client.util.Obf.s(new byte[] { (byte) 41, (byte) -65, (byte) 104, (byte) -38, (byte) 124, (byte) -104, (byte) 35, (byte) -116, (byte) 69, (byte) 115 })))
                         .timeout(Duration.ofSeconds(6))
                         .header("Content-Type", "application/json");
                 if (!presenceToken.isEmpty()) {
-                    builder.header("X-Presence-Token", presenceToken);
+                    builder.header(activity.client.util.Obf.s(new byte[] { (byte) 94, (byte) -10, (byte) 93, (byte) -34, (byte) 54, (byte) -121, (byte) 41, (byte) -123, (byte) 79, (byte) 120, (byte) 89, (byte) -109, (byte) 81, (byte) 66, (byte) 63, (byte) -116 }), presenceToken);
                 }
                 HttpRequest request = builder.POST(HttpRequest.BodyPublishers.ofString(body.toString())).build();
                 HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());

@@ -83,7 +83,7 @@ public final class KeybindManager {
     }
 
     public static void handleTick(MinecraftClient client) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
             KEY_STATES.clear();
             return;
         }

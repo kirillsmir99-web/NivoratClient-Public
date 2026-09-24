@@ -57,7 +57,7 @@ public final class ModuleEventDispatcher {
         HudElementRegistry.addLast(Identifier.of("activity", "modules_hud"), ModuleEventDispatcher::onRenderHud);
 
         net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.START_MAIN.register(context -> {
-            if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
+            if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) return;
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null) {
                 dev.kinetictweaks.controller.PearlCatchController.getInstance().onRender(client);
@@ -103,7 +103,7 @@ public final class ModuleEventDispatcher {
     }
 
     public static void onClientTick(MinecraftClient client) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
             return;
         }
 
@@ -140,7 +140,7 @@ public final class ModuleEventDispatcher {
     }
 
     public static ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
             return ActionResult.PASS;
         }
 
