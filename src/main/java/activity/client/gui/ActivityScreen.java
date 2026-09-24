@@ -99,19 +99,25 @@ public class ActivityScreen extends Screen {
     private final activity.client.gui.layout.WindowDragController dragController = new activity.client.gui.layout.WindowDragController();
     private activity.client.gui.component.WindowControlButtons controlButtons;
 
-    public static final long SESSION_MEMORY_TTL_MS = 60_000L;
+    public static final long SESSION_MEMORY_TTL_MS = Long.MAX_VALUE;
     private static String lastSessionTabId = null;
     private static String lastSessionModuleId = null;
+    private static double lastSessionScrollAmount = -1.0;
     private static long lastSessionCloseTimestamp = 0L;
 
     public static void recordSession(String tabId, String moduleId) {
+        recordSession(tabId, moduleId, 0.0);
+    }
+
+    public static void recordSession(String tabId, String moduleId, double scrollAmount) {
         lastSessionTabId = tabId;
         lastSessionModuleId = moduleId;
+        lastSessionScrollAmount = scrollAmount;
         lastSessionCloseTimestamp = System.currentTimeMillis();
     }
 
     public static boolean hasValidSession() {
-        return lastSessionTabId != null && (System.currentTimeMillis() - lastSessionCloseTimestamp <= SESSION_MEMORY_TTL_MS);
+        return lastSessionTabId != null;
     }
 
     public static String getLastSessionTabId() {
@@ -122,14 +128,23 @@ public class ActivityScreen extends Screen {
         return lastSessionModuleId;
     }
 
+    public static double getLastSessionScrollAmount() {
+        return lastSessionScrollAmount;
+    }
+
     public static long getLastSessionCloseTimestamp() {
         return lastSessionCloseTimestamp;
+    }
+
+    public static void setLastSessionCloseTimestamp(long timestamp) {
+        lastSessionCloseTimestamp = timestamp;
     }
 
     public static void clearSession() {
         lastSessionTabId = null;
         lastSessionModuleId = null;
         lastSessionCloseTimestamp = 0L;
+        lastSessionScrollAmount = -1.0;
     }
 
     public boolean isMaximized() {
@@ -314,11 +329,7 @@ public class ActivityScreen extends Screen {
                 int savedIndex = this.tabManager.getTabIndexById(lastSessionTabId);
                 if (savedIndex >= 0) {
                     this.tabManager.setSelectedIndex(savedIndex);
-                    if (lastSessionModuleId != null) {
-                        this.sidebarTree.setSelectedModule(lastSessionTabId, lastSessionModuleId);
-                    } else {
-                        this.sidebarTree.clearSelectedModule();
-                    }
+                    this.sidebarTree.setSelectedModule(lastSessionTabId, lastSessionModuleId);
                 } else {
                     this.tabManager.setSelectedIndex(0);
                     this.sidebarTree.clearSelectedModule();
@@ -462,7 +473,6 @@ public class ActivityScreen extends Screen {
 
         ScrollContainer scrollContainer = new ScrollContainer(titleX, contentStartY, contentWidth, contentHeight);
         scrollContainer.setOverlayManager(this.overlayManager);
-        scrollContainer.setScrollAmount(activeTab != null ? activeTab.getScrollAmount() : 0);
         if (activeTab != null) {
             scrollContainer.setOnScroll(activeTab::setScrollAmount);
         }
@@ -478,11 +488,15 @@ public class ActivityScreen extends Screen {
         this.currentScrollContainer = scrollContainer;
         this.addComponent(scrollContainer);
 
-        if (!this.initializedOnce && hasValidSession() && lastSessionModuleId != null && activeTab != null) {
-            ActivityPanel card = activeTab.getModuleCard(lastSessionModuleId);
+        if (!this.initializedOnce && hasValidSession()) {
+            ActivityPanel card = (lastSessionModuleId != null && activeTab != null) ? activeTab.getModuleCard(lastSessionModuleId) : null;
             if (card != null) {
                 scrollContainer.scrollToChild(card);
+            } else if (lastSessionScrollAmount >= 0.0) {
+                scrollContainer.setScrollAmount(lastSessionScrollAmount);
             }
+        } else if (activeTab != null) {
+            scrollContainer.setScrollAmount(activeTab.getScrollAmount());
         }
 
         if (activeTab != null && !this.activeSearchQuery.isEmpty()) {
@@ -1379,7 +1393,8 @@ public class ActivityScreen extends Screen {
             ActivityTab curTab = this.tabManager.getSelectedTab();
             String curTabId = curTab != null ? curTab.getId() : null;
             String curModId = this.sidebarTree != null ? this.sidebarTree.getSelectedModuleId() : null;
-            recordSession(curTabId, curModId);
+            double scroll = this.currentScrollContainer != null ? this.currentScrollContainer.getScrollAmount() : (curTab != null ? curTab.getScrollAmount() : 0.0);
+            recordSession(curTabId, curModId, scroll);
         }
         activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
         boolean globalAnim = config == null || config.animationsEnabled;
@@ -1410,7 +1425,8 @@ public class ActivityScreen extends Screen {
         ActivityTab curTab = this.tabManager.getSelectedTab();
         String curTabId = curTab != null ? curTab.getId() : null;
         String curModId = this.sidebarTree != null ? this.sidebarTree.getSelectedModuleId() : null;
-        recordSession(curTabId, curModId);
+        double scroll = this.currentScrollContainer != null ? this.currentScrollContainer.getScrollAmount() : (curTab != null ? curTab.getScrollAmount() : 0.0);
+        recordSession(curTabId, curModId, scroll);
 
         this.searchBar.clear();
         this.searchBar.setFocused(false);
@@ -1424,5 +1440,17 @@ public class ActivityScreen extends Screen {
         this.focusedComponent = null;
         clearAllContainerFocus();
         super.close();
+    }
+
+    @Override
+    public void removed() {
+        ActivityTab curTab = this.tabManager != null ? this.tabManager.getSelectedTab() : null;
+        String curTabId = curTab != null ? curTab.getId() : null;
+        String curModId = this.sidebarTree != null ? this.sidebarTree.getSelectedModuleId() : null;
+        double scroll = this.currentScrollContainer != null ? this.currentScrollContainer.getScrollAmount() : (curTab != null ? curTab.getScrollAmount() : 0.0);
+        if (curTabId != null) {
+            recordSession(curTabId, curModId, scroll);
+        }
+        super.removed();
     }
 }

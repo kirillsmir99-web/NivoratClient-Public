@@ -131,6 +131,7 @@ public class ActivityConfig {
     public boolean autoTotemReturnOnPop = true;
     public boolean autoTotemAutoRefill = true;
     public String autoTotemRefillSlot = "auto";
+    public boolean autoTotemCountAbsorption = false;
 
     public boolean autoCartEnabled = true;
     public Keybind autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
@@ -843,13 +844,13 @@ public class ActivityConfig {
         this.autoPearlCatchRandomSpreadMs = clampSanitize(this.autoPearlCatchRandomSpreadMs, 0.0, 50.0, 15.0);
 
         this.autoTotemTriggerHearts = clampSanitize(this.autoTotemTriggerHearts, 0.5, 10.0, 3.0);
-        this.autoTotemRestoreHearts = clampSanitize(this.autoTotemRestoreHearts, 0.5, 10.0, 6.0);
+        this.autoTotemRestoreHearts = clampSanitize(this.autoTotemRestoreHearts, 0.0, 20.0, 6.0);
         this.autoTotemMainhandTriggerHearts = clampSanitize(this.autoTotemMainhandTriggerHearts, 0.5, 10.0, 3.0);
-        this.autoTotemMainhandRestoreHearts = clampSanitize(this.autoTotemMainhandRestoreHearts, 0.5, 10.0, 6.0);
+        this.autoTotemMainhandRestoreHearts = clampSanitize(this.autoTotemMainhandRestoreHearts, 0.0, 20.0, 6.0);
         this.autoTotemOffhandTriggerHearts = clampSanitize(this.autoTotemOffhandTriggerHearts, 0.5, 10.0, 2.0);
-        this.autoTotemOffhandRestoreHearts = clampSanitize(this.autoTotemOffhandRestoreHearts, 0.5, 10.0, 5.0);
+        this.autoTotemOffhandRestoreHearts = clampSanitize(this.autoTotemOffhandRestoreHearts, 0.0, 20.0, 5.0);
         this.autoTotemCrystalTriggerHearts = clampSanitize(this.autoTotemCrystalTriggerHearts, 0.5, 10.0, 3.0);
-        this.autoTotemCrystalRestoreHearts = clampSanitize(this.autoTotemCrystalRestoreHearts, 0.5, 10.0, 6.0);
+        this.autoTotemCrystalRestoreHearts = clampSanitize(this.autoTotemCrystalRestoreHearts, 0.0, 20.0, 6.0);
         this.autoTotemChance = clampSanitize(this.autoTotemChance, 10.0, 100.0, 100.0);
 
         this.autoCartPlacementChance = clampSanitize(this.autoCartPlacementChance, 0.0, 100.0, 100.0);
@@ -1237,6 +1238,7 @@ public class ActivityConfig {
         entry.settings.put("offhand_restore_hearts", this.autoTotemOffhandRestoreHearts);
         entry.settings.put("crystal_trigger_hearts", this.autoTotemCrystalTriggerHearts);
         entry.settings.put("crystal_restore_hearts", this.autoTotemCrystalRestoreHearts);
+        entry.settings.put("count_absorption", this.autoTotemCountAbsorption);
         entry.settings.put("chance", this.autoTotemChance);
         entry.settings.put("return_item", this.autoTotemReturnItem);
         entry.settings.put("return_on_pop", this.autoTotemReturnOnPop);
@@ -1516,6 +1518,7 @@ public class ActivityConfig {
                 this.autoTotemOffhandRestoreHearts = getSettingDouble(totem.settings, "offhand_restore_hearts", this.autoTotemOffhandRestoreHearts);
                 this.autoTotemCrystalTriggerHearts = getSettingDouble(totem.settings, "crystal_trigger_hearts", this.autoTotemCrystalTriggerHearts);
                 this.autoTotemCrystalRestoreHearts = getSettingDouble(totem.settings, "crystal_restore_hearts", this.autoTotemCrystalRestoreHearts);
+                this.autoTotemCountAbsorption = getSettingBoolean(totem.settings, "count_absorption", this.autoTotemCountAbsorption);
                 this.autoTotemChance = getSettingDouble(totem.settings, "chance", this.autoTotemChance);
                 this.autoTotemReturnItem = getSettingBoolean(totem.settings, "return_item", this.autoTotemReturnItem);
                 this.autoTotemReturnOnPop = getSettingBoolean(totem.settings, "return_on_pop", this.autoTotemReturnOnPop);
@@ -1738,6 +1741,7 @@ public class ActivityConfig {
         copy.autoTotemOffhandRestoreHearts = this.autoTotemOffhandRestoreHearts;
         copy.autoTotemCrystalTriggerHearts = this.autoTotemCrystalTriggerHearts;
         copy.autoTotemCrystalRestoreHearts = this.autoTotemCrystalRestoreHearts;
+        copy.autoTotemCountAbsorption = this.autoTotemCountAbsorption;
         copy.autoTotemChance = this.autoTotemChance;
         copy.autoTotemReturnItem = this.autoTotemReturnItem;
         copy.autoTotemReturnOnPop = this.autoTotemReturnOnPop;

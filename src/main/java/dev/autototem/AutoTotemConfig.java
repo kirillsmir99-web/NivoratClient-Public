@@ -26,6 +26,7 @@ public final class AutoTotemConfig {
     public static double offhandRestoreHearts = 5.0;
     public static double crystalTriggerHearts = 3.0;
     public static double crystalRestoreHearts = 6.0;
+    public static boolean countAbsorption = false;
     public static int chance = 100;
     public static boolean returnItem = true;
     public static boolean returnOnPop = true;
@@ -44,13 +45,14 @@ public final class AutoTotemConfig {
             Properties props = new Properties();
             props.load(in);
             triggerHearts = Math.max(0.5, Math.min(10.0, Double.parseDouble(props.getProperty("triggerHearts", "3.0"))));
-            restoreHearts = Math.max(0.5, Math.min(20.0, Double.parseDouble(props.getProperty("restoreHearts", "6.0"))));
+            restoreHearts = Math.max(0.0, Math.min(20.0, Double.parseDouble(props.getProperty("restoreHearts", "6.0"))));
             mainhandTriggerHearts = Math.max(0.5, Math.min(10.0, Double.parseDouble(props.getProperty("mainhandTriggerHearts", "3.0"))));
-            mainhandRestoreHearts = Math.max(0.5, Math.min(20.0, Double.parseDouble(props.getProperty("mainhandRestoreHearts", "6.0"))));
+            mainhandRestoreHearts = Math.max(0.0, Math.min(20.0, Double.parseDouble(props.getProperty("mainhandRestoreHearts", "6.0"))));
             offhandTriggerHearts = Math.max(0.5, Math.min(10.0, Double.parseDouble(props.getProperty("offhandTriggerHearts", "2.0"))));
-            offhandRestoreHearts = Math.max(0.5, Math.min(20.0, Double.parseDouble(props.getProperty("offhandRestoreHearts", "5.0"))));
+            offhandRestoreHearts = Math.max(0.0, Math.min(20.0, Double.parseDouble(props.getProperty("offhandRestoreHearts", "5.0"))));
             crystalTriggerHearts = Math.max(0.5, Math.min(10.0, Double.parseDouble(props.getProperty("crystalTriggerHearts", "3.0"))));
-            crystalRestoreHearts = Math.max(0.5, Math.min(20.0, Double.parseDouble(props.getProperty("crystalRestoreHearts", "6.0"))));
+            crystalRestoreHearts = Math.max(0.0, Math.min(20.0, Double.parseDouble(props.getProperty("crystalRestoreHearts", "6.0"))));
+            countAbsorption = Boolean.parseBoolean(props.getProperty("countAbsorption", "false"));
             chance = Math.max(10, Math.min(100, Integer.parseInt(props.getProperty("chance", "100"))));
             returnItem = Boolean.parseBoolean(props.getProperty("returnItem", "true"));
             returnOnPop = Boolean.parseBoolean(props.getProperty("returnOnPop", "true"));
@@ -66,6 +68,7 @@ public final class AutoTotemConfig {
             offhandRestoreHearts = 5.0;
             crystalTriggerHearts = 3.0;
             crystalRestoreHearts = 6.0;
+            countAbsorption = false;
             chance = 100;
             returnItem = true;
             returnOnPop = true;
@@ -92,6 +95,7 @@ public final class AutoTotemConfig {
             props.setProperty("offhandRestoreHearts", String.valueOf(offhandRestoreHearts));
             props.setProperty("crystalTriggerHearts", String.valueOf(crystalTriggerHearts));
             props.setProperty("crystalRestoreHearts", String.valueOf(crystalRestoreHearts));
+            props.setProperty("countAbsorption", String.valueOf(countAbsorption));
             props.setProperty("chance", String.valueOf(chance));
             props.setProperty("returnItem", String.valueOf(returnItem));
             props.setProperty("returnOnPop", String.valueOf(returnOnPop));

@@ -90,7 +90,7 @@ public class AutoTotemModule extends NivoratModule {
 
         registerNumber("restore_hearts", Text.translatable("activity.setting.defense.restore_hearts"),
                 Text.translatable("activity.setting.defense.restore_hearts.desc"), SettingGroup.BEHAVIOR,
-                0.5, 10.0, 0.5, " ❤", false, 6.0,
+                0.0, 20.0, 0.5, " ❤", false, 6.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c == null) return 6.0;
@@ -109,6 +109,23 @@ public class AutoTotemModule extends NivoratModule {
                             c.autoTotemMainhandRestoreHearts = val;
                         }
                         c.autoTotemRestoreHearts = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("count_absorption", Text.translatable("activity.setting.defense.count_absorption"),
+                Text.translatable("activity.setting.defense.count_absorption.desc"), SettingGroup.BEHAVIOR,
+                false,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemCountAbsorption;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemCountAbsorption = val;
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }
@@ -226,6 +243,7 @@ public class AutoTotemModule extends NivoratModule {
             AutoTotemConfig.triggerHearts = AutoTotemConfig.mainhandTriggerHearts;
             AutoTotemConfig.restoreHearts = AutoTotemConfig.mainhandRestoreHearts;
         }
+        AutoTotemConfig.countAbsorption = c.autoTotemCountAbsorption;
         AutoTotemConfig.chance = (int) c.autoTotemChance;
         AutoTotemConfig.returnItem = c.autoTotemReturnItem;
         AutoTotemConfig.returnOnPop = c.autoTotemReturnOnPop;
@@ -295,6 +313,10 @@ public class AutoTotemModule extends NivoratModule {
         } else {
             if (triggerSetting != null) triggerSetting.set(config.autoTotemMainhandTriggerHearts);
             if (restoreSetting != null) restoreSetting.set(config.autoTotemMainhandRestoreHearts);
+        }
+        activity.client.module.setting.BooleanSetting countAbsSetting = (activity.client.module.setting.BooleanSetting) getSetting("count_absorption");
+        if (countAbsSetting != null) {
+            countAbsSetting.set(config.autoTotemCountAbsorption);
         }
         syncControllerConfig(config);
     }

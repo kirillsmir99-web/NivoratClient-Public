@@ -82,7 +82,7 @@ public class ConfigValidationAndPresetTest {
         config.autoStunSlamDistance = 0.5;
         config.autoStunSlamChance = -10.0;
         config.autoTotemTriggerHearts = 99.0;
-        config.autoTotemRestoreHearts = 0.1;
+        config.autoTotemRestoreHearts = -1.0;
         config.autoCartPlacementChance = 250.0;
         config.autoCartMaxDistance = 50.0;
         config.autoAnchorChance = 1000.0;
@@ -104,7 +104,10 @@ public class ConfigValidationAndPresetTest {
         assertEquals(1.5, config.autoStunSlamDistance, "autoStunSlamDistance min 1.5");
         assertEquals(10.0, config.autoStunSlamChance, "autoStunSlamChance min 10.0");
         assertEquals(10.0, config.autoTotemTriggerHearts, "autoTotemTriggerHearts max 10.0");
-        assertEquals(0.5, config.autoTotemRestoreHearts, "autoTotemRestoreHearts min 0.5");
+        assertEquals(0.0, config.autoTotemRestoreHearts, "autoTotemRestoreHearts min 0.0");
+        config.autoTotemRestoreHearts = 99.0;
+        config.sanitize();
+        assertEquals(20.0, config.autoTotemRestoreHearts, "autoTotemRestoreHearts max 20.0");
         assertEquals(100.0, config.autoCartPlacementChance, "autoCartPlacementChance max 100.0");
         assertEquals(4.5, config.autoCartMaxDistance, "autoCartMaxDistance max 4.5");
         assertEquals(100.0, config.autoAnchorChance, "autoAnchorChance max 100.0");
@@ -331,6 +334,13 @@ public class ConfigValidationAndPresetTest {
         src.autoTotemMode = "offhand";
         src.autoTotemTriggerHearts = 4.5;
         src.autoTotemRestoreHearts = 7.5;
+        src.autoTotemMainhandTriggerHearts = 3.5;
+        src.autoTotemMainhandRestoreHearts = 6.5;
+        src.autoTotemOffhandTriggerHearts = 2.5;
+        src.autoTotemOffhandRestoreHearts = 5.5;
+        src.autoTotemCrystalTriggerHearts = 4.0;
+        src.autoTotemCrystalRestoreHearts = 7.0;
+        src.autoTotemCountAbsorption = true;
         src.autoTotemChance = 90.0;
         src.autoTotemReturnItem = false;
         src.autoTotemReturnOnPop = false;
@@ -465,6 +475,13 @@ public class ConfigValidationAndPresetTest {
         assertEquals("offhand", dst.autoTotemMode);
         assertEquals(4.5, dst.autoTotemTriggerHearts);
         assertEquals(7.5, dst.autoTotemRestoreHearts);
+        assertEquals(3.5, dst.autoTotemMainhandTriggerHearts);
+        assertEquals(6.5, dst.autoTotemMainhandRestoreHearts);
+        assertEquals(2.5, dst.autoTotemOffhandTriggerHearts);
+        assertEquals(5.5, dst.autoTotemOffhandRestoreHearts);
+        assertEquals(4.0, dst.autoTotemCrystalTriggerHearts);
+        assertEquals(7.0, dst.autoTotemCrystalRestoreHearts);
+        assertTrue(dst.autoTotemCountAbsorption);
         assertEquals(90.0, dst.autoTotemChance);
         assertFalse(dst.autoTotemReturnItem);
         assertFalse(dst.autoTotemReturnOnPop);
@@ -774,5 +791,31 @@ public class ConfigValidationAndPresetTest {
         boolean handled = dropdown.mouseClicked(rmb, false);
         assertTrue(handled);
         assertEquals(p, rightClicked.get());
+    }
+
+    @Test
+    void testAutoTotemPresetRoundTripPerModeAndAbsorption() {
+        ActivityConfig src = new ActivityConfig();
+        src.autoTotemMode = "crystal";
+        src.autoTotemMainhandTriggerHearts = 2.5;
+        src.autoTotemMainhandRestoreHearts = 0.0;
+        src.autoTotemOffhandTriggerHearts = 1.0;
+        src.autoTotemOffhandRestoreHearts = 4.5;
+        src.autoTotemCrystalTriggerHearts = 5.5;
+        src.autoTotemCrystalRestoreHearts = 18.5;
+        src.autoTotemCountAbsorption = true;
+
+        com.google.gson.JsonObject snapshot = PresetSerializer.extractSettingsSnapshot(src);
+        ActivityConfig dst = new ActivityConfig();
+        PresetSerializer.applySettingsSnapshot(snapshot, dst);
+
+        assertEquals("crystal", dst.autoTotemMode);
+        assertEquals(2.5, dst.autoTotemMainhandTriggerHearts);
+        assertEquals(0.0, dst.autoTotemMainhandRestoreHearts);
+        assertEquals(1.0, dst.autoTotemOffhandTriggerHearts);
+        assertEquals(4.5, dst.autoTotemOffhandRestoreHearts);
+        assertEquals(5.5, dst.autoTotemCrystalTriggerHearts);
+        assertEquals(18.5, dst.autoTotemCrystalRestoreHearts);
+        assertTrue(dst.autoTotemCountAbsorption);
     }
 }

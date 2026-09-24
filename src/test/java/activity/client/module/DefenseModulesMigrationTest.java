@@ -18,6 +18,7 @@ import activity.client.module.setting.NumberSetting;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
 import dev.autototem.AutoTotemConfig;
+import dev.autototem.AutoTotemController;
 import dev.luminance.AnchorConfig;
 import dev.storage.RefillConfig;
 import dev.virion.arc.MorrowConfig;
@@ -91,6 +92,7 @@ public class DefenseModulesMigrationTest {
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("trigger_hearts"));
         assertNotNull(mod.getSetting("restore_hearts"));
+        assertNotNull(mod.getSetting("count_absorption"));
         assertNotNull(mod.getSetting("chance"));
         assertNotNull(mod.getSetting("return_item"));
         assertNotNull(mod.getSetting("return_on_pop"));
@@ -120,13 +122,28 @@ public class DefenseModulesMigrationTest {
         assertEquals(4.5, AutoTotemConfig.triggerHearts, 0.001);
 
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
-        assertEquals(0.5, restoreSetting.getMin(), 0.001);
-        assertEquals(10.0, restoreSetting.getMax(), 0.001);
+        assertEquals(0.0, restoreSetting.getMin(), 0.001);
+        assertEquals(20.0, restoreSetting.getMax(), 0.001);
         assertEquals(0.5, restoreSetting.getStep(), 0.001);
         assertFalse(restoreSetting.isIntegerOnly());
         restoreSetting.set(8.5);
         assertEquals(8.5, config.autoTotemRestoreHearts, 0.001);
         assertEquals(8.5, AutoTotemConfig.restoreHearts, 0.001);
+        restoreSetting.set(0.0);
+        assertEquals(0.0, config.autoTotemRestoreHearts, 0.001);
+        assertEquals(0.0, AutoTotemConfig.restoreHearts, 0.001);
+        restoreSetting.set(20.0);
+        assertEquals(20.0, config.autoTotemRestoreHearts, 0.001);
+        assertEquals(20.0, AutoTotemConfig.restoreHearts, 0.001);
+
+        BooleanSetting countAbsSetting = (BooleanSetting) mod.getSetting("count_absorption");
+        assertNotNull(countAbsSetting);
+        countAbsSetting.set(true);
+        assertTrue(config.autoTotemCountAbsorption);
+        assertTrue(AutoTotemConfig.countAbsorption);
+        countAbsSetting.set(false);
+        assertFalse(config.autoTotemCountAbsorption);
+        assertFalse(AutoTotemConfig.countAbsorption);
 
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
         assertEquals(10.0, chanceSetting.getMin(), 0.001);
@@ -195,6 +212,72 @@ public class DefenseModulesMigrationTest {
         restoreSetting.set(5.5);
         assertEquals(5.5, config.autoTotemRestoreHearts, 0.001);
         assertEquals(5.5, AutoTotemConfig.restoreHearts, 0.001);
+    }
+
+    @Test
+    void testAutoTotemPerModeThresholdsAndReactiveSwitch() {
+        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
+        assertNotNull(mod);
+        ActivityConfig config = ActivityConfigManager.getConfig();
+
+        EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
+        NumberSetting triggerSetting = (NumberSetting) mod.getSetting("trigger_hearts");
+        NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
+
+        modeSetting.set("main_hand");
+        triggerSetting.set(3.5);
+        restoreSetting.set(6.5);
+        assertEquals(3.5, config.autoTotemMainhandTriggerHearts, 0.001);
+        assertEquals(6.5, config.autoTotemMainhandRestoreHearts, 0.001);
+        assertEquals(3.5, AutoTotemConfig.mainhandTriggerHearts, 0.001);
+        assertEquals(6.5, AutoTotemConfig.mainhandRestoreHearts, 0.001);
+
+        modeSetting.set("offhand");
+        triggerSetting.set(1.5);
+        restoreSetting.set(0.0);
+        assertEquals(1.5, config.autoTotemOffhandTriggerHearts, 0.001);
+        assertEquals(0.0, config.autoTotemOffhandRestoreHearts, 0.001);
+        assertEquals(1.5, AutoTotemConfig.offhandTriggerHearts, 0.001);
+        assertEquals(0.0, AutoTotemConfig.offhandRestoreHearts, 0.001);
+
+        modeSetting.set("crystal");
+        triggerSetting.set(5.0);
+        restoreSetting.set(12.0);
+        assertEquals(5.0, config.autoTotemCrystalTriggerHearts, 0.001);
+        assertEquals(12.0, config.autoTotemCrystalRestoreHearts, 0.001);
+        assertEquals(5.0, AutoTotemConfig.crystalTriggerHearts, 0.001);
+        assertEquals(12.0, AutoTotemConfig.crystalRestoreHearts, 0.001);
+
+        java.util.concurrent.atomic.AtomicReference<Double> reactiveTrigger = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<Double> reactiveRestore = new java.util.concurrent.atomic.AtomicReference<>();
+        triggerSetting.addListener(reactiveTrigger::set);
+        restoreSetting.addListener(reactiveRestore::set);
+
+        modeSetting.set("main_hand");
+        assertEquals(3.5, triggerSetting.get(), 0.001);
+        assertEquals(6.5, restoreSetting.get(), 0.001);
+        assertEquals(3.5, reactiveTrigger.get(), 0.001);
+        assertEquals(6.5, reactiveRestore.get(), 0.001);
+
+        modeSetting.set("offhand");
+        assertEquals(1.5, triggerSetting.get(), 0.001);
+        assertEquals(0.0, restoreSetting.get(), 0.001);
+        assertEquals(1.5, reactiveTrigger.get(), 0.001);
+        assertEquals(0.0, reactiveRestore.get(), 0.001);
+
+        modeSetting.set("crystal");
+        assertEquals(5.0, triggerSetting.get(), 0.001);
+        assertEquals(12.0, restoreSetting.get(), 0.001);
+        assertEquals(5.0, reactiveTrigger.get(), 0.001);
+        assertEquals(12.0, reactiveRestore.get(), 0.001);
+    }
+
+    @Test
+    void testAutoTotemEffectiveHealthNull() {
+        AutoTotemConfig.countAbsorption = false;
+        assertEquals(0.0F, dev.autototem.AutoTotemController.getEffectiveHealth(null), 0.001F);
+        AutoTotemConfig.countAbsorption = true;
+        assertEquals(0.0F, dev.autototem.AutoTotemController.getEffectiveHealth(null), 0.001F);
     }
 
     @Test
@@ -572,5 +655,133 @@ public class DefenseModulesMigrationTest {
             assertTrue(enJson.contains("\"activity.anchor.double_dev_warning\": \"This mode is currently in beta testing\""));
             assertTrue(enJson.contains("\"activity.autotool.dev_warning\": \"This feature is currently in experimental tuning\""));
         }
+    }
+
+    @Test
+    void testAutoTotemPopStateTransitionsNoSpuriousRestoreSwap() {
+        AutoTotemController controller = new AutoTotemController();
+        AutoTotemConfig.mode = 2;
+        AutoTotemConfig.returnOnPop = true;
+        controller.setSwappedHotbarSlotForTest(3);
+        controller.setStateForTest(AutoTotemController.State.ACTIVE);
+
+        AutoTotemConfig.autoRefill = false;
+        controller.onTotemPop();
+
+        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_SELECT, controller.getState());
+        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_OFFHAND, controller.getState());
+        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_MAIN, controller.getState());
+        assertEquals(AutoTotemController.State.IDLE, controller.getState());
+    }
+
+    @Test
+    void testAutoTotemRefillConcurrencyGuard() {
+        AutoTotemController controller = new AutoTotemController();
+        controller.setRefillTargetHotbarSlotForTest(4);
+
+        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_OPEN);
+        controller.onTotemPop();
+        assertEquals(AutoTotemController.State.REFILL_WAIT_OPEN, controller.getState());
+        assertEquals(4, controller.getRefillTargetHotbarSlot());
+
+        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_SWAP);
+        controller.onTotemPop();
+        assertEquals(AutoTotemController.State.REFILL_WAIT_SWAP, controller.getState());
+        assertEquals(4, controller.getRefillTargetHotbarSlot());
+
+        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_CLOSE);
+        controller.onTotemPop();
+        assertEquals(AutoTotemController.State.REFILL_WAIT_CLOSE, controller.getState());
+        assertEquals(4, controller.getRefillTargetHotbarSlot());
+    }
+
+    @Test
+    void testAutoTotemDeterministicRefillSlotPinning() {
+        AutoTotemController controller = new AutoTotemController();
+
+        AutoTotemConfig.mode = 1;
+        AutoTotemConfig.refillSlot = 3;
+        assertEquals(3, controller.resolveRefillTargetSlotForTest(null, 0));
+        assertEquals(3, controller.resolveRefillTargetSlotForTest(null, 7));
+        assertEquals(3, controller.resolveRefillTargetSlotForTest(null, -1));
+
+        AutoTotemConfig.mode = 3;
+        AutoTotemConfig.refillSlot = 2;
+        assertEquals(2, controller.resolveRefillTargetSlotForTest(null, 0));
+        AutoTotemConfig.refillSlot = -1;
+        assertEquals(8, controller.resolveRefillTargetSlotForTest(null, 0));
+
+        AutoTotemConfig.mode = 2;
+        AutoTotemConfig.refillSlot = -1;
+        assertEquals(4, controller.resolveRefillTargetSlotForTest(null, 4));
+
+        controller.setLastTotemHotbarSlotForTest(6);
+        assertEquals(6, controller.resolveRefillTargetSlotForTest(null, -1));
+    }
+
+    @Test
+    void testAutoTotemRefillTargetSlotImmutableDuringSwap() {
+        AutoTotemController controller = new AutoTotemController();
+        controller.startRefillForTest(null, 5);
+
+        assertEquals(AutoTotemController.State.REFILL_WAIT_OPEN, controller.getState());
+        assertEquals(5, controller.getRefillTargetHotbarSlot());
+
+        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_SWAP);
+        assertEquals(5, controller.getRefillTargetHotbarSlot());
+    }
+
+    @Test
+    void testAutoTotemSingleStepFixationAndNoSecondWaveFlapping() {
+        AutoTotemController controller = new AutoTotemController();
+        controller.setAwaitingHealAfterPopForTest(true);
+        assertTrue(controller.isAwaitingHealAfterPop());
+
+        AutoTotemConfig.mode = 3;
+        controller.finishRefillForTest(null);
+
+        assertFalse(controller.isAwaitingHealAfterPop());
+        assertEquals(AutoTotemController.State.IDLE, controller.getState());
+        assertEquals(-1, controller.getRefillTargetHotbarSlot());
+    }
+
+    @Test
+    void testAutoTotemActiveStateLossOfOffhandNoSpuriousRestoreSwap() {
+        AutoTotemController controller = new AutoTotemController();
+        AutoTotemConfig.mode = 2;
+        AutoTotemConfig.returnOnPop = true;
+        controller.setSwappedHotbarSlotForTest(2);
+        controller.setStateForTest(AutoTotemController.State.ACTIVE);
+
+        AutoTotemConfig.autoRefill = false;
+        controller.onTotemPop();
+
+        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_SELECT, controller.getState());
+        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_OFFHAND, controller.getState());
+        assertEquals(AutoTotemController.State.IDLE, controller.getState());
+    }
+
+    @Test
+    void testAutoTotemRefillTargetPinningAcrossModes() {
+        AutoTotemController controller = new AutoTotemController();
+
+        for (int slot = 0; slot < 9; slot++) {
+            AutoTotemConfig.refillSlot = slot;
+            assertEquals(slot, controller.resolveRefillTargetSlotForTest(null, (slot + 3) % 9));
+        }
+
+        AutoTotemConfig.refillSlot = -1;
+        AutoTotemConfig.mode = 3;
+        assertEquals(8, controller.resolveRefillTargetSlotForTest(null, 2));
+
+        AutoTotemConfig.mode = 1;
+        assertEquals(5, controller.resolveRefillTargetSlotForTest(null, 5));
+        controller.setLastTotemHotbarSlotForTest(7);
+        assertEquals(7, controller.resolveRefillTargetSlotForTest(null, -1));
+
+        AutoTotemConfig.mode = 2;
+        assertEquals(1, controller.resolveRefillTargetSlotForTest(null, 1));
+        controller.setLastTotemHotbarSlotForTest(4);
+        assertEquals(4, controller.resolveRefillTargetSlotForTest(null, -1));
     }
 }

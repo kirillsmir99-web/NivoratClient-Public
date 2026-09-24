@@ -168,9 +168,18 @@ public final class PresetSerializer {
         dst.autoTotemMode = src.autoTotemMode;
         dst.autoTotemTriggerHearts = src.autoTotemTriggerHearts;
         dst.autoTotemRestoreHearts = src.autoTotemRestoreHearts;
+        dst.autoTotemMainhandTriggerHearts = src.autoTotemMainhandTriggerHearts;
+        dst.autoTotemMainhandRestoreHearts = src.autoTotemMainhandRestoreHearts;
+        dst.autoTotemOffhandTriggerHearts = src.autoTotemOffhandTriggerHearts;
+        dst.autoTotemOffhandRestoreHearts = src.autoTotemOffhandRestoreHearts;
+        dst.autoTotemCrystalTriggerHearts = src.autoTotemCrystalTriggerHearts;
+        dst.autoTotemCrystalRestoreHearts = src.autoTotemCrystalRestoreHearts;
+        dst.autoTotemCountAbsorption = src.autoTotemCountAbsorption;
         dst.autoTotemChance = src.autoTotemChance;
         dst.autoTotemReturnItem = src.autoTotemReturnItem;
         dst.autoTotemReturnOnPop = src.autoTotemReturnOnPop;
+        dst.autoTotemAutoRefill = src.autoTotemAutoRefill;
+        dst.autoTotemRefillSlot = src.autoTotemRefillSlot;
 
         dst.autoCartEnabled = src.autoCartEnabled;
         dst.autoCartKeybind.copyFrom(src.autoCartKeybind);
