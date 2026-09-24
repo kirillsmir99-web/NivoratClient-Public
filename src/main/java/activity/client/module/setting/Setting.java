@@ -2,8 +2,8 @@ package activity.client.module.setting;
 
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public abstract class Setting<T> {
@@ -14,7 +14,7 @@ public abstract class Setting<T> {
     private final SettingGroup group;
     private SettingSection section;
     private final T defaultValue;
-    private final List<Consumer<T>> listeners = new ArrayList<>();
+    private final List<Consumer<T>> listeners = new CopyOnWriteArrayList<>();
     private java.util.function.BooleanSupplier visibilityCondition;
 
     public Setting(String id, Text name, Text description, SettingGroup group, T defaultValue) {

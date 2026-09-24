@@ -4,12 +4,14 @@ import activity.client.gui.ActivityScreen;
 import activity.client.gui.sound.SoundManager;
 import activity.client.gui.theme.ActivityColors;
 import activity.client.module.keybind.Keybind;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import ru.elarion.autogg.AutoGGClient;
 
@@ -61,15 +63,9 @@ public final class AutoGGRadialScreen extends Screen {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static final List<BlockSpan>[][] SECTOR_BLOCKS_CACHE = new List[9][];
-    private static final List<BlockSpan> RING_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> HUB_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> OUTER_BORDER_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> INNER_BORDER_BLOCKS = new ArrayList<>();
-    private static final List<BlockSpan> HUB_BORDER_BLOCKS = new ArrayList<>();
-    @SuppressWarnings("unchecked")
-    private static final List<BlockSpan>[] DIVIDER_BLOCKS_CACHE = new List[9];
+    private static final Identifier[] BASE_TEXTURES = new Identifier[9];
+    private static final Identifier[][] HIGHLIGHT_TEXTURES = new Identifier[9][];
+    private static final Identifier HUB_HOVER_TEXTURE = Identifier.of("nivoratclient", "textures/gui/radial/hub_hover.png");
     private static final int[][] SECTOR_TEXT_OFFSETS = new int[9][];
     private static final Text TEXT_AUTOGG = Text.literal("AutoGG");
     private static final Text TEXT_MENU = Text.literal("Меню");
@@ -77,158 +73,20 @@ public final class AutoGGRadialScreen extends Screen {
     private static final Text WATERMARK_NORMAL = Text.literal("§7ТГ канал автора модов - §b@virionDEV");
     private static final Text WATERMARK_HOVERED = Text.literal("§b§nТГ канал автора модов - @virionDEV");
 
-    private static List<BlockSpan> generateCircleBorder(int r) {
-        List<Span> spans = new ArrayList<>();
-        int r2 = r * r;
-        for (int y = -r; y <= r; y++) {
-            int x = (int) Math.round(Math.sqrt(Math.max(0, r2 - y * y)));
-            spans.add(new Span(y, -x, -x + 1));
-            spans.add(new Span(y, x, x + 1));
-        }
-        for (int x = -r; x <= r; x++) {
-            int y = (int) Math.round(Math.sqrt(Math.max(0, r2 - x * x)));
-            spans.add(new Span(-y, x, x + 1));
-            spans.add(new Span(y, x, x + 1));
-        }
-        return coalesceSpans(optimizeSpans(spans), 1);
-    }
-
     static {
-
-        int inner2 = INNER_RADIUS * INNER_RADIUS;
-        int outer2 = OUTER_RADIUS * OUTER_RADIUS;
         int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
-
         for (int count = 1; count <= 8; count++) {
-            SECTOR_BLOCKS_CACHE[count] = new List[count];
+            BASE_TEXTURES[count] = Identifier.of("nivoratclient", "textures/gui/radial/base_" + count + ".png");
+            HIGHLIGHT_TEXTURES[count] = new Identifier[count];
             SECTOR_TEXT_OFFSETS[count] = new int[count * 2];
-            double sectorAngle = (Math.PI * 2.0) / count;
-
-            for (int s = 0; s < count; s++) {
-                double mid = -Math.PI / 2.0 + (s + 0.5) * sectorAngle;
-                SECTOR_TEXT_OFFSETS[count][s * 2] = (int) Math.round(Math.cos(mid) * textRadius);
-                SECTOR_TEXT_OFFSETS[count][s * 2 + 1] = (int) Math.round(Math.sin(mid) * textRadius);
-                List<Span> list = new ArrayList<>();
-                for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
-                    int y2 = y * y;
-                    int spanStart = Integer.MIN_VALUE;
-
-                    for (int x = -OUTER_RADIUS; x <= OUTER_RADIUS; x++) {
-                        int dist2 = x * x + y2;
-                        boolean inRadial = dist2 >= inner2 && dist2 <= outer2;
-                        boolean inSector = false;
-                        if (inRadial) {
-                            double angle = Math.atan2(y, x) + Math.PI / 2.0;
-                            if (angle < 0) angle += Math.PI * 2.0;
-                            int sec = (int) (angle / sectorAngle) % count;
-                            inSector = (sec == s);
-                        }
-
-                        if (inSector) {
-                            if (spanStart == Integer.MIN_VALUE) {
-                                spanStart = x;
-                            }
-                        } else {
-                            if (spanStart != Integer.MIN_VALUE) {
-                                list.add(new Span(y, spanStart, x));
-                                spanStart = Integer.MIN_VALUE;
-                            }
-                        }
-                    }
-                    if (spanStart != Integer.MIN_VALUE) {
-                        list.add(new Span(y, spanStart, OUTER_RADIUS + 1));
-                    }
-                }
-                SECTOR_BLOCKS_CACHE[count][s] = coalesceSpans(optimizeSpans(list), 1);
-            }
-
-            DIVIDER_BLOCKS_CACHE[count] = new ArrayList<>();
-            if (count > 1) {
-                List<Span> divSpans = new ArrayList<>();
-                for (int i = 0; i < count; i++) {
-                    double a = i * sectorAngle - Math.PI / 2.0;
-                    double cosA = Math.cos(a);
-                    double sinA = Math.sin(a);
-                    int x1 = (int) Math.round(cosA * (INNER_RADIUS + 1));
-                    int y1 = (int) Math.round(sinA * (INNER_RADIUS + 1));
-                    int x2 = (int) Math.round(cosA * (OUTER_RADIUS - 1));
-                    int y2 = (int) Math.round(sinA * (OUTER_RADIUS - 1));
-
-                    int dx = Math.abs(x2 - x1);
-                    int dy = Math.abs(y2 - y1);
-                    int sx = x1 < x2 ? 1 : -1;
-                    int sy = y1 < y2 ? 1 : -1;
-                    int err = dx - dy;
-
-                    int curX = x1;
-                    int curY = y1;
-                    while (true) {
-                        divSpans.add(new Span(curY, curX, curX + 1));
-                        if (curX == x2 && curY == y2) break;
-                        int e2 = 2 * err;
-                        if (e2 > -dy) {
-                            err -= dy;
-                            curX += sx;
-                        }
-                        if (e2 < dx) {
-                            err += dx;
-                            curY += sy;
-                        }
-                    }
-                }
-                DIVIDER_BLOCKS_CACHE[count].addAll(coalesceSpans(optimizeSpans(divSpans), 1));
+            for (int sector = 0; sector < count; sector++) {
+                HIGHLIGHT_TEXTURES[count][sector] = Identifier.of("nivoratclient",
+                    "textures/gui/radial/highlight_" + count + "_" + sector + ".png");
+                double mid = -Math.PI / 2.0 + (sector + 0.5) * Math.PI * 2.0 / count;
+                SECTOR_TEXT_OFFSETS[count][sector * 2] = (int) Math.round(Math.cos(mid) * textRadius);
+                SECTOR_TEXT_OFFSETS[count][sector * 2 + 1] = (int) Math.round(Math.sin(mid) * textRadius);
             }
         }
-
-        List<Span> rawRing = new ArrayList<>();
-        for (int y = -OUTER_RADIUS; y <= OUTER_RADIUS; y++) {
-            int y2 = y * y;
-            int spanStart = Integer.MIN_VALUE;
-            for (int x = -OUTER_RADIUS; x <= OUTER_RADIUS; x++) {
-                int dist2 = x * x + y2;
-                if (dist2 >= inner2 && dist2 <= outer2) {
-                    if (spanStart == Integer.MIN_VALUE) {
-                        spanStart = x;
-                    }
-                } else {
-                    if (spanStart != Integer.MIN_VALUE) {
-                        rawRing.add(new Span(y, spanStart, x));
-                        spanStart = Integer.MIN_VALUE;
-                    }
-                }
-            }
-            if (spanStart != Integer.MIN_VALUE) {
-                rawRing.add(new Span(y, spanStart, OUTER_RADIUS + 1));
-            }
-        }
-        RING_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawRing), 1));
-
-        List<Span> rawHub = new ArrayList<>();
-        int hub2 = HUB_RADIUS * HUB_RADIUS;
-        for (int y = -HUB_RADIUS; y <= HUB_RADIUS; y++) {
-            int y2 = y * y;
-            int spanStart = Integer.MIN_VALUE;
-            for (int x = -HUB_RADIUS; x <= HUB_RADIUS; x++) {
-                if (x * x + y2 <= hub2) {
-                    if (spanStart == Integer.MIN_VALUE) {
-                        spanStart = x;
-                    }
-                } else {
-                    if (spanStart != Integer.MIN_VALUE) {
-                        rawHub.add(new Span(y, spanStart, x));
-                        spanStart = Integer.MIN_VALUE;
-                    }
-                }
-            }
-            if (spanStart != Integer.MIN_VALUE) {
-                rawHub.add(new Span(y, spanStart, HUB_RADIUS + 1));
-            }
-        }
-        HUB_BLOCKS.addAll(coalesceSpans(optimizeSpans(rawHub), 1));
-
-        OUTER_BORDER_BLOCKS.addAll(generateCircleBorder(OUTER_RADIUS));
-        INNER_BORDER_BLOCKS.addAll(generateCircleBorder(INNER_RADIUS));
-        HUB_BORDER_BLOCKS.addAll(generateCircleBorder(HUB_RADIUS));
     }
 
     public static List<Span> optimizeSpans(List<Span> raw) {
@@ -372,17 +230,16 @@ public final class AutoGGRadialScreen extends Screen {
         }
 
         int cx = width / 2;
-        int cy = height / 2 - 10;
+        int cy = height / 2 - (height < 220 ? 4 : 8);
 
         context.fill(0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
-        long elapsed = System.currentTimeMillis() - openTime;
-        float progress = Math.min(1.0f, elapsed / 160.0f);
-        float ease = 1.0f - (float) Math.pow(1.0f - progress, 3);
-        float scale = 0.88f + 0.12f * ease;
+        float scale = computeScale();
+        double virtMouseX = cx + (mouseX - cx) / scale;
+        double virtMouseY = cy + (mouseY - cy) / scale;
 
         int count = phrases.size();
-        this.hoveredSector = getHoveredSector(mouseX, mouseY, cx, cy, count);
+        this.hoveredSector = getHoveredSector(virtMouseX, virtMouseY, cx, cy, count);
 
         if (this.hoveredSector != this.lastHoveredSector) {
             if (this.hoveredSector != -1) {
@@ -391,7 +248,7 @@ public final class AutoGGRadialScreen extends Screen {
             this.lastHoveredSector = this.hoveredSector;
         }
 
-        boolean hubHovered = isInsideHub(mouseX, mouseY, cx, cy, HUB_RADIUS);
+        boolean hubHovered = isInsideHub(virtMouseX, virtMouseY, cx, cy, HUB_RADIUS);
         if (hubHovered != this.lastHubHovered) {
             if (hubHovered) {
                 SoundManager.playHoverImmediate();
@@ -402,26 +259,16 @@ public final class AutoGGRadialScreen extends Screen {
         context.getMatrices().pushMatrix();
         context.getMatrices().scaleAround(scale, scale, (float) cx, (float) cy);
 
-        drawBlockList(context, cx, cy, RING_BLOCKS, 0xD00E1015);
-
-        drawBlockList(context, cx, cy, OUTER_BORDER_BLOCKS, 0x66353B49);
-        drawBlockList(context, cx, cy, INNER_BORDER_BLOCKS, 0x66353B49);
-
-        if (count > 0 && this.hoveredSector >= 0 && this.hoveredSector < count) {
-            List<BlockSpan> sectorSpans = SECTOR_BLOCKS_CACHE[count][this.hoveredSector];
-            if (sectorSpans != null) {
-                drawBlockList(context, cx, cy, sectorSpans, 0x4800D2FF);
-            }
+        int textureCount = Math.clamp(count, 1, 8);
+        int textureX = cx - 160;
+        int textureY = cy - 160;
+        drawWheelTexture(context, BASE_TEXTURES[textureCount], textureX, textureY);
+        if (hoveredSector >= 0 && hoveredSector < textureCount) {
+            drawWheelTexture(context, HIGHLIGHT_TEXTURES[textureCount][hoveredSector], textureX, textureY);
         }
-
-        if (count > 1 && DIVIDER_BLOCKS_CACHE[count] != null) {
-            drawBlockList(context, cx, cy, DIVIDER_BLOCKS_CACHE[count], 0x66353B49);
+        if (hubHovered) {
+            drawWheelTexture(context, HUB_HOVER_TEXTURE, textureX, textureY);
         }
-
-        int hubBgColor = hubHovered ? 0xF2152835 : 0xF20A0C10;
-        drawBlockList(context, cx, cy, HUB_BLOCKS, hubBgColor);
-        int hubBorderColor = hubHovered ? 0xAA00D2FF : 0x66353B49;
-        drawBlockList(context, cx, cy, HUB_BORDER_BLOCKS, hubBorderColor);
 
         String defaultPhrase = AutoGGClient.CONFIG.currentPhrase();
         if (count > 0) {
@@ -446,6 +293,9 @@ public final class AutoGGRadialScreen extends Screen {
 
                 int color = isHov ? 0xFFFFFFFF : (isDefault ? 0xFF00D2FF : 0xFFD8DFE8);
                 String display = isDefault ? ("★ " + phrase) : phrase;
+                if (textRenderer.getWidth(display) > 85) {
+                    display = textRenderer.trimToWidth(display, 79) + "…";
+                }
                 context.drawCenteredTextWithShadow(textRenderer, Text.literal(display), tx, ty - 4, color);
             }
         }
@@ -455,11 +305,27 @@ public final class AutoGGRadialScreen extends Screen {
         int menuColor = hubHovered ? 0xFF00D2FF : 0xFF8D94A3;
         context.drawCenteredTextWithShadow(textRenderer, TEXT_MENU, cx, cy + 2, menuColor);
 
+        renderTelegramWatermark(context, cx, cy, virtMouseX, virtMouseY);
+
         context.getMatrices().popMatrix();
 
-        renderTelegramWatermark(context, cx, cy, mouseX, mouseY);
-
         super.render(context, mouseX, mouseY, delta);
+    }
+
+    public float computeScale() {
+        float availH = height - 20;
+        float availW = width - 16;
+        float baseScale = Math.clamp(Math.min(availH / 320.0f, availW / 320.0f), 0.45f, 1.0f);
+        long elapsed = System.currentTimeMillis() - openTime;
+        float progress = Math.min(1.0f, elapsed / 160.0f);
+        float ease = 1.0f - (float) Math.pow(1.0f - progress, 3);
+        float animScale = 0.88f + 0.12f * ease;
+        return baseScale * animScale;
+    }
+
+    private static void drawWheelTexture(DrawContext context, Identifier texture, int x, int y) {
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, texture, x, y,
+            0.0f, 0.0f, 320, 320, 320, 320, 0xFFFFFFFF);
     }
 
     public static int getHoveredSector(double mouseX, double mouseY, int cx, int cy, int count) {
@@ -484,8 +350,11 @@ public final class AutoGGRadialScreen extends Screen {
 
     private void triggerHoldRelease(double mouseX, double mouseY) {
         int cx = width / 2;
-        int cy = height / 2 - 10;
-        int selected = getHoveredSector(mouseX, mouseY, cx, cy, phrases.size());
+        int cy = height / 2 - (height < 220 ? 4 : 8);
+        float scale = computeScale();
+        double virtMx = cx + (mouseX - cx) / scale;
+        double virtMy = cy + (mouseY - cy) / scale;
+        int selected = getHoveredSector(virtMx, virtMy, cx, cy, phrases.size());
         if (selected >= 0 && selected < phrases.size()) {
             sendPhraseFromSector(phrases.get(selected));
         } else {
@@ -501,14 +370,14 @@ public final class AutoGGRadialScreen extends Screen {
     }
 
     private boolean isTelegramHovered(double mouseX, double mouseY, int cx, int cy) {
-        int tgY = cy + OUTER_RADIUS + 22;
+        int tgY = cy + OUTER_RADIUS + 18;
         int textW = textRenderer != null ? textRenderer.getWidth(WATERMARK_RAW) : 180;
         int tgX = cx - textW / 2;
         return mouseX >= tgX - 6 && mouseX <= tgX + textW + 6 && mouseY >= tgY - 3 && mouseY <= tgY + 13;
     }
 
-    private void renderTelegramWatermark(DrawContext context, int cx, int cy, int mouseX, int mouseY) {
-        int tgY = cy + OUTER_RADIUS + 22;
+    private void renderTelegramWatermark(DrawContext context, int cx, int cy, double mouseX, double mouseY) {
+        int tgY = cy + OUTER_RADIUS + 18;
         int textW = textRenderer.getWidth(WATERMARK_RAW);
         int tgX = cx - textW / 2;
         boolean hovered = mouseX >= tgX - 6 && mouseX <= tgX + textW + 6 && mouseY >= tgY - 3 && mouseY <= tgY + 13;
@@ -524,9 +393,12 @@ public final class AutoGGRadialScreen extends Screen {
         double mx = click.x();
         double my = click.y();
         int cx = width / 2;
-        int cy = height / 2 - 10;
+        int cy = height / 2 - (height < 220 ? 4 : 8);
+        float scale = computeScale();
+        double virtMx = cx + (mx - cx) / scale;
+        double virtMy = cy + (my - cy) / scale;
 
-        if (click.button() == 0 && isInsideHub(mx, my, cx, cy, HUB_RADIUS)) {
+        if (click.button() == 0 && isInsideHub(virtMx, virtMy, cx, cy, HUB_RADIUS)) {
             SoundManager.playClick();
             if (this.client != null) {
                 ActivityScreen screen = new ActivityScreen();
@@ -536,7 +408,7 @@ public final class AutoGGRadialScreen extends Screen {
             return true;
         }
 
-        if (click.button() == 0 && isTelegramHovered(mx, my, cx, cy)) {
+        if (click.button() == 0 && isTelegramHovered(virtMx, virtMy, cx, cy)) {
             try {
                 net.minecraft.util.Util.getOperatingSystem().open("https://t.me/virionDEV");
             } catch (Throwable t) {
@@ -549,7 +421,7 @@ public final class AutoGGRadialScreen extends Screen {
         }
 
         if (click.button() == 0) {
-            int selected = getHoveredSector(mx, my, cx, cy, phrases.size());
+            int selected = getHoveredSector(virtMx, virtMy, cx, cy, phrases.size());
             if (selected >= 0 && selected < phrases.size()) {
                 sendPhraseFromSector(phrases.get(selected));
                 return true;

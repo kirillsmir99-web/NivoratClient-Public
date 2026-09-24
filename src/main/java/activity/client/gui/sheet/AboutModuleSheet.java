@@ -42,6 +42,7 @@ public class AboutModuleSheet implements Overlay {
     private int lastDescInnerW = -1;
     private Text cachedNoticeText = null;
     private int lastNoticeInnerW = -1;
+    private final Runnable fontChangeListener = this::invalidateTextCache;
 
     public void invalidateTextCache() {
         this.cachedDescriptionLines = null;
@@ -61,7 +62,7 @@ public class AboutModuleSheet implements Overlay {
                 .build();
         }
         this.metadata = meta;
-        FontManager.addListener(this::invalidateTextCache);
+        FontManager.addListener(fontChangeListener);
     }
 
     public String getModuleId() {
@@ -119,6 +120,7 @@ public class AboutModuleSheet implements Overlay {
     @Override
     public void close() {
         this.closed = true;
+        FontManager.removeListener(fontChangeListener);
     }
 
     @Override

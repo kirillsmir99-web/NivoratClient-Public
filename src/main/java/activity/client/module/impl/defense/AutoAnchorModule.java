@@ -32,6 +32,34 @@ public class AutoAnchorModule extends NivoratModule {
                 .aliases("autoanchor", "anchor", "якорь", "автоякорь", "авто-якорь", "взрыв якоря", "взрыв якорей", "незер", "взрыв", "задержка", "delay", "заряд", "charge", "chance", "шанс", "подрыв якоря")
                 .build();
 
+        java.util.function.BooleanSupplier isSmart = () -> {
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            return c == null || "smart".equalsIgnoreCase(c.autoAnchorMode);
+        };
+        java.util.function.BooleanSupplier isDouble = () -> {
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            return c != null && "double".equalsIgnoreCase(c.autoAnchorMode);
+        };
+
+        registerEnum("mode", Text.translatable("activity.setting.defense.anchor_mode"),
+                Text.translatable("activity.setting.defense.anchor_mode.desc"), SettingGroup.GENERAL,
+                List.of("smart", "double"), "smart",
+                opt -> Text.translatable("activity.dropdown.anchor_mode." + opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoAnchorMode : "smart";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoAnchorMode = val;
+                        controller.cancelState(MinecraftClient.getInstance());
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerEnum("preset", Text.translatable("activity.setting.defense.anchor_preset"),
                 Text.translatable("activity.setting.defense.anchor_preset.desc"), SettingGroup.GENERAL,
                 List.of("fast", "medium", "balanced", "safe"), "balanced",
@@ -78,7 +106,41 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
+
+        registerEnum("preset_double", Text.translatable("activity.setting.defense.anchor_preset_double"),
+                Text.translatable("activity.setting.defense.anchor_preset_double.desc"), SettingGroup.GENERAL,
+                List.of("fast", "legit", "custom"), "fast",
+                opt -> Text.translatable("activity.dropdown.anchor_preset_double." + opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoAnchorPresetDouble : "fast";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoAnchorPresetDouble = val;
+                        double cycleDelay;
+                        if ("fast".equalsIgnoreCase(val)) {
+                            cycleDelay = 0.5;
+                            c.autoAnchorDoubleAutoExplode = true;
+                            c.autoAnchorDoubleChain = true;
+                        } else if ("legit".equalsIgnoreCase(val)) {
+                            cycleDelay = 1.5;
+                            c.autoAnchorDoubleAutoExplode = true;
+                            c.autoAnchorDoubleChain = true;
+                        } else {
+                            cycleDelay = c.autoAnchorDoubleDelay;
+                        }
+                        c.autoAnchorDoubleDelay = cycleDelay;
+                        updateNumberSetting("double_delay", cycleDelay);
+                        updateBooleanSetting("double_auto_explode", c.autoAnchorDoubleAutoExplode);
+                        updateBooleanSetting("double_chain", c.autoAnchorDoubleChain);
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(isDouble);
 
         registerBoolean("auto_explode", Text.translatable("activity.setting.defense.auto_explode"),
                 Text.translatable("activity.setting.defense.auto_explode.desc"), SettingGroup.GENERAL,
@@ -95,7 +157,41 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
+
+        registerBoolean("double_auto_explode", Text.translatable("activity.setting.defense.double_auto_explode"),
+                Text.translatable("activity.setting.defense.double_auto_explode.desc"), SettingGroup.GENERAL,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoAnchorDoubleAutoExplode;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoAnchorDoubleAutoExplode = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(isDouble);
+
+        registerBoolean("double_chain", Text.translatable("activity.setting.defense.double_chain"),
+                Text.translatable("activity.setting.defense.double_chain.desc"), SettingGroup.GENERAL,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoAnchorDoubleChain;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoAnchorDoubleChain = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(isDouble);
 
         registerBoolean("auto_return", Text.translatable("activity.setting.defense.auto_return"),
                 Text.translatable("activity.setting.defense.auto_return.desc"), SettingGroup.GENERAL,
@@ -112,7 +208,7 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
 
         registerNumber("charge_delay", Text.translatable("activity.setting.defense.charge_delay"),
                 Text.translatable("activity.setting.defense.charge_delay.desc"), SettingGroup.BEHAVIOR,
@@ -129,7 +225,7 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
 
         registerNumber("explode_delay", Text.translatable("activity.setting.defense.explode_delay"),
                 Text.translatable("activity.setting.defense.explode_delay.desc"), SettingGroup.BEHAVIOR,
@@ -146,7 +242,7 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
 
         registerNumber("chance", Text.translatable("activity.setting.combat.chance_label"),
                 Text.translatable("activity.setting.combat.chance_label.desc"), SettingGroup.BEHAVIOR,
@@ -163,7 +259,7 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
 
         registerNumber("target_charges", Text.translatable("activity.setting.defense.target_charges"),
                 Text.translatable("activity.setting.defense.target_charges.desc"), SettingGroup.BEHAVIOR,
@@ -180,7 +276,24 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
+
+        registerNumber("double_delay", Text.translatable("activity.setting.defense.double_delay"),
+                Text.translatable("activity.setting.defense.double_delay.desc"), SettingGroup.BEHAVIOR,
+                0.0, 5.0, 0.5, " t", false, 1.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoAnchorDoubleDelay : 1.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoAnchorDoubleDelay = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(isDouble);
 
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
@@ -197,12 +310,18 @@ public class AutoAnchorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isSmart);
     }
 
     private void syncControllerConfig(ActivityConfig c) {
         if (c == null) return;
         AnchorConfig.enabled = this.enabled;
+        AnchorConfig.mode = c.autoAnchorMode != null ? c.autoAnchorMode.toLowerCase(Locale.ROOT) : "smart";
+        AnchorConfig.preset = c.autoAnchorPreset != null ? c.autoAnchorPreset.toUpperCase(Locale.ROOT) : "BALANCED";
+        AnchorConfig.presetDouble = c.autoAnchorPresetDouble != null ? c.autoAnchorPresetDouble.toLowerCase(Locale.ROOT) : "fast";
+        AnchorConfig.doubleDelayTicks = c.autoAnchorDoubleDelay;
+        AnchorConfig.doubleAutoExplode = c.autoAnchorDoubleAutoExplode;
+        AnchorConfig.doubleChain = c.autoAnchorDoubleChain;
         AnchorConfig.autoExplode = c.autoAnchorAutoExplode;
         AnchorConfig.autoReturn = c.autoAnchorAutoReturn;
         AnchorConfig.chargeDelayTicks = (int) Math.round(c.autoAnchorChargeDelay);
@@ -210,7 +329,6 @@ public class AutoAnchorModule extends NivoratModule {
         AnchorConfig.chance = (int) c.autoAnchorChance;
         AnchorConfig.targetCharges = (int) Math.round(c.autoAnchorTargetCharges);
         AnchorConfig.legitMode = c.autoAnchorLegitMode;
-        AnchorConfig.preset = c.autoAnchorPreset != null ? c.autoAnchorPreset.toUpperCase(Locale.ROOT) : "BALANCED";
     }
 
     public AnchorController getController() {

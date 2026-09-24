@@ -87,6 +87,11 @@ public class ActivityDropdown<T> extends ActivityComponent {
         }
     }
 
+    public void setSelectedOptionSilently(T selectedOption) {
+        this.selectedOption = selectedOption;
+        this.cachedWrappedLabel = null;
+    }
+
     public Consumer<T> getOnSelect() {
         return onSelect;
     }

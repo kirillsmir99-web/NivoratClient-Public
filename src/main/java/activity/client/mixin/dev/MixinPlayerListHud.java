@@ -1,10 +1,10 @@
 package activity.client.mixin.dev;
 
 import activity.client.presence.DevPeerTracker;
+import activity.client.presence.DevBadgeText;
 import activity.client.presence.NivoratDev;
 import net.minecraft.client.gui.hud.PlayerListHud;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,8 +22,7 @@ public abstract class MixinPlayerListHud {
         String name = entry.getProfile().name();
         if (DevPeerTracker.isPeer(name)) {
             Text original = cir.getReturnValue();
-            MutableText base = original != null ? original.copy() : Text.literal(name);
-            cir.setReturnValue(base.append(Text.literal(NivoratDev.BADGE_SUFFIX)));
+            cir.setReturnValue(DevBadgeText.prefix(original != null ? original : Text.literal(name)));
         }
     }
 }

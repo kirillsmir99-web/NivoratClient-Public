@@ -229,7 +229,6 @@ public class ActivityScreen extends Screen {
 
     public ActivityScreen() {
         super(HEADER_TITLE);
-        this.tabManager.loadAllFromConfig(ActivityConfigManager.getConfig());
     }
 
     @Override
@@ -284,9 +283,23 @@ public class ActivityScreen extends Screen {
                 this.reloadCurrentTab();
             },
             () -> {
-                activity.client.config.ActivityConfigManager.load();
-                this.tabManager.loadAllFromConfig(activity.client.config.ActivityConfigManager.getConfig());
-                this.reloadCurrentTab();
+                this.modalManager.showConfirmation(
+                    Text.translatable("activity.modal.reload_gui.title"),
+                    Text.translatable("activity.modal.reload_gui.desc"),
+                    Text.translatable("activity.modal.reload_gui.confirm"),
+                    Text.translatable("activity.modal.reload_gui.cancel"),
+                    false,
+                    () -> {
+                        activity.client.config.ActivityConfigManager.load();
+                        this.reloadCurrentTab();
+                        this.showToast(
+                            Text.translatable("activity.toast.gui_reloaded"),
+                            null,
+                            null
+                        );
+                    },
+                    null
+                );
             },
             this::toggleMaximize,
             this::close,
@@ -588,6 +601,7 @@ public class ActivityScreen extends Screen {
 
     protected void clearComponents() {
         clearAllContainerFocus();
+        if (this.currentScrollContainer != null) this.currentScrollContainer.clearChildren();
         this.components.clear();
         this.focusedComponent = null;
         this.currentScrollContainer = null;
@@ -924,7 +938,8 @@ public class ActivityScreen extends Screen {
                 this.currentScrollContainer.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
 
-            int footerX = layout.windowX + layout.windowWidth / 2;
+            int textW = this.textRenderer.getWidth("ТГ канал автора модов - @virionDEV");
+            int footerX = Math.clamp(layout.windowX + layout.windowWidth / 2, textW / 2 + 4, Math.max(textW / 2 + 4, this.width - textW / 2 - 4));
             int footerY = Math.min(layout.windowY + layout.windowHeight + 4, this.height - this.textRenderer.fontHeight - 2);
             int footerColor = ActivityColors.scaleAlpha(ActivityColors.TEXT_MUTED, alphaFactor);
             context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("ТГ канал автора модов - @virionDEV"), footerX, footerY, footerColor);
@@ -1401,6 +1416,7 @@ public class ActivityScreen extends Screen {
         this.searchBar.setFocused(false);
         this.activeSearchQuery = "";
         activity.client.gui.font.FontManager.removeListener(this.fontChangeListener);
+        this.sidebarTree.dispose();
         if (ActivityConfigManager.isDirty()) {
             ActivityConfigManager.save();
         }

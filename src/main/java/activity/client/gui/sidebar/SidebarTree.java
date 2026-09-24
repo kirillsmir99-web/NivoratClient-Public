@@ -391,7 +391,13 @@ public class SidebarTree {
 
     public SidebarTree() {
         initNodes();
-        FontManager.addListener(this::invalidateTextCache);
+        FontManager.addListener(fontChangeListener);
+    }
+
+    private final Runnable fontChangeListener = this::invalidateTextCache;
+
+    public void dispose() {
+        FontManager.removeListener(fontChangeListener);
     }
 
     public String getActiveSearchQuery() {

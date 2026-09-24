@@ -108,6 +108,7 @@ public class ModuleSettingsView extends Screen {
     @Override
     protected void init() {
         super.init();
+        if (this.scrollContainer != null) this.scrollContainer.clearChildren();
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             this.close();
             return;
@@ -232,6 +233,7 @@ public class ModuleSettingsView extends Screen {
     @Override
     public void close() {
         this.overlayManager.clear();
+        if (this.scrollContainer != null) this.scrollContainer.clearChildren();
         if (this.client != null) {
             this.client.setScreen(this.parent);
         }
@@ -360,9 +362,7 @@ public class ModuleSettingsView extends Screen {
             }
         };
 
-        for (Setting<?> s : module.getSettings()) {
-            s.addListener(v -> onModified.run());
-        }
+        for (Setting<?> s : module.getSettings()) attachCardListener(s, onModified, container);
 
         ActivityToggle toggleEnabled = new ActivityToggle(
                 toggleX, rowY,
@@ -388,7 +388,8 @@ public class ModuleSettingsView extends Screen {
         for (Setting<?> s : settings) {
             rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
             SettingComponentFactory.SettingRow row = SettingComponentFactory.createRow(
-                    s, innerStartX, rowY, innerRowW, overlayManager, modalManager, onModified
+                    s, innerStartX, rowY, innerRowW, overlayManager, modalManager, onModified,
+                    container::addCleanupAction
             );
             if (row != null) {
                 if (row.label() != null) {
@@ -410,5 +411,11 @@ public class ModuleSettingsView extends Screen {
         }
 
         return cardHeight;
+    }
+
+    private static <T> void attachCardListener(Setting<T> setting, Runnable onModified, ScrollContainer container) {
+        Consumer<T> listener = value -> onModified.run();
+        setting.addListener(listener);
+        container.addCleanupAction(() -> setting.removeListener(listener));
     }
 }

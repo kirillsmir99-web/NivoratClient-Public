@@ -36,6 +36,7 @@ NivoratClient_ImplementationPack_v2/
 config/autogg.json
 config/autotool.json
 config/*.properties
+server/dev-users.json
 
 # Local helper scripts
 build_run.ps1

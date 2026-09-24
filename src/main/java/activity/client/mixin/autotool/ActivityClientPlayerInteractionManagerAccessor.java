@@ -14,5 +14,5 @@ public interface ActivityClientPlayerInteractionManagerAccessor {
     void activity$setLastSelectedSlot(int slot);
 
     @Invoker("syncSelectedSlot")
-    void activity$invokeSyncSelectedSlot();
+    void invokeSyncSelectedSlot();
 }

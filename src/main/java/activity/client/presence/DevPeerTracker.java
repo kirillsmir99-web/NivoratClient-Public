@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ServerInfo;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -11,36 +13,30 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class DevPeerTracker {
-
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(3))
-            .build();
-
-    private static final Set<String> ACTIVE_PEERS = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private static volatile boolean running = false;
-    private static Thread workerThread = null;
+            .connectTimeout(Duration.ofSeconds(3)).build();
+    private static volatile Set<String> activePeers = Set.of();
+    private static volatile String activeServer = "";
+    private static volatile boolean running;
+    private static Thread workerThread;
 
     private DevPeerTracker() {}
 
     public static synchronized void start() {
-        if (!NivoratDev.IS_DEV) {
-            return;
-        }
-        if (running) return;
+        if (!NivoratDev.IS_DEV || running) return;
         running = true;
-
         workerThread = new Thread(() -> {
             while (running) {
                 try {
                     pollPeers();
-                } catch (Throwable ignored) {
+                } catch (Exception ignored) {
+                    activePeers = Set.of();
                 }
-
                 try {
                     Thread.sleep(8_000L);
                 } catch (InterruptedException e) {
@@ -59,67 +55,83 @@ public final class DevPeerTracker {
             workerThread.interrupt();
             workerThread = null;
         }
-        ACTIVE_PEERS.clear();
+        activePeers = Set.of();
+        activeServer = "";
+        DevAuthService.logout();
     }
 
-    private static void pollPeers() {
-        if (NivoratDev.DEV_KEY == null || NivoratDev.DEV_KEY.isBlank()) {
+    private static void pollPeers() throws Exception {
+        MinecraftClient client = MinecraftClient.getInstance();
+        ServerInfo serverInfo = client == null ? null : client.getCurrentServerEntry();
+        String server = serverInfo == null ? "" : serverInfo.address;
+        if (server == null || server.isBlank() || !server.equals(PresenceHeartbeatService.authenticatedServer())) {
+            activePeers = Set.of();
+            activeServer = "";
             return;
         }
-
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/peers"))
-                    .timeout(Duration.ofSeconds(4))
-                    .header("X-Dev-Key", NivoratDev.DEV_KEY)
-                    .header("User-Agent", "NivoratClient-Dev/3.0.9")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == 200) {
-                String body = response.body();
-                JsonObject obj = JsonParser.parseString(body).getAsJsonObject();
-                if (obj.has("peers")) {
-                    JsonArray arr = obj.getAsJsonArray("peers");
-                    Set<String> updated = Collections.newSetFromMap(new ConcurrentHashMap<>());
-                    for (JsonElement el : arr) {
-                        if (el.isJsonObject()) {
-                            JsonObject p = el.getAsJsonObject();
-                            if (p.has("name")) {
-                                String n = p.get("name").getAsString();
-                                if (n != null && !n.isBlank()) {
-                                    updated.add(n.toLowerCase(Locale.ROOT));
-                                }
-                            }
-                        }
-                    }
-                    ACTIVE_PEERS.clear();
-                    ACTIVE_PEERS.addAll(updated);
-                }
-            }
-        } catch (Throwable ignored) {
+        if (!server.equals(activeServer)) {
+            activePeers = Set.of();
+            activeServer = server;
         }
+
+        String devToken = DevAuthService.token();
+        String presenceToken = PresenceHeartbeatService.accessToken();
+        if (devToken.isEmpty() || presenceToken.isEmpty()) {
+            activePeers = Set.of();
+            return;
+        }
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/peers"))
+                .timeout(Duration.ofSeconds(4))
+                .header("Authorization", "Bearer " + devToken)
+                .header("X-Presence-Token", presenceToken)
+                .GET().build();
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 401 || response.statusCode() == 403) {
+            activePeers = Set.of();
+            DevAuthService.logoutLocal();
+            return;
+        }
+        if (response.statusCode() != 200 || response.body().length() > 65536) {
+            activePeers = Set.of();
+            return;
+        }
+        JsonObject obj = JsonParser.parseString(response.body()).getAsJsonObject();
+        JsonArray arr = obj.getAsJsonArray("peers");
+        if (arr == null || arr.size() > 512) {
+            activePeers = Set.of();
+            return;
+        }
+        Set<String> updated = new HashSet<>();
+        for (JsonElement el : arr) {
+            if (!el.isJsonObject()) continue;
+            JsonObject peer = el.getAsJsonObject();
+            if (!peer.has("name")) continue;
+            String name = peer.get("name").getAsString();
+            if (name.matches("[A-Za-z0-9_]{3,16}")) updated.add(name.toLowerCase(Locale.ROOT));
+        }
+        if (server.equals(activeServer)) activePeers = Collections.unmodifiableSet(updated);
     }
 
     public static boolean isPeer(String playerName) {
-        if (!NivoratDev.IS_DEV || playerName == null || playerName.isBlank()) {
-            return false;
-        }
-        return ACTIVE_PEERS.contains(playerName.toLowerCase(Locale.ROOT));
+        return NivoratDev.IS_DEV && playerName != null && !playerName.isBlank()
+                && activePeers.contains(playerName.toLowerCase(Locale.ROOT));
     }
 
     public static void setMockPeer(String playerName, boolean active) {
         if (playerName == null) return;
+        Set<String> updated = new HashSet<>(activePeers);
         String key = playerName.toLowerCase(Locale.ROOT);
-        if (active) {
-            ACTIVE_PEERS.add(key);
-        } else {
-            ACTIVE_PEERS.remove(key);
-        }
+        if (active) updated.add(key);
+        else updated.remove(key);
+        activePeers = Collections.unmodifiableSet(updated);
     }
 
     public static void clearMockPeers() {
-        ACTIVE_PEERS.clear();
+        clearVisiblePeers();
+    }
+
+    public static void clearVisiblePeers() {
+        activePeers = Set.of();
     }
 }

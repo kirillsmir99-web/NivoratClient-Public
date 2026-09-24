@@ -214,14 +214,15 @@ public final class NivoratFontManager {
         if (tr == null || text == null) return 0;
         float scale = activeTypographySize.getScaleFactor();
         String str = text.getString();
+        boolean plain = Style.EMPTY.equals(text.getStyle()) && text.getSiblings().isEmpty();
         String cacheKey = activeFontFamily.getId() + ":" + activeTypographySize.getId() + ":" + str;
-        Integer cached = STRING_WIDTH_CACHE.get(cacheKey);
+        Integer cached = plain ? STRING_WIDTH_CACHE.get(cacheKey) : null;
         if (cached != null) {
             return cached;
         }
         int baseWidth = tr.getWidth(wrap(text));
         int width = (Math.abs(scale - 1.0f) < 0.001f) ? baseWidth : Math.round(baseWidth * scale);
-        if (STRING_WIDTH_CACHE.size() < 2048) {
+        if (plain && STRING_WIDTH_CACHE.size() < 2048) {
             STRING_WIDTH_CACHE.put(cacheKey, width);
         }
         return width;

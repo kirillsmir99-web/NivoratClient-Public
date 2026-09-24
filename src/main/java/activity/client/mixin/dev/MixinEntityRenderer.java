@@ -1,6 +1,7 @@
 package activity.client.mixin.dev;
 
 import activity.client.presence.DevPeerTracker;
+import activity.client.presence.DevBadgeText;
 import activity.client.presence.NivoratDev;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.state.EntityRenderState;
@@ -23,7 +24,7 @@ public abstract class MixinEntityRenderer<T extends Entity, S extends EntityRend
         if (entity instanceof PlayerEntity player && state != null && state.displayName != null) {
             String name = player.getNameForScoreboard();
             if (DevPeerTracker.isPeer(name)) {
-                state.displayName = state.displayName.copy().append(Text.literal(NivoratDev.BADGE_SUFFIX));
+                state.displayName = DevBadgeText.prefix(state.displayName);
             }
         }
     }

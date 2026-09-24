@@ -38,6 +38,8 @@ public abstract class BaseModal implements Overlay {
 
     protected final List<ActivityComponent> children = new ArrayList<>();
     protected ActivityComponent focusedChild = null;
+    protected int lastScreenW = -1;
+    protected int lastScreenH = -1;
 
     public BaseModal(Text title, int preferredWidth, int preferredHeight) {
         this.title = title != null ? title : Text.empty();
@@ -136,6 +138,11 @@ public abstract class BaseModal implements Overlay {
         MinecraftClient mc = MinecraftClient.getInstance();
         int screenW = mc != null && mc.getWindow() != null ? mc.getWindow().getScaledWidth() : 400;
         int screenH = mc != null && mc.getWindow() != null ? mc.getWindow().getScaledHeight() : 300;
+        if (screenW != this.lastScreenW || screenH != this.lastScreenH) {
+            this.lastScreenW = screenW;
+            this.lastScreenH = screenH;
+            this.updateResponsiveBounds();
+        }
 
         boolean animEnabled = AnimationClock.isAnimationsEnabled();
         if (animEnabled) {
@@ -181,7 +188,12 @@ public abstract class BaseModal implements Overlay {
 
             TextRenderer tr = mc != null ? mc.textRenderer : null;
             if (tr != null && this.title != null) {
-                activity.client.gui.font.UiTextRenderer.drawText(context, tr, this.title, this.x + 14, this.y + 12, ActivityColors.TEXT_PRIMARY, false);
+                int maxTitleW = Math.max(10, this.width - 28);
+                Text displayTitle = this.title;
+                if (tr.getWidth(displayTitle) > maxTitleW) {
+                    displayTitle = Text.literal(tr.trimToWidth(displayTitle.getString(), Math.max(6, maxTitleW - 6)) + "…");
+                }
+                activity.client.gui.font.UiTextRenderer.drawText(context, tr, displayTitle, this.x + 14, this.y + 12, ActivityColors.TEXT_PRIMARY, false);
 
                 int sepColor = ActivityColors.withAlpha(0x28FFFFFF, Math.round(255 * eased));
                 ActivityGuiRenderer.fill(context, this.x + 10, this.y + 28, this.width - 20, 1, sepColor);

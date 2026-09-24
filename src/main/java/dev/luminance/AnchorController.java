@@ -7,16 +7,21 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.ShieldItem;
 import net.minecraft.item.consume.UseAction;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Locale;
 
@@ -26,6 +31,7 @@ public final class AnchorController {
     private State state = State.IDLE;
     private int originalSlot = -1;
     private int glowSlot = -1;
+    private boolean glowInOffhand = false;
     private BlockPos targetPos = null;
     private BlockHitResult lastHit = null;
     private int timer = 0;
@@ -33,6 +39,22 @@ public final class AnchorController {
     private long lastActionTime = 0L;
     private long nextActionTime = 0L;
     private final java.util.Map<BlockPos, Long> anchorFirstSeen = new java.util.HashMap<>();
+
+    private BlockPos trackedPosition = null;
+    private int interactionCount = 0;
+    private BlockPos pendingExplosionPos = null;
+    private long pendingExplosionTime = 0L;
+
+    private DoubleState doubleState = DoubleState.IDLE;
+    private BlockPos doubleTargetPos = null;
+    private BlockHitResult doubleLastHit = null;
+    private int doubleOriginalSlot = -1;
+    private int doubleGlowSlot = -1;
+    private boolean doubleGlowInOffhand = false;
+    private boolean doubleIsChain = false;
+    private int doubleTimer = 0;
+    private long doubleNextActionTime = 0L;
+    private int doubleLastObservedCharges = 0;
 
     public AnchorController() {
     }
@@ -60,6 +82,321 @@ public final class AnchorController {
             return;
         }
 
+        if ("double".equalsIgnoreCase(AnchorConfig.mode)) {
+            tickDoubleAnchor(client);
+            return;
+        }
+
+        tickSmartAuto(client);
+    }
+
+    private void tickDoubleAnchor(MinecraftClient client) {
+        if (client.currentScreen != null) {
+            cancelDoubleState(client);
+            return;
+        }
+        ClientPlayerEntity player = client.player;
+        if (player == null || client.world == null || client.interactionManager == null) {
+            cancelDoubleState(client);
+            return;
+        }
+
+        if (isBusy(client, player) || isShiftPressed(client)) {
+            cancelDoubleState(client);
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+
+        if (doubleState != DoubleState.IDLE && !isRightClickPressed(client)) {
+            if (doubleState != DoubleState.WAITING_SERVER_CHARGE && doubleState != DoubleState.WAITING_DETONATE
+                && doubleState != DoubleState.WAITING_CHAIN_SERVER_CHARGE && doubleState != DoubleState.WAITING_CHAIN_DETONATE) {
+                cancelDoubleState(client);
+                return;
+            }
+        }
+
+        switch (doubleState) {
+            case IDLE -> {
+                if (!isRightClickPressed(client)) {
+                    return;
+                }
+                if (now < doubleNextActionTime) {
+                    return;
+                }
+                if (!(client.crosshairTarget instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK) {
+                    return;
+                }
+
+                BlockPos hitPos = hit.getBlockPos();
+                Vec3d eyePos = player.getEyePos();
+                Vec3d hitVec = hit.getPos();
+                double reach = Math.min(player.getBlockInteractionRange() - REACH_SAFETY_MARGIN, 4.20D);
+                if (eyePos.squaredDistanceTo(hitVec) > reach * reach) {
+                    return;
+                }
+                if (!hasLineOfSight(client, eyePos, hitVec, hitPos)) {
+                    return;
+                }
+
+                BlockState hitState = client.world.getBlockState(hitPos);
+                if (hitState.isOf(Blocks.RESPAWN_ANCHOR)) {
+                    doubleOriginalSlot = player.getInventory().getSelectedSlot();
+                    doubleTargetPos = hitPos;
+                    doubleLastHit = hit;
+                    doubleIsChain = false;
+                    doubleGlowInOffhand = player.getOffHandStack().isOf(Items.GLOWSTONE);
+                    doubleGlowSlot = -1;
+                    if (!doubleGlowInOffhand) {
+                        doubleGlowSlot = findGlowstoneSlot(player);
+                    }
+
+                    int charges = hitState.get(RespawnAnchorBlock.CHARGES);
+                    if (charges <= 0) {
+                        if (!doubleGlowInOffhand && doubleGlowSlot < 0) {
+                            return;
+                        }
+                        if (!doubleGlowInOffhand && player.getInventory().getSelectedSlot() != doubleGlowSlot) {
+                            SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                        }
+                        interactDoubleGlowstone(client, now);
+                    } else if (AnchorConfig.doubleAutoExplode) {
+                        int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
+                        if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
+                            SafeSlotManager.selectSlot(client, detSlot);
+                        }
+                        interactDoubleDetonate(client, now);
+                    }
+                } else {
+                    BlockPos placePos = hitState.isReplaceable() ? hitPos : hitPos.offset(hit.getSide());
+                    BlockState placeState = client.world.getBlockState(placePos);
+                    if (!placeState.isReplaceable()) {
+                        return;
+                    }
+
+                    int anchorSlot = -1;
+                    if (player.getMainHandStack().isOf(Items.RESPAWN_ANCHOR)) {
+                        anchorSlot = player.getInventory().getSelectedSlot();
+                    } else {
+                        anchorSlot = findAnchorSlot(player);
+                    }
+                    if (anchorSlot < 0) {
+                        return;
+                    }
+
+                    doubleOriginalSlot = player.getInventory().getSelectedSlot();
+                    doubleTargetPos = placePos;
+                    doubleLastHit = hit;
+                    doubleIsChain = false;
+                    doubleGlowInOffhand = player.getOffHandStack().isOf(Items.GLOWSTONE);
+                    doubleGlowSlot = -1;
+                    if (!doubleGlowInOffhand) {
+                        doubleGlowSlot = findGlowstoneSlot(player);
+                    }
+
+                    if (player.getInventory().getSelectedSlot() != anchorSlot) {
+                        SafeSlotManager.selectSlot(client, anchorSlot);
+                    }
+
+                    client.interactionManager.interactBlock(player, Hand.MAIN_HAND, hit);
+                    player.swingHand(Hand.MAIN_HAND);
+                    doubleState = DoubleState.WAITING_PLACE;
+                    doubleTimer = 10;
+                    doubleNextActionTime = now + getDoubleActionDelay();
+                }
+            }
+            case WAITING_PLACE -> {
+                if (doubleTimer-- <= 0) {
+                    cancelDoubleState(client);
+                    return;
+                }
+                if (now < doubleNextActionTime) {
+                    return;
+                }
+                BlockState targetState = client.world.getBlockState(doubleTargetPos);
+                if (!targetState.isOf(Blocks.RESPAWN_ANCHOR)) {
+                    return;
+                }
+                int charges = targetState.get(RespawnAnchorBlock.CHARGES);
+                if (charges <= 0) {
+                    if (!doubleGlowInOffhand) {
+                        doubleGlowSlot = findGlowstoneSlot(player);
+                        if (doubleGlowSlot < 0) {
+                            cancelDoubleState(client);
+                            return;
+                        }
+                        if (player.getInventory().getSelectedSlot() != doubleGlowSlot) {
+                            SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                        }
+                    }
+                    interactDoubleGlowstone(client, now);
+                } else if (AnchorConfig.doubleAutoExplode) {
+                    int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
+                    if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
+                        SafeSlotManager.selectSlot(client, detSlot);
+                    }
+                    interactDoubleDetonate(client, now);
+                } else {
+                    finishDoubleCycle(client, now);
+                }
+            }
+            case WAITING_CHARGE -> {
+                if (doubleTimer-- <= 0) {
+                    cancelDoubleState(client);
+                    return;
+                }
+                if (now < doubleNextActionTime) {
+                    return;
+                }
+                if (!doubleGlowInOffhand && player.getInventory().getSelectedSlot() != doubleGlowSlot) {
+                    SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                    return;
+                }
+                interactDoubleGlowstone(client, now);
+            }
+            case WAITING_SERVER_CHARGE -> {
+                if (doubleTimer-- <= 0) {
+                    cancelDoubleState(client);
+                    return;
+                }
+                BlockState targetState = client.world.getBlockState(doubleTargetPos);
+                if (!targetState.isOf(Blocks.RESPAWN_ANCHOR)) {
+                    cancelDoubleState(client);
+                    return;
+                }
+                int curCharges = targetState.get(RespawnAnchorBlock.CHARGES);
+                if (curCharges > doubleLastObservedCharges || curCharges >= 1) {
+                    if (AnchorConfig.doubleAutoExplode) {
+                        int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
+                        if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
+                            SafeSlotManager.selectSlot(client, detSlot);
+                        }
+                        doubleState = DoubleState.WAITING_DETONATE;
+                        doubleTimer = 10;
+                        doubleNextActionTime = now + getDoubleActionDelay();
+                    } else {
+                        finishDoubleCycle(client, now);
+                    }
+                }
+            }
+            case WAITING_DETONATE -> {
+                if (doubleTimer-- <= 0) {
+                    cancelDoubleState(client);
+                    return;
+                }
+                if (now < doubleNextActionTime) {
+                    return;
+                }
+                BlockState targetState = client.world.getBlockState(doubleTargetPos);
+                if (!targetState.isOf(Blocks.RESPAWN_ANCHOR) || targetState.get(RespawnAnchorBlock.CHARGES) <= 0) {
+                    cancelDoubleState(client);
+                    return;
+                }
+                interactDoubleDetonate(client, now);
+            }
+            case WAITING_CHAIN_PLACE -> {
+                if (doubleTimer-- <= 0) {
+                    finishDoubleCycle(client, now);
+                    return;
+                }
+                if (now < doubleNextActionTime) {
+                    return;
+                }
+                BlockState currentBlock = client.world.getBlockState(doubleTargetPos);
+                if (!currentBlock.isReplaceable()) {
+                    return;
+                }
+                int anchorSlot = findAnchorSlot(player);
+                if (anchorSlot < 0) {
+                    finishDoubleCycle(client, now);
+                    return;
+                }
+                if (player.getInventory().getSelectedSlot() != anchorSlot) {
+                    SafeSlotManager.selectSlot(client, anchorSlot);
+                }
+                BlockPos supportPos = doubleTargetPos.down();
+                BlockHitResult placeHit = new BlockHitResult(
+                    new Vec3d(doubleTargetPos.getX() + 0.5, doubleTargetPos.getY(), doubleTargetPos.getZ() + 0.5),
+                    net.minecraft.util.math.Direction.UP,
+                    supportPos,
+                    false
+                );
+                client.interactionManager.interactBlock(player, Hand.MAIN_HAND, placeHit);
+                player.swingHand(Hand.MAIN_HAND);
+                doubleState = DoubleState.WAITING_CHAIN_CHARGE;
+                doubleTimer = 10;
+                doubleNextActionTime = now + getDoubleActionDelay();
+            }
+            case WAITING_CHAIN_CHARGE -> {
+                if (doubleTimer-- <= 0) {
+                    finishDoubleCycle(client, now);
+                    return;
+                }
+                if (now < doubleNextActionTime) {
+                    return;
+                }
+                BlockState targetState = client.world.getBlockState(doubleTargetPos);
+                if (!targetState.isOf(Blocks.RESPAWN_ANCHOR)) {
+                    return;
+                }
+                doubleGlowInOffhand = player.getOffHandStack().isOf(Items.GLOWSTONE);
+                doubleGlowSlot = -1;
+                if (!doubleGlowInOffhand) {
+                    doubleGlowSlot = findGlowstoneSlot(player);
+                    if (doubleGlowSlot < 0) {
+                        finishDoubleCycle(client, now);
+                        return;
+                    }
+                    if (player.getInventory().getSelectedSlot() != doubleGlowSlot) {
+                        SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                    }
+                }
+                interactDoubleGlowstone(client, now);
+            }
+            case WAITING_CHAIN_SERVER_CHARGE -> {
+                if (doubleTimer-- <= 0) {
+                    finishDoubleCycle(client, now);
+                    return;
+                }
+                BlockState targetState = client.world.getBlockState(doubleTargetPos);
+                if (!targetState.isOf(Blocks.RESPAWN_ANCHOR)) {
+                    finishDoubleCycle(client, now);
+                    return;
+                }
+                int curCharges = targetState.get(RespawnAnchorBlock.CHARGES);
+                if (curCharges > doubleLastObservedCharges || curCharges >= 1) {
+                    if (AnchorConfig.doubleAutoExplode) {
+                        int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
+                        if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
+                            SafeSlotManager.selectSlot(client, detSlot);
+                        }
+                        doubleState = DoubleState.WAITING_CHAIN_DETONATE;
+                        doubleTimer = 10;
+                        doubleNextActionTime = now + getDoubleActionDelay();
+                    } else {
+                        finishDoubleCycle(client, now);
+                    }
+                }
+            }
+            case WAITING_CHAIN_DETONATE -> {
+                if (doubleTimer-- <= 0) {
+                    finishDoubleCycle(client, now);
+                    return;
+                }
+                if (now < doubleNextActionTime) {
+                    return;
+                }
+                BlockState targetState = client.world.getBlockState(doubleTargetPos);
+                if (!targetState.isOf(Blocks.RESPAWN_ANCHOR) || targetState.get(RespawnAnchorBlock.CHARGES) <= 0) {
+                    finishDoubleCycle(client, now);
+                    return;
+                }
+                interactDoubleDetonate(client, now);
+            }
+        }
+    }
+
+    private void tickSmartAuto(MinecraftClient client) {
         if (isShiftPressed(client)) {
             if (state == State.WAITING_CHARGE || state == State.SELECT_GLOW || state == State.INTERACT_GLOW) {
                 cancelState(client);
@@ -81,19 +418,24 @@ public final class AnchorController {
                 }
                 if (timer > 0) {
                     timer--;
+                }
+                if (timer > 0 || now < nextActionTime) {
                     return;
                 }
-                if (now < nextActionTime) {
-                    return;
-                }
-                if (client.player.getInventory().getSelectedSlot() != glowSlot) {
-                    SafeSlotManager.selectSlot(client, glowSlot);
+                if (!glowInOffhand) {
+                    if (client.player.getInventory().getSelectedSlot() != glowSlot) {
+                        SafeSlotManager.selectSlot(client, glowSlot);
+                    }
                 }
                 interactGlowstone(client, now);
             }
             case SELECT_GLOW -> {
                 if (!isLookingAtAnchor(client, targetPos) || isShiftPressed(client)) {
                     cancelState(client);
+                    return;
+                }
+                if (glowInOffhand) {
+                    interactGlowstone(client, now);
                     return;
                 }
                 int foundGlow = findGlowstoneSlot(client.player);
@@ -110,12 +452,14 @@ public final class AnchorController {
                     cancelState(client);
                     return;
                 }
-                if (client.player.getInventory().getSelectedSlot() != glowSlot) {
+                if (!glowInOffhand && client.player.getInventory().getSelectedSlot() != glowSlot) {
                     SafeSlotManager.selectSlot(client, glowSlot);
                     return;
                 }
                 if (timer > 0) {
                     timer--;
+                }
+                if (timer > 0 || now < nextActionTime) {
                     return;
                 }
                 interactGlowstone(client, now);
@@ -133,41 +477,22 @@ public final class AnchorController {
                 int curCharges = currentAnchorState.get(RespawnAnchorBlock.CHARGES);
                 if (curCharges > lastObservedCharges || curCharges >= AnchorConfig.targetCharges) {
                     if (curCharges < AnchorConfig.targetCharges) {
-
                         if (isShiftPressed(client)) {
                             cancelState(client);
                             return;
                         }
-                        int baseDelay = Math.max(0, AnchorConfig.chargeDelayTicks);
-                        if (baseDelay <= 0 || isFast()) {
-                            if (client.player.getInventory().getSelectedSlot() != glowSlot) {
-                                SafeSlotManager.selectSlot(client, glowSlot);
-                            }
-                            interactGlowstone(client, now);
-                        } else {
-                            state = State.WAITING_CHARGE;
-                            timer = baseDelay;
-                            nextActionTime = now + getJitterDelay(baseDelay);
-                        }
+                        state = State.WAITING_CHARGE;
+                        timer = Math.max(1, AnchorConfig.chargeDelayTicks);
+                        nextActionTime = now + getActionDelay(AnchorConfig.chargeDelayTicks);
                     } else if (AnchorConfig.autoExplode) {
-                        int baseDelay = Math.max(0, AnchorConfig.explodeDelayTicks);
-                        int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
-                        SafeSlotManager.selectSlot(client, detSlot);
-                        if (baseDelay <= 0 || isFast()) {
-                            interactDetonate(client, now);
-                        } else {
-                            state = State.WAITING_DETONATE;
-                            timer = baseDelay;
-                            nextActionTime = now + getJitterDelay(baseDelay);
-                        }
+                        state = State.WAITING_DETONATE;
+                        timer = Math.max(1, AnchorConfig.explodeDelayTicks);
+                        nextActionTime = now + getActionDelay(AnchorConfig.explodeDelayTicks);
                     } else {
                         if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
                             state = State.WAITING_RETURN;
-                            timer = isFast() ? 0 : 1;
-                            if (timer == 0) {
-                                SafeSlotManager.selectSlot(client, originalSlot);
-                                reset(client);
-                            }
+                            timer = 1;
+                            nextActionTime = now + getActionDelay(0);
                         } else {
                             reset(client);
                         }
@@ -187,12 +512,15 @@ public final class AnchorController {
                 }
                 if (timer > 0) {
                     timer--;
-                    return;
                 }
-                if (now < nextActionTime) {
+                if (timer > 0 || now < nextActionTime) {
                     return;
                 }
                 int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
+                if (detSlot < 0) {
+                    cancelState(client);
+                    return;
+                }
                 if (client.player.getInventory().getSelectedSlot() != detSlot) {
                     SafeSlotManager.selectSlot(client, detSlot);
                 }
@@ -204,7 +532,13 @@ public final class AnchorController {
                     return;
                 }
                 int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
-                SafeSlotManager.selectSlot(client, detSlot);
+                if (detSlot < 0) {
+                    cancelState(client);
+                    return;
+                }
+                if (client.player.getInventory().getSelectedSlot() != detSlot) {
+                    SafeSlotManager.selectSlot(client, detSlot);
+                }
                 interactDetonate(client, now);
             }
             case INTERACT_DETONATE -> {
@@ -214,6 +548,8 @@ public final class AnchorController {
                 }
                 if (timer > 0) {
                     timer--;
+                }
+                if (timer > 0 || now < nextActionTime) {
                     return;
                 }
                 interactDetonate(client, now);
@@ -221,6 +557,8 @@ public final class AnchorController {
             case WAITING_RETURN -> {
                 if (timer > 0) {
                     timer--;
+                }
+                if (timer > 0 || now < nextActionTime) {
                     return;
                 }
                 if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
@@ -245,6 +583,13 @@ public final class AnchorController {
                     return;
                 }
                 BlockPos pos = hit.getBlockPos();
+                if (pos.equals(pendingExplosionPos)) {
+                    BlockState st = client.world.getBlockState(pos);
+                    if (now - pendingExplosionTime < 800L && st.isOf(Blocks.RESPAWN_ANCHOR) && st.get(RespawnAnchorBlock.CHARGES) > 0) {
+                        return;
+                    }
+                    pendingExplosionPos = null;
+                }
                 BlockState blockState = client.world.getBlockState(pos);
                 if (!blockState.isOf(Blocks.RESPAWN_ANCHOR)) {
                     return;
@@ -277,45 +622,34 @@ public final class AnchorController {
 
                 int charges = blockState.get(RespawnAnchorBlock.CHARGES);
                 if (charges < AnchorConfig.targetCharges) {
-
                     if (isShiftPressed(client)) {
                         return;
                     }
-                    int foundGlow = findGlowstoneSlot(client.player);
-                    if (foundGlow < 0) {
-                        return;
+                    glowInOffhand = client.player.getOffHandStack().isOf(Items.GLOWSTONE);
+                    glowSlot = -1;
+                    if (!glowInOffhand) {
+                        glowSlot = findGlowstoneSlot(client.player);
+                        if (glowSlot < 0) {
+                            return;
+                        }
                     }
                     originalSlot = client.player.getInventory().getSelectedSlot();
-                    glowSlot = foundGlow;
                     targetPos = pos;
                     lastHit = hit;
                     net.fabricmc.pack.api.CombatLockManager.setLock("pvp.anchor_active", true);
 
-                    int baseDelay = Math.max(0, AnchorConfig.chargeDelayTicks);
-                    SafeSlotManager.selectSlot(client, glowSlot);
-                    if (baseDelay <= 0 || isFast()) {
-                        interactGlowstone(client, now);
-                    } else {
-                        state = State.WAITING_CHARGE;
-                        timer = baseDelay;
-                        nextActionTime = now + getJitterDelay(baseDelay);
-                    }
+                    state = State.WAITING_CHARGE;
+                    timer = Math.max(1, AnchorConfig.chargeDelayTicks);
+                    nextActionTime = now + getActionDelay(AnchorConfig.chargeDelayTicks);
                 } else if (AnchorConfig.autoExplode) {
                     originalSlot = client.player.getInventory().getSelectedSlot();
                     targetPos = pos;
                     lastHit = hit;
                     net.fabricmc.pack.api.CombatLockManager.setLock("pvp.anchor_active", true);
 
-                    int baseDelay = Math.max(0, AnchorConfig.explodeDelayTicks);
-                    int detSlot = resolveDetonateSlot(client.player, originalSlot, glowSlot);
-                    SafeSlotManager.selectSlot(client, detSlot);
-                    if (baseDelay <= 0 || isFast()) {
-                        interactDetonate(client, now);
-                    } else {
-                        state = State.WAITING_DETONATE;
-                        timer = baseDelay;
-                        nextActionTime = now + getJitterDelay(baseDelay);
-                    }
+                    state = State.WAITING_DETONATE;
+                    timer = Math.max(1, AnchorConfig.explodeDelayTicks);
+                    nextActionTime = now + getActionDelay(AnchorConfig.explodeDelayTicks);
                 }
             }
         }
@@ -338,11 +672,12 @@ public final class AnchorController {
             );
         }
 
-        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hitToUse);
-        client.player.swingHand(Hand.MAIN_HAND);
+        Hand handToUse = glowInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+        client.interactionManager.interactBlock(client.player, handToUse, hitToUse);
+        client.player.swingHand(handToUse);
         lastActionTime = now;
         state = State.WAITING_SERVER_CHARGE;
-        timer = isFast() ? 8 : 6;
+        timer = 10;
     }
 
     private void interactDetonate(MinecraftClient client, long now) {
@@ -364,14 +699,13 @@ public final class AnchorController {
             targetPos.getZ() + 0.5,
             8.5
         );
+        pendingExplosionPos = targetPos;
+        pendingExplosionTime = now;
         lastActionTime = now;
         if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
             state = State.WAITING_RETURN;
-            timer = isFast() ? 0 : 1;
-            if (timer == 0) {
-                SafeSlotManager.selectSlot(client, originalSlot);
-                reset(client);
-            }
+            timer = 1;
+            nextActionTime = now + getActionDelay(0);
         } else {
             reset(client);
         }
@@ -382,26 +716,40 @@ public final class AnchorController {
         return (client.options != null && client.options.sneakKey.isPressed()) || client.player.isSneaking();
     }
 
-    private long getMinCycleIntervalMs() {
-        if (isFast()) return 0L;
+    private boolean isRightClickPressed(MinecraftClient client) {
+        if (client == null) return false;
+        if (client.getWindow() != null && client.getWindow().getHandle() != 0L) {
+            try {
+                if (GLFW.glfwGetMouseButton(client.getWindow().getHandle(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS) {
+                    return true;
+                }
+            } catch (Throwable ignored) {}
+        }
+        return client.options != null && client.options.useKey != null && client.options.useKey.isPressed();
+    }
+
+    public long getMinCycleIntervalMs() {
         String p = AnchorConfig.preset != null ? AnchorConfig.preset.toUpperCase(Locale.ROOT) : "BALANCED";
         return switch (p) {
-            case "FAST" -> 0L;
-            case "MEDIUM" -> 25L;
-            case "BALANCED" -> 40L;
-            case "SAFE" -> 60L;
-            default -> 40L;
+            case "FAST" -> GaussianTimingEngine.getDelay(45.0D, 5.0D, 35L, 55L);
+            case "MEDIUM" -> GaussianTimingEngine.getDelay(77.0D, 7.0D, 65L, 90L);
+            case "SAFE" -> GaussianTimingEngine.getDelay(140.0D, 10.0D, 120L, 160L);
+            default -> GaussianTimingEngine.getDelay(85.0D, 8.0D, 70L, 100L);
         };
     }
 
-    private long getJitterDelay(int baseDelayTicks) {
-        if (baseDelayTicks <= 0 || isFast()) return 0L;
-        return GaussianTimingEngine.getDelay(baseDelayTicks * 18.0D, 4.0D, 5L, 40L);
-    }
-
-    private boolean isFast() {
-        return "FAST".equalsIgnoreCase(AnchorConfig.preset)
-            || (AnchorConfig.chargeDelayTicks <= 0 && AnchorConfig.explodeDelayTicks <= 0);
+    public long getActionDelay(int delayTicks) {
+        String p = AnchorConfig.preset != null ? AnchorConfig.preset.toUpperCase(Locale.ROOT) : "BALANCED";
+        long delayMs = switch (p) {
+            case "FAST" -> GaussianTimingEngine.getDelay(45.0D, 5.0D, 35L, 55L);
+            case "MEDIUM" -> GaussianTimingEngine.getDelay(77.0D, 7.0D, 65L, 90L);
+            case "SAFE" -> GaussianTimingEngine.getDelay(140.0D, 10.0D, 120L, 160L);
+            default -> GaussianTimingEngine.getDelay(85.0D, 8.0D, 70L, 100L);
+        };
+        if (delayTicks > 0) {
+            delayMs = Math.max(delayMs, delayTicks * 50L + GaussianTimingEngine.getDelay(0.0D, 5.0D, -10L, 10L));
+        }
+        return delayMs;
     }
 
     private boolean isLookingAtAnchor(MinecraftClient client, BlockPos pos) {
@@ -447,67 +795,106 @@ public final class AnchorController {
         return hit.getBlockPos().equals(blockPos);
     }
 
-    private int resolveDetonateSlot(ClientPlayerEntity player, int origSlot, int gSlot) {
+    public int resolveDetonateSlot(ClientPlayerEntity player, int origSlot, int gSlot) {
+        if (player == null || player.getInventory() == null) return 0;
+        return resolveDetonateSlot(player.getInventory(), origSlot, gSlot);
+    }
+
+    public int resolveDetonateSlot(PlayerInventory inventory, int origSlot, int gSlot) {
+        if (inventory == null) return 0;
 
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
-            ItemStack stack = player.getInventory().getStack(i);
-            if (stack.isOf(Items.TOTEM_OF_UNDYING)) {
-                return i;
-            }
-        }
-
-        if (player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
-            for (int i = 0; i < 9; i++) {
-                if (i == gSlot) continue;
-                ItemStack stack = player.getInventory().getStack(i);
-                if (stack.isOf(Items.RESPAWN_ANCHOR)) {
-                    return i;
-                }
-            }
-        }
-
-        for (int i = 0; i < 9; i++) {
-            if (i == gSlot) continue;
-            ItemStack stack = player.getInventory().getStack(i);
-            if (stack.isOf(Items.RESPAWN_ANCHOR)) {
+            ItemStack stack = inventory.getStack(i);
+            if (!stack.isEmpty() && stack.isOf(Items.TOTEM_OF_UNDYING)) {
                 return i;
             }
         }
 
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
-            ItemStack stack = player.getInventory().getStack(i);
+            ItemStack stack = inventory.getStack(i);
+            if (isWeaponItem(stack)) {
+                return i;
+            }
+        }
+
+        for (int i = 0; i < 9; i++) {
+            if (i == gSlot) continue;
+            ItemStack stack = inventory.getStack(i);
             if (stack.isEmpty()) {
                 return i;
             }
         }
 
         if (origSlot >= 0 && origSlot < 9 && origSlot != gSlot) {
-            ItemStack stack = player.getInventory().getStack(origSlot);
-            if (isSafeDetonateItem(stack) || stack.isOf(Items.RESPAWN_ANCHOR)) {
+            ItemStack stack = inventory.getStack(origSlot);
+            if (!stack.isOf(Items.RESPAWN_ANCHOR) && !stack.isOf(Items.GLOWSTONE) && isSafeDetonateItem(stack)) {
                 return origSlot;
             }
         }
 
         for (int i = 0; i < 9; i++) {
             if (i == gSlot) continue;
-            ItemStack stack = player.getInventory().getStack(i);
-            if (isSafeDetonateItem(stack) || stack.isOf(Items.RESPAWN_ANCHOR)) {
+            ItemStack stack = inventory.getStack(i);
+            if (!stack.isOf(Items.RESPAWN_ANCHOR) && !stack.isOf(Items.GLOWSTONE) && isSafeDetonateItem(stack)) {
                 return i;
             }
         }
 
-        return origSlot >= 0 && origSlot < 9 ? origSlot : player.getInventory().getSelectedSlot();
+        for (int i = 0; i < 9; i++) {
+            if (i == gSlot) continue;
+            ItemStack stack = inventory.getStack(i);
+            if (!stack.isOf(Items.RESPAWN_ANCHOR) && !stack.isOf(Items.GLOWSTONE)) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
-    private boolean isSafeDetonateItem(ItemStack stack) {
-        if (stack.isEmpty()) return true;
+    public boolean isWeaponItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (stack.isIn(ItemTags.SWORDS) || stack.isIn(ItemTags.AXES)) {
+            return true;
+        }
+        if (stack.isOf(Items.MACE)) return true;
+        return isWeaponName(stack.getItem().toString());
+    }
+
+    public static boolean isWeaponName(String name) {
+        if (name == null || name.isEmpty()) return false;
+        String n = name.toLowerCase(Locale.ROOT);
+        if (n.contains("sword") || n.contains("mace") || n.contains("меч") || n.contains("булава")) {
+            return true;
+        }
+        if (n.contains("pickaxe") || n.contains("кирка")) {
+            return false;
+        }
+        return n.endsWith("_axe") || n.equals("axe") || n.contains("топор")
+            || (n.contains("axe") && !n.contains("pickaxe"));
+    }
+
+    public boolean isSafeDetonateItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return true;
+        if (stack.isOf(Items.RESPAWN_ANCHOR)) return false;
         if (stack.isOf(Items.GLOWSTONE)) return false;
-        if (stack.isOf(Items.RESPAWN_ANCHOR)) return true;
+        if (stack.getItem() instanceof net.minecraft.item.BlockItem) return false;
         if (stack.getItem() instanceof ShieldItem) return false;
         if (stack.isOf(Items.BOW) || stack.isOf(Items.CROSSBOW) || stack.isOf(Items.TRIDENT)) return false;
-        return !isActionItem(stack);
+        if (isActionItem(stack)) return false;
+        return isSafeDetonateName(stack.getItem().toString());
+    }
+
+    public static boolean isSafeDetonateName(String name) {
+        if (name == null || name.isEmpty()) return true;
+        String n = name.toLowerCase(Locale.ROOT);
+        if (n.contains("anchor") || n.contains("якорь")) return false;
+        if (n.contains("glowstone") || n.contains("светокамень")) return false;
+        if (n.contains("shield") || n.contains("щит")) return false;
+        if (n.contains("bow") || n.contains("лук") || n.contains("trident") || n.contains("трезубец")) return false;
+        if (n.contains("block") || n.contains("obsidian") || n.contains("dirt") || n.contains("stone") || n.contains("tnt")) return false;
+        return true;
     }
 
     private int findGlowstoneSlot(ClientPlayerEntity player) {
@@ -534,23 +921,155 @@ public final class AnchorController {
         return action != null && action != UseAction.NONE;
     }
 
-    private void cancelState(MinecraftClient client) {
+    private void interactDoubleGlowstone(MinecraftClient client, long now) {
+        if (doubleTargetPos == null || client.world == null || client.interactionManager == null) return;
+        BlockState preState = client.world.getBlockState(doubleTargetPos);
+        doubleLastObservedCharges = preState.isOf(Blocks.RESPAWN_ANCHOR)
+            ? preState.get(RespawnAnchorBlock.CHARGES)
+            : 0;
+
+        BlockHitResult hitToUse = doubleLastHit;
+        if (hitToUse == null || !hitToUse.getBlockPos().equals(doubleTargetPos)) {
+            hitToUse = new BlockHitResult(
+                new Vec3d(doubleTargetPos.getX() + 0.5, doubleTargetPos.getY() + 0.5, doubleTargetPos.getZ() + 0.5),
+                net.minecraft.util.math.Direction.UP,
+                doubleTargetPos,
+                false
+            );
+        }
+
+        Hand handToUse = doubleGlowInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+        client.interactionManager.interactBlock(client.player, handToUse, hitToUse);
+        client.player.swingHand(handToUse);
+
+        if (doubleIsChain) {
+            doubleState = DoubleState.WAITING_CHAIN_SERVER_CHARGE;
+        } else {
+            doubleState = DoubleState.WAITING_SERVER_CHARGE;
+        }
+        doubleTimer = 10;
+        doubleNextActionTime = now + getDoubleActionDelay();
+    }
+
+    private void interactDoubleDetonate(MinecraftClient client, long now) {
+        if (doubleTargetPos == null || client.world == null || client.interactionManager == null) return;
+        BlockHitResult hitToUse = doubleLastHit;
+        if (hitToUse == null || !hitToUse.getBlockPos().equals(doubleTargetPos)) {
+            hitToUse = new BlockHitResult(
+                new Vec3d(doubleTargetPos.getX() + 0.5, doubleTargetPos.getY() + 0.5, doubleTargetPos.getZ() + 0.5),
+                net.minecraft.util.math.Direction.UP,
+                doubleTargetPos,
+                false
+            );
+        }
+
+        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hitToUse);
+        client.player.swingHand(Hand.MAIN_HAND);
+        activity.client.module.impl.utility.AutoGGKillTracker.recordExplosion(
+            doubleTargetPos.getX() + 0.5,
+            doubleTargetPos.getY() + 0.5,
+            doubleTargetPos.getZ() + 0.5,
+            8.5
+        );
+
+        if (!doubleIsChain && AnchorConfig.doubleChain) {
+            doubleIsChain = true;
+            doubleState = DoubleState.WAITING_CHAIN_PLACE;
+            doubleTimer = 10;
+            doubleNextActionTime = now + getDoubleActionDelay();
+        } else {
+            finishDoubleCycle(client, now);
+        }
+    }
+
+    private void finishDoubleCycle(MinecraftClient client, long now) {
+        if (AnchorConfig.autoReturn && doubleOriginalSlot >= 0 && doubleOriginalSlot < 9) {
+            if (client != null && client.player != null) {
+                SafeSlotManager.selectSlot(client, doubleOriginalSlot);
+            }
+        }
+        resetDoubleState();
+        doubleNextActionTime = now + getDoubleActionDelay();
+    }
+
+    public void cancelDoubleState(MinecraftClient client) {
+        if (AnchorConfig.autoReturn && doubleOriginalSlot >= 0 && doubleOriginalSlot < 9) {
+            if (client != null && client.player != null) {
+                SafeSlotManager.selectSlot(client, doubleOriginalSlot);
+            }
+        }
+        resetDoubleState();
+    }
+
+    private void resetDoubleState() {
+        doubleState = DoubleState.IDLE;
+        doubleTargetPos = null;
+        doubleLastHit = null;
+        doubleOriginalSlot = -1;
+        doubleGlowSlot = -1;
+        doubleGlowInOffhand = false;
+        doubleIsChain = false;
+        doubleTimer = 0;
+        doubleLastObservedCharges = 0;
+    }
+
+    public int findAnchorSlot(ClientPlayerEntity player) {
+        if (player == null) return -1;
+        for (int i = 0; i < 9; i++) {
+            if (player.getInventory().getStack(i).isOf(Items.RESPAWN_ANCHOR)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public long getDoubleActionDelay() {
+        String p = AnchorConfig.presetDouble != null ? AnchorConfig.presetDouble.toLowerCase(Locale.ROOT) : "fast";
+        return switch (p) {
+            case "fast" -> GaussianTimingEngine.getDelay(40.0D, 6.0D, 30L, 55L);
+            case "legit" -> GaussianTimingEngine.getDelay(75.0D, 12.0D, 60L, 100L);
+            case "custom" -> {
+                double base = Math.max(15.0, AnchorConfig.doubleDelayTicks * 50.0);
+                yield GaussianTimingEngine.getDelay(base, Math.max(5.0, base * 0.15), (long)Math.max(10.0, base * 0.7), (long)(base * 1.35));
+            }
+            default -> GaussianTimingEngine.getDelay(40.0D, 6.0D, 30L, 55L);
+        };
+    }
+
+    public void cancelState(MinecraftClient client) {
+        cancelDoubleState(client);
         if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
             SafeSlotManager.selectSlot(client, originalSlot);
         }
         reset(client);
     }
 
-    private void reset(MinecraftClient client) {
+    public void reset(MinecraftClient client) {
+        resetDoubleState();
         state = State.IDLE;
         originalSlot = -1;
         glowSlot = -1;
+        glowInOffhand = false;
         targetPos = null;
         lastHit = null;
         timer = 0;
         lastObservedCharges = 0;
         nextActionTime = 0L;
+        trackedPosition = null;
+        interactionCount = 0;
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.anchor_active", false);
+    }
+
+    private enum DoubleState {
+        IDLE,
+        WAITING_PLACE,
+        WAITING_CHARGE,
+        WAITING_SERVER_CHARGE,
+        WAITING_DETONATE,
+        WAITING_CHAIN_PLACE,
+        WAITING_CHAIN_CHARGE,
+        WAITING_CHAIN_SERVER_CHARGE,
+        WAITING_CHAIN_DETONATE
     }
 
     private enum State {

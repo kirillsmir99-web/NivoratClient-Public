@@ -56,6 +56,7 @@ public class ScrollContainer extends ActivityComponent {
     }
 
     private final List<ScrollEntry> entries = new ArrayList<>();
+    private final List<Runnable> cleanupActions = new ArrayList<>();
     private int contentHeight = 0;
     private int contentPaddingBottom = 12;
 
@@ -96,8 +97,14 @@ public class ScrollContainer extends ActivityComponent {
         this.entries.add(new ScrollEntry(component, relX, relY));
         component.setX(this.x + relX);
         component.setY(this.y + relY - (int) Math.round(this.scrollAmount));
-        this.contentHeight = computeContentHeight();
+        if (component.isVisible()) {
+            this.contentHeight = Math.max(this.contentHeight, relY + component.getHeight() + this.contentPaddingBottom);
+        }
         return component;
+    }
+
+    public void addCleanupAction(Runnable action) {
+        if (action != null) this.cleanupActions.add(action);
     }
 
     public boolean hasChild(ActivityComponent component) {
@@ -180,6 +187,8 @@ public class ScrollContainer extends ActivityComponent {
     }
 
     public void clearChildren() {
+        for (Runnable action : this.cleanupActions) action.run();
+        this.cleanupActions.clear();
         this.entries.clear();
         clearFocus();
         this.contentHeight = 0;

@@ -31,8 +31,19 @@ public class ActivityLabel extends ActivityComponent {
         return this;
     }
 
+    @Override
     public Text getTooltip() {
-        return tooltip;
+        if (this.maxWidth > 0 && this.text != null) {
+            MinecraftClient client = MinecraftClient.getInstance();
+            TextRenderer tr = client != null ? client.textRenderer : null;
+            if (tr != null && activity.client.gui.font.UiTextRenderer.getWidth(tr, this.text) > this.maxWidth) {
+                if (this.tooltip != null && !this.tooltip.getString().isEmpty()) {
+                    return Text.literal("§f" + this.text.getString() + "§7: ").append(this.tooltip);
+                }
+                return this.text;
+            }
+        }
+        return this.tooltip;
     }
 
     @Override

@@ -176,6 +176,19 @@ public class ActivitySlider extends ActivityComponent {
         }
     }
 
+    public void setValueSilently(double newValue) {
+        if (!Double.isFinite(newValue)) return;
+        double clamped = Math.clamp(newValue, this.min, this.max);
+        if (this.step > 0) {
+            clamped = this.min + Math.round((clamped - this.min) / this.step) * this.step;
+            clamped = Math.clamp(clamped, this.min, this.max);
+        }
+        this.value = clamped;
+        this.cachedValueText = this.valueFormatter.apply(clamped);
+        this.visualNorm = (float) getNormalized();
+        this.valuePulse = 0.0f;
+    }
+
     public double getNormalized() {
         if (this.max <= this.min) return 0.0;
         return (this.value - this.min) / (this.max - this.min);

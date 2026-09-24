@@ -9,6 +9,7 @@ public class AutoAnchorStub extends AbstractModuleStub {
 
     public static final String ID = "auto_anchor";
 
+    public String mode = "smart";
     public boolean autoExplode = false;
     public boolean autoReturn = true;
     public double chargeDelay = 1.0;
@@ -30,6 +31,7 @@ public class AutoAnchorStub extends AbstractModuleStub {
         if (config == null) return;
         this.enabled = config.autoAnchorEnabled;
         this.keybind.copyFrom(config.autoAnchorKeybind);
+        this.mode = config.autoAnchorMode;
         this.autoExplode = config.autoAnchorAutoExplode;
         this.autoReturn = config.autoAnchorAutoReturn;
         this.chargeDelay = config.autoAnchorChargeDelay;
@@ -42,6 +44,7 @@ public class AutoAnchorStub extends AbstractModuleStub {
         if (config == null) return;
         config.autoAnchorEnabled = this.enabled;
         config.autoAnchorKeybind.copyFrom(this.keybind);
+        config.autoAnchorMode = this.mode;
         config.autoAnchorAutoExplode = this.autoExplode;
         config.autoAnchorAutoReturn = this.autoReturn;
         config.autoAnchorChargeDelay = this.chargeDelay;

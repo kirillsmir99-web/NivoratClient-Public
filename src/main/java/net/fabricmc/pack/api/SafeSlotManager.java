@@ -1,55 +1,29 @@
 package net.fabricmc.pack.api;
 
+import activity.client.mixin.autotool.ActivityClientPlayerInteractionManagerAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 
-import java.lang.reflect.Field;
-import java.util.Locale;
-
 public final class SafeSlotManager {
-    private static Field lastSelectedSlotField;
     private static long lastChangeTick = -1L;
     private static int lastSelectedSlot = -1;
-
-    static {
-        try {
-            for (Field f : ClientPlayerInteractionManager.class.getDeclaredFields()) {
-                if (f.getType() == int.class) {
-                    String name = f.getName().toLowerCase(Locale.ROOT);
-                    if ("lastselectedslot".equals(name) || "field_3721".equals(name) || name.contains("lastselectedslot")) {
-                        f.setAccessible(true);
-                        lastSelectedSlotField = f;
-                        break;
-                    }
-                }
-            }
-        } catch (Throwable ignored) {}
-    }
 
     private SafeSlotManager() {}
 
     public static boolean setLastSelectedSlot(ClientPlayerInteractionManager manager, int slot) {
-        if (manager == null || lastSelectedSlotField == null || slot < 0 || slot >= 9) {
-            return false;
-        }
-        try {
-            lastSelectedSlotField.setInt(manager, slot);
+        if (manager instanceof ActivityClientPlayerInteractionManagerAccessor accessor && slot >= 0 && slot < 9) {
+            accessor.activity$setLastSelectedSlot(slot);
             return true;
-        } catch (Throwable ignored) {
-            return false;
         }
+        return false;
     }
 
     public static int getLastSelectedSlot(ClientPlayerInteractionManager manager) {
-        if (manager == null || lastSelectedSlotField == null) {
-            return -1;
+        if (manager instanceof ActivityClientPlayerInteractionManagerAccessor accessor) {
+            return accessor.activity$getLastSelectedSlot();
         }
-        try {
-            return lastSelectedSlotField.getInt(manager);
-        } catch (Throwable ignored) {
-            return -1;
-        }
+        return -1;
     }
 
     public static boolean selectSlot(MinecraftClient client, int slot, long currentTick) {
@@ -72,9 +46,13 @@ public final class SafeSlotManager {
             return false;
         }
         client.player.getInventory().setSelectedSlot(slot);
-        setLastSelectedSlot(client.interactionManager, slot);
-        if (client.getNetworkHandler() != null) {
-            client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+        if (client.interactionManager instanceof ActivityClientPlayerInteractionManagerAccessor accessor) {
+            accessor.invokeSyncSelectedSlot();
+        } else {
+            setLastSelectedSlot(client.interactionManager, slot);
+            if (client.getNetworkHandler() != null) {
+                client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+            }
         }
         lastChangeTick = currentTick;
         lastSelectedSlot = slot;

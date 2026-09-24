@@ -71,7 +71,7 @@ public class IconAndSoundSystemTest {
         assertEquals("nivoratclient", ActivityIconRenderer.ATLAS_ID.getNamespace());
         assertEquals("textures/gui/nivorat_icons_atlas.png", ActivityIconRenderer.ATLAS_ID.getPath());
         assertEquals(192, ActivityIconRenderer.ATLAS_WIDTH);
-        assertEquals(96, ActivityIconRenderer.ATLAS_HEIGHT);
+        assertEquals(120, ActivityIconRenderer.ATLAS_HEIGHT);
     }
 
     @Test

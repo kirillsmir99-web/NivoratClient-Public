@@ -332,6 +332,7 @@ public class DefenseModulesMigrationTest {
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
         // Check settings presence
+        assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("preset"));
         assertNotNull(mod.getSetting("auto_explode"));
         assertNotNull(mod.getSetting("auto_return"));
@@ -340,6 +341,20 @@ public class DefenseModulesMigrationTest {
         assertNotNull(mod.getSetting("chance"));
         assertNotNull(mod.getSetting("target_charges"));
         assertNotNull(mod.getSetting("legit_mode"));
+
+        // Mode setting sync
+        EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
+        assertEquals(List.of("smart", "double"), modeSetting.getOptions());
+        assertEquals("smart", config.autoAnchorMode);
+        assertEquals("smart", AnchorConfig.mode);
+
+        modeSetting.set("double");
+        assertEquals("double", config.autoAnchorMode);
+        assertEquals("double", AnchorConfig.mode);
+
+        modeSetting.set("smart");
+        assertEquals("smart", config.autoAnchorMode);
+        assertEquals("smart", AnchorConfig.mode);
 
         // Preset setting sync
         EnumSetting presetSetting = (EnumSetting) mod.getSetting("preset");

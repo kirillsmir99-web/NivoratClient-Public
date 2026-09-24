@@ -142,7 +142,12 @@
     "shift": false,
     "alt": false
   },
+  "autoAnchorMode": "smart",
   "autoAnchorPreset": "balanced",
+  "autoAnchorPresetDouble": "fast",
+  "autoAnchorDoubleDelay": 1.0,
+  "autoAnchorDoubleAutoExplode": true,
+  "autoAnchorDoubleChain": true,
   "autoAnchorAutoExplode": false,
   "autoAnchorAutoReturn": true,
   "autoAnchorChargeDelay": 1.0,
@@ -472,7 +477,12 @@
         "alt": false
       },
       "settings": {
+        "mode": "smart",
         "preset": "balanced",
+        "preset_double": "fast",
+        "double_delay": 1.0,
+        "double_auto_explode": true,
+        "double_chain": true,
         "auto_explode": false,
         "auto_return": true,
         "charge_delay": 1.0,

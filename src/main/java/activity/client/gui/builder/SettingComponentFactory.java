@@ -20,6 +20,7 @@ import activity.client.module.setting.StringSetting;
 import net.minecraft.text.Text;
 
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public final class SettingComponentFactory {
 
@@ -39,6 +40,13 @@ public final class SettingComponentFactory {
                                        activity.client.gui.overlay.OverlayManager overlayManager,
                                        activity.client.gui.modal.ModalManager modalManager,
                                        Runnable onModified) {
+        return createRow(setting, startX, rowY, innerRowW, overlayManager, modalManager, onModified, null);
+    }
+
+    public static SettingRow createRow(Setting<?> setting, int startX, int rowY, int innerRowW,
+                                       activity.client.gui.overlay.OverlayManager overlayManager,
+                                       activity.client.gui.modal.ModalManager modalManager,
+                                       Runnable onModified, Consumer<Runnable> onDispose) {
         if (setting == null) return null;
 
         int sliderW = Math.min(150, (int) (innerRowW * 0.55f));
@@ -52,21 +60,21 @@ public final class SettingComponentFactory {
             int toggleLabelMaxW = Math.max(20, innerRowW - ActivityMetrics.TOGGLE_WIDTH - 4);
             ActivityLabel lbl = new ActivityLabel(startX, rowY + 3, bs.getName());
             lbl.setMaxWidth(toggleLabelMaxW);
-            ActivityToggle toggle = createToggle(bs, startX + innerRowW - ActivityMetrics.TOGGLE_WIDTH, rowY, modalManager, onModified);
+            ActivityToggle toggle = createToggle(bs, startX + innerRowW - ActivityMetrics.TOGGLE_WIDTH, rowY, modalManager, onModified, onDispose);
             row = new SettingRow(lbl, toggle);
 
         } else if (setting instanceof NumberSetting ns) {
             int labelMaxW = Math.max(20, innerRowW - sliderW - 4);
             ActivityLabel lbl = new ActivityLabel(startX, rowY + 3, ns.getName());
             lbl.setMaxWidth(labelMaxW);
-            ActivitySlider slider = createSlider(ns, startX + innerRowW - sliderW, rowY, sliderW, ActivityMetrics.CONTROL_HEIGHT, onModified);
+            ActivitySlider slider = createSlider(ns, startX + innerRowW - sliderW, rowY, sliderW, ActivityMetrics.CONTROL_HEIGHT, onModified, onDispose);
             row = new SettingRow(lbl, slider);
 
         } else if (setting instanceof EnumSetting es) {
             int labelMaxW = Math.max(20, innerRowW - dropdownW - 4);
             ActivityLabel lbl = new ActivityLabel(startX, rowY + 3, es.getName());
             lbl.setMaxWidth(labelMaxW);
-            ActivityDropdown<String> dropdown = createDropdown(es, startX + innerRowW - dropdownW, rowY, dropdownW, ActivityMetrics.CONTROL_HEIGHT, overlayManager, onModified);
+            ActivityDropdown<String> dropdown = createDropdown(es, startX + innerRowW - dropdownW, rowY, dropdownW, ActivityMetrics.CONTROL_HEIGHT, overlayManager, onModified, onDispose);
             row = new SettingRow(lbl, dropdown);
 
         } else if (setting instanceof KeybindSetting ks) {
@@ -105,6 +113,12 @@ public final class SettingComponentFactory {
 
     public static ActivityToggle createToggle(BooleanSetting setting, int x, int y,
                                               activity.client.gui.modal.ModalManager modalManager, Runnable onModified) {
+        return createToggle(setting, x, y, modalManager, onModified, null);
+    }
+
+    private static ActivityToggle createToggle(BooleanSetting setting, int x, int y,
+                                              activity.client.gui.modal.ModalManager modalManager, Runnable onModified,
+                                              Consumer<Runnable> onDispose) {
         ActivityToggle toggle = new ActivityToggle(
                 x, y,
                 setting.get(),
@@ -113,11 +127,12 @@ public final class SettingComponentFactory {
                     if (onModified != null) onModified.run();
                 }
         );
-        setting.addListener(val -> {
+        Consumer<Boolean> listener = val -> {
             if (toggle.getState() != val) {
                 toggle.setState(val);
             }
-        });
+        };
+        attachListener(setting, listener, onDispose);
         if (setting.getId().toLowerCase(Locale.ROOT).contains("legit") && modalManager != null) {
             toggle.setConfirmTurnOff(
                     Text.translatable("activity.modal.legit_off.title"),
@@ -131,6 +146,11 @@ public final class SettingComponentFactory {
 
     public static ActivitySlider createSlider(NumberSetting setting, int x, int y, int width, int height,
                                               Runnable onModified) {
+        return createSlider(setting, x, y, width, height, onModified, null);
+    }
+
+    private static ActivitySlider createSlider(NumberSetting setting, int x, int y, int width, int height,
+                                              Runnable onModified, Consumer<Runnable> onDispose) {
         ActivitySlider slider = new ActivitySlider(
                 x, y,
                 width, height,
@@ -142,11 +162,12 @@ public final class SettingComponentFactory {
                     if (onModified != null) onModified.run();
                 }
         );
-        setting.addListener(val -> {
+        Consumer<Double> listener = val -> {
             if (Double.compare(slider.getValue(), val) != 0) {
-                slider.setValue(val);
+                slider.setValueSilently(val);
             }
-        });
+        };
+        attachListener(setting, listener, onDispose);
         return slider;
     }
 
@@ -157,6 +178,12 @@ public final class SettingComponentFactory {
 
     public static ActivityDropdown<String> createDropdown(EnumSetting setting, int x, int y, int width, int height,
                                                          activity.client.gui.overlay.OverlayManager overlayManager, Runnable onModified) {
+        return createDropdown(setting, x, y, width, height, overlayManager, onModified, null);
+    }
+
+    private static ActivityDropdown<String> createDropdown(EnumSetting setting, int x, int y, int width, int height,
+                                                         activity.client.gui.overlay.OverlayManager overlayManager,
+                                                         Runnable onModified, Consumer<Runnable> onDispose) {
         ActivityDropdown<String> dropdown = new ActivityDropdown<>(
                 x, y, width, height,
                 overlayManager,
@@ -167,12 +194,18 @@ public final class SettingComponentFactory {
                     if (onModified != null) onModified.run();
                 }
         );
-        setting.addListener(val -> {
+        Consumer<String> listener = val -> {
             if (!java.util.Objects.equals(dropdown.getSelectedOption(), val)) {
-                dropdown.setSelectedOption(val);
+                dropdown.setSelectedOptionSilently(val);
             }
-        });
+        };
+        attachListener(setting, listener, onDispose);
         return dropdown;
+    }
+
+    private static <T> void attachListener(Setting<T> setting, Consumer<T> listener, Consumer<Runnable> onDispose) {
+        setting.addListener(listener);
+        if (onDispose != null) onDispose.accept(() -> setting.removeListener(listener));
     }
 
     public static ActivityKeybindButton createKeybindButton(KeybindSetting setting, int x, int y, int width, int height,

@@ -150,7 +150,12 @@ public class ActivityConfig {
 
     public boolean autoAnchorEnabled = true;
     public Keybind autoAnchorKeybind = new Keybind();
+    public String autoAnchorMode = "smart";
     public String autoAnchorPreset = "balanced";
+    public String autoAnchorPresetDouble = "fast";
+    public double autoAnchorDoubleDelay = 1.0;
+    public boolean autoAnchorDoubleAutoExplode = true;
+    public boolean autoAnchorDoubleChain = true;
     public boolean autoAnchorAutoExplode = false;
     public boolean autoAnchorAutoReturn = true;
     public double autoAnchorChargeDelay = 1.0;
@@ -575,7 +580,12 @@ public class ActivityConfig {
 
         this.autoAnchorEnabled = true;
         this.autoAnchorKeybind.clear();
+        this.autoAnchorMode = "smart";
         this.autoAnchorPreset = "balanced";
+        this.autoAnchorPresetDouble = "fast";
+        this.autoAnchorDoubleDelay = 1.0;
+        this.autoAnchorDoubleAutoExplode = true;
+        this.autoAnchorDoubleChain = true;
         this.autoAnchorAutoExplode = false;
         this.autoAnchorAutoReturn = true;
         this.autoAnchorChargeDelay = 1.0;
@@ -854,6 +864,7 @@ public class ActivityConfig {
         this.autoAnchorExplodeDelay = clampSanitize(this.autoAnchorExplodeDelay, 0.0, 10.0, 1.0);
         this.autoAnchorChance = clampSanitize(this.autoAnchorChance, 10.0, 100.0, 85.0);
         this.autoAnchorTargetCharges = clampSanitize(this.autoAnchorTargetCharges, 1.0, 4.0, 1.0);
+        this.autoAnchorDoubleDelay = clampSanitize(this.autoAnchorDoubleDelay, 0.0, 5.0, 1.0);
 
         this.cartRefillDelayTicks = clampSanitize(this.cartRefillDelayTicks, 0.0, 10.0, 2.0);
         this.cartRefillChance = clampSanitize(this.cartRefillChance, 10.0, 100.0, 100.0);
@@ -925,6 +936,14 @@ public class ActivityConfig {
         else if ("Сбалансированный".equals(this.autoAnchorPreset) || "balanced".equals(this.autoAnchorPreset)) this.autoAnchorPreset = "balanced";
         else if ("Безопасный".equals(this.autoAnchorPreset) || "safe".equals(this.autoAnchorPreset)) this.autoAnchorPreset = "safe";
         else this.autoAnchorPreset = "balanced";
+
+        if ("double".equalsIgnoreCase(this.autoAnchorMode) || "Double Anchor".equalsIgnoreCase(this.autoAnchorMode) || "Двойной анкор".equalsIgnoreCase(this.autoAnchorMode)) this.autoAnchorMode = "double";
+        else this.autoAnchorMode = "smart";
+
+        if ("Быстрый".equalsIgnoreCase(this.autoAnchorPresetDouble) || "fast".equalsIgnoreCase(this.autoAnchorPresetDouble)) this.autoAnchorPresetDouble = "fast";
+        else if ("Легитный".equalsIgnoreCase(this.autoAnchorPresetDouble) || "legit".equalsIgnoreCase(this.autoAnchorPresetDouble)) this.autoAnchorPresetDouble = "legit";
+        else if ("Пользовательский".equalsIgnoreCase(this.autoAnchorPresetDouble) || "custom".equalsIgnoreCase(this.autoAnchorPresetDouble)) this.autoAnchorPresetDouble = "custom";
+        else this.autoAnchorPresetDouble = "fast";
 
         if ("Числовое HP цели".equals(this.hpReaperMode) || "target_hp".equals(this.hpReaperMode)) this.hpReaperMode = "target_hp";
         else if ("Своё здоровье".equals(this.hpReaperMode) || "own_hp".equals(this.hpReaperMode)) this.hpReaperMode = "own_hp";
@@ -1244,7 +1263,12 @@ public class ActivityConfig {
 
     private void populateAnchorSettings(ModuleConfigEntry entry) {
         if (entry == null) return;
+        entry.settings.put("mode", this.autoAnchorMode);
         entry.settings.put("preset", this.autoAnchorPreset);
+        entry.settings.put("preset_double", this.autoAnchorPresetDouble);
+        entry.settings.put("double_delay", this.autoAnchorDoubleDelay);
+        entry.settings.put("double_auto_explode", this.autoAnchorDoubleAutoExplode);
+        entry.settings.put("double_chain", this.autoAnchorDoubleChain);
         entry.settings.put("auto_explode", this.autoAnchorAutoExplode);
         entry.settings.put("auto_return", this.autoAnchorAutoReturn);
         entry.settings.put("charge_delay", this.autoAnchorChargeDelay);
@@ -1524,7 +1548,12 @@ public class ActivityConfig {
             this.autoAnchorEnabled = anchor.enabled;
             if (anchor.keybind != null) this.autoAnchorKeybind.copyFrom(anchor.keybind);
             if (anchor.settings != null && !anchor.settings.isEmpty()) {
+                this.autoAnchorMode = getSettingString(anchor.settings, "mode", this.autoAnchorMode);
                 this.autoAnchorPreset = getSettingString(anchor.settings, "preset", this.autoAnchorPreset);
+                this.autoAnchorPresetDouble = getSettingString(anchor.settings, "preset_double", this.autoAnchorPresetDouble);
+                this.autoAnchorDoubleDelay = getSettingDouble(anchor.settings, "double_delay", this.autoAnchorDoubleDelay);
+                this.autoAnchorDoubleAutoExplode = getSettingBoolean(anchor.settings, "double_auto_explode", this.autoAnchorDoubleAutoExplode);
+                this.autoAnchorDoubleChain = getSettingBoolean(anchor.settings, "double_chain", this.autoAnchorDoubleChain);
                 this.autoAnchorAutoExplode = getSettingBoolean(anchor.settings, "auto_explode", this.autoAnchorAutoExplode);
                 this.autoAnchorAutoReturn = getSettingBoolean(anchor.settings, "auto_return", this.autoAnchorAutoReturn);
                 this.autoAnchorChargeDelay = getSettingDouble(anchor.settings, "charge_delay", this.autoAnchorChargeDelay);
@@ -1733,7 +1762,12 @@ public class ActivityConfig {
 
         copy.autoAnchorEnabled = this.autoAnchorEnabled;
         copy.autoAnchorKeybind.copyFrom(this.autoAnchorKeybind);
+        copy.autoAnchorMode = this.autoAnchorMode;
         copy.autoAnchorPreset = this.autoAnchorPreset;
+        copy.autoAnchorPresetDouble = this.autoAnchorPresetDouble;
+        copy.autoAnchorDoubleDelay = this.autoAnchorDoubleDelay;
+        copy.autoAnchorDoubleAutoExplode = this.autoAnchorDoubleAutoExplode;
+        copy.autoAnchorDoubleChain = this.autoAnchorDoubleChain;
         copy.autoAnchorAutoExplode = this.autoAnchorAutoExplode;
         copy.autoAnchorAutoReturn = this.autoAnchorAutoReturn;
         copy.autoAnchorChargeDelay = this.autoAnchorChargeDelay;
@@ -1972,12 +2006,17 @@ public class ActivityConfig {
                 this.autoAnchorAutoExplode == that.autoAnchorAutoExplode &&
                 this.autoAnchorAutoReturn == that.autoAnchorAutoReturn &&
                 this.autoAnchorLegitMode == that.autoAnchorLegitMode &&
+                this.autoAnchorDoubleAutoExplode == that.autoAnchorDoubleAutoExplode &&
+                this.autoAnchorDoubleChain == that.autoAnchorDoubleChain &&
                 Double.compare(this.autoAnchorChargeDelay, that.autoAnchorChargeDelay) == 0 &&
                 Double.compare(this.autoAnchorExplodeDelay, that.autoAnchorExplodeDelay) == 0 &&
+                Double.compare(this.autoAnchorDoubleDelay, that.autoAnchorDoubleDelay) == 0 &&
                 Double.compare(this.autoAnchorChance, that.autoAnchorChance) == 0 &&
                 Double.compare(this.autoAnchorTargetCharges, that.autoAnchorTargetCharges) == 0 &&
                 Objects.equals(this.autoAnchorKeybind, that.autoAnchorKeybind) &&
+                Objects.equals(this.autoAnchorMode, that.autoAnchorMode) &&
                 Objects.equals(this.autoAnchorPreset, that.autoAnchorPreset) &&
+                Objects.equals(this.autoAnchorPresetDouble, that.autoAnchorPresetDouble) &&
 
                 this.cartRefillEnabled == that.cartRefillEnabled &&
                 this.cartRefillLegitMode == that.cartRefillLegitMode &&
@@ -2123,7 +2162,7 @@ public class ActivityConfig {
             autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemCrystalTriggerHearts, autoTotemCrystalRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
             autoCartEnabled, autoCartKeybind, autoCartPreset, autoCartPlacementChance, autoCartMaxDistance, autoCartMinDelayMs, autoCartMaxDelayMs,
             autoCartAllowSelfCart, autoCartAllowPitPlacement, autoCartRandomDelay, autoCartRailDelay, autoCartCartDelay, autoCartRestoreDelay, autoCartLegitMode, autoCartUseMainHand,
-            autoAnchorEnabled, autoAnchorKeybind, autoAnchorPreset, autoAnchorAutoExplode, autoAnchorAutoReturn, autoAnchorChargeDelay, autoAnchorExplodeDelay, autoAnchorChance, autoAnchorTargetCharges, autoAnchorLegitMode,
+            autoAnchorEnabled, autoAnchorKeybind, autoAnchorMode, autoAnchorPreset, autoAnchorPresetDouble, autoAnchorDoubleDelay, autoAnchorDoubleAutoExplode, autoAnchorDoubleChain, autoAnchorAutoExplode, autoAnchorAutoReturn, autoAnchorChargeDelay, autoAnchorExplodeDelay, autoAnchorChance, autoAnchorTargetCharges, autoAnchorLegitMode,
             cartRefillEnabled, cartRefillKeybind, cartRefillDelayTicks, cartRefillChance, cartRefillAutoClose, cartRefillRandomDelay, cartRefillRandomSpreadTicks, cartRefillLegitMode
         );
         result = 31 * result + Objects.hash(

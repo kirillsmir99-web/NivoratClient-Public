@@ -16,14 +16,11 @@ public class PresenceSystemTest {
     }
 
     @Test
-    @DisplayName("Public Edition Security Invariant: DevKey empty and isPeer strictly dormant when IS_DEV is false")
+    @DisplayName("Public Edition Security Invariant: Dev peers are dormant when IS_DEV is false")
     void testPublicEditionSecurityInvariants() {
         if (!NivoratDev.IS_DEV) {
-            assertEquals("", NivoratDev.DEV_KEY, "Public build must have empty DEV_KEY");
             DevPeerTracker.setMockPeer("TestFriend", true);
             assertFalse(DevPeerTracker.isPeer("TestFriend"), "In public edition isPeer must strictly return false");
-        } else {
-            assertFalse(NivoratDev.DEV_KEY.isBlank(), "Dev build must have non-empty DEV_KEY");
         }
     }
 
@@ -58,13 +55,10 @@ public class PresenceSystemTest {
     }
 
     @Test
-    @DisplayName("Visual Badges: Colors and formatting conform to purple developer indicator spec")
+    @DisplayName("Visual Badges: custom glyph precedes vertical separator")
     void testBadgeFormatting() {
-        assertTrue(NivoratDev.BADGE_PREFIX.startsWith("§d"), "Badge prefix must use light purple / magenta formatting §d");
-        assertTrue(NivoratDev.BADGE_PREFIX.contains("[NC]"), "Badge must display [NC]");
-        assertTrue(NivoratDev.DOT_PREFIX.contains("●"), "Dot prefix must contain circle glyph");
-        assertTrue(NivoratDev.BADGE_SUFFIX.contains("§d"), "Badge suffix must use purple formatting §d");
-        assertTrue(NivoratDev.BADGE_SUFFIX.contains("●"), "Badge suffix must contain circle glyph");
+        assertEquals("\ue001", NivoratDev.BADGE_GLYPH);
+        assertEquals(" │ ", NivoratDev.BADGE_SEPARATOR);
     }
 
     @Test

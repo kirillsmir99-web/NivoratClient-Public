@@ -354,7 +354,7 @@ public enum ActivityIcon {
         ".........."
     ),
 
-    EDIT(-1, -1, 0, 0,
+    EDIT(96, 72, 24, 24,
         ".......XX.",
         "......XXXX",
         ".....XXXX.",
@@ -367,7 +367,7 @@ public enum ActivityIcon {
         ".........."
     ),
 
-    COMBAT(-1, -1, 0, 0,
+    COMBAT(120, 72, 24, 24,
         ".......XX.",
         "......XXX.",
         ".....XXX..",
@@ -379,7 +379,7 @@ public enum ActivityIcon {
         "XX........",
         ".........."
     ),
-    DEFENSE(-1, -1, 0, 0,
+    DEFENSE(144, 72, 24, 24,
         ".XXXXXXXX.",
         "XXXXXXXXXX",
         "XX......XX",
@@ -391,7 +391,7 @@ public enum ActivityIcon {
         "...XXXX...",
         "....XX...."
     ),
-    UTILITY(-1, -1, 0, 0,
+    UTILITY(168, 72, 24, 24,
         ".X..XX..X.",
         "..XXXXXX..",
         ".XXXXXXXX.",
@@ -512,7 +512,7 @@ public enum ActivityIcon {
         "..XXXXXX..",
         "...XXXX..."
     ),
-    CHEVRON_UP(48, 0, 24, 24,
+    CHEVRON_UP(0, 96, 24, 24,
         "....XX....",
         "...XXXX...",
         "..XXXXXX..",
