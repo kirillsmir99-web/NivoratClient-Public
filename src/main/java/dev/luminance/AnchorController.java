@@ -56,6 +56,29 @@ public final class AnchorController {
     private long doubleNextActionTime = 0L;
     private int doubleLastObservedCharges = 0;
 
+    private static int lastAnchorOriginalSlot = -1;
+    private static long lastAnchorOriginalTime = 0L;
+
+    public static int getLastAnchorOriginalSlot() {
+        if (System.currentTimeMillis() - lastAnchorOriginalTime < 5000L) {
+            return lastAnchorOriginalSlot;
+        }
+        return -1;
+    }
+
+    public static void recordAnchorOriginalSlot(int slot) {
+        if (slot >= 0 && slot < 9) {
+            lastAnchorOriginalSlot = slot;
+            lastAnchorOriginalTime = System.currentTimeMillis();
+        }
+    }
+
+    public int getOriginalSlot() {
+        if (originalSlot >= 0 && originalSlot < 9) return originalSlot;
+        if (doubleOriginalSlot >= 0 && doubleOriginalSlot < 9) return doubleOriginalSlot;
+        return -1;
+    }
+
     public AnchorController() {
     }
 
@@ -142,6 +165,7 @@ public final class AnchorController {
                 BlockState hitState = client.world.getBlockState(hitPos);
                 if (hitState.isOf(Blocks.RESPAWN_ANCHOR)) {
                     doubleOriginalSlot = player.getInventory().getSelectedSlot();
+                    recordAnchorOriginalSlot(doubleOriginalSlot);
                     doubleTargetPos = hitPos;
                     doubleLastHit = hit;
                     doubleIsChain = false;
@@ -185,6 +209,7 @@ public final class AnchorController {
                     }
 
                     doubleOriginalSlot = player.getInventory().getSelectedSlot();
+                    recordAnchorOriginalSlot(doubleOriginalSlot);
                     doubleTargetPos = placePos;
                     doubleLastHit = hit;
                     doubleIsChain = false;
@@ -561,6 +586,9 @@ public final class AnchorController {
                 if (timer > 0 || now < nextActionTime) {
                     return;
                 }
+                if (client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen) {
+                    return;
+                }
                 if (AnchorConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
                     SafeSlotManager.selectSlot(client, originalSlot);
                 }
@@ -634,6 +662,7 @@ public final class AnchorController {
                         }
                     }
                     originalSlot = client.player.getInventory().getSelectedSlot();
+                    recordAnchorOriginalSlot(originalSlot);
                     targetPos = pos;
                     lastHit = hit;
                     net.fabricmc.pack.api.CombatLockManager.setLock("pvp.anchor_active", true);
@@ -643,6 +672,7 @@ public final class AnchorController {
                     nextActionTime = now + getActionDelay(AnchorConfig.chargeDelayTicks);
                 } else if (AnchorConfig.autoExplode) {
                     originalSlot = client.player.getInventory().getSelectedSlot();
+                    recordAnchorOriginalSlot(originalSlot);
                     targetPos = pos;
                     lastHit = hit;
                     net.fabricmc.pack.api.CombatLockManager.setLock("pvp.anchor_active", true);

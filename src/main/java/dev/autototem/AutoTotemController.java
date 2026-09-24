@@ -20,10 +20,14 @@ public final class AutoTotemController {
     private int heldTotemHotbarSlot = -1;
     private int lastTotemHotbarSlot = -1;
     private int savedMainSlot = -1;
+    private int lastNonTotemSlot = -1;
+    private net.minecraft.item.Item lastNonTotemItem = null;
     private boolean userCancelled = false;
     private long userCancelledTime = 0L;
     private float lastHp = 20.0F;
     private boolean awaitingHealAfterPop = false;
+    private long lastPopTime = 0L;
+    private static final long POST_POP_GRACE_MS = 1200L;
     private int userOverrideCount = 0;
     private int lastControllerAssignedSlot = -1;
     private long reactionUntil = 0L;
@@ -48,6 +52,7 @@ public final class AutoTotemController {
             awaitingHealAfterPop = false;
             userCancelled = false;
             userOverrideCount = 0;
+            lastPopTime = 0L;
         }
     }
 
@@ -56,16 +61,32 @@ public final class AutoTotemController {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.player == null || !client.player.isAlive()) return;
 
-        float hp = client.player.getHealth();
-        float triggerHp = (float) (AutoTotemConfig.triggerHearts * 2.0);
-
+        long now = System.currentTimeMillis();
+        lastPopTime = now;
+        awaitingHealAfterPop = true;
         userOverrideCount = 0;
-        awaitingHealAfterPop = false;
+        userCancelled = false;
 
-        if (AutoTotemConfig.mode == 1 || AutoTotemConfig.mode == 3) {
+        savedMainSlot = resolveReturnSlot(client.player);
+
+        if (AutoTotemConfig.mode == 3) {
+            int crystalSlot = getDesignatedCrystalSlot(client.player);
+            if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
+                startRefill(client, crystalSlot);
+                return;
+            }
+            int returnSlot = resolveReturnSlot(client.player);
+            if (returnSlot >= 0 && returnSlot < 9) {
+                SafeSlotManager.selectSlot(client, returnSlot);
+            }
+            clear();
+            awaitingHealAfterPop = true;
+            return;
+        }
+
+        if (AutoTotemConfig.mode == 1) {
             int nextTotem = findHotbarTotem(client.player);
             if (nextTotem >= 0) {
-
                 heldTotemHotbarSlot = nextTotem;
                 lastTotemHotbarSlot = nextTotem;
                 lastControllerAssignedSlot = nextTotem;
@@ -77,22 +98,25 @@ public final class AutoTotemController {
             }
 
             if (AutoTotemConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
-                int targetRefill = (AutoTotemConfig.mode == 3)
-                        ? getDesignatedCrystalSlot(client.player)
-                        : resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
+                int targetRefill = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
                 if (targetRefill >= 0) {
                     startRefill(client, targetRefill);
                     return;
                 }
             }
 
-            int weaponSlot = savedMainSlot >= 0 ? savedMainSlot : findPreferredWeaponSlot(client.player);
-            SafeSlotManager.selectSlot(client, weaponSlot);
+            int returnSlot = resolveReturnSlot(client.player);
+            if (returnSlot >= 0 && returnSlot < 9) {
+                SafeSlotManager.selectSlot(client, returnSlot);
+            }
             clear();
+            awaitingHealAfterPop = true;
             return;
         }
 
         if (AutoTotemConfig.mode == 2) {
+            float hp = client.player.getHealth();
+            float triggerHp = (float) (AutoTotemConfig.triggerHearts * 2.0);
             int nextTotem = findHotbarTotem(client.player);
             if (nextTotem >= 0 && hp <= triggerHp) {
                 swappedHotbarSlot = nextTotem;
@@ -114,7 +138,12 @@ public final class AutoTotemController {
             if (AutoTotemConfig.returnOnPop && swappedHotbarSlot >= 0) {
                 state = State.RESTORE_SWAP_SELECT;
             } else {
+                int returnSlot = resolveReturnSlot(client.player);
+                if (returnSlot >= 0 && returnSlot < 9) {
+                    SafeSlotManager.selectSlot(client, returnSlot);
+                }
                 clear();
+                awaitingHealAfterPop = true;
             }
         }
     }
@@ -129,6 +158,17 @@ public final class AutoTotemController {
             return;
         }
 
+        if (client.player.getInventory() != null) {
+            int cur = client.player.getInventory().getSelectedSlot();
+            ItemStack curStack = client.player.getInventory().getStack(cur);
+            if (!curStack.isEmpty() && !curStack.isOf(Items.TOTEM_OF_UNDYING)) {
+                if (cur != heldTotemHotbarSlot && cur != swappedHotbarSlot) {
+                    lastNonTotemSlot = cur;
+                    lastNonTotemItem = curStack.getItem();
+                }
+            }
+        }
+
         long now = System.currentTimeMillis();
         float hp = client.player.getHealth();
         float maxHp = client.player.getMaxHealth();
@@ -136,6 +176,12 @@ public final class AutoTotemController {
         float restoreHp = (float) (AutoTotemConfig.restoreHearts * 2.0);
 
         boolean isHealed = (hp >= maxHp - 1.0F) || (restoreHp > triggerHp && hp >= restoreHp);
+        float effectiveHp = hp + client.player.getAbsorptionAmount();
+        if (awaitingHealAfterPop) {
+            if (isHealed || effectiveHp >= restoreHp || now - lastPopTime > POST_POP_GRACE_MS) {
+                awaitingHealAfterPop = false;
+            }
+        }
         if (isHealed || (userCancelled && (now - userCancelledTime > 1500L || hp < lastHp - 0.5F))) {
             userCancelled = false;
             userOverrideCount = 0;
@@ -207,13 +253,9 @@ public final class AutoTotemController {
                         startRefill(client, targetSlot);
                     } else {
                         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
-                        if (savedMainSlot >= 0 && savedMainSlot < 9) {
-                            SafeSlotManager.selectSlot(client, savedMainSlot);
-                        } else {
-                            int weaponSlot = findPreferredWeaponSlot(client.player);
-                            if (weaponSlot >= 0 && weaponSlot < 9) {
-                                SafeSlotManager.selectSlot(client, weaponSlot);
-                            }
+                        int returnSlot = resolveReturnSlot(client.player);
+                        if (returnSlot >= 0 && returnSlot < 9) {
+                            SafeSlotManager.selectSlot(client, returnSlot);
                         }
                         clear();
                     }
@@ -240,8 +282,11 @@ public final class AutoTotemController {
                 }
 
                 if (hp >= restoreHp) {
-                    if (AutoTotemConfig.returnItem && savedMainSlot >= 0 && savedMainSlot < 9) {
-                        SafeSlotManager.selectSlot(client, savedMainSlot);
+                    if (AutoTotemConfig.returnItem) {
+                        int returnSlot = resolveReturnSlot(client.player);
+                        if (returnSlot >= 0 && returnSlot < 9) {
+                            SafeSlotManager.selectSlot(client, returnSlot);
+                        }
                     }
                     clear();
                 }
@@ -437,6 +482,12 @@ public final class AutoTotemController {
                 if (userCancelled) {
                     return;
                 }
+                if (awaitingHealAfterPop) {
+                    float effHp = hp + client.player.getAbsorptionAmount();
+                    if (now - lastPopTime < POST_POP_GRACE_MS && effHp > 2.0F) {
+                        return;
+                    }
+                }
                 if (hp <= triggerHp) {
                     if (AutoTotemConfig.mode == 3) {
 
@@ -453,7 +504,7 @@ public final class AutoTotemController {
                             if (currentSlot != crystalSlot && !client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
                                 savedMainSlot = currentSlot;
                             } else if (savedMainSlot < 0 || savedMainSlot == crystalSlot) {
-                                savedMainSlot = findPreferredWeaponSlot(client.player);
+                                savedMainSlot = resolveReturnSlot(client.player);
                             }
                             heldTotemHotbarSlot = crystalSlot;
                             lastTotemHotbarSlot = crystalSlot;
@@ -488,7 +539,7 @@ public final class AutoTotemController {
                             if (!client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
                                 savedMainSlot = currentSlot;
                             } else if (savedMainSlot < 0 || savedMainSlot == totemSlot) {
-                                savedMainSlot = findPreferredWeaponSlot(client.player);
+                                savedMainSlot = resolveReturnSlot(client.player);
                             }
                             heldTotemHotbarSlot = totemSlot;
                             lastTotemHotbarSlot = totemSlot;
@@ -562,8 +613,19 @@ public final class AutoTotemController {
             float hp = client.player.getHealth();
             float triggerHp = (float) (AutoTotemConfig.triggerHearts * 2.0);
 
-            if (hp <= triggerHp) {
-                if (AutoTotemConfig.mode == 1 || AutoTotemConfig.mode == 3) {
+            if (AutoTotemConfig.mode == 3) {
+                net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
+                int returnSlot = resolveReturnSlot(client.player);
+                if (returnSlot >= 0 && returnSlot < 9) {
+                    SafeSlotManager.selectSlot(client, returnSlot);
+                }
+                clear();
+                awaitingHealAfterPop = true;
+                return;
+            }
+
+            if (hp <= triggerHp && !awaitingHealAfterPop) {
+                if (AutoTotemConfig.mode == 1) {
                     int slotToHold = (refilledSlot >= 0 && refilledSlot < 9) ? refilledSlot : findHotbarTotem(client.player);
                     if (slotToHold >= 0) {
                         heldTotemHotbarSlot = slotToHold;
@@ -589,8 +651,9 @@ public final class AutoTotemController {
                 }
             }
 
-            if (savedMainSlot >= 0 && savedMainSlot < 9) {
-                SafeSlotManager.selectSlot(client, savedMainSlot);
+            int returnSlot = resolveReturnSlot(client.player);
+            if (returnSlot >= 0 && returnSlot < 9) {
+                SafeSlotManager.selectSlot(client, returnSlot);
             }
         }
         clear();
@@ -750,6 +813,97 @@ public final class AutoTotemController {
             }
         }
         return 0;
+    }
+
+    public int resolveReturnSlot(ClientPlayerEntity player) {
+        if (player == null || player.getInventory() == null) return 0;
+
+        int anchorSlot = dev.luminance.AnchorController.getLastAnchorOriginalSlot();
+        if (anchorSlot >= 0 && anchorSlot < 9) {
+            ItemStack s = player.getInventory().getStack(anchorSlot);
+            if (!s.isEmpty() && (s.isOf(net.minecraft.block.Blocks.RESPAWN_ANCHOR.asItem()) || s.isOf(Items.END_CRYSTAL))) {
+                return anchorSlot;
+            }
+        }
+
+        if (lastNonTotemItem != null && lastNonTotemSlot >= 0 && lastNonTotemSlot < 9) {
+            ItemStack s = player.getInventory().getStack(lastNonTotemSlot);
+            if (!s.isEmpty() && s.isOf(lastNonTotemItem)) {
+                return lastNonTotemSlot;
+            }
+        }
+
+        int pssSlot = activity.client.module.service.PlayerStateService.getLastNonTotemSlot();
+        net.minecraft.item.Item pssItem = activity.client.module.service.PlayerStateService.getLastNonTotemItem();
+        if (pssItem != null && pssSlot >= 0 && pssSlot < 9) {
+            ItemStack s = player.getInventory().getStack(pssSlot);
+            if (!s.isEmpty() && s.isOf(pssItem)) {
+                return pssSlot;
+            }
+        }
+
+        if (lastNonTotemItem != null) {
+            for (int i = 0; i < 9; i++) {
+                ItemStack s = player.getInventory().getStack(i);
+                if (!s.isEmpty() && s.isOf(lastNonTotemItem)) {
+                    return i;
+                }
+            }
+        }
+
+        if (savedMainSlot >= 0 && savedMainSlot < 9) {
+            ItemStack s = player.getInventory().getStack(savedMainSlot);
+            if (!s.isEmpty() && !s.isOf(Items.TOTEM_OF_UNDYING)) {
+                return savedMainSlot;
+            }
+        }
+
+        if (AutoTotemConfig.mode == 3) {
+            for (int i = 0; i < 9; i++) {
+                ItemStack s = player.getInventory().getStack(i);
+                if (!s.isEmpty() && (s.isOf(net.minecraft.block.Blocks.RESPAWN_ANCHOR.asItem()) || s.isOf(Items.END_CRYSTAL))) {
+                    return i;
+                }
+            }
+        }
+
+        if (lastNonTotemSlot >= 0 && lastNonTotemSlot < 9) {
+            ItemStack s = player.getInventory().getStack(lastNonTotemSlot);
+            if (!s.isOf(Items.TOTEM_OF_UNDYING)) {
+                return lastNonTotemSlot;
+            }
+        }
+
+        return findPreferredWeaponSlot(player);
+    }
+
+    public void setLastNonTotemSlotForTest(int slot, net.minecraft.item.Item item) {
+        this.lastNonTotemSlot = slot;
+        this.lastNonTotemItem = item;
+    }
+
+    public int getLastNonTotemSlot() {
+        return this.lastNonTotemSlot;
+    }
+
+    public net.minecraft.item.Item getLastNonTotemItem() {
+        return this.lastNonTotemItem;
+    }
+
+    public void setSavedMainSlotForTest(int slot) {
+        this.savedMainSlot = slot;
+    }
+
+    public int getSavedMainSlot() {
+        return this.savedMainSlot;
+    }
+
+    public boolean isAwaitingHealAfterPop() {
+        return this.awaitingHealAfterPop;
+    }
+
+    public void setAwaitingHealAfterPopForTest(boolean val) {
+        this.awaitingHealAfterPop = val;
     }
 
     private enum State {

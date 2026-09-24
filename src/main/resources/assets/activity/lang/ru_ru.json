@@ -646,5 +646,7 @@
   "activity.modal.reload_gui.desc": "Вы уверены, что хотите перезагрузить интерфейс? Текущее визуальное состояние будет перестроено, а параметры перезагружены из файла конфигурации.",
   "activity.modal.reload_gui.confirm": "Перезагрузить",
   "activity.modal.reload_gui.cancel": "Отмена",
-  "activity.toast.gui_reloaded": "Интерфейс успешно перезагружен"
+  "activity.toast.gui_reloaded": "Интерфейс успешно перезагружен",
+  "activity.anchor.double_dev_warning": "Данная функция находится в разработке",
+  "activity.autotool.dev_warning": "Данная функция находится ещё в разработке и использовать её небезопасно"
 }

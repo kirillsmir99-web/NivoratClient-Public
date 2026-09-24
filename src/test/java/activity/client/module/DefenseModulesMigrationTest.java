@@ -566,4 +566,55 @@ public class DefenseModulesMigrationTest {
             assertTrue(enJson.contains("\"activity.setting.defense.delay_ticks\": \"Refill Delay Ticks\""));
         }
     }
+
+    @Test
+    void testAutoTotemReturnSlotAnchorAndCrystalPriority() {
+        dev.autototem.AutoTotemController controller = new dev.autototem.AutoTotemController();
+
+        dev.luminance.AnchorController.recordAnchorOriginalSlot(2);
+        assertEquals(2, dev.luminance.AnchorController.getLastAnchorOriginalSlot());
+
+        activity.client.module.service.PlayerStateService.setLastNonTotemSlotForTest(5, null);
+        assertEquals(5, activity.client.module.service.PlayerStateService.getLastNonTotemSlot());
+        assertNull(activity.client.module.service.PlayerStateService.getLastNonTotemItem());
+
+        controller.setLastNonTotemSlotForTest(3, null);
+        assertEquals(3, controller.getLastNonTotemSlot());
+        assertNull(controller.getLastNonTotemItem());
+
+        controller.setLastNonTotemSlotForTest(1, null);
+        assertEquals(1, controller.getLastNonTotemSlot());
+        assertNull(controller.getLastNonTotemItem());
+
+        controller.setSavedMainSlotForTest(4);
+        assertEquals(4, controller.getSavedMainSlot());
+    }
+
+    @Test
+    void testAutoTotemGracePeriodAndAwaitingHealState() {
+        dev.autototem.AutoTotemController controller = new dev.autototem.AutoTotemController();
+
+        assertFalse(controller.isAwaitingHealAfterPop());
+        controller.setAwaitingHealAfterPopForTest(true);
+        assertTrue(controller.isAwaitingHealAfterPop());
+        controller.setAwaitingHealAfterPopForTest(false);
+        assertFalse(controller.isAwaitingHealAfterPop());
+    }
+
+    @Test
+    void testDevWarningLocalizationStrings() throws Exception {
+        try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json")) {
+            assertNotNull(ruStream);
+            String ruJson = new String(ruStream.readAllBytes(), StandardCharsets.UTF_8);
+            assertTrue(ruJson.contains("\"activity.anchor.double_dev_warning\": \"Данная функция находится в разработке\""));
+            assertTrue(ruJson.contains("\"activity.autotool.dev_warning\": \"Данная функция находится ещё в разработке и использовать её небезопасно\""));
+        }
+
+        try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/lang/en_us.json")) {
+            assertNotNull(enStream);
+            String enJson = new String(enStream.readAllBytes(), StandardCharsets.UTF_8);
+            assertTrue(enJson.contains("\"activity.anchor.double_dev_warning\": \"This feature is currently in development\""));
+            assertTrue(enJson.contains("\"activity.autotool.dev_warning\": \"This feature is still in development and unsafe to use\""));
+        }
+    }
 }

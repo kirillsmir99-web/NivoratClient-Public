@@ -13,6 +13,8 @@ public final class PlayerStateService {
     private static float playerAbsorption = 0.0f;
     private static int selectedSlot = 0;
     private static boolean onGround = true;
+    private static int lastNonTotemSlot = -1;
+    private static net.minecraft.item.Item lastNonTotemItem = null;
 
     private PlayerStateService() {}
 
@@ -46,7 +48,17 @@ public final class PlayerStateService {
 
         playerHealth = player.getHealth();
         playerAbsorption = player.getAbsorptionAmount();
-        selectedSlot = player.getInventory() != null ? player.getInventory().getSelectedSlot() : 0;
+        if (player.getInventory() != null) {
+            int cur = player.getInventory().getSelectedSlot();
+            selectedSlot = cur;
+            net.minecraft.item.ItemStack stack = player.getInventory().getStack(cur);
+            if (!stack.isEmpty() && !stack.isOf(net.minecraft.item.Items.TOTEM_OF_UNDYING)) {
+                lastNonTotemSlot = cur;
+                lastNonTotemItem = stack.getItem();
+            }
+        } else {
+            selectedSlot = 0;
+        }
     }
 
     public static boolean isBusy() {
@@ -106,6 +118,19 @@ public final class PlayerStateService {
         playerAbsorption = absorption;
     }
 
+    public static int getLastNonTotemSlot() {
+        return lastNonTotemSlot;
+    }
+
+    public static net.minecraft.item.Item getLastNonTotemItem() {
+        return lastNonTotemItem;
+    }
+
+    public static void setLastNonTotemSlotForTest(int slot, net.minecraft.item.Item item) {
+        lastNonTotemSlot = slot;
+        lastNonTotemItem = item;
+    }
+
     public static void reset() {
         lastTickId = -1L;
         airTicks = 0;
@@ -115,5 +140,7 @@ public final class PlayerStateService {
         playerAbsorption = 0.0f;
         selectedSlot = 0;
         onGround = true;
+        lastNonTotemSlot = -1;
+        lastNonTotemItem = null;
     }
 }

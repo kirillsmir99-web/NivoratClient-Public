@@ -646,5 +646,7 @@
   "activity.modal.reload_gui.desc": "Are you sure you want to reload the interface? Visual elements will be rebuilt and settings reloaded from the configuration file.",
   "activity.modal.reload_gui.confirm": "Reload",
   "activity.modal.reload_gui.cancel": "Cancel",
-  "activity.toast.gui_reloaded": "Interface successfully reloaded"
+  "activity.toast.gui_reloaded": "Interface successfully reloaded",
+  "activity.anchor.double_dev_warning": "This feature is currently in development",
+  "activity.autotool.dev_warning": "This feature is still in development and unsafe to use"
 }

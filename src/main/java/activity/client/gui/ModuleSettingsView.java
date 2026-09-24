@@ -239,6 +239,12 @@ public class ModuleSettingsView extends Screen {
         }
     }
 
+    public void showToast(Text text) {
+        if (text == null) return;
+        this.overlayManager.closeMatching(o -> o instanceof activity.client.gui.overlay.ToastOverlay);
+        this.overlayManager.open(new activity.client.gui.overlay.ToastOverlay(text, null, null));
+    }
+
     public static int buildCard(
             ActivityTab tab,
             ActivityScreen screen,
