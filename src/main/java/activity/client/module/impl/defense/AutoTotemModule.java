@@ -115,23 +115,6 @@ public class AutoTotemModule extends NivoratModule {
                 }
         );
 
-        registerBoolean("count_absorption", Text.translatable("activity.setting.defense.count_absorption"),
-                Text.translatable("activity.setting.defense.count_absorption.desc"), SettingGroup.BEHAVIOR,
-                false,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoTotemCountAbsorption;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoTotemCountAbsorption = val;
-                        syncControllerConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        );
-
         registerNumber("chance", Text.translatable("activity.setting.combat.chance_label"),
                 Text.translatable("activity.setting.combat.chance_label.desc"), SettingGroup.BEHAVIOR,
                 10.0, 100.0, 5.0, "%", true, 100.0,
@@ -143,6 +126,23 @@ public class AutoTotemModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoTotemChance = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("count_absorption", Text.translatable("activity.setting.defense.count_absorption"),
+                Text.translatable("activity.setting.defense.count_absorption.desc"), SettingGroup.EXTRA,
+                false,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemCountAbsorption;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemCountAbsorption = val;
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }

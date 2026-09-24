@@ -239,6 +239,8 @@
   "activity.setting.defense.restore_delay.desc": "Delay before returning previous item",
   "activity.setting.defense.restore_hearts": "Restore Threshold",
   "activity.setting.defense.restore_hearts.desc": "Health threshold in hearts to return previous weapon",
+  "activity.setting.defense.count_absorption": "Count Absorption Hearts",
+  "activity.setting.defense.count_absorption.desc": "Include absorption (golden) hearts in totem trigger and restore threshold calculations",
   "activity.setting.defense.return_item": "Return Previous Item",
   "activity.setting.defense.return_item.desc": "Automatically restore previous item after health recovers",
   "activity.setting.defense.return_on_pop": "Return On Pop",

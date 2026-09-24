@@ -239,6 +239,8 @@
   "activity.setting.defense.restore_delay.desc": "Задержка перед возвратом исходного предмета в хотбаре",
   "activity.setting.defense.restore_hearts": "Порог возврата",
   "activity.setting.defense.restore_hearts.desc": "Уровень здоровья в сердцах для возврата прежнего предмета",
+  "activity.setting.defense.count_absorption": "Учитывать золотые сердца",
+  "activity.setting.defense.count_absorption.desc": "Учитывать золотые сердца поглощения (Absorption) в порогах срабатывания и возврата тотема",
   "activity.setting.defense.return_item": "Возврат прежнего предмета",
   "activity.setting.defense.return_item.desc": "Автоматический возврат прежнего предмета после восстановления здоровья",
   "activity.setting.defense.return_on_pop": "Возврат при попе тотема",
