@@ -55,12 +55,78 @@ public final class CooldownTrackerService {
     }
 
     private static final Map<Object, CooldownEntry> ACTIVE_COOLDOWNS = new ConcurrentHashMap<>();
+    private static volatile long lastTridentUseTimeMs = 0L;
 
     private CooldownTrackerService() {}
 
+    public static void recordTridentUsed() {
+        lastTridentUseTimeMs = System.currentTimeMillis();
+    }
+
+    public static boolean isTridentRecentlyUsed() {
+        return (System.currentTimeMillis() - lastTridentUseTimeMs) < 3000L;
+    }
+
+    public static void resetTridentUsageForTest() {
+        lastTridentUseTimeMs = 0L;
+    }
+
+    public static boolean isTridentItem(Item item) {
+        if (item == null) return false;
+        try {
+            String tk = item.getTranslationKey();
+            if (tk != null && tk.contains("trident")) return true;
+        } catch (Throwable ignored) {}
+        try {
+            String s = item.toString();
+            if (s != null && s.toLowerCase(Locale.ROOT).contains("trident")) return true;
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    public static boolean isAirItem(Item item) {
+        if (item == null) return true;
+        try {
+            String tk = item.getTranslationKey();
+            if (tk != null && (tk.endsWith(".air") || tk.equals("air"))) return true;
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    public static boolean hasTridentInInventory(net.minecraft.client.network.ClientPlayerEntity player) {
+        if (player == null || player.getInventory() == null) return false;
+        for (int i = 0; i < player.getInventory().size(); i++) {
+            ItemStack s = player.getInventory().getStack(i);
+            if (!s.isEmpty() && isTridentItem(s.getItem())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasItemInInventory(net.minecraft.client.network.ClientPlayerEntity player, Item item) {
+        if (player == null || player.getInventory() == null || item == null) return false;
+        for (int i = 0; i < player.getInventory().size(); i++) {
+            ItemStack s = player.getInventory().getStack(i);
+            if (!s.isEmpty() && (s.isOf(item) || (isTridentItem(item) && isTridentItem(s.getItem())))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void onCooldownSet(Item item, int durationTicks) {
-        if (item == null || durationTicks <= 0) {
+        if (isAirItem(item) || durationTicks <= 0) {
             return;
+        }
+        if (isTridentItem(item)) {
+            if (!isTridentRecentlyUsed()) {
+                return;
+            }
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.player != null && !hasTridentInInventory(mc.player)) {
+                return;
+            }
         }
         registerCooldown(item, item, durationTicks);
     }
@@ -106,6 +172,13 @@ public final class CooldownTrackerService {
                 continue;
             }
 
+            if (isTridentItem(entry.item)) {
+                if (hasPlayer && !hasTridentInInventory(client.player)) {
+                    ACTIVE_COOLDOWNS.remove(mapEntry.getKey());
+                    continue;
+                }
+            }
+
             if (hasPlayer && entry.iconStack != null && System.currentTimeMillis() - entry.startTimestampMs > 250L && !client.player.getItemCooldownManager().isCoolingDown(entry.iconStack)) {
                 ACTIVE_COOLDOWNS.remove(mapEntry.getKey());
             }
@@ -123,5 +196,6 @@ public final class CooldownTrackerService {
 
     public static void clear() {
         ACTIVE_COOLDOWNS.clear();
+        lastTridentUseTimeMs = 0L;
     }
 }

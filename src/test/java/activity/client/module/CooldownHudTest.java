@@ -106,4 +106,26 @@ public class CooldownHudTest {
         CooldownTrackerService.onCooldownRemoved(null);
         assertEquals(1, CooldownTrackerService.getActiveEntries().size());
     }
+
+    @Test
+    @DisplayName("CooldownTrackerService tracks trident usage and resets properly")
+    void testTridentUsageTracking() {
+        assertFalse(CooldownTrackerService.isTridentRecentlyUsed());
+        CooldownTrackerService.recordTridentUsed();
+        assertTrue(CooldownTrackerService.isTridentRecentlyUsed());
+        CooldownTrackerService.resetTridentUsageForTest();
+        assertFalse(CooldownTrackerService.isTridentRecentlyUsed());
+
+        CooldownTrackerService.recordTridentUsed();
+        assertTrue(CooldownTrackerService.isTridentRecentlyUsed());
+        CooldownTrackerService.clear();
+        assertFalse(CooldownTrackerService.isTridentRecentlyUsed());
+    }
+
+    @Test
+    @DisplayName("CooldownTrackerService trident identification works reliably")
+    void testTridentIdentification() {
+        assertFalse(CooldownTrackerService.isTridentItem(null));
+        assertTrue(CooldownTrackerService.isAirItem(null));
+    }
 }

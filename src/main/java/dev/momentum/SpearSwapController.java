@@ -384,6 +384,7 @@ public final class SpearSwapController {
                 client.interactionManager.attackEntity(player, target);
             }
         }
+        activity.client.module.service.CooldownTrackerService.recordTridentUsed();
     }
 
     private void handleWaitingRestore(MinecraftClient client) {

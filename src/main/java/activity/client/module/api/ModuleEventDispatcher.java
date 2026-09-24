@@ -127,6 +127,10 @@ public final class ModuleEventDispatcher {
 
         KeybindManager.handleTick(client);
 
+        if (client.player != null && client.player.isUsingItem() && activity.client.module.service.CooldownTrackerService.isTridentItem(client.player.getActiveItem().getItem())) {
+            activity.client.module.service.CooldownTrackerService.recordTridentUsed();
+        }
+
         IModule[] modules = activeTickModules;
         for (int i = 0; i < modules.length; i++) {
             try {
@@ -138,6 +142,10 @@ public final class ModuleEventDispatcher {
     public static ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return ActionResult.PASS;
+        }
+
+        if (player != null && (activity.client.module.service.CooldownTrackerService.isTridentItem(player.getMainHandStack().getItem()) || activity.client.module.service.CooldownTrackerService.isTridentItem(player.getOffHandStack().getItem()))) {
+            activity.client.module.service.CooldownTrackerService.recordTridentUsed();
         }
 
         IModule[] modules = activeAttackModules;

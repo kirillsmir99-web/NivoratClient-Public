@@ -154,7 +154,7 @@ public final class CooldownHudOverlay {
                 new CooldownTrackerService.CooldownEntry(Items.ENDER_PEARL, 290),
                 new CooldownTrackerService.CooldownEntry(Items.TNT_MINECART, 3200),
                 new CooldownTrackerService.CooldownEntry(Items.WIND_CHARGE, 160),
-                new CooldownTrackerService.CooldownEntry(Items.TRIDENT, 60),
+                new CooldownTrackerService.CooldownEntry(Items.BOW, 60),
                 new CooldownTrackerService.CooldownEntry(Items.GOLDEN_APPLE, 84),
                 new CooldownTrackerService.CooldownEntry(Items.CHORUS_FRUIT, 42),
                 new CooldownTrackerService.CooldownEntry(Items.COOKED_BEEF, 120),

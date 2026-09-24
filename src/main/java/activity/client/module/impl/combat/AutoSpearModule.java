@@ -200,8 +200,6 @@ public class AutoSpearModule extends NivoratModule {
     @Override
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (isEnabled()) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            controller.onTrigger(client);
             return controller.onAttackEntity(player, world, hand, entity, hitResult);
         }
         return ActionResult.PASS;
