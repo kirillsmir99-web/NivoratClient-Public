@@ -14,10 +14,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Deep automated unit verification for Stage 13:
- * Micro-interactions polish across Toggle, Slider, Sidebar Categories, and Global Animations toggle.
- */
 public class MicroInteractionsPolishTest {
 
     @BeforeEach
@@ -25,10 +21,6 @@ public class MicroInteractionsPolishTest {
         ActivityConfigManager.resetDefaults();
         AnimationClock.reset();
     }
-
-    // ==========================================
-    // 1. TOGGLE MICRO-INTERACTIONS
-    // ==========================================
 
     @Test
     void testToggleSmoothMovementAndColorProgression() {
@@ -45,15 +37,12 @@ public class MicroInteractionsPolishTest {
         assertTrue(toggle.getState());
         assertTrue(toggled.get());
 
-        // In animated mode, progress has not jumped to 1.0 yet until frames advance
         assertTrue(toggle.getAnimationProgress() < 1.0f);
 
-        // Advance animation
         float step = AnimationClock.approach(toggle.getAnimationProgress(), 1.0f, AnimationClock.DURATION_TOGGLE);
         assertTrue(step > 0.0f);
         assertTrue(step <= 1.0f);
 
-        // Verify smoothStep produces smooth easing without overshoot beyond bounds
         float eased = AnimationClock.smoothStep(step);
         assertTrue(eased >= 0.0f && eased <= 1.0f);
     }
@@ -72,7 +61,6 @@ public class MicroInteractionsPolishTest {
         assertTrue(toggle.getState());
         assertTrue(toggled.get());
 
-        // When animations are OFF, progress must snap immediately to 1.0f
         assertEquals(1.0f, toggle.getAnimationProgress(), 0.001f);
 
         toggle.toggle();
@@ -88,7 +76,7 @@ public class MicroInteractionsPolishTest {
         ActivityToggle toggle = new ActivityToggle(10, 10, false);
         assertEquals(0.0f, toggle.getAnimationProgress(), 0.001f);
 
-        toggle.setState(true, false); // Explicit animate = false
+        toggle.setState(true, false);
         assertTrue(toggle.getState());
         assertEquals(1.0f, toggle.getAnimationProgress(), 0.001f);
 
@@ -96,10 +84,6 @@ public class MicroInteractionsPolishTest {
         assertFalse(toggle.getState());
         assertEquals(0.0f, toggle.getAnimationProgress(), 0.001f);
     }
-
-    // ==========================================
-    // 2. SLIDER MICRO-INTERACTIONS
-    // ==========================================
 
     @Test
     void testSliderVisualNormAndFillAnimation() {
@@ -112,15 +96,12 @@ public class MicroInteractionsPolishTest {
         assertEquals(0.0, slider.getNormalized(), 0.001);
         assertEquals(0.0f, slider.getVisualNorm(), 0.001f);
 
-        // Step change to 50.0
         slider.setValue(50.0);
         assertEquals(0.5, slider.getNormalized(), 0.001);
         assertEquals(50.0, observed.get(), 0.001);
 
-        // Pulse must be active on value update
         assertEquals(1.0f, slider.getValuePulse(), 0.001f);
 
-        // Decay pulse
         float nextPulse = AnimationClock.approach(slider.getValuePulse(), 0.0f, 0.15f);
         assertTrue(nextPulse < 1.0f);
     }
@@ -137,7 +118,6 @@ public class MicroInteractionsPolishTest {
         assertEquals(80.0, observed.get(), 0.001);
         assertEquals(0.8, slider.getNormalized(), 0.001);
 
-        // Visual norm must snap immediately to 0.8f, pulse must stay 0
         assertEquals(0.8f, slider.getVisualNorm(), 0.001f);
         assertEquals(0.0f, slider.getValuePulse(), 0.001f);
 
@@ -146,17 +126,13 @@ public class MicroInteractionsPolishTest {
         assertEquals(0.2f, slider.getVisualNorm(), 0.001f);
     }
 
-    // ==========================================
-    // 3. CATEGORY EXPAND/COLLAPSE TRANSITIONS
-    // ==========================================
-
     @Test
     void testCategoryExpandCollapseProgression() {
         ActivityConfig cfg = ActivityConfigManager.getConfig();
         cfg.animationsEnabled = true;
 
         SidebarTree sidebarTree = new SidebarTree();
-        SidebarTree.CategoryNode defense = sidebarTree.getCategories().get(1); // Defense
+        SidebarTree.CategoryNode defense = sidebarTree.getCategories().get(1);
 
         assertFalse(defense.isExpanded());
         assertEquals(0.0f, defense.getExpandProgress(), 0.001f);
@@ -164,27 +140,22 @@ public class MicroInteractionsPolishTest {
         defense.toggleExpanded();
         assertTrue(defense.isExpanded());
 
-        // Update with 50ms delta time
         defense.update(false, false, 0.05f);
         assertTrue(defense.getExpandProgress() > 0.0f);
         assertTrue(defense.getExpandProgress() < 1.0f);
 
-        // SmoothStep easing test
         float eased = AnimationClock.smoothStep(defense.getExpandProgress());
         assertTrue(eased >= 0.0f && eased <= 1.0f);
 
-        // Complete expand
         defense.update(false, false, 0.2f);
         assertEquals(1.0f, defense.getExpandProgress(), 0.001f);
 
-        // Collapse
         defense.toggleExpanded();
         assertFalse(defense.isExpanded());
         defense.update(false, false, 0.05f);
         assertTrue(defense.getExpandProgress() < 1.0f);
         assertTrue(defense.getExpandProgress() > 0.0f);
 
-        // Complete collapse
         defense.update(false, false, 0.2f);
         assertEquals(0.0f, defense.getExpandProgress(), 0.001f);
     }
@@ -195,19 +166,19 @@ public class MicroInteractionsPolishTest {
         cfg.animationsEnabled = false;
 
         SidebarTree sidebarTree = new SidebarTree();
-        SidebarTree.CategoryNode defense = sidebarTree.getCategories().get(1); // Defense
+        SidebarTree.CategoryNode defense = sidebarTree.getCategories().get(1);
 
         assertFalse(defense.isExpanded());
         assertEquals(0.0f, defense.getExpandProgress(), 0.001f);
 
         defense.toggleExpanded();
         assertTrue(defense.isExpanded());
-        // Must snap immediately
+
         assertEquals(1.0f, defense.getExpandProgress(), 0.001f);
 
         defense.toggleExpanded();
         assertFalse(defense.isExpanded());
-        // Must snap immediately
+
         assertEquals(0.0f, defense.getExpandProgress(), 0.001f);
 
         defense.setExpanded(true);
@@ -246,27 +217,21 @@ public class MicroInteractionsPolishTest {
         assertEquals(0.0f, settings.getHoverProgress(), 0.001f);
     }
 
-    // ==========================================
-    // 4. ANIMATION SYSTEM MATH INTEGRITY
-    // ==========================================
-
     @Test
     void testSmoothStepSymmetryAndBoundaryProperties() {
         assertEquals(0.0f, AnimationClock.smoothStep(0.0f), 0.0001f);
         assertEquals(1.0f, AnimationClock.smoothStep(1.0f), 0.0001f);
         assertEquals(0.5f, AnimationClock.smoothStep(0.5f), 0.0001f);
 
-        // Test clamping on outside boundary inputs
         assertEquals(0.0f, AnimationClock.smoothStep(-0.5f), 0.0001f);
         assertEquals(1.0f, AnimationClock.smoothStep(1.5f), 0.0001f);
 
-        // Test derivative behavior: slow start, fast middle, slow finish
         float deltaStart = AnimationClock.smoothStep(0.1f) - AnimationClock.smoothStep(0.0f);
         float deltaMiddle = AnimationClock.smoothStep(0.6f) - AnimationClock.smoothStep(0.5f);
         float deltaEnd = AnimationClock.smoothStep(1.0f) - AnimationClock.smoothStep(0.9f);
 
         assertTrue(deltaMiddle > deltaStart);
         assertTrue(deltaMiddle > deltaEnd);
-        assertEquals(deltaStart, deltaEnd, 0.0001f); // Perfectly symmetrical
+        assertEquals(deltaStart, deltaEnd, 0.0001f);
     }
 }

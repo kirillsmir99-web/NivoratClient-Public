@@ -61,20 +61,6 @@ import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Stage 12 — Release Verification Suite for NivoratClient.
- *
- * <p>Validates all 12 unified modules in a clean-install environment with zero legacy external JARs:
- * <ul>
- *   <li>Combat: AutoMace, AutoSpear, AutoShieldbreaker, AutoStunSlam</li>
- *   <li>Defense: AutoTotem, AutoCart, AutoAnchor, CartRefill</li>
- *   <li>Utility: HPReaper, AutoTool, AutoGG, CartHUD</li>
- * </ul>
- *
- * <p>Covers 11 strict dimensions per module: UI existence, Enable/Disable, Keybinds, Settings,
- * Config persistence, Preset restoration, Search indexing, Pinning, Quick Access, and About Sheet.
- * Also verifies global lifecycle (simulated restart, world switch cache eviction, event registration idempotency).
- */
 public class ReleaseVerificationTest {
 
     private static final List<String> ALL_TWELVE_MODULE_IDS = List.of(
@@ -130,10 +116,6 @@ public class ReleaseVerificationTest {
         ModuleEventDispatcher.updateActiveModules();
     }
 
-    // =========================================================================
-    // 1. CLEAN INSTALL TEST
-    // =========================================================================
-
     @Test
     @DisplayName("Clean Install: fabric.mod.json has standard dependencies and zero legacy JAR references")
     void testCleanInstallFabricModJsonSpecification() {
@@ -147,14 +129,12 @@ public class ReleaseVerificationTest {
         JsonObject depends = root.getAsJsonObject("depends");
         assertNotNull(depends, "depends section must exist");
 
-        // Verify ONLY standard dependencies exist
         assertTrue(depends.has("fabricloader"), "Must depend on fabricloader");
         assertTrue(depends.has("minecraft"), "Must depend on minecraft");
         assertTrue(depends.has("java"), "Must depend on java");
         assertTrue(depends.has("fabric-api"), "Must depend on fabric-api");
         assertEquals(4, depends.size(), "Clean install must depend ONLY on loader, mc, java, and fabric-api");
 
-        // Verify provides section declares nivoratclient
         assertTrue(root.has("provides"), "Must have provides section");
         boolean providesNivorat = false;
         for (var elem : root.getAsJsonArray("provides")) {
@@ -165,13 +145,11 @@ public class ReleaseVerificationTest {
         }
         assertTrue(providesNivorat, "Must provide 'nivoratclient' for compatibility");
 
-        // Verify client entrypoint
         JsonObject entrypoints = root.getAsJsonObject("entrypoints");
         assertNotNull(entrypoints);
         assertTrue(entrypoints.has("client"));
         assertEquals("activity.client.NivoratClient", entrypoints.getAsJsonArray("client").get(0).getAsString());
 
-        // Verify mixins section declares namespaced mixin configs
         assertTrue(root.has("mixins"), "fabric.mod.json must declare mixins");
         var mixinArray = root.getAsJsonArray("mixins");
         assertEquals(4, mixinArray.size(), "Should declare exactly 4 mixin configs");
@@ -255,12 +233,10 @@ public class ReleaseVerificationTest {
             assertNull(zip.getEntry("autotool.mixins.json"), "JAR must NOT contain un-namespaced autotool.mixins.json");
             assertNull(zip.getEntry("autogg.mixins.json"), "JAR must NOT contain un-namespaced autogg.mixins.json");
 
-            // Verify namespaced mixin classes exist in JAR
             assertNotNull(zip.getEntry("activity/client/mixin/autogg/ActivityClientPlayNetworkHandlerMixin.class"), "JAR must contain ActivityClientPlayNetworkHandlerMixin.class");
             assertNotNull(zip.getEntry("activity/client/mixin/autotool/ActivityClientPlayerInteractionManagerMixin.class"), "JAR must contain ActivityClientPlayerInteractionManagerMixin.class");
             assertNotNull(zip.getEntry("activity/client/mixin/autotool/ActivityClientPlayerInteractionManagerAccessor.class"), "JAR must contain ActivityClientPlayerInteractionManagerAccessor.class");
 
-            // Verify legacy unnamespaced mixin classes are completely absent
             assertNull(zip.getEntry("ru/elarion/autogg/mixin/ClientPlayNetworkHandlerMixin.class"), "JAR must NOT contain legacy ClientPlayNetworkHandlerMixin.class");
             assertNull(zip.getEntry("ru/elarion/autotool/mixin/ClientPlayerInteractionManagerMixin.class"), "JAR must NOT contain legacy ClientPlayerInteractionManagerMixin.class");
             assertNull(zip.getEntry("ru/elarion/autotool/mixin/ClientPlayerInteractionManagerAccessor.class"), "JAR must NOT contain legacy ClientPlayerInteractionManagerAccessor.class");
@@ -273,10 +249,6 @@ public class ReleaseVerificationTest {
             }
         }
     }
-
-    // =========================================================================
-    // 2. PER-MODULE VERIFICATION: 11 DIMENSIONS ACROSS ALL 12 MODULES
-    // =========================================================================
 
     @ParameterizedTest(name = "UI exists: {0}")
     @ValueSource(strings = {
@@ -293,13 +265,11 @@ public class ReleaseVerificationTest {
         assertNotNull(mod.getDescription(), "Module " + moduleId + " must have a non-null description");
         assertNotNull(mod.getCategory(), "Module " + moduleId + " must have a category");
 
-        // Verify UI card generation
         ScrollContainer container = new ScrollContainer(0, 0, 400, 600);
         int cardHeight = ModuleSettingsView.buildCard(null, null, container, mod, 0, 0, 380, 360);
         assertTrue(cardHeight > 40, "Card height for " + moduleId + " must be > 40px, got: " + cardHeight);
         assertFalse(container.getChildren().isEmpty(), "Card for " + moduleId + " must populate interactive components into ScrollContainer");
 
-        // Verify Standalone ModuleSettingsView screen
         if (net.minecraft.client.MinecraftClient.getInstance() != null) {
             ModuleSettingsView standalone = new ModuleSettingsView(mod);
             assertEquals(mod, standalone.getModule(), "Standalone view must retain reference to module " + moduleId);
@@ -312,7 +282,6 @@ public class ReleaseVerificationTest {
             });
         }
 
-        // Verify Tab integration
         switch (mod.getCategory()) {
             case COMBAT -> {
                 CombatTab tab = new CombatTab();
@@ -345,7 +314,6 @@ public class ReleaseVerificationTest {
         assertNotNull(mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // 1. Enable
         mod.setEnabled(true);
         assertTrue(mod.isEnabled(), "Module " + moduleId + " must be enabled");
         assertEquals(ModuleStatus.READY, mod.getStatus());
@@ -357,7 +325,6 @@ public class ReleaseVerificationTest {
             assertTrue(inTick, "Enabled module " + moduleId + " with tick logic must be in activeTickModules");
         }
 
-        // 2. Disable
         mod.setEnabled(false);
         assertFalse(mod.isEnabled(), "Module " + moduleId + " must be disabled");
         assertEquals(ModuleStatus.DISABLED, mod.getStatus());
@@ -385,7 +352,6 @@ public class ReleaseVerificationTest {
         Keybind kb = mod.getKeybind();
         assertNotNull(kb, "Module " + moduleId + " must have a non-null Keybind instance");
 
-        // Bind custom key: GLFW_KEY_P with CTRL
         kb.set(GLFW.GLFW_KEY_P, true, false, false);
         assertEquals(GLFW.GLFW_KEY_P, kb.getKeyCode());
         assertTrue(kb.isCtrl());
@@ -395,23 +361,19 @@ public class ReleaseVerificationTest {
         assertTrue(kb.matchesKey(GLFW.GLFW_KEY_P, GLFW.GLFW_MOD_CONTROL), "Keybind must match Key+Ctrl");
         assertFalse(kb.matchesKey(GLFW.GLFW_KEY_P, 0), "Keybind must not match without Ctrl modifier");
 
-        // Rebuild bound keybinds in manager and verify module registered in primaries
         KeybindManager.rebuildBoundKeybinds();
         boolean inPrimaries = Arrays.stream(KeybindManager.getBoundPrimaries())
                 .anyMatch(bp -> bp.module().getId().equalsIgnoreCase(moduleId));
         assertTrue(inPrimaries, "KeybindManager must include bound module " + moduleId + " in primaries");
 
-        // Verify conflict detection
         String conflict = KeybindManager.findConflict(kb, "unrelated_other_module");
         assertNotNull(conflict, "KeybindManager must flag conflict for duplicate keybind");
         String selfConflict = KeybindManager.findConflict(kb, moduleId);
         assertNull(selfConflict, "KeybindManager must not flag conflict against self");
 
-        // Roundtrip via config
         ActivityConfig config = new ActivityConfig();
         mod.saveToConfig(config);
 
-        // Reset keybind and reload from config
         kb.clear();
         assertTrue(kb.isUnbound());
         KeybindManager.rebuildBoundKeybinds();
@@ -423,7 +385,6 @@ public class ReleaseVerificationTest {
         assertEquals(GLFW.GLFW_KEY_P, kb.getKeyCode(), "Keybind for " + moduleId + " must be restored from config");
         assertTrue(kb.isCtrl());
 
-        // Cleanup
         kb.clear();
         KeybindManager.rebuildBoundKeybinds();
     }
@@ -454,7 +415,6 @@ public class ReleaseVerificationTest {
                     "Setting " + s.getId() + " in " + moduleId + " violates 5-tier group order");
             lastOrdinal = group.ordinal();
 
-            // Validate and mutate every setting type
             if (s instanceof BooleanSetting bs) {
                 boolean original = bs.get();
                 bs.set(!original);
@@ -508,7 +468,6 @@ public class ReleaseVerificationTest {
         mod.setEnabled(true);
         mod.getKeybind().set(GLFW.GLFW_KEY_K, true, false, false);
 
-        // Mutate setting value to verify setting values persist
         Setting<?> testSetting = mod.getSettings().isEmpty() ? null : mod.getSettings().get(0);
         Object originalSettingVal = null;
         if (testSetting instanceof BooleanSetting bs) {
@@ -521,13 +480,11 @@ public class ReleaseVerificationTest {
 
         mod.saveToConfig(config1);
 
-        // Serialize to JSON and parse back
         Gson gson = new Gson();
         String json = gson.toJson(config1);
         ActivityConfig config2 = gson.fromJson(json, ActivityConfig.class);
         assertNotNull(config2, "Deserialized config must not be null");
 
-        // Reset state and reload from config2
         mod.setEnabled(false);
         mod.getKeybind().clear();
         if (testSetting != null && originalSettingVal != null) {
@@ -562,7 +519,6 @@ public class ReleaseVerificationTest {
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
 
-        // Mutate module state and settings away from default
         mod.setEnabled(false);
         mod.getKeybind().set(GLFW.GLFW_KEY_L, false, true, false);
         Setting<?> testSetting = mod.getSettings().isEmpty() ? null : mod.getSettings().get(0);
@@ -573,11 +529,9 @@ public class ReleaseVerificationTest {
         }
         mod.saveToConfig(config);
 
-        // Apply default preset
         PresetManager.applyPreset(PresetManager.getDefaultPreset(), config);
         mod.loadFromConfig(config);
 
-        // Verify factory default state is restored
         assertTrue(mod.isEnabled(), "Default preset must restore enabled=true for " + moduleId);
         assertTrue(mod.getKeybind().getKeyCode() != GLFW.GLFW_KEY_L || mod.getKeybind().isUnbound(),
                 "Custom test keybind must be reset by default preset");
@@ -599,13 +553,11 @@ public class ReleaseVerificationTest {
         IModule mod = ModuleRegistry.get(moduleId);
         assertNotNull(mod);
 
-        // 1. Direct search by moduleId
         List<SearchController.SearchResult> idResults = SearchController.search(moduleId, 10);
         assertFalse(idResults.isEmpty(), "Search query for " + moduleId + " must return results");
         boolean foundModId = idResults.stream().anyMatch(r -> moduleId.equalsIgnoreCase(r.entry().moduleId()));
         assertTrue(foundModId, "Search results must contain module " + moduleId);
 
-        // 2. Search by Russian keyword
         String ruKeyword = RUSSIAN_SEARCH_KEYWORDS.get(moduleId);
         if (ruKeyword != null) {
             List<SearchController.SearchResult> ruResults = SearchController.search(ruKeyword, 10);
@@ -614,7 +566,6 @@ public class ReleaseVerificationTest {
             assertTrue(foundRu, "Russian search for '" + ruKeyword + "' must match module " + moduleId);
         }
 
-        // 3. Search by English display name
         String enName = mod.getName().getString();
         if (enName != null && !enName.isBlank()) {
             List<SearchController.SearchResult> enResults = SearchController.search(enName, 10);
@@ -692,16 +643,11 @@ public class ReleaseVerificationTest {
         assertTrue(sheet.isClosed());
     }
 
-    // =========================================================================
-    // 3. GLOBAL LIFECYCLE & PERSISTENCE TESTS
-    // =========================================================================
-
     @Test
     @DisplayName("Global Test: Simulated Minecraft restart restores complete 12-module configuration")
     void testGlobalPersistenceRestartSimulation() {
         ActivityConfig original = ActivityConfigManager.getConfig();
 
-        // 1. Customize multiple settings across modules
         original.autoMaceEnabled = false;
         original.autoSpearEnabled = true;
         original.autoSpearRestoreDelayMs = 210.0;
@@ -717,18 +663,15 @@ public class ReleaseVerificationTest {
         original.setPinned("auto_mace", true);
         original.setPinned("cart_hud", true);
 
-        // Export as simulated config file JSON
         String exportedJson = ActivityConfigManager.exportPresetString();
         assertNotNull(exportedJson);
         assertFalse(exportedJson.isBlank());
 
-        // 2. Simulate Minecraft process shutdown / memory wipe
         ActivityConfigManager.resetDefaults();
         ActivityConfig wiped = ActivityConfigManager.getConfig();
         assertTrue(wiped.autoMaceEnabled, "Wiped config should have default autoMaceEnabled=true");
         assertFalse(wiped.isPinned("auto_mace"), "Wiped config should have no pins");
 
-        // 3. Simulate Minecraft startup / config reload
         boolean imported = ActivityConfigManager.importPresetString(exportedJson);
         assertTrue(imported, "Configuration must import successfully upon restart simulation");
 
@@ -747,7 +690,6 @@ public class ReleaseVerificationTest {
         assertTrue(restored.isPinned("auto_mace"));
         assertTrue(restored.isPinned("cart_hud"));
 
-        // Verify module instances also reflect loaded values
         assertFalse(ModuleRegistry.get("auto_mace").isEnabled());
         assertFalse(ModuleRegistry.get("auto_shieldbreaker").isEnabled());
     }
@@ -755,7 +697,7 @@ public class ReleaseVerificationTest {
     @Test
     @DisplayName("Global Test: World/server switch clears all shared caches without leaks")
     void testGlobalLifecycleWorldSwitchCacheInvalidation() {
-        // 1. Populate runtime state in all shared services
+
         PlayerStateService.setBusyForTest(true);
         PlayerStateService.setAirTicksForTest(25);
         PlayerStateService.setHealthForTest(12.0f, 4.0f);
@@ -768,10 +710,8 @@ public class ReleaseVerificationTest {
         assertEquals(25, PlayerStateService.getAirTicks());
         assertEquals(3, InventoryScanService.getCachedSwordSlot());
 
-        // 2. Simulate world leave / server switch via client tick with null client
         ModuleEventDispatcher.onClientTick(null);
 
-        // 3. Verify all shared caches are completely invalidated
         assertFalse(PlayerStateService.isBusy(), "PlayerStateService busy state must be reset on world switch");
         assertEquals(0, PlayerStateService.getAirTicks(), "PlayerStateService air ticks must be reset on world switch");
         assertEquals(20.0f, PlayerStateService.getHealth(), 0.001, "PlayerStateService health must be reset to default 20.0");
@@ -789,24 +729,21 @@ public class ReleaseVerificationTest {
     @Test
     @DisplayName("Global Test: ModuleEventDispatcher.init is strictly idempotent (zero duplicate hooks)")
     void testGlobalEventRegistrationIdempotency() {
-        // Call init() 10 times consecutively
+
         for (int i = 0; i < 10; i++) {
             assertDoesNotThrow(ModuleEventDispatcher::init, "ModuleEventDispatcher.init() must be safe to call repeatedly");
             assertDoesNotThrow(ModuleRegistry::initEvents, "ModuleRegistry.initEvents() must be safe to call repeatedly");
         }
 
-        // Verify active arrays remain consistent
         ModuleEventDispatcher.updateActiveModules();
         IModule[] activeTicks = ModuleEventDispatcher.getActiveTickModules();
         assertNotNull(activeTicks);
 
-        // Calling updateActiveModules multiple times should produce identical array lengths
         int len1 = activeTicks.length;
         ModuleEventDispatcher.updateActiveModules();
         int len2 = ModuleEventDispatcher.getActiveTickModules().length;
         assertEquals(len1, len2, "Active module arrays must not duplicate entries across updates");
 
-        // Verify null client tick executes cleanly without throwing
         assertDoesNotThrow(() -> ModuleEventDispatcher.onClientTick(null));
     }
 }

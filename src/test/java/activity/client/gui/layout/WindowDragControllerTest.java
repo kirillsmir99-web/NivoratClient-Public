@@ -29,7 +29,7 @@ public class WindowDragControllerTest {
 
     @Test
     void testStartDragInsideHeader() {
-        // Click on header bar
+
         double clickX = layout.headerX + 10;
         double clickY = layout.headerY + 5;
 
@@ -48,7 +48,7 @@ public class WindowDragControllerTest {
 
     @Test
     void testStartDragOutsideHeader() {
-        // Click in content area or outside
+
         assertFalse(controller.startDrag(layout.contentX + 10, layout.contentY + 50, layout, false));
         assertFalse(controller.isDragging());
     }
@@ -59,17 +59,14 @@ public class WindowDragControllerTest {
         double startY = layout.headerY + 10;
         assertTrue(controller.startDrag(startX, startY, layout, false));
 
-        // Drag 50px right, 30px down
         assertTrue(controller.onDrag(startX + 50, startY + 30, 854, 480, layout.windowWidth, layout.windowHeight));
         assertEquals(layout.windowX + 50, controller.getWindowX());
         assertEquals(layout.windowY + 30, controller.getWindowY());
 
-        // Drag off-screen to the left and top (negative)
         controller.onDrag(startX - 1000, startY - 1000, 854, 480, layout.windowWidth, layout.windowHeight);
         assertEquals(0, controller.getWindowX(), "Window X must clamp to 0 on left boundary");
         assertEquals(0, controller.getWindowY(), "Window Y must clamp to 0 on top boundary");
 
-        // Drag off-screen to the right and bottom (exceeding screen dimensions)
         controller.onDrag(startX + 5000, startY + 5000, 854, 480, layout.windowWidth, layout.windowHeight);
         assertEquals(854 - layout.windowWidth, controller.getWindowX(), "Window X must clamp to screenWidth - windowWidth");
         assertEquals(480 - layout.windowHeight, controller.getWindowY(), "Window Y must clamp to screenHeight - windowHeight");
@@ -114,7 +111,7 @@ public class WindowDragControllerTest {
 
     @Test
     void testMaximizeAndRestoreState() {
-        // Set initial position
+
         double startX = layout.headerX + 10;
         double startY = layout.headerY + 5;
         controller.startDrag(startX, startY, layout, false);
@@ -126,7 +123,6 @@ public class WindowDragControllerTest {
         int originalW = layout.windowWidth;
         int originalH = layout.windowHeight;
 
-        // Maximize
         controller.maximize(layout);
         assertTrue(controller.isMaximized());
 
@@ -137,7 +133,6 @@ public class WindowDragControllerTest {
         assertEquals(originalW, controller.getUnmaximizedWidth());
         assertEquals(originalH, controller.getUnmaximizedHeight());
 
-        // Restore
         controller.restore();
         assertFalse(controller.isMaximized());
         assertFalse(config.windowMaximized);
@@ -163,10 +158,8 @@ public class WindowDragControllerTest {
         controller.maximize(layout);
         assertTrue(controller.isMaximized());
 
-        // Maximize layout
         WindowLayout maxLayout = WindowLayout.compute(854, 480, -1, -1, -1, -1, true);
 
-        // Start drag on header while maximized
         boolean started = controller.startDrag(maxLayout.headerX + 50, maxLayout.headerY + 5, maxLayout, false);
         assertTrue(started);
         assertTrue(controller.isDragging());
@@ -182,16 +175,13 @@ public class WindowDragControllerTest {
         assertEquals(300, controller.getUnmaximizedX());
         assertEquals(100, controller.getUnmaximizedY());
 
-        // While maximized, clampWindowPosition called with maximized bounds (e.g. 826x452 on 854x480)
         controller.clampWindowPosition(854, 480, 826, 452);
 
-        // Unmaximized position must NOT be clamped to 854 - 826 = 28!
         assertEquals(300, controller.getUnmaximizedX());
         assertEquals(100, controller.getUnmaximizedY());
         assertEquals(300, controller.getWindowX());
         assertEquals(100, controller.getWindowY());
 
-        // Restore returns original unmaximized position and dimensions
         controller.restore();
         assertFalse(controller.isMaximized());
         assertEquals(300, controller.getWindowX());
@@ -206,10 +196,8 @@ public class WindowDragControllerTest {
         controller.setWindowDimensions(500, 320);
         controller.maximize(layout);
 
-        // Screen resized smaller to 400x300
         controller.clampWindowPosition(400, 300, 380, 280);
 
-        // Unmaximized dimensions and position must be safely clamped within the new 400x300 screen
         assertTrue(controller.getUnmaximizedWidth() <= 400);
         assertTrue(controller.getUnmaximizedHeight() <= 300);
         assertTrue(controller.getUnmaximizedX() + controller.getUnmaximizedWidth() <= 400);

@@ -48,7 +48,6 @@ public class ModuleSdkFoundationTest {
     void testBuiltinModulesRegistration() {
         assertEquals(14, ModuleRegistry.getAll().size(), "Must register all 14 modules");
 
-        // Verify Combat modules
         assertNotNull(ModuleRegistry.get("auto_mace"));
         assertNotNull(ModuleRegistry.get("auto_spear"));
         assertNotNull(ModuleRegistry.get("auto_shieldbreaker"));
@@ -56,13 +55,11 @@ public class ModuleSdkFoundationTest {
         assertNotNull(ModuleRegistry.get("auto_stun_slime"), "auto_stun_slime alias must resolve to auto_stun_slam");
         assertNotNull(ModuleRegistry.get("auto_pearl_catch"));
 
-        // Verify Defense modules
         assertNotNull(ModuleRegistry.get("auto_totem"));
         assertNotNull(ModuleRegistry.get("auto_cart"));
         assertNotNull(ModuleRegistry.get("auto_anchor"));
         assertNotNull(ModuleRegistry.get("cart_refill"));
 
-        // Verify Utility modules
         assertNotNull(ModuleRegistry.get("hp_reaper"));
         assertNotNull(ModuleRegistry.get("auto_tool"));
         assertNotNull(ModuleRegistry.get("auto_gg"));
@@ -162,15 +159,12 @@ public class ModuleSdkFoundationTest {
         assertEquals(SettingSection.BEHAVIOR, setting.getSection());
         assertEquals("90 ms", setting.formatCurrentValue());
 
-        // Value within bounds with step snapping
         setting.set(92.0);
         assertEquals(90.0, setting.get(), 0.001);
 
-        // Clamping above max
         setting.set(500.0);
         assertEquals(300.0, setting.get(), 0.001);
 
-        // Clamping below min
         setting.set(-10.0);
         assertEquals(10.0, setting.get(), 0.001);
     }
@@ -223,7 +217,6 @@ public class ModuleSdkFoundationTest {
         setting.set("legit");
         assertEquals("legit", setting.get());
 
-        // Unknown option falls back to default
         setting.set("invalid_option");
         assertEquals("smart", setting.get());
     }
@@ -340,21 +333,19 @@ public class ModuleSdkFoundationTest {
     @Test
     @DisplayName("ModuleRegistry.setAllEnabled toggles all modules and updates state")
     void testMasterToggleAllModules() {
-        // Disable all
+
         ModuleRegistry.setAllEnabled(false);
         assertFalse(ModuleRegistry.isAnyModuleEnabled(), "No modules should be enabled");
         for (IModule module : ModuleRegistry.getAll()) {
             assertFalse(module.isEnabled(), "Module " + module.getId() + " should be disabled");
         }
 
-        // Enable all
         ModuleRegistry.setAllEnabled(true);
         assertTrue(ModuleRegistry.isAnyModuleEnabled(), "Modules should be enabled");
         for (IModule module : ModuleRegistry.getAll()) {
             assertTrue(module.isEnabled(), "Module " + module.getId() + " should be enabled");
         }
 
-        // Restore enabled state for subsequent tests
         ModuleRegistry.setAllEnabled(true);
         assertTrue(ModuleRegistry.isAnyModuleEnabled());
     }
@@ -365,14 +356,12 @@ public class ModuleSdkFoundationTest {
         dev.storage.CartRefillController controller = new dev.storage.CartRefillController();
         controller.reset();
 
-        // Controller lifecycle and toggle
         boolean initial = controller.isEnabled();
         controller.toggle();
         assertEquals(!initial, controller.isEnabled());
         controller.toggle();
         assertEquals(initial, controller.isEnabled());
 
-        // KeybindManager menu conflict check
         activity.client.config.ActivityConfig cfg = activity.client.config.ActivityConfigManager.getConfig();
         assertNotNull(cfg);
         if (cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound()) {

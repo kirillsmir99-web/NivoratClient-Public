@@ -40,7 +40,6 @@ public class ModalSystemTest {
         assertEquals(modal, modalManager.getActiveModal());
         assertTrue(overlayManager.hasActiveOverlay());
 
-        // Full-screen click-through protection invariant
         assertTrue(modal.contains(0, 0));
         assertTrue(modal.contains(1920, 1080));
         assertFalse(modal.shouldCloseOnClickOutside());
@@ -111,14 +110,11 @@ public class ModalSystemTest {
         );
         modalManager.open(modal);
 
-        // Initially empty -> invalid
         assertFalse(modal.getConfirmButton().isEnabled());
 
-        // Set valid text
         modal.getInputField().setText("MyPreset");
         assertTrue(modal.getConfirmButton().isEnabled());
 
-        // Press confirm
         modal.getConfirmButton().onPress();
         assertEquals("MyPreset", submitted.get());
         assertFalse(cancelled.get());
@@ -140,11 +136,9 @@ public class ModalSystemTest {
 
         assertTrue(modal.getConfirmButton().isEnabled());
 
-        // Set empty string
         modal.getInputField().setText("   ");
         assertFalse(modal.getConfirmButton().isEnabled());
 
-        // Attempting to press disabled button should not submit
         modal.getConfirmButton().onPress();
         assertNull(submitted.get());
     }
@@ -161,7 +155,6 @@ public class ModalSystemTest {
             modalManager
         );
 
-        // Toggle from ON -> OFF should trigger confirmation modal
         toggle.toggle();
 
         assertTrue(modalManager.hasActiveModal());
@@ -170,14 +163,11 @@ public class ModalSystemTest {
 
         ConfirmationModal confirmModal = (ConfirmationModal) activeModal;
 
-        // Still ON because modal was not confirmed
         assertTrue(toggle.getState());
         assertTrue(stateVar.get());
 
-        // User clicks Cancel
         confirmModal.getCancelButton().onPress();
 
-        // Must remain ON
         assertTrue(toggle.getState());
         assertTrue(stateVar.get());
     }
@@ -194,16 +184,13 @@ public class ModalSystemTest {
             modalManager
         );
 
-        // Toggle ON -> OFF
         toggle.toggle();
 
         assertTrue(modalManager.hasActiveModal());
         ConfirmationModal confirmModal = (ConfirmationModal) modalManager.getActiveModal();
 
-        // User confirms
         confirmModal.getConfirmButton().onPress();
 
-        // Must now be OFF
         assertFalse(toggle.getState());
         assertFalse(stateVar.get());
     }
@@ -220,7 +207,6 @@ public class ModalSystemTest {
             modalManager
         );
 
-        // Toggle OFF -> ON should immediately turn ON without any modal
         toggle.toggle();
 
         assertFalse(modalManager.hasActiveModal());

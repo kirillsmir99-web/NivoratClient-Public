@@ -27,7 +27,7 @@ public class LegacyConfigMigrationTest {
 
     @Test
     void testLegacyConfigMigrationAll12Modules() throws IOException {
-        // 1. AutoMace
+
         Files.writeString(tempConfigDir.resolve("redstone_optimizer.properties"),
                 "enabled=true\n" +
                 "smart_mode=false\n" +
@@ -40,7 +40,6 @@ public class LegacyConfigMigrationTest {
                 "miss_chance=15.0\n",
                 StandardCharsets.UTF_8);
 
-        // 2. AutoSpear
         Files.writeString(tempConfigDir.resolve("momentum_tweaks.properties"),
                 "enabled=true\n" +
                 "security_mode=rage\n" +
@@ -50,7 +49,6 @@ public class LegacyConfigMigrationTest {
                 "random_delay=false\n",
                 StandardCharsets.UTF_8);
 
-        // 3. AutoShieldbreaker
         Files.writeString(tempConfigDir.resolve("autoshieldbreaker.properties"),
                 "enabled=true\n" +
                 "full_auto=false\n" +
@@ -62,7 +60,6 @@ public class LegacyConfigMigrationTest {
                 "legit_mode=false\n",
                 StandardCharsets.UTF_8);
 
-        // 4. AutoStunSlam (using legacy alias autostunslime.properties)
         Files.writeString(tempConfigDir.resolve("autostunslime.properties"),
                 "enabled=true\n" +
                 "mode=semi_auto\n" +
@@ -76,7 +73,6 @@ public class LegacyConfigMigrationTest {
                 "legit_mode=false\n",
                 StandardCharsets.UTF_8);
 
-        // 5. AutoTotem
         Files.writeString(tempConfigDir.resolve("autototem.properties"),
                 "enabled=true\n" +
                 "slot_mode=offhand\n" +
@@ -87,7 +83,6 @@ public class LegacyConfigMigrationTest {
                 "return_on_pop=false\n",
                 StandardCharsets.UTF_8);
 
-        // 6. AutoCart
         Files.writeString(tempConfigDir.resolve("autocart.properties"),
                 "enabled=true\n" +
                 "preset=safe\n" +
@@ -104,7 +99,6 @@ public class LegacyConfigMigrationTest {
                 "restore_delay=5.0\n",
                 StandardCharsets.UTF_8);
 
-        // 7. AutoAnchor
         Files.writeString(tempConfigDir.resolve("luminance_tweaks.properties"),
                 "enabled=true\n" +
                 "anchor_preset=fast\n" +
@@ -117,7 +111,6 @@ public class LegacyConfigMigrationTest {
                 "safe_mode=false\n",
                 StandardCharsets.UTF_8);
 
-        // 8. CartRefill
         Files.writeString(tempConfigDir.resolve("storage_tweaks.properties"),
                 "enabled=true\n" +
                 "refill_delay_ticks=4.0\n" +
@@ -127,7 +120,6 @@ public class LegacyConfigMigrationTest {
                 "safe_mode=false\n",
                 StandardCharsets.UTF_8);
 
-        // 9. HPReaper
         Files.writeString(tempConfigDir.resolve("hp_reaper.properties"),
                 "enabled=true\n" +
                 "hud_mode=damage_diff\n" +
@@ -142,7 +134,6 @@ public class LegacyConfigMigrationTest {
                 "diff_y=850\n",
                 StandardCharsets.UTF_8);
 
-        // 10. AutoTool
         Files.writeString(tempConfigDir.resolve("autotool.json"),
                 "{\n" +
                 "  \"enabled\": true,\n" +
@@ -158,7 +149,6 @@ public class LegacyConfigMigrationTest {
                 "}\n",
                 StandardCharsets.UTF_8);
 
-        // 11. AutoGG
         Files.writeString(tempConfigDir.resolve("autogg.json"),
                 "{\n" +
                 "  \"enabled\": true,\n" +
@@ -170,14 +160,12 @@ public class LegacyConfigMigrationTest {
                 "}\n",
                 StandardCharsets.UTF_8);
 
-        // 12. CartHUD
         Files.writeString(tempConfigDir.resolve("cart_hud.properties"),
                 "enabled=true\n" +
                 "custom_x=220\n" +
                 "custom_y=330\n",
                 StandardCharsets.UTF_8);
 
-        // Legacy keybind files
         Files.writeString(tempConfigDir.resolve("redstone_keys.properties"),
                 "key_auto_mace=66\n" +
                 "key_auto_spear=86\n",
@@ -190,11 +178,9 @@ public class LegacyConfigMigrationTest {
 
         assertTrue(LegacyConfigMigrator.hasAnyLegacyConfig(tempConfigDir));
 
-        // Execute migration
         boolean migrated = LegacyConfigMigrator.migrate(config, tempConfigDir);
         assertTrue(migrated, "Migration should report success");
 
-        // Verify AutoMace
         assertTrue(config.autoMaceEnabled);
         assertEquals("breach_only", config.autoMaceEnchantMode);
         assertEquals("empty_swap", config.autoMaceMissBehavior);
@@ -205,7 +191,6 @@ public class LegacyConfigMigrationTest {
         assertEquals(15.0, config.autoMaceMissChance);
         assertEquals(66, config.autoMaceKeybind.getKeyCode());
 
-        // Verify AutoSpear
         assertTrue(config.autoSpearEnabled);
         assertEquals("rage", config.autoSpearSecurityMode);
         assertEquals("lunge_2", config.autoSpearPriorityMode);
@@ -213,7 +198,6 @@ public class LegacyConfigMigrationTest {
         assertEquals(5.0, config.autoSpearMissChance);
         assertEquals(86, config.autoSpearKeybind.getKeyCode());
 
-        // Verify AutoShieldbreaker
         assertTrue(config.autoShieldbreakerEnabled);
         assertEquals("semi_auto", config.autoShieldbreakerMode);
         assertEquals(3.2, config.autoShieldbreakerDistance);
@@ -222,7 +206,6 @@ public class LegacyConfigMigrationTest {
         assertEquals(65.0, config.autoShieldbreakerRestoreDelayMs);
         assertEquals(71, config.autoShieldbreakerKeybind.getKeyCode());
 
-        // Verify AutoStunSlam (migrated from autostunslime.properties)
         assertTrue(config.autoStunSlamEnabled);
         assertEquals("semi_auto", config.autoStunSlamMode);
         assertEquals(3.1, config.autoStunSlamDistance);
@@ -233,7 +216,6 @@ public class LegacyConfigMigrationTest {
         assertEquals(70.0, config.autoStunSlamRestoreDelayMs);
         assertEquals(72, config.autoStunSlamKeybind.getKeyCode());
 
-        // Verify AutoTotem
         assertTrue(config.autoTotemEnabled);
         assertEquals("offhand", config.autoTotemMode);
         assertEquals(4.5, config.autoTotemTriggerHearts);
@@ -241,7 +223,6 @@ public class LegacyConfigMigrationTest {
         assertEquals(95.0, config.autoTotemChance);
         assertFalse(config.autoTotemReturnOnPop);
 
-        // Verify AutoCart
         assertTrue(config.autoCartEnabled);
         assertEquals("safe", config.autoCartPreset);
         assertEquals(92.0, config.autoCartPlacementChance);
@@ -251,7 +232,6 @@ public class LegacyConfigMigrationTest {
         assertTrue(config.autoCartAllowSelfCart);
         assertFalse(config.autoCartAllowPitPlacement);
 
-        // Verify AutoAnchor
         assertTrue(config.autoAnchorEnabled);
         assertEquals("fast", config.autoAnchorPreset);
         assertTrue(config.autoAnchorAutoExplode);
@@ -261,20 +241,17 @@ public class LegacyConfigMigrationTest {
         assertEquals(98.0, config.autoAnchorChance);
         assertEquals(3.0, config.autoAnchorTargetCharges);
 
-        // Verify CartRefill
         assertTrue(config.cartRefillEnabled);
         assertEquals(4.0, config.cartRefillDelayTicks);
         assertEquals(85.0, config.cartRefillChance);
         assertFalse(config.cartRefillAutoClose);
 
-        // Verify HPReaper
         assertTrue(config.hpReaperEnabled);
         assertEquals("damage_diff", config.hpReaperMode);
         assertEquals("players_only", config.hpReaperTargetFilter);
         assertEquals(150, config.hpReaperOwnHealthX);
         assertEquals(250, config.hpReaperOwnHealthY);
 
-        // Verify AutoTool
         assertTrue(config.autoToolEnabled);
         assertFalse(config.autoToolCombatGuard);
         assertTrue(config.autoToolDurabilitySaver);
@@ -282,7 +259,6 @@ public class LegacyConfigMigrationTest {
         assertTrue(config.autoToolPreferSilkTouch);
         assertFalse(config.autoToolRestorePrevious);
 
-        // Verify AutoGG
         assertTrue(config.autoGGEnabled);
         assertEquals("Well Played!", config.autoGGPhrase);
         assertTrue(config.autoGGSendOnKill);
@@ -290,12 +266,10 @@ public class LegacyConfigMigrationTest {
         assertTrue(config.autoGGRandomOrder);
         assertEquals(1500.0, config.autoGGDelayMs);
 
-        // Verify CartHUD
         assertTrue(config.cartHudEnabled);
         assertEquals(220, config.cartHudCustomX);
         assertEquals(330, config.cartHudCustomY);
 
-        // Verify Migration Marker and Invariants
         assertTrue(config.legacyMigrationDone);
         assertEquals(1, config.legacyMigrationVersion);
         Path marker = tempConfigDir.resolve(LegacyConfigMigrator.MIGRATION_MARKER_FILE);
@@ -314,10 +288,8 @@ public class LegacyConfigMigrationTest {
         assertTrue(first);
         assertEquals(175.0, config.autoMaceRestoreDelayMs);
 
-        // Manually modify config after migration
         config.autoMaceRestoreDelayMs = 99.0;
 
-        // Second migration attempt must be a no-op
         boolean second = LegacyConfigMigrator.migrate(config, tempConfigDir);
         assertFalse(second, "Second migration must not run");
         assertEquals(99.0, config.autoMaceRestoreDelayMs, "User changes must not be overwritten by redundant migration");
@@ -342,7 +314,6 @@ public class LegacyConfigMigrationTest {
 
         LegacyConfigMigrator.migrate(config, tempConfigDir);
 
-        // Clamped checks
         assertEquals(50.0, config.autoMaceMissChance, "miss_chance max is 50.0");
         assertEquals(300.0, config.autoMaceRestoreDelayMs, "restore_delay max is 300.0");
         assertEquals(50.0, config.autoToolDurabilityThreshold, "durability_threshold max is 50.0");
@@ -351,11 +322,10 @@ public class LegacyConfigMigrationTest {
 
     @Test
     void testCorruptedLegacyFilesDoNotCrash() throws IOException {
-        // Corrupted JSON
+
         Files.writeString(tempConfigDir.resolve("autotool.json"),
                 "{{NOT_VALID_JSON...", StandardCharsets.UTF_8);
 
-        // Valid properties
         Files.writeString(tempConfigDir.resolve("autoshieldbreaker.properties"),
                 "distance=3.3\n", StandardCharsets.UTF_8);
 
@@ -383,32 +353,28 @@ public class LegacyConfigMigrationTest {
 
     @Test
     void testSecondaryLegacyFileNamesMigration() throws IOException {
-        // AutoCart secondary: morrow.properties
+
         Files.writeString(tempConfigDir.resolve("morrow.properties"),
                 "enabled=true\n" +
                 "preset=safe\n" +
                 "placementChance=88\n",
                 StandardCharsets.UTF_8);
 
-        // AutoSpear secondary: autospear.properties
         Files.writeString(tempConfigDir.resolve("autospear.properties"),
                 "enabled=true\n" +
                 "security_mode=semi_legit\n",
                 StandardCharsets.UTF_8);
 
-        // CartRefill secondary: cartrefill.properties
         Files.writeString(tempConfigDir.resolve("cartrefill.properties"),
                 "enabled=true\n" +
                 "chance=91.0\n",
                 StandardCharsets.UTF_8);
 
-        // HPReaper secondary: vitality_tweaks.properties
         Files.writeString(tempConfigDir.resolve("vitality_tweaks.properties"),
                 "enabled=true\n" +
                 "display_mode=compact\n",
                 StandardCharsets.UTF_8);
 
-        // CartHUD secondary: carthud.properties
         Files.writeString(tempConfigDir.resolve("carthud.properties"),
                 "enabled=true\n" +
                 "custom_x=275\n",
@@ -514,10 +480,8 @@ public class LegacyConfigMigrationTest {
         LegacyConfigImporter.markMigrated(config, tempConfigDir);
         assertTrue(LegacyConfigImporter.isAlreadyMigrated(config, tempConfigDir));
 
-        // Normal migration skipped because already migrated
         assertFalse(LegacyConfigImporter.migrate(config, tempConfigDir));
 
-        // Force migration proceeds even when marker is present
         boolean forced = LegacyConfigImporter.migrate(config, tempConfigDir, true);
         assertTrue(forced, "Force migration must succeed even if marked as migrated");
         assertEquals(180.0, config.autoMaceRestoreDelayMs);

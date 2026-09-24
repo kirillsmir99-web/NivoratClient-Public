@@ -31,11 +31,9 @@ public class PresetManagementTest {
         cfg.windowOpacity = 42.0;
         String exported = ActivityConfigManager.exportPresetString();
 
-        // Reset to defaults
         ActivityConfigManager.resetDefaults();
         assertTrue(ActivityConfigManager.getConfig().autoMaceEnabled);
 
-        // Import back
         boolean ok = ActivityConfigManager.importPresetString(exported);
         assertTrue(ok);
         assertFalse(ActivityConfigManager.getConfig().autoMaceEnabled);
@@ -49,11 +47,9 @@ public class PresetManagementTest {
         cfg.fontFamily = "retro_pixel";
         String base64 = ActivityConfigManager.exportPresetCompact();
 
-        // Reset
         ActivityConfigManager.resetDefaults();
         assertTrue(ActivityConfigManager.getConfig().autoTotemEnabled);
 
-        // Import from base64
         boolean ok = ActivityConfigManager.importPresetString(base64);
         assertTrue(ok);
         assertFalse(ActivityConfigManager.getConfig().autoTotemEnabled);
@@ -67,22 +63,18 @@ public class PresetManagementTest {
         cfg.autoMaceEnabled = false;
         activity.client.config.preset.Preset custom = activity.client.config.preset.PresetManager.createPreset("My Custom PvP", cfg);
 
-        // Mutate current config
         cfg.autoMaceEnabled = true;
         cfg.autoMaceLegitMode = false;
 
-        // Apply custom preset
         ActivityConfigManager.applyPreset(custom.getName());
         assertEquals("My Custom PvP", ActivityConfigManager.getConfig().activeProfile);
         assertFalse(ActivityConfigManager.getConfig().autoMaceEnabled);
         assertTrue(ActivityConfigManager.getConfig().autoMaceLegitMode);
 
-        // Apply default preset
         ActivityConfigManager.applyPreset("default");
         assertEquals("default", ActivityConfigManager.getConfig().activeProfile);
         assertTrue(ActivityConfigManager.getConfig().autoMaceEnabled);
 
-        // Clean up
         activity.client.config.preset.PresetManager.deletePreset(custom.getId());
     }
 

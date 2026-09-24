@@ -35,10 +35,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verification test suite for Phase 4 migration of defense modules:
- * AutoTotem, AutoCart, AutoAnchor, and CartRefill into NivoratClient.
- */
 public class DefenseModulesMigrationTest {
 
     @BeforeAll
@@ -90,10 +86,8 @@ public class DefenseModulesMigrationTest {
         AutoTotemModule totemMod = (AutoTotemModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Default keybind must be unbound
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Check settings presence
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("trigger_hearts"));
         assertNotNull(mod.getSetting("restore_hearts"));
@@ -101,7 +95,6 @@ public class DefenseModulesMigrationTest {
         assertNotNull(mod.getSetting("return_item"));
         assertNotNull(mod.getSetting("return_on_pop"));
 
-        // Mode enum sync
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
         assertEquals(List.of("main_hand", "offhand", "crystal"), modeSetting.getOptions());
 
@@ -117,7 +110,6 @@ public class DefenseModulesMigrationTest {
         assertEquals("main_hand", config.autoTotemMode);
         assertEquals(1, AutoTotemConfig.mode);
 
-        // Trigger hearts sync
         NumberSetting triggerSetting = (NumberSetting) mod.getSetting("trigger_hearts");
         assertEquals(0.5, triggerSetting.getMin(), 0.001);
         assertEquals(10.0, triggerSetting.getMax(), 0.001);
@@ -127,7 +119,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(4.5, config.autoTotemTriggerHearts, 0.001);
         assertEquals(4.5, AutoTotemConfig.triggerHearts, 0.001);
 
-        // Restore hearts sync
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
         assertEquals(0.5, restoreSetting.getMin(), 0.001);
         assertEquals(10.0, restoreSetting.getMax(), 0.001);
@@ -137,7 +128,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(8.5, config.autoTotemRestoreHearts, 0.001);
         assertEquals(8.5, AutoTotemConfig.restoreHearts, 0.001);
 
-        // Chance sync
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
         assertEquals(10.0, chanceSetting.getMin(), 0.001);
         assertEquals(100.0, chanceSetting.getMax(), 0.001);
@@ -145,7 +135,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(90.0, config.autoTotemChance, 0.001);
         assertEquals(90, AutoTotemConfig.chance);
 
-        // Return item sync
         BooleanSetting returnItemSetting = (BooleanSetting) mod.getSetting("return_item");
         returnItemSetting.set(false);
         assertFalse(config.autoTotemReturnItem);
@@ -154,7 +143,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoTotemReturnItem);
         assertTrue(AutoTotemConfig.returnItem);
 
-        // Return on pop sync
         BooleanSetting returnOnPopSetting = (BooleanSetting) mod.getSetting("return_on_pop");
         returnOnPopSetting.set(false);
         assertFalse(config.autoTotemReturnOnPop);
@@ -163,7 +151,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoTotemReturnOnPop);
         assertTrue(AutoTotemConfig.returnOnPop);
 
-        // Refill slot sync
         EnumSetting refillSlotSetting = (EnumSetting) mod.getSetting("refill_slot");
         assertNotNull(refillSlotSetting);
         refillSlotSetting.set("3");
@@ -173,7 +160,6 @@ public class DefenseModulesMigrationTest {
         assertEquals("auto", config.autoTotemRefillSlot);
         assertEquals(-1, AutoTotemConfig.refillSlot);
 
-        // Toggle / setEnabled sync
         totemMod.setEnabled(false);
         assertFalse(totemMod.isEnabled());
         assertFalse(totemMod.getController().isEnabled());
@@ -194,22 +180,18 @@ public class DefenseModulesMigrationTest {
         NumberSetting triggerSetting = (NumberSetting) mod.getSetting("trigger_hearts");
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
 
-        // 0.5 ❤ threshold
         triggerSetting.set(0.5);
         assertEquals(0.5, config.autoTotemTriggerHearts, 0.001);
         assertEquals(0.5, AutoTotemConfig.triggerHearts, 0.001);
 
-        // 1.5 ❤ threshold
         triggerSetting.set(1.5);
         assertEquals(1.5, config.autoTotemTriggerHearts, 0.001);
         assertEquals(1.5, AutoTotemConfig.triggerHearts, 0.001);
 
-        // 2.5 ❤ threshold
         triggerSetting.set(2.5);
         assertEquals(2.5, config.autoTotemTriggerHearts, 0.001);
         assertEquals(2.5, AutoTotemConfig.triggerHearts, 0.001);
 
-        // 5.5 ❤ restore threshold
         restoreSetting.set(5.5);
         assertEquals(5.5, config.autoTotemRestoreHearts, 0.001);
         assertEquals(5.5, AutoTotemConfig.restoreHearts, 0.001);
@@ -222,12 +204,10 @@ public class DefenseModulesMigrationTest {
         AutoCartModule cartMod = (AutoCartModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Default keybind must be Ctrl+Shift+I
         assertEquals(GLFW.GLFW_KEY_I, mod.getKeybind().getKeyCode());
         assertTrue(mod.getKeybind().isCtrl());
         assertTrue(mod.getKeybind().isShift());
 
-        // Check settings presence
         assertNotNull(mod.getSetting("preset"));
         assertNotNull(mod.getSetting("placement_chance"));
         assertNotNull(mod.getSetting("max_distance"));
@@ -239,7 +219,6 @@ public class DefenseModulesMigrationTest {
         assertNotNull(mod.getSetting("legit_mode"));
         assertNotNull(mod.getSetting("use_mainhand_cart"));
 
-        // Preset setting sync
         EnumSetting presetSetting = (EnumSetting) mod.getSetting("preset");
         assertEquals(List.of("fast", "medium", "safe"), presetSetting.getOptions());
 
@@ -264,7 +243,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(70.0, config.autoCartMinDelayMs, 0.001);
         assertEquals(110.0, config.autoCartMaxDelayMs, 0.001);
 
-        // Distance bounds
         NumberSetting distSetting = (NumberSetting) mod.getSetting("max_distance");
         assertEquals(1.5, distSetting.getMin(), 0.001);
         assertEquals(4.5, distSetting.getMax(), 0.001);
@@ -274,7 +252,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(4.0, config.autoCartMaxDistance, 0.001);
         assertEquals(4.0, MorrowConfig.maxDistance, 0.001);
 
-        // Allow self cart
         BooleanSetting selfCartSetting = (BooleanSetting) mod.getSetting("allow_self_cart");
         selfCartSetting.set(true);
         assertTrue(config.autoCartAllowSelfCart);
@@ -283,7 +260,6 @@ public class DefenseModulesMigrationTest {
         assertFalse(config.autoCartAllowSelfCart);
         assertFalse(MorrowConfig.allowSelfCart);
 
-        // Allow pit placement
         BooleanSetting pitSetting = (BooleanSetting) mod.getSetting("allow_pit_placement");
         pitSetting.set(false);
         assertFalse(config.autoCartAllowPitPlacement);
@@ -292,7 +268,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoCartAllowPitPlacement);
         assertTrue(MorrowConfig.allowPitPlacement);
 
-        // Legit mode
         BooleanSetting legitSetting = (BooleanSetting) mod.getSetting("legit_mode");
         legitSetting.set(false);
         assertFalse(config.autoCartLegitMode);
@@ -301,7 +276,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoCartLegitMode);
         assertTrue(MorrowConfig.legitMode);
 
-        // Use main-hand cart
         BooleanSetting useMainhandSetting = (BooleanSetting) mod.getSetting("use_mainhand_cart");
         assertNotNull(useMainhandSetting);
         useMainhandSetting.set(false);
@@ -311,7 +285,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoCartUseMainHand);
         assertTrue(MorrowConfig.useMainhandCart);
 
-        // Controller toggle
         cartMod.setEnabled(false);
         assertFalse(cartMod.isEnabled());
         assertFalse(cartMod.getController().isEnabled());
@@ -328,10 +301,8 @@ public class DefenseModulesMigrationTest {
         AutoAnchorModule anchorMod = (AutoAnchorModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Default keybind must be unbound
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Check settings presence
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("preset"));
         assertNotNull(mod.getSetting("auto_explode"));
@@ -342,7 +313,6 @@ public class DefenseModulesMigrationTest {
         assertNotNull(mod.getSetting("target_charges"));
         assertNotNull(mod.getSetting("legit_mode"));
 
-        // Mode setting sync
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
         assertEquals(List.of("smart", "double"), modeSetting.getOptions());
         assertEquals("smart", config.autoAnchorMode);
@@ -356,7 +326,6 @@ public class DefenseModulesMigrationTest {
         assertEquals("smart", config.autoAnchorMode);
         assertEquals("smart", AnchorConfig.mode);
 
-        // Preset setting sync
         EnumSetting presetSetting = (EnumSetting) mod.getSetting("preset");
         assertEquals(List.of("fast", "medium", "balanced", "safe"), presetSetting.getOptions());
 
@@ -388,7 +357,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(1.0, config.autoAnchorExplodeDelay, 0.001);
         assertEquals(90.0, config.autoAnchorChance, 0.001);
 
-        // Auto explode
         BooleanSetting autoExplodeSetting = (BooleanSetting) mod.getSetting("auto_explode");
         autoExplodeSetting.set(true);
         assertTrue(config.autoAnchorAutoExplode);
@@ -397,7 +365,6 @@ public class DefenseModulesMigrationTest {
         assertFalse(config.autoAnchorAutoExplode);
         assertFalse(AnchorConfig.autoExplode);
 
-        // Auto return
         BooleanSetting autoReturnSetting = (BooleanSetting) mod.getSetting("auto_return");
         autoReturnSetting.set(false);
         assertFalse(config.autoAnchorAutoReturn);
@@ -406,7 +373,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoAnchorAutoReturn);
         assertTrue(AnchorConfig.autoReturn);
 
-        // Target charges
         NumberSetting chargesSetting = (NumberSetting) mod.getSetting("target_charges");
         assertEquals(1.0, chargesSetting.getMin(), 0.001);
         assertEquals(4.0, chargesSetting.getMax(), 0.001);
@@ -415,7 +381,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(3.0, config.autoAnchorTargetCharges, 0.001);
         assertEquals(3, AnchorConfig.targetCharges);
 
-        // Controller toggle
         anchorMod.setEnabled(false);
         assertFalse(anchorMod.isEnabled());
         assertFalse(anchorMod.getController().isEnabled());
@@ -434,17 +399,14 @@ public class DefenseModulesMigrationTest {
         CartRefillModule refillMod = (CartRefillModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Default keybind must be unbound
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Check settings presence
         assertNotNull(mod.getSetting("delay_ticks"));
         assertNotNull(mod.getSetting("chance"));
         assertNotNull(mod.getSetting("auto_close"));
         assertNotNull(mod.getSetting("random_delay"));
         assertNotNull(mod.getSetting("legit_mode"));
 
-        // Delay ticks
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("delay_ticks");
         assertEquals(0.0, delaySetting.getMin(), 0.001);
         assertEquals(10.0, delaySetting.getMax(), 0.001);
@@ -453,7 +415,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(4.0, config.cartRefillDelayTicks, 0.001);
         assertEquals(4, RefillConfig.refillDelayTicks);
 
-        // Chance
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
         assertEquals(10.0, chanceSetting.getMin(), 0.001);
         assertEquals(100.0, chanceSetting.getMax(), 0.001);
@@ -461,7 +422,6 @@ public class DefenseModulesMigrationTest {
         assertEquals(80.0, config.cartRefillChance, 0.001);
         assertEquals(80, RefillConfig.chance);
 
-        // Auto close
         BooleanSetting autoCloseSetting = (BooleanSetting) mod.getSetting("auto_close");
         autoCloseSetting.set(false);
         assertFalse(config.cartRefillAutoClose);
@@ -470,7 +430,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.cartRefillAutoClose);
         assertTrue(RefillConfig.autoClose);
 
-        // Random delay
         BooleanSetting randomDelaySetting = (BooleanSetting) mod.getSetting("random_delay");
         randomDelaySetting.set(false);
         assertFalse(config.cartRefillRandomDelay);
@@ -479,7 +438,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.cartRefillRandomDelay);
         assertTrue(RefillConfig.randomDelay);
 
-        // Legit mode
         BooleanSetting legitSetting = (BooleanSetting) mod.getSetting("legit_mode");
         legitSetting.set(false);
         assertFalse(config.cartRefillLegitMode);
@@ -488,7 +446,6 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.cartRefillLegitMode);
         assertTrue(RefillConfig.legitMode);
 
-        // Controller toggle
         refillMod.setEnabled(false);
         assertFalse(refillMod.isEnabled());
         assertFalse(refillMod.getController().isEnabled());
@@ -530,7 +487,6 @@ public class DefenseModulesMigrationTest {
         CartStateService.notifyCartPlaced(new BlockPos(0, 0, 0));
         assertFalse(placedNotified.get(), "Removed listener must not receive events");
 
-        // Reset
         CartStateService.reset();
     }
 

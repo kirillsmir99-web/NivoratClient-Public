@@ -13,11 +13,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verification test suite for:
- * 1. GUI Session Memory (1-minute TTL tab & module persistence)
- * 2. Brand hover highlight colors on AboutTab social buttons
- */
 public class ActivityScreenSessionTest {
 
     @BeforeEach
@@ -31,7 +26,6 @@ public class ActivityScreenSessionTest {
         assertNull(ActivityScreen.getLastSessionTabId());
         assertNull(ActivityScreen.getLastSessionModuleId());
 
-        // Record a session (e.g. user was in auto_totem under defense tab)
         ActivityScreen.recordSession("defense", "auto_totem");
 
         assertTrue(ActivityScreen.hasValidSession(), "Session must be valid immediately after recording");
@@ -45,7 +39,6 @@ public class ActivityScreenSessionTest {
         ActivityScreen.recordSession("combat", "auto_mace");
         assertTrue(ActivityScreen.hasValidSession());
 
-        // Clear session
         ActivityScreen.clearSession();
         assertFalse(ActivityScreen.hasValidSession(), "Session must not be valid after clear");
         assertNull(ActivityScreen.getLastSessionTabId());
@@ -94,14 +87,12 @@ public class ActivityScreenSessionTest {
         assertNotNull(btnTiktok, "TikTok button must exist");
         assertNotNull(btnDiscord, "Discord button must exist");
 
-        // Verify brand hover colors
         assertEquals(0xFF2AABEE, btnTg.getBrandHoverColor(), "Telegram button must have Telegram blue hover color");
         assertEquals(0xFFFF4757, btnDonate.getBrandHoverColor(), "Donate button must have Heart red hover color");
         assertEquals(0xFFFF0000, btnYoutube.getBrandHoverColor(), "YouTube button must have YouTube red hover color");
         assertEquals(0xFF00F2FE, btnTiktok.getBrandHoverColor(), "TikTok button must have TikTok cyan hover color");
         assertEquals(0xFF5865F2, btnDiscord.getBrandHoverColor(), "Discord button must have Discord blurple hover color");
 
-        // Verify custom textures
         assertEquals(AboutTab.TEXTURE_TELEGRAM, btnTg.getCustomTexture());
         assertEquals(AboutTab.TEXTURE_DONATE, btnDonate.getCustomTexture());
         assertEquals(AboutTab.TEXTURE_YOUTUBE, btnYoutube.getCustomTexture());
@@ -129,7 +120,7 @@ public class ActivityScreenSessionTest {
                 byte[] header = new byte[8];
                 int read = is.read(header);
                 assertEquals(8, read, "Must be able to read 8 byte PNG header for " + iconName);
-                // Verify standard PNG magic bytes: 0x89 'P' 'N' 'G' 0x0D 0x0A 0x1A 0x0A
+
                 assertEquals((byte) 0x89, header[0], iconName + " must have valid PNG magic byte 0");
                 assertEquals((byte) 'P', header[1], iconName + " must have valid PNG magic byte 1");
                 assertEquals((byte) 'N', header[2], iconName + " must have valid PNG magic byte 2");

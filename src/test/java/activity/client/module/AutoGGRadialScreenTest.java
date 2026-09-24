@@ -14,11 +14,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for AutoGGRadialScreen:
- * Polar coordinate calculation, sector hover resolution, radial bounds,
- * central hub detection, autocomplete, default phrases, and phrase limits.
- */
 public class AutoGGRadialScreenTest {
 
     @BeforeEach
@@ -46,16 +41,13 @@ public class AutoGGRadialScreenTest {
         int cy = 200;
         int count = 8;
 
-        // Inside inner radius (distance < 56) -> returns -1
         assertEquals(-1, AutoGGRadialScreen.getHoveredSector(cx, cy, cx, cy, count), "Exact center should be -1");
         assertEquals(-1, AutoGGRadialScreen.getHoveredSector(cx + 30, cy, cx, cy, count), "Distance 30 (< 56) should be -1");
         assertEquals(-1, AutoGGRadialScreen.getHoveredSector(cx, cy - 50, cx, cy, count), "Distance 50 (< 56) should be -1");
 
-        // Beyond outer radius + margin (distance > 164) -> returns -1
         assertEquals(-1, AutoGGRadialScreen.getHoveredSector(cx + 170, cy, cx, cy, count), "Distance 170 (> 164) should be -1");
         assertEquals(-1, AutoGGRadialScreen.getHoveredSector(cx, cy - 200, cx, cy, count), "Distance 200 (> 164) should be -1");
 
-        // Count <= 0 -> returns -1
         assertEquals(-1, AutoGGRadialScreen.getHoveredSector(cx + 80, cy, cx, cy, 0), "Count 0 should be -1");
         assertEquals(-1, AutoGGRadialScreen.getHoveredSector(cx + 80, cy, cx, cy, -1), "Count -1 should be -1");
     }
@@ -66,23 +58,17 @@ public class AutoGGRadialScreenTest {
         int cx = 300;
         int cy = 300;
         int count = 8;
-        int r = 100; // Between 56 and 148
+        int r = 100;
 
-        // Sector 0: Top (approx angle 0 rad from top) -> (cx + 10, cy - r)
-        // Sector 0 spans angle 0 to PI/4 (0 to 45 deg)
-        // Midpoint of sector 0 is at 22.5 deg: dx = r*sin(22.5), dy = -r*cos(22.5)
         double a0 = Math.toRadians(22.5);
         assertEquals(0, AutoGGRadialScreen.getHoveredSector(cx + r * Math.sin(a0), cy - r * Math.cos(a0), cx, cy, count), "Sector 0 (Top)");
 
-        // Sector 2: Right (90 deg from top is border between 1 and 2, mid of sector 2 is 90 + 22.5 = 112.5 deg)
         double a2 = Math.toRadians(112.5);
         assertEquals(2, AutoGGRadialScreen.getHoveredSector(cx + r * Math.sin(a2), cy - r * Math.cos(a2), cx, cy, count), "Sector 2 (East-South-East)");
 
-        // Sector 4: Bottom (mid is 180 + 22.5 = 202.5 deg)
         double a4 = Math.toRadians(202.5);
         assertEquals(4, AutoGGRadialScreen.getHoveredSector(cx + r * Math.sin(a4), cy - r * Math.cos(a4), cx, cy, count), "Sector 4 (South-South-West)");
 
-        // Sector 6: Left (mid is 270 + 22.5 = 292.5 deg)
         double a6 = Math.toRadians(292.5);
         assertEquals(6, AutoGGRadialScreen.getHoveredSector(cx + r * Math.sin(a6), cy - r * Math.cos(a6), cx, cy, count), "Sector 6 (West-North-West)");
     }
@@ -95,7 +81,6 @@ public class AutoGGRadialScreenTest {
         int count = 6;
         int r = 90;
 
-        // 6 sectors of 60 deg each
         for (int i = 0; i < count; i++) {
             double midAngleDeg = i * 60.0 + 30.0;
             double rad = Math.toRadians(midAngleDeg);
@@ -122,20 +107,16 @@ public class AutoGGRadialScreenTest {
     void testHubInsideDetection() {
         int cx = 200;
         int cy = 200;
-        int radius = AutoGGRadialScreen.HUB_RADIUS; // 46
+        int radius = AutoGGRadialScreen.HUB_RADIUS;
 
-        // Exact center
         assertTrue(AutoGGRadialScreen.isInsideHub(cx, cy, cx, cy, radius));
 
-        // Inside points
         assertTrue(AutoGGRadialScreen.isInsideHub(cx + 20, cy, cx, cy, radius));
         assertTrue(AutoGGRadialScreen.isInsideHub(cx, cy - 30, cx, cy, radius));
 
-        // On the boundary (radius 46)
         assertTrue(AutoGGRadialScreen.isInsideHub(cx + radius, cy, cx, cy, radius));
         assertTrue(AutoGGRadialScreen.isInsideHub(cx, cy + radius, cx, cy, radius));
 
-        // Outside boundary
         assertFalse(AutoGGRadialScreen.isInsideHub(cx + radius + 1, cy, cx, cy, radius));
         assertFalse(AutoGGRadialScreen.isInsideHub(cx - radius - 1, cy, cx, cy, radius));
         assertFalse(AutoGGRadialScreen.isInsideHub(cx + 100, cy + 100, cx, cy, radius));
@@ -148,14 +129,12 @@ public class AutoGGRadialScreenTest {
         assertEquals("GGWP", AutoGGRadialScreen.findAutocomplete(""));
         assertEquals("GGWP", AutoGGRadialScreen.findAutocomplete("   "));
 
-        // Prefix matching
         assertEquals("ez", AutoGGRadialScreen.findAutocomplete("e"));
         assertEquals("ez", AutoGGRadialScreen.findAutocomplete("E"));
         assertEquals("GGWP", AutoGGRadialScreen.findAutocomplete("ggw"));
         assertEquals("Good Fight", AutoGGRadialScreen.findAutocomplete("good"));
         assertEquals("Well Played", AutoGGRadialScreen.findAutocomplete("well"));
 
-        // No match returns null
         assertNull(AutoGGRadialScreen.findAutocomplete("xyz123"));
     }
 
@@ -172,7 +151,7 @@ public class AutoGGRadialScreenTest {
             assertTrue(loaded.phrases.size() <= AutoGGConfig.MAX_PHRASES, "Phrases must not exceed MAX_PHRASES (8)");
             assertEquals(8, loaded.phrases.size());
         } finally {
-            // Restore default config
+
             config.phrases = new ArrayList<>(AutoGGConfig.DEFAULT_PHRASES);
             config.selected = 0;
             config.save();
@@ -188,15 +167,13 @@ public class AutoGGRadialScreenTest {
     void testRandomOrderPhraseSelection() {
         AutoGGConfig config = new AutoGGConfig();
         config.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
-        config.selected = 1; // "ez"
+        config.selected = 1;
         config.randomOrder = false;
 
-        // When randomOrder is false, nextPhrase() returns currentPhrase() without mutating selected index
         assertEquals("ez", config.nextPhrase());
         assertEquals("ez", config.nextPhrase());
         assertEquals(1, config.selected);
 
-        // When randomOrder is true, nextPhrase() returns one of the existing phrases
         config.randomOrder = true;
         for (int i = 0; i < 20; i++) {
             String phrase = config.nextPhrase();
@@ -207,7 +184,7 @@ public class AutoGGRadialScreenTest {
     @Test
     @DisplayName("Radial Menu: Precomputed span cache integrity for all sector counts (1 to 8)")
     void testPrecomputedSpanCache() {
-        // Verify Span objects are properly constructed and within radial bounds
+
         AutoGGRadialScreen.Span testSpan = new AutoGGRadialScreen.Span(10, -50, 50);
         assertEquals(10, testSpan.y);
         assertEquals(-50, testSpan.x1);
@@ -255,12 +232,11 @@ public class AutoGGRadialScreenTest {
         AutoGGClient.CONFIG.enabled = true;
         AutoGGClient.CONFIG.sendOnOwnDeath = true;
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
-        AutoGGClient.CONFIG.selected = 1; // "ez"
+        AutoGGClient.CONFIG.selected = 1;
         AutoGGClient.customDelayMs = 500.0;
 
         assertFalse(AutoGGClient.hasPendingPhrase());
 
-        // Player dies -> markOwnDeath()
         AutoGGClient.markOwnDeath();
 
         assertTrue(AutoGGClient.isLocalDiedThisRound());
@@ -268,7 +244,6 @@ public class AutoGGRadialScreenTest {
         assertEquals("ez", AutoGGClient.getPendingPhrase());
         assertTrue(AutoGGClient.getScheduledSendTime() > System.currentTimeMillis());
 
-        // Repeated death call while pending should not overwrite or re-trigger
         AutoGGClient.markOwnDeath();
         assertEquals("ez", AutoGGClient.getPendingPhrase());
 
@@ -299,14 +274,12 @@ public class AutoGGRadialScreenTest {
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
         AutoGGClient.CONFIG.selected = 0;
 
-        // Simulate recently sent 1000ms ago (< 8000ms cooldown)
         AutoGGClient.setLastSentAtForTest(System.currentTimeMillis() - 1000L);
 
         AutoGGClient.markOwnDeath();
 
         assertFalse(AutoGGClient.hasPendingPhrase(), "Phrase must not be scheduled during cooldown");
 
-        // Simulate sent 10_000ms ago (> 8000ms cooldown)
         AutoGGClient.setLastSentAtForTest(System.currentTimeMillis() - 10_000L);
 
         AutoGGClient.markOwnDeath();
@@ -326,7 +299,6 @@ public class AutoGGRadialScreenTest {
         activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
         assertNotNull(config);
 
-        // Set phrases
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
         config.autoGGPhrase = "ez";
         module.syncEngineConfig(config);
@@ -337,11 +309,9 @@ public class AutoGGRadialScreenTest {
         int consumedHeight = module.buildCustomSection(null, null, container, 10, 10, 180);
         assertTrue(consumedHeight > 0);
 
-        // Container should contain star buttons, phrase buttons, delete buttons, add field, and suggestion chips
         List<activity.client.gui.component.ActivityComponent> children = container.getChildren();
         assertTrue(children.size() >= 3 * 3, "Should have widgets for each of the 3 phrases");
 
-        // Verify that one of the buttons is a star button with lit star ★
         boolean hasLitStar = false;
         boolean hasUnlitStar = false;
         for (activity.client.gui.component.ActivityComponent comp : children) {
@@ -354,7 +324,7 @@ public class AutoGGRadialScreenTest {
                     hasUnlitStar = true;
                     assertEquals(activity.client.gui.component.ActivityButton.Variant.SECONDARY, btn.getVariant());
                 }
-                // Assert that "(По умолчанию)" is completely absent from all button labels
+
                 assertFalse(text.contains("По умолчанию"), "Button label must not contain 'По умолчанию'");
             }
         }
@@ -372,11 +342,9 @@ public class AutoGGRadialScreenTest {
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
         AutoGGClient.CONFIG.selected = 0;
 
-        // Legacy configuration contains "Yes"
         config.autoGGPhrase = "Yes";
         module.syncEngineConfig(config);
 
-        // Must be migrated to "ez"
         assertEquals("ez", config.autoGGPhrase, "Legacy 'Yes' phrase must be migrated to 'ez'");
         assertEquals("ez", AutoGGClient.CONFIG.currentPhrase(), "Active selected phrase must be 'ez'");
         assertFalse(AutoGGClient.CONFIG.phrases.contains("Yes"), "Phrases list must never resurrect 'Yes'");
@@ -398,26 +366,23 @@ public class AutoGGRadialScreenTest {
     void testOptimizeSpansCoalescing() {
         List<AutoGGRadialScreen.Span> raw = List.of(
                 new AutoGGRadialScreen.Span(10, 0, 5),
-                new AutoGGRadialScreen.Span(10, 5, 10),  // contiguous with previous
-                new AutoGGRadialScreen.Span(10, 8, 15),  // overlapping
-                new AutoGGRadialScreen.Span(10, 20, 25), // separated
-                new AutoGGRadialScreen.Span(20, -10, 10) // different line
+                new AutoGGRadialScreen.Span(10, 5, 10),
+                new AutoGGRadialScreen.Span(10, 8, 15),
+                new AutoGGRadialScreen.Span(10, 20, 25),
+                new AutoGGRadialScreen.Span(20, -10, 10)
         );
 
         List<AutoGGRadialScreen.Span> optimized = AutoGGRadialScreen.optimizeSpans(raw);
         assertEquals(3, optimized.size(), "Should reduce 5 spans to 3 coalesced spans");
 
-        // Line 10, first merged span: [0, 15]
         assertEquals(10, optimized.get(0).y);
         assertEquals(0, optimized.get(0).x1);
         assertEquals(15, optimized.get(0).x2);
 
-        // Line 10, second separate span: [20, 25]
         assertEquals(10, optimized.get(1).y);
         assertEquals(20, optimized.get(1).x1);
         assertEquals(25, optimized.get(1).x2);
 
-        // Line 20: [-10, 10]
         assertEquals(20, optimized.get(2).y);
         assertEquals(-10, optimized.get(2).x1);
         assertEquals(10, optimized.get(2).x2);
@@ -433,11 +398,9 @@ public class AutoGGRadialScreenTest {
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
         AutoGGClient.CONFIG.selected = 0;
 
-        // Config has uppercase "EZ"
         config.autoGGPhrase = "EZ";
         module.syncEngineConfig(config);
 
-        // Should select phrase at index 1, adopt desired casing, and NOT add a duplicate
         assertEquals("EZ", config.autoGGPhrase);
         assertEquals("EZ", AutoGGClient.CONFIG.phrases.get(AutoGGClient.CONFIG.selected));
         assertEquals(1, AutoGGClient.CONFIG.selected);
@@ -448,12 +411,10 @@ public class AutoGGRadialScreenTest {
     @DisplayName("Radial Menu: Direct phrase sending does NOT alter selected default phrase index")
     void testDirectPhraseSendDoesNotMutateSelectedDefault() {
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
-        AutoGGClient.CONFIG.selected = 0; // "GGWP" is starred default
+        AutoGGClient.CONFIG.selected = 0;
 
-        // Directly send "ez" (simulate sector click)
         AutoGGClient.sendPhraseDirect("ez");
 
-        // Selected index must remain 0 ("GGWP"), and currentPhrase() must still be "GGWP"
         assertEquals(0, AutoGGClient.CONFIG.selected);
         assertEquals("GGWP", AutoGGClient.CONFIG.currentPhrase());
     }
@@ -462,11 +423,10 @@ public class AutoGGRadialScreenTest {
     @DisplayName("AutoGGModule: Adding new phrase preserves currently starred default phrase")
     void testAddPhrasePreservesCurrentDefaultStar() {
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
-        AutoGGClient.CONFIG.selected = 1; // "ez" is currently selected default
+        AutoGGClient.CONFIG.selected = 1;
         String currentDefault = AutoGGClient.CONFIG.currentPhrase();
         assertEquals("ez", currentDefault);
 
-        // Simulate add phrase logic from AutoGGModule
         String newPhrase = "Good Game";
         boolean exists = false;
         for (String p : AutoGGClient.CONFIG.phrases) {
@@ -489,7 +449,6 @@ public class AutoGGRadialScreenTest {
             }
         }
 
-        // Selected index must still point to "ez", NOT to the newly added phrase
         assertEquals(4, AutoGGClient.CONFIG.phrases.size());
         assertEquals("ez", AutoGGClient.CONFIG.currentPhrase());
         assertEquals(1, AutoGGClient.CONFIG.selected);
@@ -499,12 +458,11 @@ public class AutoGGRadialScreenTest {
     @DisplayName("AutoGGModule: Inline phrase editing updates phrases list and syncs default if selected")
     void testInlinePhraseEditing() {
         AutoGGClient.CONFIG.phrases = new ArrayList<>(List.of("GGWP", "ez", "GG"));
-        AutoGGClient.CONFIG.selected = 1; // "ez"
+        AutoGGClient.CONFIG.selected = 1;
         activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
         assertNotNull(config);
         config.autoGGPhrase = "ez";
 
-        // 1. Edit a non-selected phrase (index 0: "GGWP" -> "Well Played")
         int editIdx0 = 0;
         String newVal0 = "Well Played";
         AutoGGClient.CONFIG.phrases.set(editIdx0, newVal0);
@@ -515,7 +473,6 @@ public class AutoGGRadialScreenTest {
         assertEquals(1, AutoGGClient.CONFIG.selected);
         assertEquals("ez", config.autoGGPhrase);
 
-        // 2. Edit the selected phrase (index 1: "ez" -> "easy peasy")
         int editIdx1 = 1;
         String newVal1 = "easy peasy";
         AutoGGClient.CONFIG.phrases.set(editIdx1, newVal1);
@@ -561,7 +518,7 @@ public class AutoGGRadialScreenTest {
                 new AutoGGRadialScreen.Span(-49, 20, 30)
         );
         List<AutoGGRadialScreen.BlockSpan> blocks = AutoGGRadialScreen.coalesceSpans(spans, 1);
-        // Left run and right run should each coalesce vertically into 1 block of height 2
+
         assertEquals(2, blocks.size(), "Two interleaved columns should coalesce into 2 vertical blocks");
 
         boolean foundLeft = false;
@@ -581,8 +538,7 @@ public class AutoGGRadialScreenTest {
     void testKeybindSuppression() {
         String key = "sec:auto_gg:menu_keybind";
         activity.client.module.keybind.KeybindManager.suppressKey(key);
-        // With suppression active, state is stored as TRUE (wasDown = true)
-        // so a subsequent tick will not fire an initial press
+
         assertDoesNotThrow(() -> {
             activity.client.module.keybind.KeybindManager.suppressKey(key);
         });
@@ -592,7 +548,7 @@ public class AutoGGRadialScreenTest {
     @DisplayName("AutoGGModule: openRadialMenu toggles screen closed when already open")
     void testAutoGGModuleToggleClose() {
         activity.client.module.impl.utility.AutoGGModule module = new activity.client.module.impl.utility.AutoGGModule();
-        // Client is null in headless test, but method executes cleanly without NPE
+
         assertDoesNotThrow(() -> module.openRadialMenu(null));
     }
 }

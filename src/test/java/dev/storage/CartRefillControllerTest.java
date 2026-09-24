@@ -16,18 +16,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Dedicated unit test suite for CartRefill dynamic Fast Legit randomizer and screen safety.
- *
- * <p>Requirements covered:
- * <ul>
- *   <li>Test 1: Verify dynamic 2-4 tick bounds over 1,000 iterations for open, swap, and close steps.</li>
- *   <li>Test 2: Verify millisecond spread strictly within 60-180 ms over 1,000 iterations.</li>
- *   <li>Test 3: Verify statistical independence: sampling open, swap, and close produces distinct values.</li>
- *   <li>Test 4: Verify screen safety: manually opened InventoryScreen (openedByRefill == false) is never closed.</li>
- *   <li>Test 5: Verify screen safety: container screens (e.g. chests) are never closed.</li>
- * </ul>
- */
 public class CartRefillControllerTest {
 
     private CartRefillController controller;
@@ -107,7 +95,6 @@ public class CartRefillControllerTest {
             swapTicksSeen.add(swapTicks);
             closeTicksSeen.add(closeTicks);
 
-            // Also verify direct GaussianTimingEngine helper methods
             int engineOpen = GaussianTimingEngine.getFastLegitRefillOpenDelayTicks();
             int engineSwap = GaussianTimingEngine.getFastLegitRefillSwapDelayTicks();
             int engineClose = GaussianTimingEngine.getFastLegitRefillCloseDelayTicks();
@@ -117,7 +104,6 @@ public class CartRefillControllerTest {
             assertTrue(engineClose >= 2 && engineClose <= 4);
         }
 
-        // Dynamic verification: over 1,000 iterations, the distribution must produce variation (not a static fixed value)
         assertTrue(openTicksSeen.size() >= 2,
             "Open ticks distribution must be dynamic and produce variation. Seen: " + openTicksSeen);
         assertTrue(swapTicksSeen.size() >= 2,
@@ -125,7 +111,6 @@ public class CartRefillControllerTest {
         assertTrue(closeTicksSeen.size() >= 2,
             "Close ticks distribution must be dynamic and produce variation. Seen: " + closeTicksSeen);
 
-        // Verify bounds constants on engine
         assertEquals(2, GaussianTimingEngine.FAST_LEGIT_MIN_TICKS);
         assertEquals(4, GaussianTimingEngine.FAST_LEGIT_MAX_TICKS);
     }
@@ -166,7 +151,6 @@ public class CartRefillControllerTest {
             maxClose = Math.max(maxClose, closeMs);
             sumClose += closeMs;
 
-            // Direct engine method verification
             long engineOpenMs = GaussianTimingEngine.getFastLegitRefillOpenDelayMs();
             long engineSwapMs = GaussianTimingEngine.getFastLegitRefillSwapDelayMs();
             long engineCloseMs = GaussianTimingEngine.getFastLegitRefillCloseDelayMs();
@@ -175,12 +159,10 @@ public class CartRefillControllerTest {
             assertTrue(engineCloseMs >= 60L && engineCloseMs <= 180L);
         }
 
-        // Verify non-trivial spread across 1,000 samples
         assertTrue(maxOpen - minOpen >= 40L, "Open ms must exhibit organic spread. Span: " + (maxOpen - minOpen));
         assertTrue(maxSwap - minSwap >= 40L, "Swap ms must exhibit organic spread. Span: " + (maxSwap - minSwap));
         assertTrue(maxClose - minClose >= 40L, "Close ms must exhibit organic spread. Span: " + (maxClose - minClose));
 
-        // Verify empirical mean is close to theoretical Gaussian mean
         double avgOpen = sumOpen / iterations;
         double avgSwap = sumSwap / iterations;
         double avgClose = sumClose / iterations;
@@ -212,17 +194,14 @@ public class CartRefillControllerTest {
             swapVals[i] = swapMs;
             closeVals[i] = closeMs;
 
-            // Across three Gaussian samplings, all three values should rarely if ever be exactly equal
             if (openMs != swapMs || swapMs != closeMs) {
                 nonIdenticalTriplets++;
             }
         }
 
-        // At least 99% of samples must have distinct values among steps
         assertTrue(nonIdenticalTriplets >= 990,
             "Open, swap, and close steps must be independently sampled, observed distinct count: " + nonIdenticalTriplets);
 
-        // Compute Pearson correlation between open and swap, and swap and close
         double rOpenSwap = computePearsonCorrelation(openVals, swapVals);
         double rSwapClose = computePearsonCorrelation(swapVals, closeVals);
 
@@ -239,13 +218,11 @@ public class CartRefillControllerTest {
         InventoryScreen manualScreen = allocateMockInventoryScreen();
         client.currentScreen = manualScreen;
 
-        // 1. Verify screen safety evaluation predicate
         assertFalse(controller.shouldCloseScreen(manualScreen, false),
             "shouldCloseScreen must return false when openedByRefill == false");
         assertTrue(controller.shouldCloseScreen(manualScreen, true),
             "shouldCloseScreen must return true when openedByRefill == true and autoClose == true");
 
-        // 2. Verify finishRefill execution when openedByRefill == false
         controller.setStateForTest(CartRefillController.State.WAITING_CLOSE, 0, false);
         controller.finishRefill(client);
 
@@ -254,7 +231,6 @@ public class CartRefillControllerTest {
         assertEquals(CartRefillController.State.IDLE, controller.getState());
         assertFalse(controller.isOpenedByRefill());
 
-        // 3. Verify screen safety even if autoClose is false
         RefillConfig.autoClose = false;
         assertFalse(controller.shouldCloseScreen(manualScreen, true),
             "shouldCloseScreen must return false when autoClose is disabled");
@@ -270,7 +246,6 @@ public class CartRefillControllerTest {
 
         client.currentScreen = chestScreen;
 
-        // 1. Verify predicate safety for non-InventoryScreen screens regardless of openedByRefill flag
         assertFalse(controller.shouldCloseScreen(chestScreen, false),
             "Chest screen must never be flagged for closing (openedByRefill = false)");
         assertFalse(controller.shouldCloseScreen(chestScreen, true),
@@ -280,7 +255,6 @@ public class CartRefillControllerTest {
         assertFalse(controller.shouldCloseScreen(anvilScreen, true),
             "Anvil screen must never be flagged for closing");
 
-        // 2. Verify finishRefill execution with container screen active
         controller.setStateForTest(CartRefillController.State.WAITING_CLOSE, 0, true);
         controller.finishRefill(client);
 
@@ -289,10 +263,9 @@ public class CartRefillControllerTest {
         assertEquals(CartRefillController.State.IDLE, controller.getState());
         assertFalse(controller.isOpenedByRefill());
 
-        // 3. Verify controller suspends and resets without closing screen when a container is open
         client.currentScreen = furnaceScreen;
         controller.setStateForTest(CartRefillController.State.WAITING_OPEN, 3, false);
-        // Direct safety check: controller reset clears internal state without touching client.currentScreen
+
         controller.reset();
         assertSame(furnaceScreen, client.currentScreen,
             "Furnace screen must remain active after controller reset");

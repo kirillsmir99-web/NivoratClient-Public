@@ -34,7 +34,7 @@ public class SearchControllerTest {
     void testSearchBySettingName() {
         List<SearchController.SearchResult> results = SearchController.search("задержка", 10);
         assertFalse(results.isEmpty());
-        // Should find settings related to delay across modules
+
         boolean foundDelaySetting = results.stream()
             .anyMatch(r -> r.entry().settingId() != null && r.entry().settingId().contains("delay"));
         assertTrue(foundDelaySetting);
@@ -94,18 +94,15 @@ public class SearchControllerTest {
         assertFalse(defense.isUserExpanded());
         assertFalse(defense.isSearchExpanded());
 
-        // Apply search that matches defense category
         tree.applySearchFilter("тотем");
         assertTrue(defense.isExpanded(), "Matching category should auto-expand during search");
         assertTrue(defense.isSearchExpanded());
         assertFalse(defense.isUserExpanded());
 
-        // Clear search
         tree.applySearchFilter("");
         assertFalse(defense.isExpanded(), "Category should collapse back when search is cleared");
         assertFalse(defense.isSearchExpanded());
 
-        // If user manually expands category, clearing search should keep it expanded
         defense.setUserExpanded(true);
         defense.setExpanded(true);
         tree.applySearchFilter("тотем");
@@ -132,7 +129,7 @@ public class SearchControllerTest {
 
     @Test
     void testTranslationKeysInSearchController() {
-        // Shield breaker chance key
+
         SearchController.SearchEntry breakerChance = SearchController.getIndex().stream()
             .filter(e -> "combat".equals(e.categoryId()) && "auto_shieldbreaker".equals(e.moduleId()) && "breaker_chance".equals(e.settingId()))
             .findFirst().orElseThrow();
@@ -140,7 +137,6 @@ public class SearchControllerTest {
             assertEquals("activity.setting.combat.chance_label", ttc.getKey());
         }
 
-        // Motion audio card key
         SearchController.SearchEntry motionAudio = SearchController.getIndex().stream()
             .filter(e -> "settings".equals(e.categoryId()) && "motion_audio".equals(e.moduleId()) && e.settingId() == null)
             .findFirst().orElseThrow();
@@ -148,7 +144,6 @@ public class SearchControllerTest {
             assertEquals("activity.card.interface.audio", ttc.getKey());
         }
 
-        // Presets card key
         SearchController.SearchEntry presets = SearchController.getIndex().stream()
             .filter(e -> "settings".equals(e.categoryId()) && "presets".equals(e.moduleId()) && e.settingId() == null)
             .findFirst().orElseThrow();
@@ -156,7 +151,6 @@ public class SearchControllerTest {
             assertEquals("activity.card.settings.presets", ttc.getKey());
         }
 
-        // Active preset setting key
         SearchController.SearchEntry activePreset = SearchController.getIndex().stream()
             .filter(e -> "settings".equals(e.categoryId()) && "presets".equals(e.moduleId()) && "active_preset".equals(e.settingId()))
             .findFirst().orElseThrow();
@@ -173,12 +167,10 @@ public class SearchControllerTest {
         assertTrue(bar.isFocused());
         assertTrue(bar.isPopupOpen());
 
-        // Blur focus closes popup
         bar.setFocused(false);
         assertFalse(bar.isFocused());
         assertFalse(bar.isPopupOpen());
 
-        // Clear resets everything
         bar.clear();
         assertEquals("", bar.getText());
         assertFalse(bar.isPopupOpen());
@@ -206,12 +198,10 @@ public class SearchControllerTest {
         bar.setFocused(true);
         assertTrue(bar.isPopupOpen());
 
-        // Mouse coordinates inside popup bounds
         assertTrue(bar.isMouseOverPopup(55, 75));
         assertFalse(bar.isMouseOverPopup(5, 5));
         assertFalse(bar.isMouseOverPopup(350, 350));
 
-        // When blurred, popup closes and popup bounds no longer intercept
         bar.setFocused(false);
         assertFalse(bar.isPopupOpen());
         assertFalse(bar.isMouseOverPopup(55, 75));
@@ -319,29 +309,24 @@ public class SearchControllerTest {
         activity.client.gui.layout.ScrollContainer sc = new activity.client.gui.layout.ScrollContainer(0, 0, 300, 400);
         combatTab.buildTab(null, sc, 10, 10, 280);
 
-        // All 4 modules originally visible
         assertTrue(combatTab.getModuleCards().size() >= 4);
         assertTrue(combatTab.getModuleCard("auto_mace").isVisible());
         assertTrue(combatTab.getModuleCard("auto_spear").isVisible());
         assertTrue(combatTab.getModuleCard("auto_shieldbreaker").isVisible());
         assertTrue(combatTab.getModuleCard("auto_stun_slam").isVisible());
 
-        // Search for "копье": only auto_spear matches
         combatTab.applySearchFilter(sc, "копье");
         assertTrue(combatTab.getModuleCard("auto_spear").isVisible(), "AutoSpear must be visible for 'копье'");
         assertFalse(combatTab.getModuleCard("auto_mace").isVisible(), "AutoMace must be hidden for 'копье'");
         assertFalse(combatTab.getModuleCard("auto_shieldbreaker").isVisible(), "AutoShieldbreaker must be hidden for 'копье'");
         assertFalse(combatTab.getModuleCard("auto_stun_slam").isVisible(), "AutoStunSlam must be hidden for 'копье'");
 
-        // Search for "тотем" (which belongs to Defense, 0 matches in CombatTab):
-        // Requirement: "При search: показывать только relevant settings/modules"
         combatTab.applySearchFilter(sc, "тотем");
         assertFalse(combatTab.getModuleCard("auto_mace").isVisible(), "AutoMace must be hidden for 'тотем'");
         assertFalse(combatTab.getModuleCard("auto_spear").isVisible(), "AutoSpear must be hidden for 'тотем'");
         assertFalse(combatTab.getModuleCard("auto_shieldbreaker").isVisible(), "AutoShieldbreaker must be hidden for 'тотем'");
         assertFalse(combatTab.getModuleCard("auto_stun_slam").isVisible(), "AutoStunSlam must be hidden for 'тотем'");
 
-        // Clear search: all modules restored
         combatTab.applySearchFilter(sc, "");
         assertTrue(combatTab.getModuleCard("auto_mace").isVisible());
         assertTrue(combatTab.getModuleCard("auto_spear").isVisible());

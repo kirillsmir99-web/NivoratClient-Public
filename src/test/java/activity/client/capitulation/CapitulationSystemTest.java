@@ -35,7 +35,7 @@ public class CapitulationSystemTest {
     @Test
     @DisplayName("Capitulation disables all modules in memory and purges dispatchers")
     void testCapitulationDeactivatesAllModules() {
-        // Enable several modules
+
         for (IModule module : ModuleRegistry.getAll()) {
             module.setEnabled(true);
         }
@@ -44,26 +44,21 @@ public class CapitulationSystemTest {
         assertTrue(ModuleEventDispatcher.getActiveTickModules().length > 0, "Active tick modules must be present");
         assertTrue(ModuleEventDispatcher.getActiveAttackModules().length > 0, "Active attack modules must be present");
 
-        // Trigger capitulation
         CapitulationManager.capitulate(null);
 
         assertTrue(CapitulationManager.isCapitulated(), "Capitulation flag must be true");
 
-        // All modules should now be disabled
         for (IModule module : ModuleRegistry.getAll()) {
             assertFalse(module.isEnabled(), "Module " + module.getId() + " must be disabled after capitulation");
         }
 
-        // Active dispatcher arrays must be empty
         assertEquals(0, ModuleEventDispatcher.getActiveTickModules().length, "Active tick modules must be 0");
         assertEquals(0, ModuleEventDispatcher.getActiveAttackModules().length, "Active attack modules must be 0");
         assertEquals(0, ModuleEventDispatcher.getActiveHudModules().length, "Active hud modules must be 0");
 
-        // Calling onAttackEntity during capitulation must immediately pass
         ActionResult attackResult = ModuleEventDispatcher.onAttackEntity(null, null, null, null, null);
         assertEquals(ActionResult.PASS, attackResult, "Attack entity must pass with zero evaluation");
 
-        // Rebuilding active modules during capitulation must remain empty
         ModuleEventDispatcher.updateActiveModules();
         assertEquals(0, ModuleEventDispatcher.getActiveTickModules().length);
     }
@@ -74,17 +69,14 @@ public class CapitulationSystemTest {
         CapitulationManager.capitulate(null);
         assertTrue(CapitulationManager.isCapitulated());
 
-        // Attempting to re-enable a module and update active modules
         for (IModule module : ModuleRegistry.getAll()) {
             module.setEnabled(true);
         }
         ModuleEventDispatcher.updateActiveModules();
 
-        // While capitulated, active modules cannot be populated
         assertEquals(0, ModuleEventDispatcher.getActiveTickModules().length);
         assertEquals(0, ModuleEventDispatcher.getActiveAttackModules().length);
 
-        // Reset simulating game restart
         CapitulationManager.resetForTesting();
         assertFalse(CapitulationManager.isCapitulated());
 
@@ -98,7 +90,6 @@ public class CapitulationSystemTest {
         CapitulationManager.capitulate(null);
         assertTrue(CapitulationManager.isCapitulated());
 
-        // Attempting to save config when capitulated must return false and touch zero disk files
         boolean saved = activity.client.config.ActivityConfigManager.save();
         assertFalse(saved, "Config save must be blocked during capitulation");
     }
@@ -106,14 +97,13 @@ public class CapitulationSystemTest {
     @Test
     @DisplayName("Capitulation purges in-memory search keyword index and config models from heap")
     void testHeapPurgeDuringCapitulation() {
-        // Before capitulation, search index has entries
+
         assertFalse(activity.client.gui.search.SearchController.search("mace", 5).isEmpty());
 
         CapitulationManager.capitulate(null);
 
-        // After capitulation, search index is completely purged from heap
         assertTrue(activity.client.gui.search.SearchController.search("mace", 5).isEmpty());
-        // Configuration in memory is replaced with empty unconfigured defaults
+
         assertTrue(activity.client.config.ActivityConfigManager.getConfig().menuKeybind.isUnbound());
     }
 }

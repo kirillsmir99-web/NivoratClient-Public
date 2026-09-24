@@ -19,10 +19,6 @@ import org.lwjgl.glfw.GLFW;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests verifying dual keybind functionality:
- * AutoSpear toggle vs trigger keybinds, and AutoGG toggle vs radial menu keybinds.
- */
 public class DualKeybindsIntegrationTest {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -43,10 +39,8 @@ public class DualKeybindsIntegrationTest {
         AutoSpearModule module = (AutoSpearModule) ModuleRegistry.get(AutoSpearModule.ID);
         assertNotNull(module, "AutoSpearModule must be registered");
 
-        // Module toggle keybind should be unbound by default to avoid collision with TAB trigger
         assertTrue(module.getKeybind().isUnbound(), "AutoSpear primary toggle keybind must be unbound by default");
 
-        // Setting trigger_keybind must exist and default to TAB
         Setting<?> triggerSetting = module.getSetting("trigger_keybind");
         assertNotNull(triggerSetting, "trigger_keybind setting must exist on AutoSpearModule");
         assertTrue(triggerSetting instanceof KeybindSetting, "trigger_keybind must be a KeybindSetting");
@@ -82,18 +76,15 @@ public class DualKeybindsIntegrationTest {
         assertEquals(GLFW.GLFW_KEY_G, config.autoGGMenuKeybind.getKeyCode());
         assertTrue(config.autoSpearKeybind.isUnbound());
 
-        // Modify keys
         config.autoSpearTriggerKeybind.set(GLFW.GLFW_KEY_V, true, false, false);
         config.autoGGMenuKeybind.set(GLFW.GLFW_KEY_H, false, false, false);
 
-        // Test copy
         ActivityConfig copy = config.copy();
         assertEquals(GLFW.GLFW_KEY_V, copy.autoSpearTriggerKeybind.getKeyCode());
         assertTrue(copy.autoSpearTriggerKeybind.isCtrl());
         assertEquals(GLFW.GLFW_KEY_H, copy.autoGGMenuKeybind.getKeyCode());
         assertEquals(config, copy);
 
-        // Test JSON round-trip
         String json = GSON.toJson(config);
         ActivityConfig deserialized = GSON.fromJson(json, ActivityConfig.class);
         assertEquals(GLFW.GLFW_KEY_V, deserialized.autoSpearTriggerKeybind.getKeyCode());
@@ -116,7 +107,6 @@ public class DualKeybindsIntegrationTest {
         );
         setting.onPress(client -> triggered[0] = true);
 
-        // Trigger press with null client (unit test environment)
         setting.triggerPress(null);
         assertTrue(triggered[0], "onPress callback must be invoked when triggerPress is called");
     }

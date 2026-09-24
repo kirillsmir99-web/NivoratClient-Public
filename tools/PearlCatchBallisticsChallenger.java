@@ -5,10 +5,6 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
 
-/**
- * Challenger empirical stress harness executing directly against compiled
- * dev.kinetictweaks.trajectory.PearlCatchTrajectory.
- */
 public class PearlCatchBallisticsChallenger {
 
     record TestCase(String group, String name, Vec3d vel, float yaw, boolean onGround) {}
@@ -53,7 +49,6 @@ public class PearlCatchBallisticsChallenger {
         }
         System.out.printf("\nSystematic Failures (> 0.5 blocks): %d / %d\n", systematicFailures, cases.size());
 
-        // Phase 2: 10,000 Monte Carlo samples in Java
         System.out.println("\n================================================================================");
         System.out.println("[PHASE 2] Executing 10,000 Java Monte Carlo Stress Cases (delay=2)...");
         Random rng = new Random(1337L);
@@ -69,7 +64,7 @@ public class PearlCatchBallisticsChallenger {
             double hAngle = rng.nextDouble() * 2.0 * Math.PI;
             double vx = hSpeed * Math.cos(hAngle);
             double vz = hSpeed * Math.sin(hAngle);
-            double vy = onGround ? 0.0 : (rng.nextDouble() * 3.0 - 1.2); // vy in [-1.2, 1.8]
+            double vy = onGround ? 0.0 : (rng.nextDouble() * 3.0 - 1.2);
 
             Vec3d vel = new Vec3d(vx, vy, vz);
             PearlCatchTrajectory.Solution sol = PearlCatchTrajectory.solve3D(2, yaw, vel, onGround, -1.0f);
@@ -104,7 +99,6 @@ public class PearlCatchBallisticsChallenger {
         System.out.printf("  Threshold (<= 0.5): %s\n", (maxMc <= 0.5 ? "MET" : "VIOLATED"));
         System.out.printf("  Monte Carlo Failures: %d / %d\n", mcFailures, mcSamples);
 
-        // Phase 3: Explicit Required Movement Profiles
         System.out.println("\n================================================================================");
         System.out.println("[PHASE 3] Explicit Verification of Required Motion Profiles");
         System.out.println("================================================================================");
@@ -201,7 +195,6 @@ public class PearlCatchBallisticsChallenger {
     private static List<TestCase> buildSystematicCases() {
         List<TestCase> cases = new ArrayList<>();
 
-        // 1. Stationary
         for (float yaw : new float[]{0.0f, 45.0f, 90.0f, 180.0f, 270.0f, -90.0f}) {
             for (boolean ground : new boolean[]{true, false}) {
                 cases.add(new TestCase("Stationary", String.format("Stationary yaw=%.0f ground=%b", yaw, ground),
@@ -209,7 +202,6 @@ public class PearlCatchBallisticsChallenger {
             }
         }
 
-        // 2. Forward Sprinting
         for (double speed : new double[]{0.20, 0.25, 0.28, 0.35}) {
             for (float yaw : new float[]{0.0f, 45.0f, 90.0f, 180.0f, -90.0f}) {
                 double rad = Math.toRadians(yaw);
@@ -220,7 +212,6 @@ public class PearlCatchBallisticsChallenger {
             }
         }
 
-        // 3. Diagonal Sprinting
         double[][] diagSpeeds = new double[][]{
                 {0.2, 0.2}, {-0.2, 0.2}, {0.2, -0.2}, {-0.2, -0.2},
                 {0.28 / Math.sqrt(2), 0.28 / Math.sqrt(2)},
@@ -233,7 +224,6 @@ public class PearlCatchBallisticsChallenger {
             }
         }
 
-        // 4. Weak Wind Jump (vy = 0.1, 0.2, 0.3, 0.4)
         for (double vy : new double[]{0.1, 0.2, 0.3, 0.4}) {
             for (double hSpeed : new double[]{0.0, 0.15, 0.28}) {
                 for (float yaw : new float[]{0.0f, 90.0f}) {
@@ -246,7 +236,6 @@ public class PearlCatchBallisticsChallenger {
             }
         }
 
-        // 5. Standard Wind Jump (vy = 0.6, 0.8, 0.9, 1.0)
         for (double vy : new double[]{0.6, 0.8, 0.9, 1.0}) {
             for (double hSpeed : new double[]{0.0, 0.15, 0.28}) {
                 for (float yaw : new float[]{0.0f, 45.0f, 90.0f}) {
@@ -259,7 +248,6 @@ public class PearlCatchBallisticsChallenger {
             }
         }
 
-        // 6. Max Boost Wind Jump (vy = 1.2, 1.45, 1.6, 1.8)
         for (double vy : new double[]{1.2, 1.45, 1.6, 1.8}) {
             for (double hSpeed : new double[]{0.0, 0.15, 0.28}) {
                 for (float yaw : new float[]{0.0f, 45.0f, 90.0f}) {
@@ -272,7 +260,6 @@ public class PearlCatchBallisticsChallenger {
             }
         }
 
-        // 7. Falling (vy = -0.1, -0.2, -0.4, -0.6, -0.8, -1.0, -1.2)
         for (double vy : new double[]{-0.1, -0.2, -0.4, -0.6, -0.8, -1.0, -1.2}) {
             for (double hSpeed : new double[]{0.0, 0.15, 0.28}) {
                 for (float yaw : new float[]{0.0f, 45.0f, 90.0f}) {
@@ -285,7 +272,6 @@ public class PearlCatchBallisticsChallenger {
             }
         }
 
-        // 8. Lateral Strafe
         for (double strafe : new double[]{-0.28, 0.28}) {
             cases.add(new TestCase("LateralStrafe", String.format("LateralStrafe vx=%.2f yaw=0.0", strafe),
                     new Vec3d(strafe, 0.0, 0.0), 0.0f, true));

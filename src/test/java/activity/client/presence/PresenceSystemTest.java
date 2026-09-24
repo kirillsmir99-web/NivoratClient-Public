@@ -34,12 +34,11 @@ public class PresenceSystemTest {
     @Test
     @DisplayName("DevPeerTracker: Case-insensitive nickname lookup and null safety")
     void testDevPeerTrackerMatching() {
-        // Safe rejection on null or blank names
+
         assertFalse(DevPeerTracker.isPeer(null));
         assertFalse(DevPeerTracker.isPeer(""));
         assertFalse(DevPeerTracker.isPeer("   "));
 
-        // When testing with mock peer, verify case-insensitivity
         DevPeerTracker.setMockPeer("CoolGamer_99", true);
         if (NivoratDev.IS_DEV) {
             assertTrue(DevPeerTracker.isPeer("CoolGamer_99"));

@@ -23,10 +23,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verification test suite for Stage 9: About NivoratClient, Primary Actions, Compact Social Row,
- * and Toast Notification on URL Open Failure.
- */
 public class AboutTabSystemTest {
 
     private AboutTab.UrlOpener originalOpener;
@@ -60,7 +56,6 @@ public class AboutTabSystemTest {
         AboutTab aboutTab = new AboutTab();
         ScrollContainer container = new ScrollContainer(0, 0, 400, 300);
 
-        // Build in two-column mode
         aboutTab.buildTab(null, container, 0, 0, 480);
 
         ActivityPanel infoCard = aboutTab.getModuleCard("about_info");
@@ -91,13 +86,6 @@ public class AboutTabSystemTest {
             }
         }
 
-        // Expected buttons:
-        // 1. Copy Watermark (@virionDEV)
-        // 2. Telegram (Primary, height 24)
-        // 3. Поддержать автора (Primary, height 24)
-        // 4. YouTube (Secondary, height 20)
-        // 5. TikTok (Secondary, height 20)
-        // 6. Discord (Secondary, height 20)
         assertTrue(allButtons.size() >= 6, "Must contain copy watermark, 2 primary actions, and 3 secondary socials");
 
         ActivityButton btnTg = null;
@@ -120,13 +108,11 @@ public class AboutTabSystemTest {
         assertNotNull(btnTiktok, "TikTok button with TIKTOK icon must exist");
         assertNotNull(btnDiscord, "Discord button with DISCORD icon must exist");
 
-        // Primary actions are larger and styled with PRIMARY variant
         assertEquals(ActivityButton.Variant.PRIMARY, btnTg.getVariant());
         assertEquals(ActivityButton.Variant.PRIMARY, btnDonate.getVariant());
         assertEquals(24, btnTg.getHeight());
         assertEquals(24, btnDonate.getHeight());
 
-        // Secondary socials are compact with SECONDARY variant
         assertEquals(ActivityButton.Variant.SECONDARY, btnYoutube.getVariant());
         assertEquals(ActivityButton.Variant.SECONDARY, btnTiktok.getVariant());
         assertEquals(ActivityButton.Variant.SECONDARY, btnDiscord.getVariant());
@@ -134,7 +120,6 @@ public class AboutTabSystemTest {
         assertEquals(20, btnTiktok.getHeight());
         assertEquals(20, btnDiscord.getHeight());
 
-        // Primary actions height > Secondary socials height
         assertTrue(btnTg.getHeight() > btnYoutube.getHeight());
         assertTrue(btnDonate.getHeight() > btnYoutube.getHeight());
     }
@@ -153,7 +138,7 @@ public class AboutTabSystemTest {
 
     @Test
     void testOpenUrlFailureShowsToastOnOverlayManager() {
-        // Mock opener that throws an exception
+
         AboutTab.URL_OPENER = url -> {
             throw new IOException("Unable to find default browser on system");
         };
@@ -161,7 +146,6 @@ public class AboutTabSystemTest {
         OverlayManager overlayManager = new OverlayManager();
         assertFalse(overlayManager.hasActiveOverlay());
 
-        // Build a mock screen or invoke showOpenUrlErrorToast
         AtomicReference<ToastOverlay> presentedToast = new AtomicReference<>();
         ToastOverlay toast = ToastOverlay.forUrlError(AboutTab.URL_TELEGRAM);
         overlayManager.open(toast);
@@ -176,12 +160,10 @@ public class AboutTabSystemTest {
         assertEquals(ActivityIcon.COPY, activeToast.getActionButton().getIcon());
         assertNotNull(activeToast.getCloseButton());
 
-        // Verify non-blocking click behavior
         assertFalse(activeToast.blocksBackgroundClicks());
         assertFalse(activeToast.shouldCloseOnClickOutside());
         assertTrue(activeToast.shouldCloseOnEsc());
 
-        // Verify outside click does NOT get consumed by OverlayManager
         Click outsideClick = new Click(9999, 9999, new net.minecraft.client.input.MouseInput(0, 0));
         boolean consumedOutside = overlayManager.mouseClicked(outsideClick, false);
         assertFalse(consumedOutside, "Non-blocking toast must allow outside clicks to pass through to screen widgets");
@@ -204,11 +186,9 @@ public class AboutTabSystemTest {
         assertNotNull(toast.getActionButton());
         assertEquals(ActivityButton.Variant.PRIMARY, toast.getActionButton().getVariant());
 
-        // Trigger action
         toast.performAction();
         assertTrue(actionExecuted.get());
 
-        // Set action success
         toast.setActionSuccess(Text.literal("Ссылка скопирована!"));
         assertEquals(ActivityIcon.CHECK, toast.getActionButton().getIcon());
         assertFalse(toast.getActionButton().isEnabled());
@@ -235,7 +215,6 @@ public class AboutTabSystemTest {
     void testMultiOverlayInteractionModalAndToast() {
         OverlayManager overlayManager = new OverlayManager();
 
-        // 1. Open a full-screen Modal that blocks background clicks
         AtomicBoolean modalClicked = new AtomicBoolean(false);
         Overlay modal = new Overlay() {
             private boolean closed = false;
@@ -250,33 +229,26 @@ public class AboutTabSystemTest {
         };
         overlayManager.open(modal);
 
-        // 2. Open a non-blocking Toast on top
         ToastOverlay toast = ToastOverlay.forUrlError(AboutTab.URL_TELEGRAM);
         overlayManager.open(toast);
 
         assertTrue(overlayManager.hasActiveOverlay());
 
-        // 3. Click on the modal (outside toast bounds)
-        // Expected: click reaches the modal beneath the toast, rather than leaking to background
         Click clickModal = new Click(100, 100, new net.minecraft.client.input.MouseInput(0, 0));
         boolean consumedModal = overlayManager.mouseClicked(clickModal, false);
         assertTrue(consumedModal, "Click on modal beneath toast must be consumed");
         assertTrue(modalClicked.get(), "Modal must receive the mouse click");
 
-        // 4. Click outside both modal and toast
-        // Expected: blocked from reaching background because modal.blocksBackgroundClicks() is true
         Click clickOutside = new Click(999, 999, new net.minecraft.client.input.MouseInput(0, 0));
         boolean consumedOutside = overlayManager.mouseClicked(clickOutside, false);
         assertTrue(consumedOutside, "Click outside modal must be consumed by modal's click-through protection");
 
-        // 5. Escape key priority: Toast closes first, Modal remains active
-        net.minecraft.client.input.KeyInput escInput = new net.minecraft.client.input.KeyInput(256, 1, 0); // GLFW_KEY_ESCAPE = 256
+        net.minecraft.client.input.KeyInput escInput = new net.minecraft.client.input.KeyInput(256, 1, 0);
         boolean handledEsc1 = overlayManager.keyPressed(escInput);
         assertTrue(handledEsc1);
         assertTrue(toast.isClosed() || toast.isClosing());
         assertFalse(modal.isClosed(), "Modal must remain open after first escape dismisses toast");
 
-        // 6. Second Escape closes modal
         boolean handledEsc2 = overlayManager.keyPressed(escInput);
         assertTrue(handledEsc2);
         assertTrue(modal.isClosed(), "Modal must be closed after second escape");
@@ -291,7 +263,6 @@ public class AboutTabSystemTest {
 
         assertEquals(toast1, overlayManager.getActiveOverlay());
 
-        // Now dismiss existing toasts using closeMatching before opening toast2
         overlayManager.closeMatching(o -> o instanceof ToastOverlay);
         assertTrue(toast1.isClosing() || toast1.isClosed());
         assertFalse(overlayManager.hasActiveOverlay());
@@ -306,7 +277,7 @@ public class AboutTabSystemTest {
     @Test
     void testToastOverlayBoundsImmediatelyInitialized() {
         ToastOverlay toast = ToastOverlay.forUrlError(AboutTab.URL_TELEGRAM);
-        // Even before render() or onOpen(), bounds must be non-zero
+
         assertTrue(toast.getWidth() >= 240);
         assertEquals(28, toast.getHeight());
         assertNotNull(toast.getActionButton());

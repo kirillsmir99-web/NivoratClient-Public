@@ -32,10 +32,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verification test suite for Phase 3 migration of combat modules:
- * AutoMace, AutoSpear, AutoShieldbreaker, and AutoStunSlam into NivoratClient.
- */
 public class CombatModulesMigrationTest {
 
     @BeforeAll
@@ -86,10 +82,8 @@ public class CombatModulesMigrationTest {
         assertInstanceOf(AutoMaceModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Check default keybind is unbound
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Check settings presence
         assertNotNull(mod.getSetting("source_mode"));
         assertNotNull(mod.getSetting("enchant_mode"));
         assertNotNull(mod.getSetting("miss_behavior"));
@@ -98,7 +92,6 @@ public class CombatModulesMigrationTest {
         assertNotNull(mod.getSetting("random_delay"));
         assertNotNull(mod.getSetting("legit_mode"));
 
-        // Test random_delay sync
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         assertTrue(config.autoMaceRandomDelay);
         assertTrue(RedstoneOptimizerConfig.randomDelay);
@@ -110,7 +103,6 @@ public class CombatModulesMigrationTest {
         assertTrue(config.autoMaceRandomDelay);
         assertTrue(RedstoneOptimizerConfig.randomDelay);
 
-        // Test miss_behavior setting
         EnumSetting missSetting = (EnumSetting) mod.getSetting("miss_behavior");
         assertEquals(List.of("sword_hit", "empty_swap"), missSetting.getOptions());
 
@@ -122,7 +114,6 @@ public class CombatModulesMigrationTest {
         assertEquals("sword_hit", config.autoMaceMissBehavior);
         assertEquals(RedstoneOptimizerConfig.MISS_SWORD_HIT, RedstoneOptimizerConfig.missBehavior);
 
-        // Test source_mode sync
         EnumSetting sourceSetting = (EnumSetting) mod.getSetting("source_mode");
         sourceSetting.set("sword_only");
         assertEquals(RedstoneOptimizerConfig.MODE_SWORD_ONLY, RedstoneOptimizerConfig.sourceMode);
@@ -133,12 +124,10 @@ public class CombatModulesMigrationTest {
         sourceSetting.set("sword_and_axe");
         assertEquals(RedstoneOptimizerConfig.MODE_SWORD_AND_AXE, RedstoneOptimizerConfig.sourceMode);
 
-        // Test restore delay sync
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("restore_delay");
         delaySetting.set(120.0);
         assertEquals(120, RedstoneOptimizerConfig.restoreDelayMs);
 
-        // Test legit mode sync
         BooleanSetting legitSetting = (BooleanSetting) mod.getSetting("legit_mode");
         legitSetting.set(false);
         assertFalse(RedstoneOptimizerConfig.legitMode);
@@ -152,29 +141,24 @@ public class CombatModulesMigrationTest {
         assertInstanceOf(AutoSpearModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Verify trigger keybind is TAB and primary toggle keybind is unbound by default
         assertTrue(mod.getKeybind().isUnbound(), "AutoSpear primary toggle keybind is unbound by default to avoid collision with trigger keybind");
         Setting<?> triggerKbSetting = mod.getSetting("trigger_keybind");
         assertNotNull(triggerKbSetting, "trigger_keybind must be registered on AutoSpear");
         assertInstanceOf(KeybindSetting.class, triggerKbSetting);
         assertEquals(GLFW.GLFW_KEY_TAB, ((KeybindSetting) triggerKbSetting).get().getKeyCode(), "Default trigger keybind must be TAB");
 
-        // Verify registered settings
         assertNotNull(mod.getSetting("security_mode"));
         assertNotNull(mod.getSetting("priority_mode"));
         assertNotNull(mod.getSetting("restore_delay"));
         assertNotNull(mod.getSetting("miss_chance"));
         assertNotNull(mod.getSetting("random_delay"));
 
-        // Critical Rule: AutoSpear MUST NOT have a boolean legit_mode setting
         assertNull(mod.getSetting("legit_mode"), "AutoSpear must NOT have a boolean legit_mode setting");
 
-        // Verify default restore delay is 185.0
         NumberSetting initDelaySetting = (NumberSetting) mod.getSetting("restore_delay");
         assertEquals(185.0, initDelaySetting.get(), 0.001);
         assertEquals(185, SpearConfig.maxDelayMs);
 
-        // Verify security_mode sync
         EnumSetting secSetting = (EnumSetting) mod.getSetting("security_mode");
         assertEquals(List.of("legit", "semi_legit", "rage"), secSetting.getOptions());
 
@@ -190,7 +174,6 @@ public class CombatModulesMigrationTest {
         assertEquals("legit", config.autoSpearSecurityMode);
         assertEquals(SpearConfig.MODE_LEGIT, SpearConfig.securityMode);
 
-        // Verify priority_mode sync
         EnumSetting prioSetting = (EnumSetting) mod.getSetting("priority_mode");
         prioSetting.set("lunge_1");
         assertEquals(SpearConfig.PRIORITY_LUNGE_1, SpearConfig.priorityMode);
@@ -207,17 +190,14 @@ public class CombatModulesMigrationTest {
         prioSetting.set("auto");
         assertEquals(SpearConfig.PRIORITY_AUTO, SpearConfig.priorityMode);
 
-        // Verify restore_delay sync
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("restore_delay");
         delaySetting.set(85.0);
         assertEquals(85, SpearConfig.maxDelayMs);
 
-        // Verify miss_chance sync
         NumberSetting missSetting = (NumberSetting) mod.getSetting("miss_chance");
         missSetting.set(5.0);
         assertEquals(5, SpearConfig.missChance);
 
-        // Verify random_delay sync
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         randSetting.set(false);
         assertFalse(SpearConfig.randomDelay);
@@ -231,12 +211,10 @@ public class CombatModulesMigrationTest {
         assertInstanceOf(AutoShieldbreakerModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Verify default keybind is Ctrl+Shift+J
         assertEquals(GLFW.GLFW_KEY_J, mod.getKeybind().getKeyCode());
         assertTrue(mod.getKeybind().isCtrl());
         assertTrue(mod.getKeybind().isShift());
 
-        // Verify registered settings
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("distance"));
         assertNotNull(mod.getSetting("chance"));
@@ -246,24 +224,20 @@ public class CombatModulesMigrationTest {
         assertNotNull(mod.getSetting("abort_on_manual_switch"));
         assertNotNull(mod.getSetting("legit_mode"));
 
-        // Verify mode sync
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
         modeSetting.set("semi_auto");
         assertEquals(ShieldBreakerConfig.MODE_SEMI_AUTO, ShieldBreakerConfig.mode);
         modeSetting.set("full_auto");
         assertEquals(ShieldBreakerConfig.MODE_FULL_AUTO, ShieldBreakerConfig.mode);
 
-        // Verify distance sync
         NumberSetting distSetting = (NumberSetting) mod.getSetting("distance");
         distSetting.set(3.2);
         assertEquals(3.2, ShieldBreakerConfig.triggerDistance, 0.001);
 
-        // Verify chance sync
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
         chanceSetting.set(80.0);
         assertEquals(80, ShieldBreakerConfig.chance);
 
-        // Verify switch and restore delay sync
         NumberSetting switchSetting = (NumberSetting) mod.getSetting("switch_delay");
         switchSetting.set(40.0);
         assertEquals(40, ShieldBreakerConfig.switchDelayMs);
@@ -278,14 +252,12 @@ public class CombatModulesMigrationTest {
         assertEquals(0.35, ShieldBreakerConfig.reactionDelaySec, 0.001);
         assertEquals(0.35, config.autoShieldbreakerReactionDelaySec, 0.001);
 
-        // Verify random_delay sync
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         randSetting.set(false);
         assertFalse(ShieldBreakerConfig.randomDelay);
         randSetting.set(true);
         assertTrue(ShieldBreakerConfig.randomDelay);
 
-        // Verify abort_on_manual_switch sync
         BooleanSetting abortSetting = (BooleanSetting) mod.getSetting("abort_on_manual_switch");
         abortSetting.set(false);
         assertFalse(config.autoShieldbreakerAbortOnManualSwitch);
@@ -294,7 +266,6 @@ public class CombatModulesMigrationTest {
         assertTrue(config.autoShieldbreakerAbortOnManualSwitch);
         assertTrue(ShieldBreakerConfig.abortOnManualSwitch);
 
-        // Verify legit_mode sync
         BooleanSetting legitSetting = (BooleanSetting) mod.getSetting("legit_mode");
         legitSetting.set(false);
         assertFalse(ShieldBreakerConfig.legitMode);
@@ -308,15 +279,12 @@ public class CombatModulesMigrationTest {
         assertInstanceOf(AutoStunSlamModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Verify default keybind is Ctrl+Shift+M
         assertEquals(GLFW.GLFW_KEY_M, mod.getKeybind().getKeyCode());
         assertTrue(mod.getKeybind().isCtrl());
         assertTrue(mod.getKeybind().isShift());
 
-        // Verify module translation key
         assertEquals("activity.module.auto_stun_slam.name", mod.getName().getString());
 
-        // Verify registered settings
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("distance"));
         assertNotNull(mod.getSetting("chance"));
@@ -327,13 +295,11 @@ public class CombatModulesMigrationTest {
         assertNotNull(mod.getSetting("random_delay"));
         assertNotNull(mod.getSetting("legit_mode"));
 
-        // Verify air_time sync
         NumberSetting airSetting = (NumberSetting) mod.getSetting("air_time");
         airSetting.set(1.5);
         assertEquals(1.5, config.autoStunSlamAirTimeSec, 0.001);
         assertEquals(1.5, SunderConfig.airTimeSec, 0.001);
 
-        // Verify random_delay sync
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         randSetting.set(false);
         assertFalse(config.autoStunSlamRandomDelay);
@@ -342,7 +308,6 @@ public class CombatModulesMigrationTest {
         assertTrue(config.autoStunSlamRandomDelay);
         assertTrue(SunderConfig.randomDelay);
 
-        // Verify delays sync
         NumberSetting axeSetting = (NumberSetting) mod.getSetting("axe_delay");
         axeSetting.set(50.0);
         assertEquals(50, SunderConfig.axeDelayMs);
@@ -367,7 +332,7 @@ public class CombatModulesMigrationTest {
     @Test
     void testActivityConfigLegacyMigration() {
         ActivityConfig config = new ActivityConfig();
-        // Simulate legacy JSON deserialization
+
         config.autoStunSlimeEnabled = false;
         config.autoStunSlimeAirTimeSec = 2.5;
         config.autoStunSlimeRandomDelay = false;
@@ -380,7 +345,6 @@ public class CombatModulesMigrationTest {
         assertFalse(config.autoStunSlamRandomDelay);
         assertEquals(90.0, config.autoStunSlamChance, 0.001);
 
-        // Verify legacy fields cleared
         assertNull(config.autoStunSlimeEnabled);
         assertNull(config.autoStunSlimeAirTimeSec);
         assertNull(config.autoStunSlimeRandomDelay);

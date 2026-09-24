@@ -3,7 +3,7 @@ import random
 import time
 import numpy as np
 
-# Physical constants matching Minecraft 1.21 & PearlCatchTrajectory.java
+                                                                        
 PEARL_SPEED = 1.5
 PEARL_GRAVITY = 0.03
 PEARL_DRAG = 0.99
@@ -25,7 +25,7 @@ def solve3D(delay_ticks: int, player_yaw: float, player_vel: np.ndarray, on_grou
     safe_delay = max(1, min(5, int(delay_ticks)))
     safe_vel = player_vel if player_vel is not None else np.zeros(3, dtype=np.float64)
 
-    # Player vertical displacement and velocity decay over delayTicks
+                                                                     
     pl_y = 0.0
     cur_vy = 0.0 if on_ground else float(safe_vel[1])
     for _ in range(safe_delay):
@@ -44,7 +44,7 @@ def solve3D(delay_ticks: int, player_yaw: float, player_vel: np.ndarray, on_grou
     best_tick = safe_delay + 14
     min_residual_error = float("inf")
 
-    # Sweep pearl pitch over realistic horizontal launch window [-35.0f, -12.0f] step 0.2
+                                                                                         
     for p_int in range(-350, -119, 2):
         test_pearl_pitch = p_int / 10.0
         pearl_dir = get_direction_vector(test_pearl_pitch, player_yaw)
@@ -109,25 +109,25 @@ def run_systematic_tests():
     print("=== STARTING SYSTEMATIC GRID TESTS ===")
     results = []
     
-    # 1. Stationary
+                   
     for delay in [1, 2, 3, 4, 5]:
         for yaw in [0.0, 45.0, 90.0, 180.0, 270.0, -90.0]:
             for on_ground in [True, False]:
                 res = solve3D(delay, yaw, np.zeros(3), on_ground)
                 results.append(("Stationary", delay, yaw, 0.0, 0.0, on_ground, res))
 
-    # 2. Forward sprinting along playerYaw
+                                          
     for delay in [1, 2, 3, 4, 5]:
         for yaw in [0.0, 45.0, 90.0, 180.0, 270.0, -90.0]:
             for speed in [0.20, 0.25, 0.28, 0.35, 0.40]:
                 for on_ground in [True, False]:
                     rad = math.radians(yaw)
-                    # in MC yaw: x = -sin(yaw)*speed, z = cos(yaw)*speed
+                                                                        
                     vel = np.array([-math.sin(rad) * speed, 0.0, math.cos(rad) * speed])
                     res = solve3D(delay, yaw, vel, on_ground)
                     results.append(("ForwardSprint", delay, yaw, speed, 0.0, on_ground, res))
 
-    # 3. Backward movement (opposite to yaw)
+                                            
     for delay in [1, 2, 3, 4, 5]:
         for yaw in [0.0, 45.0, 90.0, 180.0, 270.0]:
             for speed in [0.15, 0.20, 0.28, 0.35, 0.40]:
@@ -137,17 +137,17 @@ def run_systematic_tests():
                     res = solve3D(delay, yaw, vel, on_ground)
                     results.append(("Backward", delay, yaw, speed, 0.0, on_ground, res))
 
-    # 4. Lateral Strafe (90 deg to yaw)
+                                       
     for delay in [1, 2, 3, 4, 5]:
         for yaw in [0.0, 90.0, 180.0, 270.0]:
             for speed in [0.15, 0.20, 0.28, 0.35, 0.40]:
-                for strafe_sign in [-1.0, 1.0]: # left / right
+                for strafe_sign in [-1.0, 1.0]:               
                     rad = math.radians(yaw + 90.0 * strafe_sign)
                     vel = np.array([-math.sin(rad) * speed, 0.0, math.cos(rad) * speed])
                     res = solve3D(delay, yaw, vel, True)
                     results.append(("LateralStrafe", delay, yaw, speed, 0.0, True, res))
 
-    # 5. Falling motion
+                       
     for delay in [1, 2, 3, 4, 5]:
         for vy in [-0.05, -0.1, -0.2, -0.4, -0.6, -0.8, -1.0, -1.2, -1.5]:
             for speed in [0.0, 0.15, 0.28, 0.40]:
@@ -157,7 +157,7 @@ def run_systematic_tests():
                     res = solve3D(delay, yaw, vel, False)
                     results.append(("Falling", delay, yaw, speed, vy, False, res))
 
-    # 6. Wind Jump motion
+                         
     for delay in [1, 2, 3, 4, 5]:
         for vy in [0.4, 0.6, 0.8, 1.0, 1.2, 1.45, 1.6, 1.8, 2.0]:
             for speed in [0.0, 0.15, 0.28, 0.40]:
@@ -183,14 +183,14 @@ def run_monte_carlo_random(num_samples: int = 25000):
         yaw = random.uniform(-180.0, 180.0)
         on_ground = random.choice([True, False])
         
-        # velocity generation:
-        # horizontal: random speed in [0, 0.45], random direction in [0, 360]
+                              
+                                                                             
         h_speed = random.uniform(0.0, 0.45)
         h_angle = random.uniform(0.0, 2.0 * math.pi)
         vx = h_speed * math.cos(h_angle)
         vz = h_speed * math.sin(h_angle)
         
-        # vertical: if on_ground, vy can be 0 or small, if airborne, in [-1.5, 2.0]
+                                                                                   
         if on_ground:
             vy = 0.0
         else:
@@ -244,7 +244,7 @@ def analyze_and_report(grid_results, mc_results):
     print(f"100% Convergence (<= 0.5): {'YES' if len(failures) == 0 else 'NO'}")
     print("="*50)
 
-    # Subcategory breakdown
+                           
     categories = {}
     for r in grid_results:
         cat = r[0]
@@ -257,7 +257,7 @@ def analyze_and_report(grid_results, mc_results):
         arr = np.array(errs)
         print(f"  {cat:15s}: N={len(arr):4d}, Max={np.max(arr):.6f}, Mean={np.mean(arr):.6f}, All <= 0.5: {np.all(arr <= 0.5)}")
 
-    # Check delays breakdown in MC
+                                  
     delay_errs = {d: [] for d in range(1, 6)}
     for r in mc_results:
         d = r[0]
@@ -267,7 +267,7 @@ def analyze_and_report(grid_results, mc_results):
         arr = np.array(errs)
         print(f"  Delay {d}: N={len(arr):5d}, Max={np.max(arr):.6f}, Mean={np.mean(arr):.6f}, 99th%={np.percentile(arr, 99):.6f}")
 
-    # Check extreme cases
+                         
     worst_cases = sorted(mc_results, key=lambda x: x[-1]["residual_error"], reverse=True)[:5]
     print("\nTop 5 Worst-Case Monte Carlo Samples:")
     for rank, (d, yaw, vel, on_ground, res) in enumerate(worst_cases, 1):

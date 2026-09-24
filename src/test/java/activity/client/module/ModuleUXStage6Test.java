@@ -28,21 +28,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Comprehensive verification for Stage 6 — Module UX.
- * Tests AutoStunSlam rename, backward-compatible migration, ModuleMetadata model,
- * Context Menu overlay, Quick Access sidebar tree, and About Module sheet.
- */
 public class ModuleUXStage6Test {
 
     @BeforeEach
     void setUp() {
         ActivityConfigManager.resetDefaults();
     }
-
-    // =========================================================================
-    // 1. AUTOSTUNSLAM & BACKWARD COMPATIBILITY
-    // =========================================================================
 
     @Test
     void testAutoStunSlamStubDefaults() {
@@ -66,7 +57,7 @@ public class ModuleUXStage6Test {
 
     @Test
     void testAutoStunSlimeAliasResolution() {
-        // Old ID auto_stun_slime resolves to the same stub
+
         IModule aliasModule = ModuleRegistry.get("auto_stun_slime");
         assertNotNull(aliasModule, "ModuleRegistry must resolve auto_stun_slime alias");
         assertEquals("auto_stun_slam", aliasModule.getId());
@@ -79,7 +70,7 @@ public class ModuleUXStage6Test {
     @Test
     void testLegacyConfigMigration() {
         ActivityConfig oldConfig = new ActivityConfig();
-        // Simulate legacy config loaded with old autoStunSlime fields
+
         oldConfig.autoStunSlimeEnabled = false;
         oldConfig.autoStunSlimeDistance = 3.5;
         oldConfig.autoStunSlimeChance = 90.0;
@@ -88,10 +79,8 @@ public class ModuleUXStage6Test {
         oldConfig.autoStunSlimeRestoreDelayMs = 70.0;
         oldConfig.autoStunSlimeLegitMode = false;
 
-        // Trigger sanitize / migration
         oldConfig.sanitize();
 
-        // New canonical fields must reflect migrated values
         assertFalse(oldConfig.autoStunSlamEnabled);
         assertEquals(3.5, oldConfig.autoStunSlamDistance, 0.001);
         assertEquals(90.0, oldConfig.autoStunSlamChance, 0.001);
@@ -114,13 +103,9 @@ public class ModuleUXStage6Test {
         assertFalse(config.isPinned("auto_stun_slime"));
     }
 
-    // =========================================================================
-    // 2. MODULE METADATA MODEL
-    // =========================================================================
-
     @Test
     void testModuleMetadataDefaultsAndBuilder() {
-        Keybind kb = new Keybind(71, false, false, false); // G key
+        Keybind kb = new Keybind(71, false, false, false);
         ModuleMetadata meta = ModuleMetadata.builder("test_module")
             .displayName(Text.literal("Test Module"))
             .description(Text.literal("Test description"))
@@ -172,13 +157,9 @@ public class ModuleUXStage6Test {
         }
     }
 
-    // =========================================================================
-    // 3. CONTEXT MENU (RIGHT CLICK)
-    // =========================================================================
-
     @Test
     void testModuleContextMenuBoundsClamping() {
-        // High coordinate far outside bounds
+
         ModuleContextMenu menu = new ModuleContextMenu(null, "auto_mace", 9999, 9999);
         assertNotNull(menu);
         assertTrue(menu.getX() >= 4);
@@ -186,7 +167,6 @@ public class ModuleUXStage6Test {
         assertTrue(menu.getWidth() > 0);
         assertTrue(menu.getHeight() > 0);
 
-        // Negative coordinates
         ModuleContextMenu menuNeg = new ModuleContextMenu(null, "auto_mace", -50, -50);
         assertEquals(4, menuNeg.getX());
         assertEquals(4, menuNeg.getY());
@@ -207,10 +187,6 @@ public class ModuleUXStage6Test {
         menu.close();
         assertTrue(menu.isClosed());
     }
-
-    // =========================================================================
-    // 4. QUICK ACCESS & PINNED MODULES
-    // =========================================================================
 
     @Test
     void testPinPersistence() {
@@ -247,10 +223,6 @@ public class ModuleUXStage6Test {
         assertTrue(h2 > h1);
     }
 
-    // =========================================================================
-    // 5. ABOUT MODULE SHEET
-    // =========================================================================
-
     @Test
     void testAboutModuleSheetInitialization() {
         AboutModuleSheet sheet = new AboutModuleSheet(null, "auto_stun_slam");
@@ -282,10 +254,6 @@ public class ModuleUXStage6Test {
         assertNotNull(mace.getMetadata().getTelegram());
         assertEquals("https://t.me/virionDEV", mace.getMetadata().getTelegram());
     }
-
-    // =========================================================================
-    // 6. GENERIC MODULE SETTINGS VIEW & REACTIVE VISIBILITY
-    // =========================================================================
 
     @Test
     void testGenericModuleSettingsViewStandaloneAndOverlays() {
@@ -354,7 +322,6 @@ public class ModuleUXStage6Test {
         AtomicInteger reloadCount = new AtomicInteger(0);
         AtomicBoolean aboutOpened = new AtomicBoolean(false);
 
-        // Initially mode is FALSE -> dependent setting is not visible
         assertFalse(testMod.modeSetting.get());
         assertFalse(testMod.dependentSetting.isVisible());
 
@@ -365,11 +332,9 @@ public class ModuleUXStage6Test {
         assertTrue(hInitial > 0);
         assertEquals(0, reloadCount.get());
 
-        // Toggle mode to TRUE: dependent setting becomes visible
         testMod.modeSetting.set(true);
         assertTrue(testMod.dependentSetting.isVisible());
 
-        // Triggering setting change alerts reload callback because visibility changed
         testMod.notifyModeChanged();
         assertEquals(1, reloadCount.get(), "Changing mode must trigger reload when visibility changes");
     }

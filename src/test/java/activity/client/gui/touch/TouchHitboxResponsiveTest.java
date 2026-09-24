@@ -12,10 +12,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Validates Stage 8 mobile touch hitboxes, minimum touch target sizes,
- * and responsive scaling across GUI Scales 2, 3, and 4.
- */
 public class TouchHitboxResponsiveTest {
 
     @Test
@@ -36,16 +32,13 @@ public class TouchHitboxResponsiveTest {
         assertEquals(28, toggle.getWidth());
         assertEquals(14, toggle.getHeight());
 
-        // Standard inside clicks
         assertTrue(toggle.isMouseOver(x + 5, y + 5));
 
-        // Expanded hitbox clicks within pad (padX = 3, padY = 5)
         assertTrue(toggle.isMouseOver(x - 3, y));
         assertTrue(toggle.isMouseOver(x + 28 + 2, y));
         assertTrue(toggle.isMouseOver(x, y - 5));
         assertTrue(toggle.isMouseOver(x, y + 14 + 4));
 
-        // Outside expanded hitbox clicks
         assertFalse(toggle.isMouseOver(x - 5, y));
         assertFalse(toggle.isMouseOver(x + 28 + 5, y));
         assertFalse(toggle.isMouseOver(x, y - 7));
@@ -57,7 +50,7 @@ public class TouchHitboxResponsiveTest {
         int x = 200;
         int y = 150;
         int size = 16;
-        // Icon-only button with empty label gets default TOUCH_HITBOX_PADDING (4)
+
         ActivityButton iconBtn = new ActivityButton(
             x, y, size, size,
             ActivityIcon.TRASH,
@@ -68,16 +61,13 @@ public class TouchHitboxResponsiveTest {
 
         assertEquals(ActivityMetrics.TOUCH_HITBOX_PADDING, iconBtn.getTouchPadding());
 
-        // Inside
         assertTrue(iconBtn.isMouseOver(x + 8, y + 8));
 
-        // Edge within padding (4px)
         assertTrue(iconBtn.isMouseOver(x - 4, y));
         assertTrue(iconBtn.isMouseOver(x + size + 3, y));
         assertTrue(iconBtn.isMouseOver(x, y - 4));
         assertTrue(iconBtn.isMouseOver(x, y + size + 3));
 
-        // Outside padding
         assertFalse(iconBtn.isMouseOver(x - 6, y));
         assertFalse(iconBtn.isMouseOver(x + size + 6, y));
         assertFalse(iconBtn.isMouseOver(x, y - 6));
@@ -107,7 +97,6 @@ public class TouchHitboxResponsiveTest {
         assertTrue(layout.contentWidth > 0);
         assertTrue(layout.contentHeight > 0);
 
-        // Check 2-column breakpoint logic
         int effectiveContentWidth = Math.min(layout.contentWidth - 10, ActivityMetrics.CONTENT_MAX_WIDTH);
         boolean expectTwoColumns = effectiveContentWidth >= ActivityMetrics.RESPONSIVE_TWO_COLUMN_BREAKPOINT;
 
@@ -120,7 +109,7 @@ public class TouchHitboxResponsiveTest {
 
     @Test
     void testHeaderControlButtonsTouchHitbox() {
-        WindowLayout compactLayout = WindowLayout.compute(426, 240); // GUI scale 3
+        WindowLayout compactLayout = WindowLayout.compute(426, 240);
         activity.client.gui.component.WindowControlButtons btns = new activity.client.gui.component.WindowControlButtons(
             () -> {}, () -> {}, () -> {}, () -> false
         );
@@ -128,15 +117,12 @@ public class TouchHitboxResponsiveTest {
         int startX = btns.getStartX(compactLayout);
         int startY = btns.getStartY(compactLayout);
 
-        // Header height on compact is 18, but touch hitbox spans at least 24px vertically (padY >= 4)
         assertTrue(btns.isMouseOver(startX, startY - 4, compactLayout));
         assertTrue(btns.isMouseOver(startX, startY + 16 + 3, compactLayout));
 
-        // Horizontal touch padding on compact screens (padX = 4)
         assertTrue(btns.isMouseOver(startX - 4, startY + 2, compactLayout));
         assertTrue(btns.isMouseOver(startX + activity.client.gui.component.WindowControlButtons.TOTAL_WIDTH + 3, startY + 2, compactLayout));
 
-        // Outside touch hitbox
         assertFalse(btns.isMouseOver(startX - 8, startY + 2, compactLayout));
         assertFalse(btns.isMouseOver(startX + activity.client.gui.component.WindowControlButtons.TOTAL_WIDTH + 8, startY + 2, compactLayout));
         assertFalse(btns.isMouseOver(startX, startY - 8, compactLayout));
@@ -148,20 +134,18 @@ public class TouchHitboxResponsiveTest {
         int x = 50;
         int y = 80;
         int w = 180;
-        int h = ActivityMetrics.CONTROL_HEIGHT; // 20px
+        int h = ActivityMetrics.CONTROL_HEIGHT;
 
         ActivityButton socialBtn = new ActivityButton(x, y, w, h, ActivityIcon.TELEGRAM, Text.literal("Telegram"), b -> {});
-        socialBtn.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING); // 4px
+        socialBtn.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
 
         assertEquals(4, socialBtn.getTouchPadding());
 
-        // Effective touch hitbox is (w + 8) x (h + 8) = 188 x 28 px (>= 24px minimum touch target)
         assertTrue(socialBtn.isMouseOver(x - 4, y));
         assertTrue(socialBtn.isMouseOver(x + w + 3, y));
         assertTrue(socialBtn.isMouseOver(x + 10, y - 4));
         assertTrue(socialBtn.isMouseOver(x + 10, y + h + 3));
 
-        // Outside
         assertFalse(socialBtn.isMouseOver(x - 6, y));
         assertFalse(socialBtn.isMouseOver(x + w + 6, y));
         assertFalse(socialBtn.isMouseOver(x + 10, y - 6));

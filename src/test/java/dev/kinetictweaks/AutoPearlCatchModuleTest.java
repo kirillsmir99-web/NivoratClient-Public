@@ -19,11 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verification test suite for upgraded AutoPearlCatch module in NivoratClient.
- * Covers R1 (instant interruption, COOLDOWN_MS = 0L), R2 (guaranteed ballistics on 2 ticks delay <= 0.5 blocks),
- * semi-auto camera isolation, and kinematic pitch derivation.
- */
 public class AutoPearlCatchModuleTest {
 
     @BeforeAll
@@ -49,7 +44,6 @@ public class AutoPearlCatchModuleTest {
         PearlCatchController controller = PearlCatchController.getInstance();
         controller.reset();
 
-        // 1. Cleanup states must be interruptible
         controller.setStateForTest(PearlCatchController.State.POST_THROW_HOLD, 2);
         assertTrue(controller.canInterruptCurrentState(), "POST_THROW_HOLD must be interruptible");
 
@@ -59,7 +53,6 @@ public class AutoPearlCatchModuleTest {
         controller.setStateForTest(PearlCatchController.State.RESTORE_SLOT, 2);
         assertTrue(controller.canInterruptCurrentState(), "RESTORE_SLOT must be interruptible");
 
-        // 2. Active throw states must be protected and NON-interruptible
         controller.setStateForTest(PearlCatchController.State.ROTATING_TO_PEARL, 2);
         assertFalse(controller.canInterruptCurrentState(), "ROTATING_TO_PEARL must be protected");
 
@@ -72,23 +65,20 @@ public class AutoPearlCatchModuleTest {
         controller.setStateForTest(PearlCatchController.State.THROW_WIND, 2);
         assertFalse(controller.canInterruptCurrentState(), "THROW_WIND must be protected");
 
-        // 3. initialSlot retention: when interrupting a cleanup state, retain initial weapon slot (e.g. slot 2)
-        // rather than overwriting with wind charge slot (e.g. slot 5)
         controller.setStateForTest(PearlCatchController.State.POST_THROW_HOLD, 2);
-        controller.startThrowForTest(5, true); // Interrupted during cleanup
+        controller.startThrowForTest(5, true);
         assertEquals(2, controller.getInitialSlot(), "initialSlot must be retained when interrupting cleanup state");
 
-        // 4. From IDLE, initialSlot is newly assigned
         controller.reset();
         assertEquals(-1, controller.getInitialSlot());
-        controller.startThrowForTest(4, false); // Normal trigger from IDLE
+        controller.startThrowForTest(4, false);
         assertEquals(4, controller.getInitialSlot(), "initialSlot must take current selected slot when starting from IDLE");
     }
 
     @Test
     @DisplayName("R2: Guaranteed 3D kinematic ballistics (miss distance <= 0.5 blocks) across all kinematics at 2 ticks delay")
     void testKinematic3DGuaranteedBallisticsOnTwoTicksDelay() {
-        // 1. Stationary (0 velocity, onGround = true)
+
         PearlCatchTrajectory.Solution solStill = PearlCatchTrajectory.solve3D(2, 0.0f, Vec3d.ZERO, true, -1.0f);
         assertNotNull(solStill);
         assertTrue(solStill.valid(), "Stationary solution must be valid");
@@ -97,7 +87,6 @@ public class AutoPearlCatchModuleTest {
         assertTrue(solStill.windPitch() > solStill.pearlPitch(), "Wind pitch must be higher than pearl pitch to hit from behind");
         assertIndependentEuclideanDistance(solStill, 2, 0.0f, Vec3d.ZERO, true);
 
-        // 2. Sprinting forward (v = (0, 0, 0.28), onGround = true)
         Vec3d sprintVel = new Vec3d(0.0, 0.0, 0.28);
         PearlCatchTrajectory.Solution solSprint = PearlCatchTrajectory.solve3D(2, 0.0f, sprintVel, true, -1.0f);
         assertNotNull(solSprint);
@@ -105,7 +94,6 @@ public class AutoPearlCatchModuleTest {
         assertTrue(solSprint.residualError() <= 0.5, "Sprint residual error must be <= 0.5: " + solSprint.residualError());
         assertIndependentEuclideanDistance(solSprint, 2, 0.0f, sprintVel, true);
 
-        // 3. Falling motion (v = (0, -0.4, 0.1), onGround = false)
         Vec3d fallVel = new Vec3d(0.0, -0.4, 0.1);
         PearlCatchTrajectory.Solution solFall = PearlCatchTrajectory.solve3D(2, 0.0f, fallVel, false, -1.0f);
         assertNotNull(solFall);
@@ -113,7 +101,6 @@ public class AutoPearlCatchModuleTest {
         assertTrue(solFall.residualError() <= 0.5, "Fall residual error must be <= 0.5: " + solFall.residualError());
         assertIndependentEuclideanDistance(solFall, 2, 0.0f, fallVel, false);
 
-        // 4. Wind Jump (v = (0, 0.9, 0.0), onGround = false)
         Vec3d windJumpVel = new Vec3d(0.0, 0.9, 0.0);
         PearlCatchTrajectory.Solution solWindJump = PearlCatchTrajectory.solve3D(2, 0.0f, windJumpVel, false, -1.0f);
         assertNotNull(solWindJump);
@@ -121,7 +108,6 @@ public class AutoPearlCatchModuleTest {
         assertTrue(solWindJump.residualError() <= 0.5, "Wind jump residual error must be <= 0.5: " + solWindJump.residualError());
         assertIndependentEuclideanDistance(solWindJump, 2, 0.0f, windJumpVel, false);
 
-        // 5. Extreme Wind Jump (v = (0, 1.45, 0.15), onGround = false)
         Vec3d extremeWindJumpVel = new Vec3d(0.0, 1.45, 0.15);
         PearlCatchTrajectory.Solution solExtreme = PearlCatchTrajectory.solve3D(2, 0.0f, extremeWindJumpVel, false, -1.0f);
         assertNotNull(solExtreme);
@@ -129,7 +115,6 @@ public class AutoPearlCatchModuleTest {
         assertTrue(solExtreme.residualError() <= 0.5, "Extreme wind jump residual error must be <= 0.5: " + solExtreme.residualError());
         assertIndependentEuclideanDistance(solExtreme, 2, 0.0f, extremeWindJumpVel, false);
 
-        // 6. Lateral Sprint (v = (0.28, 0, 0), yaw = -90.0f, onGround = true)
         Vec3d lateralSprintVel = new Vec3d(0.28, 0.0, 0.0);
         PearlCatchTrajectory.Solution solLateral = PearlCatchTrajectory.solve3D(2, -90.0f, lateralSprintVel, true, -1.0f);
         assertNotNull(solLateral);
@@ -144,8 +129,6 @@ public class AutoPearlCatchModuleTest {
         Vec3d windJumpVel = new Vec3d(0.0, 0.9, 0.0);
         PearlCatchTrajectory.Solution sol = PearlCatchTrajectory.solve3D(2, 0.0f, windJumpVel, false, -1.0f);
 
-        // In the old heuristic, baseOffset added + (0.9 * 7.5) = +6.75°, pushing wind pitch to +0.05° or higher.
-        // With exact kinematic derivation and high-sky ballistics, bestWindPitch is approximately -14.92°.
         assertTrue(sol.windPitch() < 0.0f, "Wind pitch for vy=0.9 must be upward-tilted (-14.92°), not downward (>0)");
         assertEquals(-14.92f, sol.windPitch(), 0.5f, "Wind pitch should accurately match exact kinematic angle");
     }
@@ -157,7 +140,6 @@ public class AutoPearlCatchModuleTest {
         PearlCatchTrajectory.Solution solDefault = PearlCatchTrajectory.solve3D(2, 0.0f, sprintVel, true, 8.0f);
         PearlCatchTrajectory.Solution solTrimmed = PearlCatchTrajectory.solve3D(2, 0.0f, sprintVel, true, 10.0f);
 
-        // With customOffset = 10.0f, trim offset is (10.0 - 8.0) = +2.0°
         assertEquals(solDefault.windPitch() + 2.0f, solTrimmed.windPitch(), 0.01f,
                 "Custom offset of 10.0f must apply exactly +2.0f manual trim relative to 8.0f default");
     }
@@ -174,7 +156,6 @@ public class AutoPearlCatchModuleTest {
         CameraInterpolator interpolator = controller.getCameraInterpolator();
         assertFalse(interpolator.isActive(), "CameraInterpolator must be inactive in semi-auto mode");
 
-        // Calling onRender with semi-auto mode must not activate or tick interpolator
         controller.onRender(null);
         assertFalse(interpolator.isActive(), "onRender must not activate interpolator in semi-auto");
     }
@@ -216,11 +197,6 @@ public class AutoPearlCatchModuleTest {
         CombatLockManager.setLock(CombatLockManager.TOTEM, false);
     }
 
-    /**
-     * Independent physical verification: simulates pearl and wind charge flight tick-by-tick
-     * using vanilla Minecraft 1.21 physics and confirms that the Euclidean distance between
-     * the wind charge arrival position and the target burst position is <= 0.5 blocks.
-     */
     private static void assertIndependentEuclideanDistance(
             PearlCatchTrajectory.Solution sol,
             int delayTicks,
@@ -232,7 +208,6 @@ public class AutoPearlCatchModuleTest {
         Vec3d inheritedPearlVel = new Vec3d(playerVel.x, vertSpeed, playerVel.z);
         Vec3d inheritedWindVel = new Vec3d(playerVel.x, vertSpeed, playerVel.z);
 
-        // Player displacement over delayTicks
         double plY = 0.0;
         double curVy = vertSpeed;
         for (int d = 0; d < delayTicks; d++) {
@@ -241,7 +216,6 @@ public class AutoPearlCatchModuleTest {
         }
         Vec3d windOrigin = new Vec3d(playerVel.x * delayTicks, plY, playerVel.z * delayTicks);
 
-        // Simulate Pearl
         Vec3d pearlDir = PearlCatchTrajectory.getDirectionVector(sol.pearlPitch(), playerYaw);
         Vec3d pearlVel = pearlDir.multiply(PearlCatchTrajectory.PEARL_SPEED).add(inheritedPearlVel);
         Vec3d pearlPos = Vec3d.ZERO;
@@ -257,7 +231,6 @@ public class AutoPearlCatchModuleTest {
 
         Vec3d burstTarget = pearlPos.subtract(0.0, PearlCatchTrajectory.BURST_OFFSET_Y, 0.0);
 
-        // Simulate Wind Charge (released at delayTicks, arrives at interceptTick)
         int flightTicks = sol.interceptTick() - delayTicks;
         Vec3d windDir = PearlCatchTrajectory.getDirectionVector(sol.windPitch(), sol.windYaw());
         Vec3d windVel = windDir.multiply(PearlCatchTrajectory.WIND_CHARGE_SPEED).add(inheritedWindVel);

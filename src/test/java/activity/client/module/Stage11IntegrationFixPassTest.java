@@ -45,10 +45,6 @@ public class Stage11IntegrationFixPassTest {
         ModuleEventDispatcher.updateActiveModules();
     }
 
-    // =========================================================================
-    // 1. IMPORTANT 1: SidebarTree dynamic module config entry fallback
-    // =========================================================================
-
     @Test
     @DisplayName("SidebarTree.isModuleActive queries structured ModuleConfigEntry for dynamic modules")
     void testSidebarTreeDynamicModuleActiveQuery() {
@@ -64,7 +60,6 @@ public class Stage11IntegrationFixPassTest {
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
 
-        // Put structured module entry with enabled = false
         ActivityConfig.ModuleConfigEntry entry = new ActivityConfig.ModuleConfigEntry();
         entry.enabled = false;
         config.modules.put(DYNAMIC_COMBAT_ID, entry);
@@ -81,14 +76,9 @@ public class Stage11IntegrationFixPassTest {
         assertNotNull(childItem, "Dynamic module must be present in SidebarTree combat category");
         assertFalse(childItem.isActive(), "Dynamic module isActive must reflect ModuleConfigEntry.enabled == false");
 
-        // Now set enabled = true in structured entry
         entry.enabled = true;
         assertTrue(childItem.isActive(), "Dynamic module isActive must reflect ModuleConfigEntry.enabled == true");
     }
-
-    // =========================================================================
-    // 2. IMPORTANT 2: Tab getCategory() and resetDefaults() resetting dynamic settings
-    // =========================================================================
 
     @Test
     @DisplayName("CombatTab, DefenseTab, and UtilityTab report correct ModuleCategory")
@@ -107,7 +97,6 @@ public class Stage11IntegrationFixPassTest {
     void testTabResetDefaultsResetsDynamicModuleSettings() {
         CombatTab combatTab = new CombatTab();
 
-        // Register custom dynamic combat module with settings
         AtomicBoolean customFlag = new AtomicBoolean(false);
         class CustomCombatModule extends NivoratModule {
             CustomCombatModule() {
@@ -120,23 +109,16 @@ public class Stage11IntegrationFixPassTest {
         CustomCombatModule customMod = new CustomCombatModule();
         ModuleRegistry.register(customMod);
 
-        // Mutate setting away from default (default is true)
         Setting<?> setting = customMod.getSetting("custom_flag");
         assertNotNull(setting);
         ((BooleanSetting) setting).set(false);
         assertFalse(customFlag.get());
 
-        // Execute resetDefaults on CombatTab
         combatTab.resetDefaults();
 
-        // Verify setting was restored to default (true)
         assertTrue(customFlag.get(), "Custom module setting must be reset to defaultValue (true)");
         assertTrue((Boolean) setting.get());
     }
-
-    // =========================================================================
-    // 3. POLISH 3: IModule.hasTickLogic() and CartHudModule exclusion
-    // =========================================================================
 
     @Test
     @DisplayName("IModule hasTickLogic default is true, CartHudModule overrides to false")
@@ -167,10 +149,6 @@ public class Stage11IntegrationFixPassTest {
         boolean cartInHud = Arrays.stream(hudModules).anyMatch(m -> CartHudModule.ID.equals(m.getId()));
         assertTrue(cartInHud, "CartHudModule must still be present in activeHudModules");
     }
-
-    // =========================================================================
-    // 4. REGRESSION: All 12 modules verification
-    // =========================================================================
 
     @Test
     @DisplayName("Regression: All 14 built-in modules are registered and correctly categorized")

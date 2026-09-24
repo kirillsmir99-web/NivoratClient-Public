@@ -41,7 +41,6 @@ public class SoundManagerTest {
         config.sliderSoundEnabled = false;
         assertFalse(SoundManager.isSliderSoundEnabled());
 
-        // When master sound is disabled, slider sound is also suppressed
         config.sliderSoundEnabled = true;
         config.soundEnabled = false;
         assertFalse(SoundManager.isSliderSoundEnabled());
@@ -78,7 +77,7 @@ public class SoundManagerTest {
 
     @Test
     void testHeadlessSoundCallsDoNotThrow() {
-        // In headless testing, all sound methods must execute safely without throwing NPE
+
         assertDoesNotThrow(() -> {
             SoundManager.playOpen();
             SoundManager.playClose();
@@ -115,7 +114,6 @@ public class SoundManagerTest {
             SoundManager.playSliderTick(51.0, 0.0, 100.0, 1.0);
         });
 
-        // Test with custom sounds enabled
         SoundManager.setUseCustomSounds(true);
         assertDoesNotThrow(() -> {
             SoundManager.playOpen();
@@ -139,7 +137,7 @@ public class SoundManagerTest {
 
     @Test
     void testSoundIdentifiers() {
-        // Serene identifiers (default profile)
+
         assertEquals("nivoratclient:ui.serene.open", ActivitySoundEvents.SERENE_OPEN_ID.toString());
         assertEquals("nivoratclient:ui.serene.close", ActivitySoundEvents.SERENE_CLOSE_ID.toString());
         assertEquals("nivoratclient:ui.serene.button_primary", ActivitySoundEvents.SERENE_BUTTON_PRIMARY_ID.toString());
@@ -156,13 +154,11 @@ public class SoundManagerTest {
         assertEquals("nivoratclient:ui.serene.warning", ActivitySoundEvents.SERENE_WARNING_ID.toString());
         assertEquals("nivoratclient:ui.serene.error", ActivitySoundEvents.SERENE_ERROR_ID.toString());
 
-        // Classic identifiers
         assertEquals("nivoratclient:ui.classic.open", ActivitySoundEvents.CLASSIC_OPEN_ID.toString());
         assertEquals("nivoratclient:ui.classic.close", ActivitySoundEvents.CLASSIC_CLOSE_ID.toString());
         assertEquals("nivoratclient:ui.classic.button", ActivitySoundEvents.CLASSIC_BUTTON_ID.toString());
         assertEquals("nivoratclient:ui.classic.slider_tick", ActivitySoundEvents.CLASSIC_SLIDER_TICK_ID.toString());
 
-        // Backward compatibility aliases
         assertEquals(ActivitySoundEvents.SERENE_OPEN_ID, ActivitySoundEvents.MENU_OPEN_ID);
         assertEquals(ActivitySoundEvents.SERENE_CLOSE_ID, ActivitySoundEvents.MENU_CLOSE_ID);
         assertEquals(ActivitySoundEvents.SERENE_HOVER_ID, ActivitySoundEvents.HOVER_ID);

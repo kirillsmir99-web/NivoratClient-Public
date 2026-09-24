@@ -12,9 +12,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verification test suite for Stage 5: Icon System and Multi-profile Sound System.
- */
 public class IconAndSoundSystemTest {
 
     private static final List<String> ALL_27_SEMANTIC_IDS = List.of(
@@ -31,21 +28,16 @@ public class IconAndSoundSystemTest {
         SoundManager.resetHoverTracking();
     }
 
-    // ==========================================
-    // 1. ICON SYSTEM TESTS
-    // ==========================================
-
     @Test
     void testAll27SemanticIconsResolvedCaseInsensitive() {
         for (String id : ALL_27_SEMANTIC_IDS) {
-            // Upper case
+
             ActivityIcon iconUpper = ActivityIconManager.getIcon(id);
             assertNotNull(iconUpper, "Icon must resolve for uppercase: " + id);
             if (!"INFO".equalsIgnoreCase(id)) {
                 assertNotEquals(ActivityIcon.INFO, iconUpper, "Semantic icon must not fallback to INFO: " + id);
             }
 
-            // Lower case
             ActivityIcon iconLower = ActivityIconManager.getIcon(id.toLowerCase());
             assertSame(iconUpper, iconLower, "Lowercase and uppercase must resolve to same icon: " + id);
         }
@@ -76,19 +68,16 @@ public class IconAndSoundSystemTest {
 
     @Test
     void testIconColorResolutionAndAlpha() {
-        // Disabled state
+
         int colorDisabled = ActivityIconRenderer.resolveColor(0xFFFFFFFF, false, false, true);
         assertEquals(activity.client.gui.theme.ActivityColors.TEXT_DISABLED, colorDisabled);
 
-        // Selected state
         int colorSelected = ActivityIconRenderer.resolveColor(0xFFFFFFFF, false, true, false);
         assertEquals(activity.client.gui.theme.ActivityColors.ACCENT_PRIMARY, colorSelected);
 
-        // Hover state
         int colorHover = ActivityIconRenderer.resolveColor(0xFFFFFFFF, true, false, false);
         assertEquals(activity.client.gui.theme.ActivityColors.TEXT_PRIMARY, colorHover);
 
-        // Alpha calculation
         int full = 0xFFFFFFFF;
         int half = ActivityIconRenderer.applyAlpha(full, 0.5f);
         assertEquals(0x80, (half >>> 24) & 0xFF);
@@ -97,21 +86,15 @@ public class IconAndSoundSystemTest {
         assertEquals(0, zero);
     }
 
-    // ==========================================
-    // 2. SOUND PROFILE TESTS
-    // ==========================================
-
     @Test
     void testSoundProfileEnumAndDefaults() {
         assertEquals(SoundProfile.SERENE, SoundProfile.fromId("serene"));
         assertEquals(SoundProfile.CLASSIC, SoundProfile.fromId("classic"));
         assertEquals(SoundProfile.MINECRAFT, SoundProfile.fromId("minecraft"));
 
-        // Fallback for null or unknown id
         assertEquals(SoundProfile.SERENE, SoundProfile.fromId(null));
         assertEquals(SoundProfile.SERENE, SoundProfile.fromId("unknown_profile"));
 
-        // Default config profile is SERENE
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
         assertEquals("serene", config.soundProfile);
@@ -149,33 +132,24 @@ public class IconAndSoundSystemTest {
         assertNotNull(ActivitySoundEvents.SERENE_SEARCH_FOCUS);
     }
 
-    // ==========================================
-    // 3. SLIDER QUANTIZATION & DEBOUNCE INVARIANT
-    // ==========================================
-
     @Test
     void testStrictSliderQuantizationRule() throws InterruptedException {
-        // Reset state
+
         SoundManager.resetSliderTracking();
         assertEquals(Long.MIN_VALUE, SoundManager.getLastSliderNotch());
 
-        // First movement: 50.0 on 0..100 with step 1.0 -> notch 50
         SoundManager.playSliderTick(50.0, 0.0, 100.0, 1.0);
         assertEquals(50L, SoundManager.getLastSliderNotch(), "First tick must update notch to 50");
 
-        // Movement with identical quantized notch: 50.2 on step 1.0 -> notch 50
-        // Wait > 35ms to ensure debounce is not the reason
         Thread.sleep(40);
         long notchBefore = SoundManager.getLastSliderNotch();
         SoundManager.playSliderTick(50.2, 0.0, 100.0, 1.0);
         assertEquals(notchBefore, SoundManager.getLastSliderNotch(), "Identical notch (50 -> 50) must not trigger new tick!");
 
-        // Value change across notch boundary: 50 -> 55 on step 5.0
         Thread.sleep(40);
         SoundManager.playSliderTick(55.0, 0.0, 100.0, 5.0);
         assertEquals(11L, SoundManager.getLastSliderNotch(), "Quantized notch changed (55 / 5 = 11), tick must fire");
 
-        // Same notch again (55 -> 55): NO SOUND
         Thread.sleep(40);
         long notch55 = SoundManager.getLastSliderNotch();
         SoundManager.playSliderTick(55.0, 0.0, 100.0, 5.0);
@@ -187,26 +161,19 @@ public class IconAndSoundSystemTest {
         SoundManager.resetHoverTracking();
         assertEquals(0L, SoundManager.getLastHoverTime());
 
-        // First hover
         SoundManager.playHover();
         long t1 = SoundManager.getLastHoverTime();
         assertTrue(t1 > 0L, "First hover must record timestamp");
 
-        // Immediate subsequent hover (< 50ms) must be debounced
         SoundManager.playHover();
         long t2 = SoundManager.getLastHoverTime();
         assertEquals(t1, t2, "Hover within < 50ms must be debounced without updating timestamp");
 
-        // After >= 50ms, hover should fire
         Thread.sleep(55);
         SoundManager.playHover();
         long t3 = SoundManager.getLastHoverTime();
         assertTrue(t3 > t1, "Hover after 55ms must update timestamp");
     }
-
-    // ==========================================
-    // 4. CONFIG INTEGRATION TESTS
-    // ==========================================
 
     @Test
     void testConfigSoundProfileSerializationAndSanitize() {
@@ -214,7 +181,6 @@ public class IconAndSoundSystemTest {
         config.resetToDefaults();
         assertEquals("serene", config.soundProfile);
 
-        // Sanitize handles null / unknown
         config.soundProfile = null;
         config.sanitize();
         assertEquals("serene", config.soundProfile);
@@ -227,7 +193,6 @@ public class IconAndSoundSystemTest {
         config.sanitize();
         assertEquals("classic", config.soundProfile);
 
-        // Copy test
         ActivityConfig copy = config.copy();
         assertEquals("classic", copy.soundProfile);
         assertEquals(config, copy);

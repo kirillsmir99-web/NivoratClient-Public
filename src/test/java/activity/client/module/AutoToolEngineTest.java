@@ -8,10 +8,6 @@ import ru.elarion.autotool.AutoToolEngine;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for AutoToolEngine:
- * Weapon evaluation, combat session lifecycle, durability saving, and mining evaluation.
- */
 public class AutoToolEngineTest {
 
     private AutoToolConfig config;
@@ -117,11 +113,10 @@ public class AutoToolEngineTest {
     @Test
     @DisplayName("Durability saver score: Returns -1000.0f when durability <= threshold")
     void testDurabilitySaverScoring() {
-        // When durabilitySaver is enabled and item is at threshold, evaluateToolScore returns -1000.0F
+
         config.durabilitySaver = true;
         config.durabilityThreshold = 5;
 
-        // Null checks
         assertEquals(-100.0f, AutoToolEngine.evaluateWeaponScore(null, null, config));
         assertEquals(0.0f, AutoToolEngine.evaluateToolScore(null, null, config));
     }

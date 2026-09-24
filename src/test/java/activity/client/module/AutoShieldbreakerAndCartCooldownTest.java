@@ -53,12 +53,10 @@ public class AutoShieldbreakerAndCartCooldownTest {
         NumberSetting reactionDelaySetting = (NumberSetting) mod.getSetting("reaction_delay");
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Set to 0.30s (user request: 0.30)
         reactionDelaySetting.set(0.30);
         assertEquals(0.30, config.autoShieldbreakerReactionDelaySec, 0.001);
         assertEquals(0.30, ShieldBreakerConfig.reactionDelaySec, 0.001);
 
-        // Test clamping in sanitize()
         config.autoShieldbreakerReactionDelaySec = 5.0;
         config.sanitize();
         assertEquals(2.0, config.autoShieldbreakerReactionDelaySec, 0.001);

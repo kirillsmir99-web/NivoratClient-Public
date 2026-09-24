@@ -68,12 +68,10 @@ public class WindowControlButtonsTest {
         int startX = buttons.getStartX(layout);
         int startY = buttons.getStartY(layout);
 
-        // Click button 0 (Toggle All)
         assertTrue(buttons.mouseClicked(startX + 4, startY + 4, 0, layout));
         assertEquals(0, buttons.getPressedButton());
         assertFalse(toggleAllCalled.get(), "Action should not fire until release");
 
-        // Release on button 0
         assertTrue(buttons.mouseReleased(startX + 4, startY + 4, 0, layout));
         assertEquals(-1, buttons.getPressedButton());
         assertTrue(toggleAllCalled.get(), "Toggle all action should fire on mouse release");
@@ -85,12 +83,10 @@ public class WindowControlButtonsTest {
         int startY = buttons.getStartY(layout);
         int refreshX = startX + WindowControlButtons.BTN_SIZE + WindowControlButtons.BTN_GAP + 2;
 
-        // Click button 1 (Refresh)
         assertTrue(buttons.mouseClicked(refreshX, startY + 4, 0, layout));
         assertEquals(1, buttons.getPressedButton());
         assertFalse(refreshCalled.get(), "Action should not fire until release");
 
-        // Release on button 1
         assertTrue(buttons.mouseReleased(refreshX, startY + 4, 0, layout));
         assertEquals(-1, buttons.getPressedButton());
         assertTrue(refreshCalled.get(), "Refresh action should fire on mouse release");
@@ -131,11 +127,9 @@ public class WindowControlButtonsTest {
         int startX = buttons.getStartX(layout);
         int startY = buttons.getStartY(layout);
 
-        // Click button 0 (Toggle All)
         assertTrue(buttons.mouseClicked(startX + 4, startY + 4, 0, layout));
         assertEquals(0, buttons.getPressedButton());
 
-        // Release far away (drag off)
         assertFalse(buttons.mouseReleased(startX - 100, startY - 100, 0, layout));
         assertEquals(-1, buttons.getPressedButton(), "Pressed state must be cleared on release even if outside");
         assertFalse(toggleAllCalled.get(), "Action must NOT fire when released outside the button");

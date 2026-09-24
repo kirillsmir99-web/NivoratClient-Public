@@ -29,7 +29,6 @@ public class NivoratFontSystemTest {
         assertEquals(FontFamily.MINECRAFT, FontFamily.fromId("minecraft"));
         assertEquals(FontFamily.MINECRAFT, FontFamily.fromId("default"));
 
-        // Fallbacks
         assertEquals(FontFamily.MINECRAFT, FontFamily.fromId(null));
         assertEquals(FontFamily.MINECRAFT, FontFamily.fromId(""));
         assertEquals(FontFamily.MINECRAFT, FontFamily.fromId("unknown_font_123"));
@@ -41,7 +40,6 @@ public class NivoratFontSystemTest {
         assertEquals(TypographySize.NORMAL, TypographySize.fromId("normal"));
         assertEquals(TypographySize.LARGE, TypographySize.fromId("large"));
 
-        // Fallbacks
         assertEquals(TypographySize.NORMAL, TypographySize.fromId(null));
         assertEquals(TypographySize.NORMAL, TypographySize.fromId("invalid_size"));
 
@@ -65,7 +63,6 @@ public class NivoratFontSystemTest {
             }
         }
 
-        // Verify distinct line heights between small and large
         TypographyMetrics small = TypographyMetrics.get(FontFamily.ONEST, TypographySize.SMALL);
         TypographyMetrics normal = TypographyMetrics.get(FontFamily.ONEST, TypographySize.NORMAL);
         TypographyMetrics large = TypographyMetrics.get(FontFamily.ONEST, TypographySize.LARGE);
@@ -97,11 +94,10 @@ public class NivoratFontSystemTest {
 
     @Test
     void testFontAvailabilityFallback() {
-        // Vanilla/default font is always available
+
         assertTrue(NivoratFontManager.isFontAvailable(FontFamily.MINECRAFT));
         assertTrue(NivoratFontManager.isFontAvailable(FontFamily.DEFAULT));
 
-        // When non-Minecraft font is requested without active Minecraft client, fallback handles it safely
         NivoratFontManager.setFontFamily(FontFamily.MINECRAFT, false);
         assertEquals(FontFamily.MINECRAFT, NivoratFontManager.getActiveFontFamily());
     }

@@ -32,7 +32,6 @@ public class ConfigValidationAndPresetTest {
     void testStructuredSchemaClientAndModules() {
         ActivityConfig config = new ActivityConfig();
 
-        // 1. Client schema: ui, sound, fonts
         assertNotNull(config.client);
         assertNotNull(config.client.ui);
         assertNotNull(config.client.sound);
@@ -47,7 +46,6 @@ public class ConfigValidationAndPresetTest {
         assertEquals(45.0, config.client.sound.soundVolume);
         assertEquals("inter", config.client.fonts.fontFamily);
 
-        // Sync back from client
         config.client.ui.overlayEnabled = true;
         config.client.sound.soundVolume = 85.0;
         config.client.fonts.fontFamily = "manrope";
@@ -57,7 +55,6 @@ public class ConfigValidationAndPresetTest {
         assertEquals(85.0, config.soundVolume);
         assertEquals("manrope", config.fontFamily);
 
-        // 2. Modules schema
         assertNotNull(config.modules);
         ActivityConfig.ModuleConfigEntry entry = new ActivityConfig.ModuleConfigEntry(true, new Keybind(82, true, false, false));
         entry.settings.put("source_mode", "sword_only");
@@ -76,7 +73,6 @@ public class ConfigValidationAndPresetTest {
     void testSanitizationClampingOutOfRangeNumbers() {
         ActivityConfig config = new ActivityConfig();
 
-        // Out of bounds values
         config.autoMaceRestoreDelayMs = -999.0;
         config.autoMaceMissChance = 999.0;
         config.autoSpearRestoreDelayMs = 10000.0;
@@ -99,7 +95,6 @@ public class ConfigValidationAndPresetTest {
 
         config.sanitize();
 
-        // Clamped results
         assertEquals(30.0, config.autoMaceRestoreDelayMs, "autoMaceRestoreDelayMs min 30.0");
         assertEquals(50.0, config.autoMaceMissChance, "autoMaceMissChance max 50.0");
         assertEquals(500.0, config.autoSpearRestoreDelayMs, "autoSpearRestoreDelayMs max 500.0");
@@ -166,37 +161,30 @@ public class ConfigValidationAndPresetTest {
     void testAutoStunSlimeAliasMigration() {
         ActivityConfig config = new ActivityConfig();
 
-        // 1. Backward-compatible alias fields
         config.autoStunSlimeEnabled = true;
         config.autoStunSlimeDistance = 3.6;
         config.autoStunSlimeChance = 82.0;
 
-        // 2. Modules map alias
         ActivityConfig.ModuleConfigEntry slimeEntry = new ActivityConfig.ModuleConfigEntry(true, new Keybind(70));
         slimeEntry.settings.put("distance", 3.6);
         config.modules.put("auto_stun_slime", slimeEntry);
 
-        // 3. Pinned modules alias
         config.pinnedModules.add("auto_stun_slime");
 
         config.sanitize();
 
-        // Check fields migrated
         assertTrue(config.autoStunSlamEnabled);
         assertEquals(3.6, config.autoStunSlamDistance);
         assertEquals(82.0, config.autoStunSlamChance);
         assertNull(config.autoStunSlimeEnabled);
         assertNull(config.autoStunSlimeDistance);
 
-        // Check modules map migrated
         assertTrue(config.modules.containsKey("auto_stun_slam"));
         assertFalse(config.modules.containsKey("auto_stun_slime"));
 
-        // Check pinned modules migrated
         assertTrue(config.pinnedModules.contains("auto_stun_slam"));
         assertFalse(config.pinnedModules.contains("auto_stun_slime"));
 
-        // Check NivoratConfigManager transparent alias lookup
         ActivityConfig.ModuleConfigEntry viaAlias = NivoratConfigManager.getModuleConfig(config, "auto_stun_slime");
         assertNotNull(viaAlias);
         assertEquals(70, viaAlias.keybind.getKeyCode());
@@ -218,12 +206,10 @@ public class ConfigValidationAndPresetTest {
         config.autoGGPhrase = "GG WP everyone";
         config.cartHudCustomX = 250;
 
-        // Structured module settings
         ActivityConfig.ModuleConfigEntry maceEntry = new ActivityConfig.ModuleConfigEntry(false, new Keybind(66));
         maceEntry.settings.put("restore_delay", 140.0);
         config.modules.put("auto_mace", maceEntry);
 
-        // Transient UI fields that must NOT be saved into presets
         config.windowPosX = 400;
         config.windowPosY = 300;
         config.windowWidth = 800;
@@ -244,7 +230,6 @@ public class ConfigValidationAndPresetTest {
         assertFalse(snapshot.has("matchCase"));
         assertFalse(snapshot.has("activeProfile"));
 
-        // Apply snapshot to new target configuration
         ActivityConfig target = new ActivityConfig();
         target.windowPosX = 111;
         target.windowPosY = 222;
@@ -252,12 +237,10 @@ public class ConfigValidationAndPresetTest {
 
         PresetSerializer.applySettingsSnapshot(snapshot, target);
 
-        // Transient state preserved on target
         assertEquals(111, target.windowPosX);
         assertEquals(222, target.windowPosY);
         assertEquals("original_search", target.searchFilter);
 
-        // Module settings preserved across all 12 modules
         assertFalse(target.autoMaceEnabled);
         assertEquals(210.0, target.autoSpearRestoreDelayMs);
         assertEquals(3.4, target.autoShieldbreakerDistance);
@@ -271,7 +254,6 @@ public class ConfigValidationAndPresetTest {
         assertEquals("GG WP everyone", target.autoGGPhrase);
         assertEquals(250, target.cartHudCustomX);
 
-        // Verify target.modules
         assertTrue(target.modules.containsKey("auto_mace"));
         assertFalse(target.modules.get("auto_mace").enabled);
         assertEquals(66, target.modules.get("auto_mace").keybind.getKeyCode());
@@ -287,15 +269,12 @@ public class ConfigValidationAndPresetTest {
         assertNotNull(custom);
         assertTrue(PresetManager.hasPresetNamed("Saved Competitor Preset"));
 
-        // Factory reset module settings
         ActivityConfigManager.resetDefaults();
 
-        // Verify active configuration reset to defaults
         ActivityConfig current = ActivityConfigManager.getConfig();
         assertTrue(current.autoMaceEnabled, "autoMaceEnabled must be reset to true");
         assertEquals(3.0, current.autoTotemTriggerHearts, "autoTotemTriggerHearts must be reset to 3.0");
 
-        // Verify custom preset STILL exists and was not erased
         assertTrue(PresetManager.hasPresetNamed("Saved Competitor Preset"), "Custom presets must NOT be deleted by factory reset");
         Preset retrieved = PresetManager.getPresetByName("Saved Competitor Preset");
         assertNotNull(retrieved);
@@ -308,7 +287,7 @@ public class ConfigValidationAndPresetTest {
     @Test
     void testFullModulePresetRoundTripAll12Modules() {
         ActivityConfig src = new ActivityConfig();
-        // 1. AutoMace
+
         src.autoMaceEnabled = false;
         src.autoMaceKeybind.set(66, true, false, false);
         src.autoMaceSourceMode = "axe_only";
@@ -319,7 +298,6 @@ public class ConfigValidationAndPresetTest {
         src.autoMaceRandomDelay = false;
         src.autoMaceLegitMode = false;
 
-        // 2. AutoSpear
         src.autoSpearEnabled = false;
         src.autoSpearKeybind.set(86, false, false, false);
         src.autoSpearSecurityMode = "rage";
@@ -328,7 +306,6 @@ public class ConfigValidationAndPresetTest {
         src.autoSpearMissChance = 15.0;
         src.autoSpearRandomDelay = false;
 
-        // 3. AutoShieldbreaker
         src.autoShieldbreakerEnabled = false;
         src.autoShieldbreakerMode = "semi_auto";
         src.autoShieldbreakerDistance = 3.3;
@@ -339,7 +316,6 @@ public class ConfigValidationAndPresetTest {
         src.autoShieldbreakerAbortOnManualSwitch = false;
         src.autoShieldbreakerLegitMode = false;
 
-        // 4. AutoStunSlam
         src.autoStunSlamEnabled = false;
         src.autoStunSlamMode = "semi_auto";
         src.autoStunSlamDistance = 3.2;
@@ -351,7 +327,6 @@ public class ConfigValidationAndPresetTest {
         src.autoStunSlamRandomDelay = false;
         src.autoStunSlamLegitMode = false;
 
-        // 5. AutoTotem
         src.autoTotemEnabled = false;
         src.autoTotemMode = "offhand";
         src.autoTotemTriggerHearts = 4.5;
@@ -360,7 +335,6 @@ public class ConfigValidationAndPresetTest {
         src.autoTotemReturnItem = false;
         src.autoTotemReturnOnPop = false;
 
-        // 6. AutoCart
         src.autoCartEnabled = false;
         src.autoCartPreset = "safe";
         src.autoCartPlacementChance = 85.0;
@@ -375,7 +349,6 @@ public class ConfigValidationAndPresetTest {
         src.autoCartRestoreDelay = 5.0;
         src.autoCartLegitMode = false;
 
-        // 7. AutoAnchor
         src.autoAnchorEnabled = false;
         src.autoAnchorPreset = "fast";
         src.autoAnchorAutoExplode = true;
@@ -386,7 +359,6 @@ public class ConfigValidationAndPresetTest {
         src.autoAnchorTargetCharges = 3.0;
         src.autoAnchorLegitMode = false;
 
-        // 8. CartRefill
         src.cartRefillEnabled = false;
         src.cartRefillDelayTicks = 4.0;
         src.cartRefillChance = 88.0;
@@ -394,7 +366,6 @@ public class ConfigValidationAndPresetTest {
         src.cartRefillRandomDelay = false;
         src.cartRefillLegitMode = false;
 
-        // 9. HPReaper
         src.hpReaperEnabled = false;
         src.hpReaperMode = "damage_diff";
         src.hpReaperTargetFilter = "players_only";
@@ -407,7 +378,6 @@ public class ConfigValidationAndPresetTest {
         src.hpReaperDiffX = 720;
         src.hpReaperDiffY = 820;
 
-        // 10. AutoTool
         src.autoToolEnabled = false;
         src.autoToolCombatGuard = false;
         src.autoToolDurabilitySaver = false;
@@ -419,7 +389,6 @@ public class ConfigValidationAndPresetTest {
         src.autoToolIgnoreInstantBreak = false;
         src.autoToolLockWhileMining = false;
 
-        // 11. AutoGG
         src.autoGGEnabled = false;
         src.autoGGPhrase = "Good Game!";
         src.autoGGSendOnKill = false;
@@ -427,12 +396,10 @@ public class ConfigValidationAndPresetTest {
         src.autoGGRandomOrder = true;
         src.autoGGDelayMs = 1200.0;
 
-        // 12. CartHUD
         src.cartHudEnabled = false;
         src.cartHudCustomX = 350;
         src.cartHudCustomY = 450;
 
-        // Transient state
         src.windowPosX = 777;
         src.windowPosY = 888;
         src.searchFilter = "transient_filter";
@@ -453,12 +420,10 @@ public class ConfigValidationAndPresetTest {
 
         PresetSerializer.applySettingsSnapshot(snapshot, dst);
 
-        // Transient preserved on destination
         assertEquals(50, dst.windowPosX);
         assertEquals(60, dst.windowPosY);
         assertEquals("keep_this", dst.searchFilter);
 
-        // All 12 module settings transferred accurately
         assertFalse(dst.autoMaceEnabled);
         assertEquals("axe_only", dst.autoMaceSourceMode);
         assertEquals("breach_only", dst.autoMaceEnchantMode);
@@ -572,7 +537,7 @@ public class ConfigValidationAndPresetTest {
 
     @Test
     void testAutoStunSlimeAliasInModuleRegistryAndConfigManager() {
-        // ModuleRegistry lookups
+
         activity.client.module.api.IModule slamViaCanonical = activity.client.module.api.ModuleRegistry.get("auto_stun_slam");
         activity.client.module.api.IModule slamViaAlias = activity.client.module.api.ModuleRegistry.get("auto_stun_slime");
         activity.client.module.api.IModule slamViaCamelAlias = activity.client.module.api.ModuleRegistry.get("AutoStunSlime");
@@ -583,7 +548,6 @@ public class ConfigValidationAndPresetTest {
         assertSame(slamViaCanonical, slamViaCamelAlias);
         assertSame(slamViaCanonical, slamViaCamelCanonical);
 
-        // NivoratConfigManager lookups
         ActivityConfig config = new ActivityConfig();
         config.autoStunSlamEnabled = false;
         config.syncModuleConfigEntries();
@@ -632,7 +596,6 @@ public class ConfigValidationAndPresetTest {
         assertEquals("GF", cfg.modules.get("auto_gg").settings.get("phrase"));
         assertEquals(180, cfg.modules.get("cart_hud").settings.get("custom_x"));
 
-        // Mutate entries and sync back
         cfg.modules.get("auto_mace").settings.put("source_mode", "sword_only");
         cfg.modules.get("auto_spear").settings.put("security_mode", "semi_legit");
         cfg.modules.get("auto_shieldbreaker").settings.put("distance", 2.1);
@@ -670,12 +633,10 @@ public class ConfigValidationAndPresetTest {
         assertTrue(original.equals(modified));
         assertEquals(original.hashCode(), modified.hashCode());
 
-        // Test pinnedModules changes equals
         modified.setPinned("auto_mace", true);
         assertFalse(original.equals(modified), "Modifying pinnedModules must change equals()");
         assertNotEquals(original.hashCode(), modified.hashCode());
 
-        // Restore pinnedModules and modify client section
         modified.setPinned("auto_mace", false);
         assertTrue(original.equals(modified));
 
@@ -688,17 +649,14 @@ public class ConfigValidationAndPresetTest {
     void testNivoratConfigManagerSetModuleConfigAndEnabled() {
         ActivityConfig cfg = new ActivityConfig();
 
-        // setModuleConfig with alias
         ActivityConfig.ModuleConfigEntry entry = new ActivityConfig.ModuleConfigEntry(true, new Keybind(77));
         entry.settings.put("distance", 3.7);
         NivoratConfigManager.setModuleConfig(cfg, "auto_stun_slime", entry);
 
-        // Verify normalized to auto_stun_slam
         assertTrue(cfg.modules.containsKey("auto_stun_slam"));
         assertFalse(cfg.modules.containsKey("auto_stun_slime"));
         assertEquals(3.7, cfg.modules.get("auto_stun_slam").settings.get("distance"));
 
-        // Test isModuleEnabled and setModuleEnabled
         NivoratConfigManager.setModuleEnabled("auto_mace", false);
         assertFalse(NivoratConfigManager.isModuleEnabled("auto_mace"));
 
@@ -730,7 +688,6 @@ public class ConfigValidationAndPresetTest {
         setting.set(Double.NEGATIVE_INFINITY);
         assertEquals(100.0, setting.get(), "-Infinity must not corrupt NumberSetting value");
 
-        // Also test real module setting
         activity.client.module.api.IModule mace = activity.client.module.api.ModuleRegistry.get("auto_mace");
         assertNotNull(mace);
         activity.client.module.setting.Setting<?> delaySetting = mace.getSetting("restore_delay");

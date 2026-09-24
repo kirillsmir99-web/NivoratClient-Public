@@ -17,9 +17,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * End-to-end integration and verification suite for the 12 unified modules in NivoratClient.
- */
 public class Monolithic12ModulesIntegrationTest {
 
     private static final List<String> EXPECTED_MODULE_IDS = List.of(
@@ -134,7 +131,6 @@ public class Monolithic12ModulesIntegrationTest {
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
 
-        // Toggle each module state
         config.autoMaceEnabled = true;
         config.autoSpearEnabled = true;
         config.autoShieldbreakerEnabled = true;
@@ -151,7 +147,6 @@ public class Monolithic12ModulesIntegrationTest {
         ActivityConfigManager.markDirty();
         ActivityConfigManager.save();
 
-        // Verify config reloaded without errors
         ActivityConfig loaded = ActivityConfigManager.getConfig();
         assertNotNull(loaded);
         assertTrue(loaded.autoMaceEnabled);

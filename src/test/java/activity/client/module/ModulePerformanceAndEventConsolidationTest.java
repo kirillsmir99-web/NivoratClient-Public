@@ -56,7 +56,7 @@ public class ModulePerformanceAndEventConsolidationTest {
     @Test
     @DisplayName("ModuleEventDispatcher: Zero cost for disabled modules")
     void testZeroCostForDisabledModules() {
-        // Disable all modules
+
         for (IModule module : ModuleRegistry.getAll()) {
             module.setEnabled(false);
         }
@@ -66,7 +66,6 @@ public class ModulePerformanceAndEventConsolidationTest {
         assertEquals(0, ModuleEventDispatcher.getActiveAttackModules().length, "Active attack modules must be 0 when all disabled");
         assertEquals(0, ModuleEventDispatcher.getActiveHudModules().length, "Active hud modules must be 0 when all disabled");
 
-        // Attack entity dispatch returns PASS immediately with 0 active modules
         ActionResult result = ModuleEventDispatcher.onAttackEntity(null, null, null, null, null);
         assertEquals(ActionResult.PASS, result, "Must return PASS immediately when no active modules");
     }
@@ -111,24 +110,20 @@ public class ModulePerformanceAndEventConsolidationTest {
         assertFalse(CombatLockManager.isLocked());
         assertEquals(0, CombatLockManager.getLockMask());
 
-        // Set single lock
         CombatLockManager.setLock(CombatLockManager.MACE, true);
         assertTrue(CombatLockManager.isLocked());
         assertEquals("true", System.getProperty(CombatLockManager.MACE));
         assertNotEquals(0, CombatLockManager.getLockMask());
 
-        // Set secondary lock
         CombatLockManager.setLock(CombatLockManager.CART_PLACEMENT, true);
         assertTrue(CombatLockManager.isLocked());
         assertEquals("true", System.getProperty(CombatLockManager.CART_PLACEMENT));
 
-        // Release first lock, second must remain active
         CombatLockManager.setLock(CombatLockManager.MACE, false);
         assertTrue(CombatLockManager.isLocked());
         assertNull(System.getProperty(CombatLockManager.MACE));
         assertEquals("true", System.getProperty(CombatLockManager.CART_PLACEMENT));
 
-        // Release all via reset
         CombatLockManager.reset();
         assertFalse(CombatLockManager.isLocked());
         assertEquals(0, CombatLockManager.getLockMask());
@@ -146,7 +141,6 @@ public class ModulePerformanceAndEventConsolidationTest {
         AutoCartModule cart = (AutoCartModule) ModuleRegistry.get(AutoCartModule.ID);
         AutoTotemModule totem = (AutoTotemModule) ModuleRegistry.get(AutoTotemModule.ID);
 
-        // Simulate combat lock set and verify onDisable releases it
         CombatLockManager.setLock(CombatLockManager.MACE, true);
         assertTrue(CombatLockManager.isLocked());
         mace.onDisable();
@@ -188,7 +182,6 @@ public class ModulePerformanceAndEventConsolidationTest {
     void testKeybindManagerCaching() {
         KeybindManager.markDispatcherManaged();
 
-        // Clear keybinds on all modules
         for (IModule module : ModuleRegistry.getAll()) {
             module.getKeybind().clear();
         }
@@ -196,11 +189,9 @@ public class ModulePerformanceAndEventConsolidationTest {
 
         assertEquals(0, KeybindManager.getBoundPrimaries().length, "With all clear, bound primaries must be 0");
 
-        // Set one keybind on AutoMace
         IModule mace = ModuleRegistry.get("auto_mace");
         mace.getKeybind().set(GLFW.GLFW_KEY_R, true, false, false);
 
-        // Keybind.set() triggers automatic rebuild
         assertTrue(KeybindManager.getBoundPrimaries().length >= 1, "Setting keybind must rebuild bound primaries array");
         boolean foundMace = false;
         for (KeybindManager.BoundPrimary bp : KeybindManager.getBoundPrimaries()) {
@@ -213,7 +204,6 @@ public class ModulePerformanceAndEventConsolidationTest {
         }
         assertTrue(foundMace, "AutoMace keybind must be present in bound primaries");
 
-        // Clear keybind
         mace.getKeybind().clear();
         foundMace = false;
         for (KeybindManager.BoundPrimary bp : KeybindManager.getBoundPrimaries()) {
@@ -261,7 +251,6 @@ public class ModulePerformanceAndEventConsolidationTest {
         assertEquals(3, InventoryScanService.getCachedSwordSlot());
         assertEquals(1, InventoryScanService.getCachedAxeSlot());
 
-        // Invalidate on slot switch or tick
         InventoryScanService.invalidate();
         assertEquals(-2, InventoryScanService.getCachedSwordSlot());
         assertEquals(-2, InventoryScanService.getCachedAxeSlot());
@@ -286,7 +275,6 @@ public class ModulePerformanceAndEventConsolidationTest {
         assertEquals(0, CombatRaytraceGuard.getEntityCacheSize());
         assertEquals(0, CombatRaytraceGuard.getBlockCacheSize());
 
-        // Advance tick should clear cache
         CombatRaytraceGuard.onTick(100L);
         assertEquals(0, CombatRaytraceGuard.getEntityCacheSize());
 
@@ -323,7 +311,6 @@ public class ModulePerformanceAndEventConsolidationTest {
             custom.setEnabled(true);
             ModuleEventDispatcher.updateActiveModules();
 
-            // Verify custom module is in activeAttackModules and activeHudModules
             boolean foundAttack = false;
             for (IModule m : ModuleEventDispatcher.getActiveAttackModules()) {
                 if ("custom_combat_test".equals(m.getId())) {
@@ -342,7 +329,6 @@ public class ModulePerformanceAndEventConsolidationTest {
             }
             assertTrue(foundHud, "Custom module overriding onRenderHud must be in activeHudModules");
 
-            // Execute dispatch
             ActionResult result = ModuleEventDispatcher.onAttackEntity(null, null, null, null, null);
             assertEquals(ActionResult.SUCCESS, result);
             assertTrue(custom.attackCalled);
@@ -350,7 +336,6 @@ public class ModulePerformanceAndEventConsolidationTest {
             ModuleEventDispatcher.onRenderHud(null, null);
             assertTrue(custom.hudCalled);
 
-            // When disabled, must be evicted immediately
             custom.setEnabled(false);
             foundAttack = false;
             for (IModule m : ModuleEventDispatcher.getActiveAttackModules()) {
@@ -372,7 +357,6 @@ public class ModulePerformanceAndEventConsolidationTest {
         InventoryScanService.setCachedSwordSlotForTest(5);
         TargetCacheService.reset();
 
-        // Simulate client tick with null client (disconnect)
         ModuleEventDispatcher.onClientTick(null);
 
         assertFalse(PlayerStateService.isBusy(), "PlayerStateService must be reset on disconnect");
@@ -407,11 +391,9 @@ public class ModulePerformanceAndEventConsolidationTest {
         assertEquals(0, CombatRaytraceGuard.getEntityCacheSize());
         assertEquals(0, CombatRaytraceGuard.getBlockCacheSize());
 
-        // onTick clears cache
         CombatRaytraceGuard.onTick(1L);
         assertEquals(0, CombatRaytraceGuard.getEntityCacheSize());
 
-        // Null player/target checks return false safely
         assertFalse(CombatRaytraceGuard.hasLineOfSight(null, (Entity) null));
         assertFalse(CombatRaytraceGuard.hasLineOfSight(null, (net.minecraft.util.math.BlockPos) null));
     }
@@ -422,7 +404,6 @@ public class ModulePerformanceAndEventConsolidationTest {
         ModuleEventDispatcher.resetTickCountForTest();
         assertEquals(0L, ModuleEventDispatcher.getClientTickCount());
 
-        // Disconnect (null client) resets caches without incrementing
         ModuleEventDispatcher.onClientTick(null);
         assertEquals(0L, ModuleEventDispatcher.getClientTickCount());
     }

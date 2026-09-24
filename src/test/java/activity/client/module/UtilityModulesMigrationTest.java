@@ -38,10 +38,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verification test suite for Phase 5 migration of utility and HUD modules:
- * HPReaper, AutoTool, AutoGG, and CartHUD into NivoratClient.
- */
 public class UtilityModulesMigrationTest {
 
     @BeforeAll
@@ -93,19 +89,15 @@ public class UtilityModulesMigrationTest {
         HPReaperModule hpMod = (HPReaperModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Default keybind unbound
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Settings presence
         assertNotNull(mod.getSetting("mode"));
-        assertNotNull(mod.getSetting("display_mode")); // alias check
+        assertNotNull(mod.getSetting("display_mode"));
         assertNotNull(mod.getSetting("target_filter"));
         assertNotNull(mod.getSetting("open_editor"));
 
-        // Custom section presence
         assertTrue(hpMod.hasCustomSection(), "HPReaperModule must provide custom section");
 
-        // Test display mode sync
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
         assertEquals(List.of("target_hp", "own_hp", "damage_diff", "compact"), modeSetting.getOptions());
 
@@ -125,7 +117,6 @@ public class UtilityModulesMigrationTest {
         assertEquals("target_hp", config.hpReaperMode);
         assertEquals(HealthHudOverlay.DisplayMode.TARGET_HEALTH, VitalityConfig.displayMode);
 
-        // Test target filter sync
         EnumSetting filterSetting = (EnumSetting) mod.getSetting("target_filter");
         assertEquals(List.of("all_entities", "players_only", "hostile_and_players"), filterSetting.getOptions());
 
@@ -141,7 +132,6 @@ public class UtilityModulesMigrationTest {
         assertEquals("all_entities", config.hpReaperTargetFilter);
         assertEquals(VitalityConfig.TargetFilter.ALL_ENTITIES, VitalityConfig.targetFilter);
 
-        // Test enable/disable disables displayMode in VitalityConfig
         mod.setEnabled(false);
         assertFalse(config.hpReaperEnabled);
         assertEquals(HealthHudOverlay.DisplayMode.DISABLED, VitalityConfig.displayMode);
@@ -150,7 +140,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.hpReaperEnabled);
         assertEquals(HealthHudOverlay.DisplayMode.TARGET_HEALTH, VitalityConfig.displayMode);
 
-        // Test coordinates persistence and sync
         config.hpReaperCrosshairTargetX = 150;
         config.hpReaperCrosshairTargetY = 220;
         hpMod.syncControllerConfig(config);
@@ -171,14 +160,12 @@ public class UtilityModulesMigrationTest {
         AutoToolModule toolMod = (AutoToolModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Check keybind
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Check settings presence & aliases
         assertNotNull(mod.getSetting("prefer_silk"));
-        assertNotNull(mod.getSetting("prefer_silk_touch")); // alias
+        assertNotNull(mod.getSetting("prefer_silk_touch"));
         assertNotNull(mod.getSetting("restore_previous"));
-        assertNotNull(mod.getSetting("restore_previous_item")); // alias
+        assertNotNull(mod.getSetting("restore_previous_item"));
         assertNotNull(mod.getSetting("weapon_switch"));
         assertNotNull(mod.getSetting("durability_threshold"));
         assertNotNull(mod.getSetting("combat_guard"));
@@ -189,7 +176,6 @@ public class UtilityModulesMigrationTest {
         assertNotNull(mod.getSetting("single_slot_mode"));
         assertNotNull(mod.getSetting("single_slot"));
 
-        // Test prefer_silk sync
         BooleanSetting silkSetting = (BooleanSetting) mod.getSetting("prefer_silk");
         silkSetting.set(true);
         assertTrue(config.autoToolPreferSilkTouch);
@@ -198,7 +184,6 @@ public class UtilityModulesMigrationTest {
         assertFalse(config.autoToolPreferSilkTouch);
         assertFalse(AutoToolClient.CONFIG.preferSilkTouch);
 
-        // Test weapon_switch sync
         BooleanSetting weaponSetting = (BooleanSetting) mod.getSetting("weapon_switch");
         weaponSetting.set(false);
         assertFalse(config.autoToolWeaponSwitch);
@@ -207,7 +192,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoToolWeaponSwitch);
         assertTrue(AutoToolClient.CONFIG.weaponSwitch);
 
-        // Test restore_previous sync
         BooleanSetting restoreSetting = (BooleanSetting) mod.getSetting("restore_previous");
         restoreSetting.set(false);
         assertFalse(config.autoToolRestorePrevious);
@@ -216,7 +200,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoToolRestorePrevious);
         assertTrue(AutoToolClient.CONFIG.restorePreviousItem);
 
-        // Test durability threshold sync
         NumberSetting duraSetting = (NumberSetting) mod.getSetting("durability_threshold");
         assertEquals(1.0, duraSetting.getMin(), 0.001);
         assertEquals(50.0, duraSetting.getMax(), 0.001);
@@ -226,7 +209,6 @@ public class UtilityModulesMigrationTest {
         assertEquals(12.0, config.autoToolDurabilityThreshold, 0.001);
         assertEquals(12, AutoToolClient.CONFIG.durabilityThreshold);
 
-        // Test combat guard sync
         BooleanSetting combatGuard = (BooleanSetting) mod.getSetting("combat_guard");
         combatGuard.set(false);
         assertFalse(config.autoToolCombatGuard);
@@ -235,7 +217,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoToolCombatGuard);
         assertTrue(AutoToolClient.CONFIG.combatGuard);
 
-        // Test durability saver sync
         BooleanSetting duraSaver = (BooleanSetting) mod.getSetting("durability_saver");
         duraSaver.set(false);
         assertFalse(config.autoToolDurabilitySaver);
@@ -244,7 +225,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoToolDurabilitySaver);
         assertTrue(AutoToolClient.CONFIG.durabilitySaver);
 
-        // Test ignore instant break sync
         BooleanSetting ignoreInstant = (BooleanSetting) mod.getSetting("ignore_instant_break");
         ignoreInstant.set(false);
         assertFalse(config.autoToolIgnoreInstantBreak);
@@ -253,7 +233,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoToolIgnoreInstantBreak);
         assertTrue(AutoToolClient.CONFIG.ignoreInstantBreak);
 
-        // Test lock while mining sync
         BooleanSetting lockMining = (BooleanSetting) mod.getSetting("lock_while_mining");
         lockMining.set(false);
         assertFalse(config.autoToolLockWhileMining);
@@ -262,7 +241,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoToolLockWhileMining);
         assertTrue(AutoToolClient.CONFIG.lockWhileMining);
 
-        // Test legit mode sync
         BooleanSetting legitMode = (BooleanSetting) mod.getSetting("legit_mode");
         legitMode.set(false);
         assertFalse(config.autoToolLegitMode);
@@ -271,7 +249,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoToolLegitMode);
         assertTrue(AutoToolClient.CONFIG.legitMode);
 
-        // Test single slot mode sync
         BooleanSetting singleSlot = (BooleanSetting) mod.getSetting("single_slot_mode");
         EnumSetting singleSlotSelector = (EnumSetting) mod.getSetting("single_slot");
         assertNotNull(singleSlotSelector);
@@ -295,7 +272,6 @@ public class UtilityModulesMigrationTest {
         assertFalse(config.autoToolSingleSlotMode);
         assertFalse(AutoToolClient.CONFIG.singleSlotMode);
 
-        // Test module enable/disable sync
         mod.setEnabled(false);
         assertFalse(config.autoToolEnabled);
         assertFalse(AutoToolClient.CONFIG.enabled);
@@ -312,24 +288,20 @@ public class UtilityModulesMigrationTest {
         AutoGGModule ggMod = (AutoGGModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Keybind default
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Settings presence
         assertNotNull(mod.getSetting("phrase"));
-        assertNotNull(mod.getSetting("gg_phrase")); // alias
+        assertNotNull(mod.getSetting("gg_phrase"));
         assertNotNull(mod.getSetting("random_order"));
         assertNotNull(mod.getSetting("delay_ms"));
         assertNotNull(mod.getSetting("send_on_kill"));
         assertNotNull(mod.getSetting("send_on_death"));
 
-        // Test phrase sync
         StringSetting phraseSetting = (StringSetting) mod.getSetting("phrase");
         phraseSetting.set("Well Played!");
         assertEquals("Well Played!", config.autoGGPhrase);
         assertTrue(AutoGGClient.CONFIG.phrases.contains("Well Played!"));
 
-        // Test random order sync
         BooleanSetting randomOrder = (BooleanSetting) mod.getSetting("random_order");
         randomOrder.set(true);
         assertTrue(config.autoGGRandomOrder);
@@ -338,7 +310,6 @@ public class UtilityModulesMigrationTest {
         assertFalse(config.autoGGRandomOrder);
         assertFalse(AutoGGClient.CONFIG.randomOrder);
 
-        // Test delay_ms sync
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("delay_ms");
         assertEquals(100.0, delaySetting.getMin(), 0.001);
         assertEquals(3000.0, delaySetting.getMax(), 0.001);
@@ -348,7 +319,6 @@ public class UtilityModulesMigrationTest {
         assertEquals(1200.0, config.autoGGDelayMs, 0.001);
         assertEquals(1200.0, AutoGGClient.customDelayMs, 0.001);
 
-        // Test send_on_kill sync
         BooleanSetting sendKill = (BooleanSetting) mod.getSetting("send_on_kill");
         sendKill.set(false);
         assertFalse(config.autoGGSendOnKill);
@@ -357,7 +327,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoGGSendOnKill);
         assertTrue(AutoGGClient.CONFIG.sendOnKill);
 
-        // Test send_on_death sync
         BooleanSetting sendDeath = (BooleanSetting) mod.getSetting("send_on_death");
         sendDeath.set(true);
         assertTrue(config.autoGGSendOnOwnDeath);
@@ -366,7 +335,6 @@ public class UtilityModulesMigrationTest {
         assertFalse(config.autoGGSendOnOwnDeath);
         assertFalse(AutoGGClient.CONFIG.sendOnOwnDeath);
 
-        // Test enable/disable sync
         mod.setEnabled(false);
         assertFalse(config.autoGGEnabled);
         assertFalse(AutoGGClient.CONFIG.enabled);
@@ -375,7 +343,6 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.autoGGEnabled);
         assertTrue(AutoGGClient.CONFIG.enabled);
 
-        // Test recordAttack invocation
         assertDoesNotThrow(() -> AutoGGClient.recordAttack(42));
     }
 
@@ -386,14 +353,11 @@ public class UtilityModulesMigrationTest {
         CartHudModule cartHudMod = (CartHudModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        // Default keybind
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        // Settings presence
         assertNotNull(mod.getSetting("open_editor"));
         assertNotNull(mod.getSetting("reset_position"));
 
-        // Test reset position action
         config.cartHudCustomX = 250;
         config.cartHudCustomY = 300;
         cartHudMod.syncEngineConfig(config);
@@ -407,7 +371,6 @@ public class UtilityModulesMigrationTest {
         assertEquals(-1, CartHudConfig.customX);
         assertEquals(-1, CartHudConfig.customY);
 
-        // Test enable/disable sync
         mod.setEnabled(false);
         assertFalse(config.cartHudEnabled);
         assertFalse(CartHudConfig.enabled);
@@ -416,13 +379,11 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.cartHudEnabled);
         assertTrue(CartHudConfig.enabled);
 
-        // Verify CartRefill does NOT own HUD rendering or coordinates
         IModule refillMod = ModuleRegistry.get(CartRefillModule.ID);
         assertNotNull(refillMod);
         assertNull(refillMod.getSetting("open_editor"), "CartRefill must NOT have open_editor setting");
         assertNull(refillMod.getSetting("reset_position"), "CartRefill must NOT have reset_position setting");
 
-        // Verify CartHudOverlay delegates to CartStateService
         assertDoesNotThrow(() -> CartHudOverlay.countCarts(null));
         assertEquals(0, CartHudOverlay.countCarts(null));
     }
@@ -495,7 +456,6 @@ public class UtilityModulesMigrationTest {
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
 
-        // Mutate fields
         config.hpReaperEnabled = false;
         config.hpReaperMode = "compact";
         config.hpReaperTargetFilter = "players_only";
@@ -512,7 +472,6 @@ public class UtilityModulesMigrationTest {
         UtilityTab tab = new UtilityTab();
         tab.resetDefaults();
 
-        // Check restored defaults
         assertTrue(config.hpReaperEnabled);
         assertEquals("target_hp", config.hpReaperMode);
         assertEquals("all_entities", config.hpReaperTargetFilter);
@@ -596,11 +555,9 @@ public class UtilityModulesMigrationTest {
         StringSetting phraseSetting = (StringSetting) ggMod.getSetting("phrase");
         assertNotNull(phraseSetting);
 
-        // Set to "EZ" which is at index 2 in defaults
         phraseSetting.set("EZ");
         assertEquals("EZ", AutoGGClient.CONFIG.phrases.get(AutoGGClient.CONFIG.selected));
 
-        // Set to custom phrase
         phraseSetting.set("Great Fight!");
         assertEquals("Great Fight!", AutoGGClient.CONFIG.phrases.get(AutoGGClient.CONFIG.selected));
         assertFalse(AutoGGClient.CONFIG.randomOrder);

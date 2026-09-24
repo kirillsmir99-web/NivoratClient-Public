@@ -69,12 +69,10 @@ public class Stage14WatermarkAndPresetsTest {
         assertNotNull(exported);
         assertFalse(exported.isBlank());
 
-        // Reset to factory defaults
         ActivityConfigManager.resetDefaults();
         assertTrue(ActivityConfigManager.getConfig().autoMaceEnabled);
         assertEquals(85.0, ActivityConfigManager.getConfig().windowOpacity);
 
-        // Import back from compact Base64
         boolean success = ActivityConfigManager.importPresetString(exported);
         assertTrue(success);
         assertFalse(ActivityConfigManager.getConfig().autoMaceEnabled);
@@ -88,7 +86,7 @@ public class Stage14WatermarkAndPresetsTest {
         cfg.autoTotemEnabled = false;
 
         String base64 = ActivityConfigManager.exportPresetCompact();
-        // Insert newlines and spaces as often occurs when sharing across chat clients
+
         String spaced = "  \n  " + base64.substring(0, 10) + "\r\n  " + base64.substring(10) + "\n\n ";
 
         ActivityConfigManager.resetDefaults();
@@ -105,16 +103,13 @@ public class Stage14WatermarkAndPresetsTest {
         cfg.autoMaceLegitMode = false;
         activity.client.config.preset.Preset custom = activity.client.config.preset.PresetManager.createPreset("Stage14 Test Preset", cfg);
 
-        // Apply custom preset
         ActivityConfigManager.applyPreset(custom.getName());
         assertEquals("Stage14 Test Preset", ActivityConfigManager.getConfig().activeProfile);
         assertFalse(ActivityConfigManager.getConfig().autoMaceLegitMode);
 
-        // Apply default preset
         ActivityConfigManager.applyPreset("default");
         assertEquals("default", ActivityConfigManager.getConfig().activeProfile);
 
-        // Clean up
         activity.client.config.preset.PresetManager.deletePreset(custom.getId());
     }
 

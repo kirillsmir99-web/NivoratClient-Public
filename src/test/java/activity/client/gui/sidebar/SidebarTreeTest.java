@@ -25,22 +25,19 @@ public class SidebarTreeTest {
         List<SidebarTree.CategoryNode> categories = sidebarTree.getCategories();
         assertEquals(4, categories.size());
 
-        // Category 0: Combat
         SidebarTree.CategoryNode combat = categories.get(0);
         assertEquals("combat", combat.getId());
         assertEquals(0, combat.getTabIndex());
         assertEquals(ActivityIcon.COMBAT, combat.getIcon());
         assertEquals(5, combat.getChildren().size());
-        assertTrue(combat.isExpanded()); // Default open
+        assertTrue(combat.isExpanded());
 
-        // Category 1: Defense
         SidebarTree.CategoryNode defense = categories.get(1);
         assertEquals("defense", defense.getId());
         assertEquals(1, defense.getTabIndex());
         assertEquals(ActivityIcon.DEFENSE, defense.getIcon());
         assertEquals(4, defense.getChildren().size());
 
-        // Category 2: Utility & HUD
         SidebarTree.CategoryNode utility = categories.get(2);
         assertEquals("utility", utility.getId());
         assertEquals(2, utility.getTabIndex());
@@ -53,7 +50,6 @@ public class SidebarTreeTest {
         assertEquals("cooldown_hud", utility.getChildren().get(4).getId());
         assertEquals("hud_activity", utility.getChildren().get(5).getId());
 
-        // Category 3: Config
         SidebarTree.CategoryNode config = categories.get(3);
         assertEquals("config", config.getId());
         assertEquals(3, config.getTabIndex());
@@ -104,7 +100,6 @@ public class SidebarTreeTest {
         sidebarTree.clearSelectedModule();
         assertNull(sidebarTree.getSelectedModuleId());
 
-        // setSelectedModule should expand the parent category if collapsed
         SidebarTree.CategoryNode defense = sidebarTree.getCategories().get(1);
         defense.setExpanded(false);
         assertFalse(defense.isExpanded());
@@ -158,14 +153,12 @@ public class SidebarTreeTest {
         SidebarTree.CategoryNode defense = sidebarTree.getCategories().get(1);
         int totalChildrenHeight = defense.getChildren().size() * (SidebarTree.CHILD_ITEM_HEIGHT + SidebarTree.CHILD_GAP);
 
-        // At progress 0, expansion height must be exactly 0
         defense.setExpanded(false);
         assertEquals(0.0f, defense.getExpandProgress(), 0.0001f);
         float easedZero = activity.client.gui.animation.AnimationClock.smoothStep(defense.getExpandProgress());
         int heightZero = (int) Math.round(totalChildrenHeight * easedZero);
         assertEquals(0, heightZero, "At progress 0, animated height must be exactly 0 without jump");
 
-        // At progress 1.0, animated height must equal totalChildrenHeight
         defense.setExpanded(true);
         defense.update(false, false, 1.0f);
         assertEquals(1.0f, defense.getExpandProgress(), 0.0001f);
@@ -181,13 +174,11 @@ public class SidebarTreeTest {
         defense.setUserExpanded(false);
         defense.setSearchExpanded(false);
 
-        // Selecting a module inside closed category must set expanded and userExpanded
         sidebarTree.setSelectedModule("defense", "auto_totem");
         assertTrue(defense.isExpanded());
         assertTrue(defense.isUserExpanded());
         assertFalse(defense.isSearchExpanded());
 
-        // When search filter is cleared, user-expanded state is preserved
         sidebarTree.applySearchFilter("mace");
         sidebarTree.applySearchFilter("");
         assertTrue(defense.isExpanded(), "Category marked userExpanded via module selection must remain open");
@@ -198,7 +189,6 @@ public class SidebarTreeTest {
         sidebarTree.setSelectedModuleId("auto_totem");
         assertEquals("auto_totem", sidebarTree.getSelectedModuleId());
 
-        // Navigating to category itself (categoryId == moduleId) must clear selectedModuleId
         sidebarTree.setSelectedModule("combat", "combat");
         assertNull(sidebarTree.getSelectedModuleId(), "Selecting a category itself must clear selectedModuleId");
         assertTrue(sidebarTree.getCategories().get(0).isExpanded());
@@ -214,7 +204,6 @@ public class SidebarTreeTest {
         utility.setExpanded(false);
         utility.setUserExpanded(false);
 
-        // Rapid typing simulation: "т", "то", "тот", "тотем", backspaces, then "hud"
         sidebarTree.applySearchFilter("т");
         sidebarTree.applySearchFilter("то");
         sidebarTree.applySearchFilter("тот");

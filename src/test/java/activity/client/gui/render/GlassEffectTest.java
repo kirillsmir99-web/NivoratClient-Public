@@ -32,7 +32,7 @@ public class GlassEffectTest {
 
     @Test
     void testScaleAlphaPercentPanelAndWindowDefaults() {
-        // Window default: 85% on 0xF00A0C10 (alpha 240)
+
         int winColor = ActivityColors.WINDOW_BACKGROUND;
         int winAlphaOriginal = (winColor >>> 24) & 0xFF;
         int scaledWin = ActivityColors.scaleAlphaPercent(winColor, 85.0);
@@ -40,7 +40,6 @@ public class GlassEffectTest {
         int expectedWinAlpha = (int) (winAlphaOriginal * 0.85);
         assertEquals(expectedWinAlpha, winAlphaScaled, 1);
 
-        // Panel default: 65% on 0xCC13161D (alpha 204)
         int panelColor = ActivityColors.PANEL_BACKGROUND;
         int panelAlphaOriginal = (panelColor >>> 24) & 0xFF;
         int scaledPanel = ActivityColors.scaleAlphaPercent(panelColor, 65.0);
@@ -51,7 +50,7 @@ public class GlassEffectTest {
 
     @Test
     void testScaleAlphaPercentRGBPreservation() {
-        int color = 0x8038BDF8; // ACCENT_LIGHT with 50% alpha
+        int color = 0x8038BDF8;
         int scaled = ActivityColors.scaleAlphaPercent(color, 80.0);
         assertEquals(0x38BDF8, scaled & 0x00FFFFFF, "RGB channels must be strictly preserved");
     }
@@ -60,26 +59,22 @@ public class GlassEffectTest {
     void testConfigOpacitySanitizationAndClamping() {
         ActivityConfig config = new ActivityConfig();
 
-        // Check defaults
         assertEquals(85.0, config.windowOpacity, 0.001);
         assertEquals(65.0, config.panelOpacity, 0.001);
         assertTrue(config.glassEffect);
 
-        // Under-bounds clamping: window [30, 100], panel [20, 100]
         config.windowOpacity = 10.0;
         config.panelOpacity = 5.0;
         config.sanitize();
         assertEquals(30.0, config.windowOpacity, 0.001, "Window opacity below 30% must be clamped to 30%");
         assertEquals(20.0, config.panelOpacity, 0.001, "Panel opacity below 20% must be clamped to 20%");
 
-        // Over-bounds clamping
         config.windowOpacity = 150.0;
         config.panelOpacity = 200.0;
         config.sanitize();
         assertEquals(100.0, config.windowOpacity, 0.001, "Window opacity above 100% must be clamped to 100%");
         assertEquals(100.0, config.panelOpacity, 0.001, "Panel opacity above 100% must be clamped to 100%");
 
-        // NaN / Infinite sanitization
         config.windowOpacity = Double.NaN;
         config.panelOpacity = Double.POSITIVE_INFINITY;
         config.sanitize();

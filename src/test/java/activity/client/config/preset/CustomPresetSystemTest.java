@@ -33,11 +33,9 @@ public class CustomPresetSystemTest {
         assertEquals(Preset.DEFAULT_PRESET_NAME, def.getName());
         assertFalse(def.isDeletable(), "Default preset cannot be deletable");
 
-        // Attempt delete
         boolean deleted = PresetManager.deletePreset(Preset.DEFAULT_PRESET_ID);
         assertFalse(deleted, "Deleting default preset must return false");
 
-        // First item in list is always default
         List<Preset> presets = PresetManager.getPresets();
         assertFalse(presets.isEmpty());
         assertEquals(Preset.DEFAULT_PRESET_ID, presets.get(0).getId());
@@ -55,7 +53,6 @@ public class CustomPresetSystemTest {
         assertFalse(p.isBuiltin());
         assertTrue(p.isDeletable());
 
-        // Lookup by ID and name
         Preset byId = PresetManager.getPresetById(p.getId());
         assertNotNull(byId);
         assertEquals(p.getId(), byId.getId());
@@ -71,15 +68,12 @@ public class CustomPresetSystemTest {
     void testPresetNameValidation() {
         ActivityConfig cfg = new ActivityConfig();
 
-        // Blank name rejected
         assertThrows(IllegalArgumentException.class, () -> PresetManager.createPreset("", cfg));
         assertThrows(IllegalArgumentException.class, () -> PresetManager.createPreset("   ", cfg));
         assertThrows(IllegalArgumentException.class, () -> PresetManager.createPreset(null, cfg));
 
-        // Too long (>32 chars) rejected
         assertThrows(IllegalArgumentException.class, () -> PresetManager.createPreset("A".repeat(33), cfg));
 
-        // Control characters rejected
         assertThrows(IllegalArgumentException.class, () -> PresetManager.createPreset("Bad\nName", cfg));
         assertThrows(IllegalArgumentException.class, () -> PresetManager.createPreset("Bad\tName", cfg));
     }
@@ -102,7 +96,6 @@ public class CustomPresetSystemTest {
         assertFalse(snapshot.has("matchCase"), "Transient matchCase must be stripped");
         assertFalse(snapshot.has("activeProfile"), "Transient activeProfile must be stripped");
 
-        // Apply snapshot to new config with its own window position
         ActivityConfig target = new ActivityConfig();
         target.windowPosX = 100;
         target.windowPosY = 150;
@@ -120,18 +113,15 @@ public class CustomPresetSystemTest {
 
         Preset custom = PresetManager.createPreset("Distance Config", cfg);
 
-        // Reset to factory defaults
         ActivityConfigManager.resetDefaults();
         assertTrue(ActivityConfigManager.getConfig().autoMaceEnabled);
         assertEquals(2.85, ActivityConfigManager.getConfig().autoShieldbreakerDistance);
 
-        // Apply custom preset
         PresetManager.applyPreset(custom, ActivityConfigManager.getConfig());
         assertFalse(ActivityConfigManager.getConfig().autoMaceEnabled);
         assertEquals(3.5, ActivityConfigManager.getConfig().autoShieldbreakerDistance);
         assertEquals("Distance Config", ActivityConfigManager.getConfig().activeProfile);
 
-        // Re-apply default preset
         PresetManager.applyPreset(PresetManager.getDefaultPreset(), ActivityConfigManager.getConfig());
         assertTrue(ActivityConfigManager.getConfig().autoMaceEnabled);
         assertEquals(2.85, ActivityConfigManager.getConfig().autoShieldbreakerDistance);
@@ -217,12 +207,10 @@ public class CustomPresetSystemTest {
         cfg2.autoTotemTriggerHearts = 4.0;
         Preset candidate = Preset.createCustom("Duel Setup", PresetSerializer.extractSettingsSnapshot(cfg2));
 
-        // Save as new (generates unique suffix)
         Preset asNew = PresetManager.addOrOverwriteImported(candidate, false);
         assertEquals("Duel Setup (1)", asNew.getName());
-        assertEquals(3, PresetManager.getPresets().size()); // default + original + asNew
+        assertEquals(3, PresetManager.getPresets().size());
 
-        // Overwrite
         ActivityConfig cfg3 = new ActivityConfig();
         cfg3.autoTotemTriggerHearts = 5.0;
         Preset candidateOverwrite = Preset.createCustom("Duel Setup", PresetSerializer.extractSettingsSnapshot(cfg3));

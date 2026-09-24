@@ -14,7 +14,7 @@ import random
 import time
 from typing import Dict, List, Tuple, NamedTuple
 
-# Physical constants from Minecraft 1.21 and PearlCatchTrajectory.java
+                                                                      
 PEARL_SPEED = 1.5
 PEARL_GRAVITY = 0.03
 PEARL_DRAG = 0.99
@@ -213,7 +213,7 @@ def independent_simulation(
         cur_vy = (cur_vy - PLAYER_GRAVITY) * PLAYER_DRAG
     wind_origin = Vec3d(player_vel.x * delay_ticks, pl_y, player_vel.z * delay_ticks)
 
-    # Pearl flight
+                  
     pearl_dir = get_direction_vector(sol.pearl_pitch, player_yaw)
     pearl_vel = pearl_dir.multiply(PEARL_SPEED).add(inherited_pearl_vel)
     pearl_pos = ZERO_VEC
@@ -228,7 +228,7 @@ def independent_simulation(
 
     burst_target = pearl_pos.subtract(Vec3d(0.0, BURST_OFFSET_Y, 0.0))
 
-    # Wind charge flight
+                        
     flight_ticks = sol.intercept_tick - delay_ticks
     wind_dir = get_direction_vector(sol.wind_pitch, sol.wind_yaw)
     wind_vel = wind_dir.multiply(WIND_CHARGE_SPEED).add(inherited_wind_vel)
@@ -242,7 +242,7 @@ def independent_simulation(
 def build_systematic_test_cases() -> List[Dict]:
     cases = []
 
-    # 1. Stationary (v = 0)
+                           
     for yaw in [0.0, 45.0, 90.0, 180.0, 270.0, -90.0]:
         for ground in [True, False]:
             cases.append({
@@ -253,7 +253,7 @@ def build_systematic_test_cases() -> List[Dict]:
                 "ground": ground,
             })
 
-    # 2. Forward sprinting (vz = 0.28, and varying speeds 0.20, 0.25, 0.28, 0.35)
+                                                                                 
     for speed in [0.20, 0.25, 0.28, 0.35]:
         for yaw in [0.0, 45.0, 90.0, 180.0, -90.0]:
             rad = math.radians(yaw)
@@ -267,7 +267,7 @@ def build_systematic_test_cases() -> List[Dict]:
                 "ground": True,
             })
 
-    # 3. Diagonal sprinting (vx = 0.2, vz = 0.2 and 4 quadrants, plus sqrt(2) normalized)
+                                                                                         
     diag_speeds = [(0.2, 0.2), (-0.2, 0.2), (0.2, -0.2), (-0.2, -0.2),
                    (0.28 / math.sqrt(2), 0.28 / math.sqrt(2)),
                    (-0.28 / math.sqrt(2), 0.28 / math.sqrt(2))]
@@ -281,7 +281,7 @@ def build_systematic_test_cases() -> List[Dict]:
                 "ground": True,
             })
 
-    # 4. Weak wind jump (vy = 0.1, 0.4)
+                                       
     for vy in [0.1, 0.2, 0.3, 0.4]:
         for h_speed in [0.0, 0.15, 0.28]:
             for yaw in [0.0, 90.0]:
@@ -296,7 +296,7 @@ def build_systematic_test_cases() -> List[Dict]:
                     "ground": False,
                 })
 
-    # 5. Standard wind jump (vy = 0.6, 0.8, 0.9, 1.0)
+                                                     
     for vy in [0.6, 0.8, 0.9, 1.0]:
         for h_speed in [0.0, 0.15, 0.28]:
             for yaw in [0.0, 45.0, 90.0]:
@@ -311,7 +311,7 @@ def build_systematic_test_cases() -> List[Dict]:
                     "ground": False,
                 })
 
-    # 6. Maximum boost wind jump (vy = 1.2, 1.45, 1.6, 1.8)
+                                                           
     for vy in [1.2, 1.45, 1.6, 1.8]:
         for h_speed in [0.0, 0.15, 0.28]:
             for yaw in [0.0, 45.0, 90.0]:
@@ -326,7 +326,7 @@ def build_systematic_test_cases() -> List[Dict]:
                     "ground": False,
                 })
 
-    # 7. Falling (vy = -0.1, -0.2, -0.4, -0.6, -0.8, -1.0, -1.2)
+                                                                
     for vy in [-0.1, -0.2, -0.4, -0.6, -0.8, -1.0, -1.2]:
         for h_speed in [0.0, 0.15, 0.28]:
             for yaw in [0.0, 45.0, 90.0]:
@@ -341,7 +341,7 @@ def build_systematic_test_cases() -> List[Dict]:
                     "ground": False,
                 })
 
-    # 8. Lateral strafes (vx = +-0.28, vz = 0, yaw = 0)
+                                                       
     for strafe in [-0.28, 0.28]:
         cases.append({
             "group": "LateralStrafe",
@@ -359,7 +359,7 @@ def run_evaluation():
     print("Configuration: throw_delay = 2 ticks, Acceptance Threshold <= 0.5 blocks")
     print("=" * 80)
 
-    # 1. Run systematic test cases (>50 cases)
+                                              
     systematic_cases = build_systematic_test_cases()
     print(f"\n[PHASE 1] Running {len(systematic_cases)} Systematic Test Cases...")
 
@@ -379,7 +379,7 @@ def run_evaluation():
             sol, 2, c["yaw"], c["vel"], c["ground"]
         )
 
-        # Intercept error is min(dist_burst, dist_center), or dist_burst directly
+                                                                                 
         err = min(dist_burst, dist_center)
         res_err = sol.residual_error
 
@@ -403,7 +403,7 @@ def run_evaluation():
 
     print(f"\nSystematic Failures (> 0.5 blocks): {len(failures)} / {len(systematic_cases)}")
 
-    # 2. Run Monte Carlo stress testing (10,000 cases)
+                                                      
     print("\n" + "=" * 80)
     print("[PHASE 2] Running 10,000 Monte Carlo Adversarial Stress Cases (delay=2)...")
     random.seed(1337)
@@ -465,13 +465,13 @@ def run_evaluation():
     print(f"  Threshold (<= 0.5): {'MET' if max_mc <= 0.5 else 'VIOLATED'}")
     print(f"  Monte Carlo Failures: {len(mc_failures)} / {mc_count}")
 
-    # Top 5 worst-case samples in Monte Carlo
+                                             
     worst_mc = sorted(zip(mc_errors, range(mc_count)), reverse=True)[:5]
     print("\n--- Top 5 Worst-Case Monte Carlo Samples ---")
     for rank, (err_val, idx) in enumerate(worst_mc, 1):
         print(f"  #{rank}: Error={err_val:.6f} blocks (sample index {idx})")
 
-    # Detailed inspection of specific required regimes
+                                                      
     print("\n" + "=" * 80)
     print("[PHASE 3] Explicit Inspection of Key Required Movement Profiles")
     print("=" * 80)
@@ -502,7 +502,7 @@ def run_evaluation():
         print(f"  Independent DistToBurst={d_burst:.6f} bl, DistToCenter={d_center:.6f} bl -> MinDist={min_d:.6f} bl")
         print(f"  Verdict: {'PASS' if min_d <= 0.5 else 'FAIL'}\n")
 
-    # Overall Verdict
+                     
     total_evals = len(systematic_cases) + mc_count
     total_failures = len(failures) + len(mc_failures)
     print("=" * 80)
