@@ -479,8 +479,8 @@ public class ConfigTab extends ActivityTab {
         rowY += 14 + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelCoresStatus = new ActivityLabel(
             innerStartX2, rowY + 2,
-            Text.translatable("activity.status.combat_cores_stub"),
-            0xFFE5A93C
+            Text.translatable("activity.status.combat_cores_ready"),
+            ActivityColors.SUCCESS
         );
         labelCoresStatus.setMaxWidth(innerRowW);
         addControl(container, labelCoresStatus);

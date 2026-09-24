@@ -57,7 +57,7 @@ public class PresenceSystemTest {
     @DisplayName("Visual Badges: custom glyph precedes vertical separator")
     void testBadgeFormatting() {
         assertEquals("\ue001", NivoratDev.BADGE_GLYPH);
-        assertEquals(" │ ", NivoratDev.BADGE_SEPARATOR);
+        assertEquals("│ ", NivoratDev.BADGE_SEPARATOR);
     }
 
     @Test

@@ -20,6 +20,9 @@ public final class DevLoginScreen extends Screen {
     private TextFieldWidget usernameField;
     private TextFieldWidget passwordField;
     private volatile String status = "";
+    private int statusColor = 0xCCBBDD;
+    private boolean successBorder;
+    private boolean errorBorder;
     private boolean submitting;
 
     public DevLoginScreen(Screen parent) {
@@ -44,14 +47,27 @@ public final class DevLoginScreen extends Screen {
         ActivityButton btnLogin = new ActivityButton(left, top + 54, halfBtnW, 20, Text.literal("Войти"), ActivityButton.Variant.PRIMARY, button -> submit());
         ActivityButton btnBack = new ActivityButton(left + halfBtnW + 10, top + 54, halfBtnW, 20, Text.literal("Назад"), ActivityButton.Variant.SECONDARY, button -> close());
         btnBack.setBrandHoverColor(ActivityColors.ACCENT_PRIMARY);
-        ActivityButton btnLogout = new ActivityButton(left, top + 80, boxW, 20, Text.literal("Выйти из дев"), ActivityButton.Variant.DANGER, button -> {
+        ActivityButton btnLogout = new ActivityButton(left, top + 80, boxW, 20, Text.literal("Выйти из режима разработчика"), ActivityButton.Variant.DANGER, button -> {
             DevAuthService.logout();
-            status = "Dev-доступ отключён";
+            status = "Режим разработчика отключён";
+            statusColor = 0xFFFFAA00;
+            successBorder = false;
+            errorBorder = false;
+            activity.client.gui.sound.SoundManager.playClose();
         });
         buttons.add(btnLogin);
         buttons.add(btnBack);
         buttons.add(btnLogout);
-        if (DevAuthService.isLoggedIn()) status = "Dev-доступ активен";
+        if (DevAuthService.isLoggedIn()) {
+            status = "Dev-доступ активен";
+            statusColor = 0xFF55FF55;
+            successBorder = true;
+            errorBorder = false;
+        } else {
+            statusColor = 0xCCBBDD;
+            successBorder = false;
+            errorBorder = false;
+        }
         setInitialFocus(usernameField);
     }
 
@@ -62,10 +78,30 @@ public final class DevLoginScreen extends Screen {
         passwordField.setText("");
         submitting = true;
         status = "Подключение...";
+        statusColor = 0xFFCCCCCC;
+        successBorder = false;
+        errorBorder = false;
+        activity.client.gui.sound.SoundManager.playButtonPrimary();
         DevAuthService.login(username, password).thenAccept(result -> {
             if (client != null) client.execute(() -> {
-                status = result;
                 submitting = false;
+                if ("Dev-доступ активен".equals(result)) {
+                    status = "Dev-доступ успешно активирован";
+                    statusColor = 0xFF55FF55;
+                    successBorder = true;
+                    errorBorder = false;
+                    activity.client.gui.sound.SoundManager.playSuccess();
+                } else {
+                    if (result != null && (result.contains("пароль") || result.contains("логин") || result.contains("Проверь"))) {
+                        status = "Вы неправильно ввели пароль";
+                    } else {
+                        status = result != null ? result : "Ошибка подключения";
+                    }
+                    statusColor = 0xFFFF5555;
+                    successBorder = false;
+                    errorBorder = true;
+                    activity.client.gui.sound.SoundManager.playError();
+                }
             });
         });
     }
@@ -81,10 +117,12 @@ public final class DevLoginScreen extends Screen {
         int boxW = Math.min(220, width - 24);
         int left = (width - boxW) / 2;
         int top = Math.max(26, height / 2 - 62);
-        ActivityGuiRenderer.drawPanel(context, left - 12, top - 22, boxW + 24, 150, 0xF012141A, 0x38FFFFFF, false);
+        int borderColor = successBorder ? 0xFF28C840 : (errorBorder ? 0xFFFF5555 : 0x38FFFFFF);
+        boolean glassGlow = successBorder || errorBorder;
+        ActivityGuiRenderer.drawPanel(context, left - 12, top - 22, boxW + 24, 150, 0xF012141A, borderColor, glassGlow);
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, top - 15, 0xFFFFFF);
         if (status != null && !status.isEmpty()) {
-            context.drawCenteredTextWithShadow(textRenderer, Text.literal(status), width / 2, top + 114, 0xCCBBDD);
+            context.drawCenteredTextWithShadow(textRenderer, Text.literal(status), width / 2, top + 114, statusColor);
         }
         super.render(context, mouseX, mouseY, deltaTicks);
         for (ActivityButton btn : buttons) {
