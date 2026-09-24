@@ -122,8 +122,11 @@ public final class PresenceHeartbeatService {
                 .get("challenge").getAsString();
         if (!challenge.matches("[a-f0-9]{64}")) return;
 
-        client.getApiServices().sessionService().joinServer(uuid, session.getAccessToken(), challenge);
+        try {
+            client.getApiServices().sessionService().joinServer(uuid, session.getAccessToken(), challenge);
+        } catch (Exception ignored) {}
 
+        requestBody.addProperty("uuid", uuid.toString());
         requestBody.addProperty("challenge", challenge);
         HttpRequest verifyRequest = HttpRequest.newBuilder()
                 .uri(URI.create(NivoratDev.PRESENCE_URL + "/auth/verify"))

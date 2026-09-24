@@ -54,25 +54,23 @@ public final class DevAuthService {
     public static CompletableFuture<String> login(String username, String password) {
         if (!NivoratDev.IS_DEV) return CompletableFuture.completedFuture("Недоступно в обычной версии");
         if (username == null || !username.matches("[A-Za-z0-9_-]{3,32}")
-                || password == null || password.length() < 12 || password.length() > 128) {
+                || password == null || password.length() < 6 || password.length() > 128) {
             return CompletableFuture.completedFuture("Проверь логин и пароль");
         }
         String presenceToken = PresenceHeartbeatService.accessToken();
-        if (presenceToken.isEmpty() || PresenceHeartbeatService.authenticatedServer().isEmpty()) {
-            return CompletableFuture.completedFuture("Сначала зайди на сервер и дождись подключения");
-        }
         return CompletableFuture.supplyAsync(() -> {
             try {
                 JsonObject body = new JsonObject();
                 body.addProperty("username", username);
                 body.addProperty("password", password);
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(NivoratDev.PRESENCE_URL + "/dev/login"))
                         .timeout(Duration.ofSeconds(6))
-                        .header("Content-Type", "application/json")
-                        .header("X-Presence-Token", presenceToken)
-                        .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-                        .build();
+                        .header("Content-Type", "application/json");
+                if (!presenceToken.isEmpty()) {
+                    builder.header("X-Presence-Token", presenceToken);
+                }
+                HttpRequest request = builder.POST(HttpRequest.BodyPublishers.ofString(body.toString())).build();
                 HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 401 || response.statusCode() == 403) return "Неверный логин или пароль";
                 if (response.statusCode() == 429) return "Слишком много попыток, попробуй позже";

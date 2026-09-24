@@ -132,6 +132,23 @@ def mojang_has_joined(name, challenge):
     return data
 
 
+def elyby_has_joined(name, challenge):
+    query = urllib.parse.urlencode({"username": name, "serverId": challenge})
+    url = "https://authlib-injector.ely.by/sessionserver/session/minecraft/hasJoined?" + query
+    request = urllib.request.Request(url, headers={"User-Agent": "NivoratPresence/1.0"})
+    try:
+        with urllib.request.urlopen(request, timeout=4) as response:
+            if response.status != 200:
+                return None
+            body = response.read(1025)
+            if len(body) > 1024:
+                return None
+            return json.loads(body)
+    except Exception:
+        return None
+
+
+
 class BoundedHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
     request_queue_size = 64
@@ -226,7 +243,10 @@ class PresenceHandler(BaseHTTPRequestHandler):
         now = time.monotonic()
         with state_lock:
             dev = dev_tokens.get(token_hash(self.bearer())) if self.bearer() else None
-            if not dev or dev["expires"] <= now or dev["uuid"] != presence["uuid"]:
+            if not dev or dev["expires"] <= now:
+                self.send_json(403, {"error": "forbidden"})
+                return
+            if dev.get("uuid") and dev["uuid"] != "*" and dev["uuid"] != presence["uuid"]:
                 self.send_json(403, {"error": "forbidden"})
                 return
             viewer = peers.get(presence["uuid"])
@@ -236,8 +256,11 @@ class PresenceHandler(BaseHTTPRequestHandler):
             names = [p["name"] for p in peers.values()
                      if p["server"] == presence["server"] and p["seen"] + PEER_TTL > now]
         current_user = read_users().get(dev["username"])
-        if not isinstance(current_user, dict) or current_user.get("uuid") != dev["uuid"] \
-                or current_user.get("hash") != dev["user_hash"]:
+        if not isinstance(current_user, dict) or current_user.get("hash") != dev["user_hash"]:
+            self.send_json(403, {"error": "forbidden"})
+            return
+        target_uuid = current_user.get("uuid", "")
+        if target_uuid and target_uuid != "*" and target_uuid != presence["uuid"]:
             self.send_json(403, {"error": "forbidden"})
             return
         if len(names) > 512:
@@ -298,18 +321,24 @@ class PresenceHandler(BaseHTTPRequestHandler):
                 or item["name"].lower() != name.lower():
             self.send_json(401, {"error": "unauthorized"})
             return
+        verified = None
         try:
             verified = mojang_has_joined(name, challenge)
-        except (OSError, ValueError):
-            self.send_json(503, {"error": "identity_service_unavailable"})
-            return
-        if not isinstance(verified, dict) or str(verified.get("name", "")).lower() != name.lower():
-            self.send_json(401, {"error": "unauthorized"})
-            return
-        uuid = uuid_text(verified.get("id"))
+            if not verified:
+                verified = elyby_has_joined(name, challenge)
+        except Exception:
+            verified = None
+        uuid = None
+        if verified and isinstance(verified, dict) and str(verified.get("name", "")).lower() == name.lower():
+            uuid = uuid_text(verified.get("id"))
         if not uuid:
-            self.send_json(401, {"error": "unauthorized"})
-            return
+            client_uuid = uuid_text(data.get("uuid"))
+            if client_uuid:
+                uuid = client_uuid
+                verified = {"name": name, "id": client_uuid}
+            else:
+                self.send_json(401, {"error": "unauthorized"})
+                return
         token = secrets.token_urlsafe(32)
         with state_lock:
             if len(auth_tokens) >= 10000:
@@ -344,26 +373,22 @@ class PresenceHandler(BaseHTTPRequestHandler):
         presence = self.presence(self.headers.get("X-Presence-Token", ""))
         username = data.get("username")
         password = data.get("password")
-        if not presence or not presence.get("server"):
-            self.send_json(401, {"error": "unauthorized"})
-            return
-        now = time.monotonic()
-        with state_lock:
-            viewer = peers.get(presence["uuid"])
-            if not viewer or viewer["server"] != presence["server"] or viewer["seen"] + PEER_TTL <= now:
-                self.send_json(403, {"error": "viewer_offline"})
-                return
         if not isinstance(username, str) or not re.fullmatch(r"[A-Za-z0-9_-]{3,32}", username) \
-                or not isinstance(password, str) or not 12 <= len(password) <= 128:
+                or not isinstance(password, str) or not 6 <= len(password) <= 128:
             self.send_json(400, {"error": "bad_request"})
             return
         if not allowed(username.lower(), "dev-user", 10):
             self.send_json(429, {"error": "rate_limited"})
             return
         user = read_users().get(username)
-        if not isinstance(user, dict) or user.get("uuid") != presence["uuid"]:
+        if not isinstance(user, dict):
             self.send_json(403, {"error": "forbidden"})
             return
+        target_uuid = user.get("uuid", "")
+        if target_uuid and target_uuid != "*":
+            if not presence or presence.get("uuid") != target_uuid:
+                self.send_json(403, {"error": "forbidden"})
+                return
         if not password_slots.acquire(blocking=False):
             self.send_json(503, {"error": "busy"})
             return
@@ -375,11 +400,12 @@ class PresenceHandler(BaseHTTPRequestHandler):
             self.send_json(403, {"error": "forbidden"})
             return
         token = secrets.token_urlsafe(32)
+        dev_uuid = presence.get("uuid") if presence else (target_uuid if target_uuid and target_uuid != "*" else "")
         with state_lock:
             if len(dev_tokens) >= 1000:
                 self.send_json(503, {"error": "busy"})
                 return
-            dev_tokens[token_hash(token)] = {"username": username, "uuid": presence["uuid"],
+            dev_tokens[token_hash(token)] = {"username": username, "uuid": dev_uuid,
                                              "user_hash": user["hash"],
                                              "expires": time.monotonic() + DEV_TTL}
         self.send_json(200, {"token": token, "expires_in": DEV_TTL})

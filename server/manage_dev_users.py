@@ -49,23 +49,33 @@ def main(args):
         save_users(users)
         print("Revoked:", args[1])
         return 0
-    if len(args) == 3 and args[0] == "add":
-        username, uuid = args[1], args[2].lower()
-        raw_uuid = uuid.replace("-", "")
-        if not re.fullmatch(r"[A-Za-z0-9_-]{3,32}", username) or not re.fullmatch(r"[0-9a-f]{32}", raw_uuid):
-            print("Invalid username or Minecraft UUID", file=sys.stderr)
+    if len(args) >= 2 and args[0] == "add":
+        username = args[1]
+        uuid = ""
+        password = None
+        if len(args) >= 3:
+            raw = args[2].lower().replace("-", "")
+            if len(raw) == 32:
+                uuid = f"{raw[:8]}-{raw[8:12]}-{raw[12:16]}-{raw[16:20]}-{raw[20:]}"
+            elif args[2] != "*":
+                password = args[2]
+        if len(args) >= 4:
+            password = args[3]
+        if password is None:
+            password = secrets.token_urlsafe(24)
+        if not re.fullmatch(r"[A-Za-z0-9_-]{3,32}", username):
+            print("Invalid username", file=sys.stderr)
             return 2
-        uuid = f"{raw_uuid[:8]}-{raw_uuid[8:12]}-{raw_uuid[12:16]}-{raw_uuid[16:20]}-{raw_uuid[20:]}"
-        password = secrets.token_urlsafe(24)
         salt = secrets.token_bytes(16)
         digest = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1, dklen=32)
         users = read_users()
         users[username] = {"uuid": uuid, "salt": salt.hex(), "hash": digest.hex()}
         save_users(users)
         print("Username:", username)
-        print("One-time password:", password)
+        print("UUID:", uuid if uuid else "(any)")
+        print("Password configured successfully.")
         return 0
-    print("Usage: manage_dev_users.py add USERNAME MINECRAFT_UUID | revoke USERNAME | list", file=sys.stderr)
+    print("Usage: manage_dev_users.py add USERNAME [MINECRAFT_UUID] [PASSWORD] | revoke USERNAME | list", file=sys.stderr)
     return 2
 
 
