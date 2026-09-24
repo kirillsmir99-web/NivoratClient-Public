@@ -134,12 +134,6 @@ public final class ShieldAxeController {
             return;
         }
 
-        if (dev.sunder.SunderConfig.enabled && !client.player.isOnGround()) {
-            trackingShieldTargetId = null;
-            shieldSeenStartTimeMs = 0L;
-            return;
-        }
-
         int axeSlot = findAxeHotbarSlot(client.player);
         if (axeSlot < 0) {
             trackingShieldTargetId = null;

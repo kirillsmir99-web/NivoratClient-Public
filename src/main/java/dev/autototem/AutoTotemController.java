@@ -210,33 +210,37 @@ public final class AutoTotemController {
                     clear();
                     return;
                 }
-                if (now >= reactionUntil) {
-                    int totemSlot = findHotbarTotem(client.player);
-                    if (totemSlot < 0) {
-                        if (AutoTotemConfig.autoRefill && now - lastRefillTime >= REFILL_COOLDOWN_MS
-                                && findInventoryTotem(client.player) >= 0) {
-                            int targetRefill = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
-                            if (targetRefill >= 0) {
-                                startRefill(client, targetRefill);
-                            } else {
-                                clear();
-                            }
+                int totemSlot = findHotbarTotem(client.player);
+                if (totemSlot < 0) {
+                    if (AutoTotemConfig.autoRefill && now - lastRefillTime >= REFILL_COOLDOWN_MS
+                            && findInventoryTotem(client.player) >= 0) {
+                        int targetRefill = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
+                        if (targetRefill >= 0) {
+                            startRefill(client, targetRefill);
                         } else {
                             clear();
                         }
-                        return;
+                    } else {
+                        clear();
                     }
-                    int currentSlot = client.player.getInventory().getSelectedSlot();
-                    if (!client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
-                        savedMainSlot = currentSlot;
-                    }
-                    net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
+                    return;
+                }
+                int currentSlot = client.player.getInventory().getSelectedSlot();
+                if (!client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
+                    savedMainSlot = currentSlot;
+                }
+                net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
 
-                    swappedHotbarSlot = totemSlot;
-                    lastTotemHotbarSlot = totemSlot;
-                    SafeSlotManager.selectSlot(client, swappedHotbarSlot);
+                swappedHotbarSlot = totemSlot;
+                lastTotemHotbarSlot = totemSlot;
+                SafeSlotManager.selectSlot(client, swappedHotbarSlot);
+                sendOffhandSwap(client);
+                swapLocalHands(client.player);
+                if (savedMainSlot >= 0 && savedMainSlot != swappedHotbarSlot) {
                     timer = 1;
-                    state = State.SWAP_OFFHAND;
+                    state = State.RESTORE_MAIN_SLOT;
+                } else {
+                    state = State.ACTIVE;
                 }
             }
 
@@ -571,7 +575,6 @@ public final class AutoTotemController {
                             return;
                         }
                     } else {
-
                         if (client.player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                             return;
                         }
@@ -592,8 +595,24 @@ public final class AutoTotemController {
                                 return;
                             }
                         }
-                        reactionUntil = now + GaussianTimingEngine.getDelay(120.0D, 20.0D, 70L, 200L);
-                        state = State.WAITING_REACTION;
+                        int currentSlot = client.player.getInventory().getSelectedSlot();
+                        if (!client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
+                            savedMainSlot = currentSlot;
+                        }
+                        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
+
+                        swappedHotbarSlot = totemSlot;
+                        lastTotemHotbarSlot = totemSlot;
+                        SafeSlotManager.selectSlot(client, swappedHotbarSlot);
+                        sendOffhandSwap(client);
+                        swapLocalHands(client.player);
+                        if (savedMainSlot >= 0 && savedMainSlot != swappedHotbarSlot) {
+                            timer = 1;
+                            state = State.RESTORE_MAIN_SLOT;
+                        } else {
+                            state = State.ACTIVE;
+                        }
+                        return;
                     }
                 }
             }

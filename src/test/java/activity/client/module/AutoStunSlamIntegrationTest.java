@@ -10,6 +10,7 @@ import activity.client.module.impl.combat.AutoStunSlamModule;
 import dev.nivora.ShieldBreakerConfig;
 import dev.sunder.SunderConfig;
 import net.fabricmc.pack.api.CombatLockManager;
+import net.redstone.optimizer.config.RedstoneOptimizerConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,5 +91,53 @@ public class AutoStunSlamIntegrationTest {
         assertFalse(CombatLockManager.isLocked(CombatLockManager.SUNDER));
 
         stunSlam.setEnabled(true);
+    }
+
+    @Test
+    void testSunderSuppressionWhenShieldBreakerActiveOrAutoMaceDisabled() {
+        ShieldBreakerConfig.enabled = true;
+        RedstoneOptimizerConfig.enabled = true;
+        assertTrue(ShieldBreakerConfig.enabled);
+
+        ShieldBreakerConfig.enabled = false;
+        RedstoneOptimizerConfig.enabled = false;
+        assertFalse(RedstoneOptimizerConfig.enabled);
+
+        RedstoneOptimizerConfig.enabled = true;
+    }
+
+    @Test
+    void testAutoSpearSecurityModeRenamingAndNormalization() {
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        assertNotNull(config);
+
+        config.autoSpearSecurityMode = "Безопасный";
+        config.sanitize();
+        assertEquals("legit", config.autoSpearSecurityMode);
+
+        config.autoSpearSecurityMode = "Сбалансированный";
+        config.sanitize();
+        assertEquals("semi_legit", config.autoSpearSecurityMode);
+
+        config.autoSpearSecurityMode = "Рейдж";
+        config.sanitize();
+        assertEquals("rage", config.autoSpearSecurityMode);
+
+        config.autoSpearSecurityMode = "Safe";
+        config.sanitize();
+        assertEquals("legit", config.autoSpearSecurityMode);
+
+        config.autoSpearSecurityMode = "Balanced";
+        config.sanitize();
+        assertEquals("semi_legit", config.autoSpearSecurityMode);
+    }
+
+    @Test
+    void testAutoToolCombatLockSuppression() {
+        CombatLockManager.setLock(CombatLockManager.SHIELD_COMBO, true);
+        assertTrue(CombatLockManager.isLocked());
+
+        CombatLockManager.setLock(CombatLockManager.SHIELD_COMBO, false);
+        assertFalse(CombatLockManager.isLocked());
     }
 }

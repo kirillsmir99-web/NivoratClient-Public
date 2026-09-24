@@ -103,6 +103,7 @@ public final class AutoToolEngine {
         lastAttackEntityTimeMs = now;
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.player == null) return;
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
 
         AutoToolConfig config = AutoToolClient.CONFIG;
         if (!config.enabled || !config.weaponSwitch) return;
@@ -122,6 +123,7 @@ public final class AutoToolEngine {
     private static void checkCombatTarget(MinecraftClient client, AutoToolConfig config, long now) {
         if (!config.enabled || !config.weaponSwitch) return;
         if (client.player == null || client.player.isCreative() || client.player.isSpectator()) return;
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
 
         Entity target = client.targetedEntity;
         if (target == null && client.crosshairTarget instanceof EntityHitResult ehr) {
@@ -137,6 +139,7 @@ public final class AutoToolEngine {
 
     public static void triggerWeaponSwitch(MinecraftClient client, Entity target, AutoToolConfig config, long now) {
         if (now - lastSwitchTimeMs < 50L) return;
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
 
         int bestSlot = findBestWeaponSlot(client, target, config);
         if (bestSlot < 0) {
@@ -283,13 +286,14 @@ public final class AutoToolEngine {
                 score += 60.0f;
             }
         } else if (isMace) {
-            score = baseDmg * 1.6f;
             if (player != null && player.fallDistance > 1.5f) {
-                score += 25.0f + player.fallDistance * 6.0f;
-            }
-            int density = getEnchantmentLevel(stack, Enchantments.DENSITY, "density");
-            if (density > 0) {
-                score += density * 3.0f;
+                score = (float) (baseDmg * 1.6f + 25.0f + player.fallDistance * 6.0f);
+                int density = getEnchantmentLevel(stack, Enchantments.DENSITY, "density");
+                if (density > 0) {
+                    score += density * 3.0f;
+                }
+            } else {
+                score = baseDmg * 1.0f;
             }
         } else if (isTrident) {
             score = baseDmg * 1.3f;

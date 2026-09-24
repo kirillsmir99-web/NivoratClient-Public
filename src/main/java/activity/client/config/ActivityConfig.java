@@ -894,9 +894,9 @@ public class ActivityConfig {
         else if ("Холостой свап".equals(this.autoMaceMissBehavior) || "empty_swap".equals(this.autoMaceMissBehavior)) this.autoMaceMissBehavior = "empty_swap";
         else this.autoMaceMissBehavior = "sword_hit";
 
-        if ("Легитный".equals(this.autoSpearSecurityMode) || "legit".equals(this.autoSpearSecurityMode)) this.autoSpearSecurityMode = "legit";
-        else if ("Полу-легит".equals(this.autoSpearSecurityMode) || "semi_legit".equals(this.autoSpearSecurityMode)) this.autoSpearSecurityMode = "semi_legit";
-        else if ("Рейдж".equals(this.autoSpearSecurityMode) || "rage".equals(this.autoSpearSecurityMode)) this.autoSpearSecurityMode = "rage";
+        if ("Легитный".equals(this.autoSpearSecurityMode) || "Безопасный".equals(this.autoSpearSecurityMode) || "Safe".equalsIgnoreCase(this.autoSpearSecurityMode) || "legit".equals(this.autoSpearSecurityMode)) this.autoSpearSecurityMode = "legit";
+        else if ("Полу-легит".equals(this.autoSpearSecurityMode) || "Сбалансированный".equals(this.autoSpearSecurityMode) || "Balanced".equalsIgnoreCase(this.autoSpearSecurityMode) || "semi_legit".equals(this.autoSpearSecurityMode)) this.autoSpearSecurityMode = "semi_legit";
+        else if ("Рейдж".equals(this.autoSpearSecurityMode) || "rage".equalsIgnoreCase(this.autoSpearSecurityMode)) this.autoSpearSecurityMode = "rage";
         else this.autoSpearSecurityMode = "legit";
 
         if ("Авто".equals(this.autoSpearPriorityMode) || "auto".equals(this.autoSpearPriorityMode)) this.autoSpearPriorityMode = "auto";

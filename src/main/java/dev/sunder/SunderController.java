@@ -105,7 +105,7 @@ public final class SunderController {
 
         if (stage == Stage.SEMI_AWAIT_AXE_HIT) {
             if (isTarget) {
-                if (maceSlot >= 0) {
+                if (maceSlot >= 0 && net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
                     stage = Stage.SEMI_SELECT_MACE;
                     timer = 1;
                 } else {
@@ -136,7 +136,9 @@ public final class SunderController {
 
         if (client.player.isOnGround() || client.player.isTouchingWater() || client.player.isClimbing() || client.player.hasVehicle()) {
             airTicks = 0;
-            if (stage != Stage.IDLE && stage != Stage.WAITING_RESTORE && stage != Stage.RESTORE_SLOT) {
+            if (stage != Stage.IDLE && stage != Stage.WAITING_RESTORE && stage != Stage.RESTORE_SLOT
+                    && stage != Stage.WAITING_MACE_SWAP && stage != Stage.SELECT_MACE && stage != Stage.WAITING_MACE_STRIKE
+                    && stage != Stage.SEMI_SELECT_MACE && stage != Stage.SEMI_AWAIT_MACE_HIT) {
                 restoreInitialSlot(client);
                 finishCombo(3);
                 return;
@@ -237,9 +239,15 @@ public final class SunderController {
             case WAITING_MACE_STRIKE -> {
                 if (timer > 0) {
                     timer--;
-                    if (timer > 0) return;
                 }
-                executeAutoStrikeMace(client);
+                LivingEntity target = getTarget(client);
+                double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
+                if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
+                    executeAutoStrikeMace(client);
+                } else if (timer <= 0) {
+                    restoreInitialSlot(client);
+                    finishCombo(2);
+                }
             }
             case SEMI_SELECT_AXE -> {
                 selectSlot(client, axeSlot);
@@ -283,9 +291,15 @@ public final class SunderController {
             case SEMI_AWAIT_MACE_HIT -> {
                 if (timer > 0) {
                     timer--;
-                    if (timer > 0) return;
                 }
-                executeAutoStrikeMace(client);
+                LivingEntity target = getTarget(client);
+                double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
+                if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
+                    executeAutoStrikeMace(client);
+                } else if (timer <= 0) {
+                    restoreInitialSlot(client);
+                    finishCombo(2);
+                }
             }
             case WAITING_RESTORE -> {
                 if (timer > 0) {
@@ -313,6 +327,14 @@ public final class SunderController {
         }
 
         if (net.fabricmc.pack.api.CombatLockManager.isLocked(net.fabricmc.pack.api.CombatLockManager.SHIELD_COMBO)) {
+            return;
+        }
+
+        if (dev.nivora.ShieldBreakerConfig.enabled) {
+            return;
+        }
+
+        if (!net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
             return;
         }
 
@@ -402,7 +424,7 @@ public final class SunderController {
         client.interactionManager.attackEntity(client.player, target);
         client.player.swingHand(Hand.MAIN_HAND);
 
-        if (maceSlot >= 0) {
+        if (maceSlot >= 0 && net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
             stage = SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
             timer = 1;
         } else {
@@ -413,7 +435,8 @@ public final class SunderController {
 
     private void executeAutoStrikeMace(MinecraftClient client) {
         LivingEntity target = getTarget(client);
-        if (target != null && target.isAlive() && canReach(client, target, SunderConfig.triggerDistance)) {
+        double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
+        if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
             if (client.player.getInventory().getSelectedSlot() != maceSlot) {
                 selectSlot(client, maceSlot);
                 ensureFullAttackCharge(client.player);
