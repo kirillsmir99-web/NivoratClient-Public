@@ -41,7 +41,7 @@ public class AboutTabSystemTest {
     void testAboutTabHeaderConstantsAndMetadata() {
         assertEquals("CooldownHUD", AboutTab.CLIENT_NAME);
         assertEquals("v1.0.0", AboutTab.CLIENT_VERSION);
-        assertEquals("Nivorat", AboutTab.DEVELOPER);
+        assertEquals("kt1xW", AboutTab.DEVELOPER);
         assertEquals("@virionDEV", AboutTab.WATERMARK);
 
         assertEquals("https://t.me/virionDEV", AboutTab.URL_TELEGRAM);

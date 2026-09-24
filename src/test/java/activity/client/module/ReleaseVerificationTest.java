@@ -636,7 +636,7 @@ public class ReleaseVerificationTest {
 
         ModuleMetadata meta = sheet.getMetadata();
         assertEquals(moduleId, meta.getId());
-        assertEquals("Nivorat", meta.getAuthor());
+        assertEquals("kt1xW", meta.getAuthor());
         assertNotNull(meta.getVersion());
         assertTrue(meta.getVersion().matches("\\d+\\.\\d+\\.\\d+"), "Version must be semver: " + meta.getVersion());
         assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());

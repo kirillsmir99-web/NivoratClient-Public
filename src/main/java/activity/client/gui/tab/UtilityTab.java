@@ -90,12 +90,12 @@ public class UtilityTab extends ActivityTab {
             config.cartHudCustomX = -1;
             config.cartHudCustomY = -1;
 
-            config.overlayEnabled = true;
+            config.overlayEnabled = false;
             config.hudPosition = "top_right";
             config.overlayOpacity = 85.0;
             config.hudCustomX = -1;
             config.hudCustomY = -1;
-            config.hudShowActiveModules = true;
+            config.hudShowActiveModules = false;
 
             for (IModule mod : ModuleRegistry.getByCategory(getCategory())) {
                 mod.loadFromConfig(config);

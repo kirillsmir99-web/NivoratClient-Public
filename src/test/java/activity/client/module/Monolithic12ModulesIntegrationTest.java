@@ -87,7 +87,7 @@ public class Monolithic12ModulesIntegrationTest {
             assertEquals(id, meta.getId());
             assertNotNull(meta.getDisplayName());
             assertNotNull(meta.getDescription());
-            assertEquals("Nivorat", meta.getAuthor());
+            assertEquals("kt1xW", meta.getAuthor());
             assertNotNull(meta.getVersion());
             assertTrue(meta.getVersion().matches("\\d+\\.\\d+\\.\\d+"), "Version should be semver: " + meta.getVersion());
             assertEquals("2026-09-16", meta.getLastUpdated());

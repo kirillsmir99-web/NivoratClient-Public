@@ -31,7 +31,7 @@ public class AutoShieldbreakerModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("1.4.2")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)

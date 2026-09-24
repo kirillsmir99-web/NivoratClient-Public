@@ -79,7 +79,7 @@ public class ModuleSdkFoundationTest {
                 .build();
 
         assertEquals("test_module", meta.getId());
-        assertEquals("Nivorat", meta.getAuthor());
+        assertEquals("kt1xW", meta.getAuthor());
         assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
         assertEquals("1.0.0", meta.getVersion());
         assertEquals("2026-09-16", meta.getLastUpdated());

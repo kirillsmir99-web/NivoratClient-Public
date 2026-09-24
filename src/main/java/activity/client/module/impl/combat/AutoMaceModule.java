@@ -30,7 +30,7 @@ public class AutoMaceModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("2.4.6")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)

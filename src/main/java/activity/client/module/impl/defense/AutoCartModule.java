@@ -25,7 +25,7 @@ public class AutoCartModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("2.1.2")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)

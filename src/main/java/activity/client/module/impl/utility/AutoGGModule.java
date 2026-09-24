@@ -37,7 +37,7 @@ public class AutoGGModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("1.0.3")
                 .icon(ActivityIcon.UTILITY)
                 .keybind(keybind)

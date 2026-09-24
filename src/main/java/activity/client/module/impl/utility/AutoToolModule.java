@@ -29,7 +29,7 @@ public class AutoToolModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("1.0.0")
                 .icon(ActivityIcon.UTILITY)
                 .keybind(keybind)

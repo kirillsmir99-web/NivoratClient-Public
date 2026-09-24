@@ -22,7 +22,7 @@ public class CartRefillModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("2.4.1")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)

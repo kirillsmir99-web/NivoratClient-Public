@@ -20,28 +20,44 @@ public final class CooldownHudOverlay {
 
     private CooldownHudOverlay() {}
 
+    public static int getDefaultX(int screenWidth, int totalWidth) {
+        return Math.max(2, (screenWidth - totalWidth) / 2);
+    }
+
+    public static int getDefaultY(int screenHeight, int totalHeight) {
+        return Math.max(2, screenHeight - 85);
+    }
+
+    public static int getEffectiveX(int screenWidth, int totalWidth) {
+        ActivityConfig c = ActivityConfigManager.getConfig();
+        if (c != null && c.cooldownHudCustomX >= 0) {
+            return Math.max(2, Math.min(screenWidth - totalWidth - 2, c.cooldownHudCustomX));
+        }
+        return getDefaultX(screenWidth, totalWidth);
+    }
+
+    public static int getEffectiveY(int screenHeight, int totalHeight) {
+        ActivityConfig c = ActivityConfigManager.getConfig();
+        if (c != null && c.cooldownHudCustomY >= 0) {
+            return Math.max(2, Math.min(screenHeight - totalHeight - 2, c.cooldownHudCustomY));
+        }
+        return getDefaultY(screenHeight, totalHeight);
+    }
+
     public static int getDefaultX(int screenWidth) {
-        return screenWidth / 2 + 10;
+        return getDefaultX(screenWidth, 60);
     }
 
     public static int getDefaultY(int screenHeight) {
-        return screenHeight - 64;
+        return getDefaultY(screenHeight, ITEM_HEIGHT);
     }
 
     public static int getEffectiveX(int screenWidth) {
-        ActivityConfig c = ActivityConfigManager.getConfig();
-        if (c != null && c.cooldownHudCustomX >= 0) {
-            return Math.max(2, Math.min(screenWidth - 50, c.cooldownHudCustomX));
-        }
-        return getDefaultX(screenWidth);
+        return getEffectiveX(screenWidth, 60);
     }
 
     public static int getEffectiveY(int screenHeight) {
-        ActivityConfig c = ActivityConfigManager.getConfig();
-        if (c != null && c.cooldownHudCustomY >= 0) {
-            return Math.max(2, Math.min(screenHeight - 20, c.cooldownHudCustomY));
-        }
-        return getDefaultY(screenHeight);
+        return getEffectiveY(screenHeight, ITEM_HEIGHT);
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
@@ -60,9 +76,11 @@ public final class CooldownHudOverlay {
             return;
         }
 
-        int startX = getEffectiveX(context.getScaledWindowWidth());
-        int startY = getEffectiveY(context.getScaledWindowHeight());
         boolean vertical = config.cooldownHudVertical;
+        int totalW = calculateTotalWidth(mc.textRenderer, entries, vertical);
+        int totalH = calculateTotalHeight(entries, vertical);
+        int startX = getEffectiveX(context.getScaledWindowWidth(), totalW);
+        int startY = getEffectiveY(context.getScaledWindowHeight(), totalH);
 
         renderCooldownList(context, mc.textRenderer, entries, startX, startY, vertical);
     }

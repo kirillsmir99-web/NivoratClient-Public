@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class ModuleMetadata {
 
-    public static final String DEFAULT_AUTHOR = "Nivorat";
+    public static final String DEFAULT_AUTHOR = "kt1xW";
     public static final String DEFAULT_TELEGRAM_URL = "https://t.me/virionDEV";
     public static final String DEFAULT_VERSION = "1.0.0";
     public static final String DEFAULT_LAST_UPDATED = "2026-09-16";

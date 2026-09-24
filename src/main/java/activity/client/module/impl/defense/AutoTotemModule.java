@@ -24,7 +24,7 @@ public class AutoTotemModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("1.0.3")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)

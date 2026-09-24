@@ -32,7 +32,7 @@ public class AutoStunSlamModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("1.1.2")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)

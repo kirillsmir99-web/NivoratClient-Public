@@ -67,7 +67,7 @@ public class ExampleModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat Developer")
+                .author("kt1xW")
                 .version("1.0.0")
                 .lastUpdated("2026-09-17")
                 .icon(ActivityIcon.COMBAT)

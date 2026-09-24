@@ -30,7 +30,7 @@ public class AboutTab extends ActivityTab {
     public static final String WATERMARK = "@virionDEV";
     public static final String CLIENT_NAME = "CooldownHUD";
     public static final String CLIENT_VERSION = "v1.0.0";
-    public static final String DEVELOPER = "Nivorat";
+    public static final String DEVELOPER = "kt1xW";
 
     public static final Identifier TEXTURE_TELEGRAM = Identifier.of("nivoratclient", "textures/gui/social/telegram.png");
     public static final Identifier TEXTURE_DONATE = Identifier.of("nivoratclient", "textures/gui/social/donate.png");

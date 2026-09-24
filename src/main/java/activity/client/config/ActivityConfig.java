@@ -243,7 +243,7 @@ public class ActivityConfig {
     public boolean textShadow = true;
     public int hudCustomX = -1;
     public int hudCustomY = -1;
-    public boolean hudShowActiveModules = true;
+    public boolean hudShowActiveModules = false;
 
     public String activeProfile = PRESET_DEFAULT;
     public String themeVariant = "Фирменная тёмная";
@@ -346,7 +346,7 @@ public class ActivityConfig {
         public boolean glassEffect = true;
         public int hudCustomX = -1;
         public int hudCustomY = -1;
-        public boolean hudShowActiveModules = true;
+        public boolean hudShowActiveModules = false;
         public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
         @Override
         public boolean equals(Object o) {
@@ -684,7 +684,7 @@ public class ActivityConfig {
         this.textShadow = true;
         this.hudCustomX = -1;
         this.hudCustomY = -1;
-        this.hudShowActiveModules = true;
+        this.hudShowActiveModules = false;
 
         this.debugLogging = false;
         this.profilerActive = false;

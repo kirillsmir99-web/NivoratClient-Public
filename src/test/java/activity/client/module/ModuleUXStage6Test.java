@@ -117,7 +117,7 @@ public class ModuleUXStage6Test {
         assertEquals("test_module", meta.getId());
         assertEquals("Test Module", meta.getDisplayName().getString());
         assertEquals("Test description", meta.getDescription().getString());
-        assertEquals("Nivorat", meta.getAuthor());
+        assertEquals("kt1xW", meta.getAuthor());
         assertEquals("1.0.0", meta.getVersion());
         assertEquals("2026-09-16", meta.getLastUpdated());
         assertEquals(ModuleCategory.DEFENSE, meta.getCategory());
@@ -229,7 +229,7 @@ public class ModuleUXStage6Test {
         assertEquals("auto_stun_slam", sheet.getModuleId());
         assertNotNull(sheet.getMetadata());
         assertEquals("auto_stun_slam", sheet.getMetadata().getId());
-        assertEquals("Nivorat", sheet.getMetadata().getAuthor());
+        assertEquals("kt1xW", sheet.getMetadata().getAuthor());
         assertEquals("https://t.me/virionDEV", sheet.getMetadata().getTelegramUrl());
 
         assertFalse(sheet.isClosed());

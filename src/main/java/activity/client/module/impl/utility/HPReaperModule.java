@@ -39,7 +39,7 @@ public class HPReaperModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("1.2.0")
                 .icon(ActivityIcon.UTILITY)
                 .keybind(keybind)

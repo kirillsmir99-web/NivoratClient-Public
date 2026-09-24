@@ -32,7 +32,7 @@ public class AutoSpearModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("Nivorat")
+                .author("kt1xW")
                 .version("2.1.0")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)

@@ -6,6 +6,7 @@ import activity.client.gui.font.UiTextRenderer;
 import activity.client.gui.render.ActivityGuiRenderer;
 import activity.client.gui.sound.SoundManager;
 import activity.client.gui.theme.ActivityColors;
+import activity.client.module.service.CooldownTrackerService;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
@@ -13,6 +14,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.List;
 
 public class CooldownHudEditorScreen extends Screen {
 
@@ -34,7 +37,7 @@ public class CooldownHudEditorScreen extends Screen {
     private int lastHoveredBtn = -1;
 
     public CooldownHudEditorScreen(Screen parent) {
-        super(Text.literal("HUD CooldownHUD • Настройка позиции"));
+        super(Text.literal("Cooldown HUD • Настройка позиции"));
         this.parent = parent;
     }
 
@@ -66,24 +69,35 @@ public class CooldownHudEditorScreen extends Screen {
         isPanelDragging = false;
         this.clearChildren();
         if (panelX < 0 || panelY < 0) {
-            panelX = 16;
-            panelY = Math.max(16, (height - PANEL_H) / 2);
+            panelX = 20;
+            panelY = Math.max(20, (height - PANEL_H) / 2);
         }
         SoundManager.playOpen();
+    }
+
+    private List<CooldownTrackerService.CooldownEntry> getPreviewEntries() {
+        List<CooldownTrackerService.CooldownEntry> active = CooldownTrackerService.getActiveEntries();
+        if (active != null && !active.isEmpty()) {
+            return active;
+        }
+        return CooldownHudOverlay.getMockEntriesForPreview();
     }
 
     private void nudge(int dx, int dy) {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config == null) return;
         MinecraftClient mc = MinecraftClient.getInstance();
-        int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
-        int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
-        int curX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
-        int curY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
+        if (mc == null || mc.textRenderer == null) return;
+        boolean vertical = config.cooldownHudVertical;
+        List<CooldownTrackerService.CooldownEntry> entries = getPreviewEntries();
+        int totalW = CooldownHudOverlay.calculateTotalWidth(mc.textRenderer, entries, vertical);
+        int totalH = CooldownHudOverlay.calculateTotalHeight(entries, vertical);
+        int curX = CooldownHudOverlay.getEffectiveX(width, totalW);
+        int curY = CooldownHudOverlay.getEffectiveY(height, totalH);
         int newX = Math.max(2, Math.min(width - totalW - 2, curX + dx));
         int newY = Math.max(2, Math.min(height - totalH - 2, curY + dy));
-        config.hudCustomX = newX;
-        config.hudCustomY = newY;
+        config.cooldownHudCustomX = newX;
+        config.cooldownHudCustomY = newY;
         ActivityConfigManager.markDirty();
     }
 
@@ -111,8 +125,8 @@ public class CooldownHudEditorScreen extends Screen {
         if (key == GLFW.GLFW_KEY_R) {
             ActivityConfig c = ActivityConfigManager.getConfig();
             if (c != null) {
-                c.hudCustomX = -1;
-                c.hudCustomY = -1;
+                c.cooldownHudCustomX = -1;
+                c.cooldownHudCustomY = -1;
                 ActivityConfigManager.markDirty();
             }
             SoundManager.playSelect();
@@ -146,8 +160,8 @@ public class CooldownHudEditorScreen extends Screen {
         if (button == 0) {
             if (mx >= btnResetX && mx <= btnResetX + btnResetW && my >= btnResetY && my <= btnResetY + btnResetH) {
                 if (config != null) {
-                    config.hudCustomX = -1;
-                    config.hudCustomY = -1;
+                    config.cooldownHudCustomX = -1;
+                    config.cooldownHudCustomY = -1;
                     ActivityConfigManager.markDirty();
                 }
                 SoundManager.playSelect();
@@ -167,27 +181,31 @@ public class CooldownHudEditorScreen extends Screen {
         }
 
         MinecraftClient mc = MinecraftClient.getInstance();
-        int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
-        int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
-        int curX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
-        int curY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
+        if (mc != null && mc.textRenderer != null) {
+            boolean vertical = config != null && config.cooldownHudVertical;
+            List<CooldownTrackerService.CooldownEntry> entries = getPreviewEntries();
+            int totalW = CooldownHudOverlay.calculateTotalWidth(mc.textRenderer, entries, vertical);
+            int totalH = CooldownHudOverlay.calculateTotalHeight(entries, vertical);
+            int curX = CooldownHudOverlay.getEffectiveX(width, totalW);
+            int curY = CooldownHudOverlay.getEffectiveY(height, totalH);
 
-        boolean inside = mx >= curX - 8 && mx <= curX + totalW + 8 && my >= curY - 8 && my <= curY + totalH + 8;
+            boolean inside = mx >= curX - 8 && mx <= curX + totalW + 8 && my >= curY - 8 && my <= curY + totalH + 8;
 
-        if (button == 0 && inside) {
-            isDragging = true;
-            dragOffsetX = (int) Math.round(mx - curX);
-            dragOffsetY = (int) Math.round(my - curY);
-            SoundManager.playClick();
-            return true;
-        } else if (button == 1 && inside) {
-            if (config != null) {
-                config.hudCustomX = -1;
-                config.hudCustomY = -1;
-                ActivityConfigManager.markDirty();
+            if (button == 0 && inside) {
+                isDragging = true;
+                dragOffsetX = (int) Math.round(mx - curX);
+                dragOffsetY = (int) Math.round(my - curY);
+                SoundManager.playClick();
+                return true;
+            } else if (button == 1 && inside) {
+                if (config != null) {
+                    config.cooldownHudCustomX = -1;
+                    config.cooldownHudCustomY = -1;
+                    ActivityConfigManager.markDirty();
+                }
+                SoundManager.playSelect();
+                return true;
             }
-            SoundManager.playSelect();
-            return true;
         }
 
         return super.mouseClicked(click, doubled);
@@ -221,14 +239,18 @@ public class CooldownHudEditorScreen extends Screen {
         if (isDragging) {
             ActivityConfig config = ActivityConfigManager.getConfig();
             MinecraftClient mc = MinecraftClient.getInstance();
-            int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
-            int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
-            int newX = (int) Math.round(click.x() - dragOffsetX);
-            int newY = (int) Math.round(click.y() - dragOffsetY);
-            if (config != null) {
-                config.hudCustomX = Math.max(2, Math.min(width - totalW - 2, newX));
-                config.hudCustomY = Math.max(2, Math.min(height - totalH - 2, newY));
-                ActivityConfigManager.markDirty();
+            if (mc != null && mc.textRenderer != null) {
+                boolean vertical = config != null && config.cooldownHudVertical;
+                List<CooldownTrackerService.CooldownEntry> entries = getPreviewEntries();
+                int totalW = CooldownHudOverlay.calculateTotalWidth(mc.textRenderer, entries, vertical);
+                int totalH = CooldownHudOverlay.calculateTotalHeight(entries, vertical);
+                int newX = (int) Math.round(click.x() - dragOffsetX);
+                int newY = (int) Math.round(click.y() - dragOffsetY);
+                if (config != null) {
+                    config.cooldownHudCustomX = Math.max(2, Math.min(width - totalW - 2, newX));
+                    config.cooldownHudCustomY = Math.max(2, Math.min(height - totalH - 2, newY));
+                    ActivityConfigManager.markDirty();
+                }
             }
             return true;
         }
@@ -238,65 +260,63 @@ public class CooldownHudEditorScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         ActivityConfig config = ActivityConfigManager.getConfig();
-        MinecraftClient mc = MinecraftClient.getInstance();
-
-        int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
-        int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
-        int currentX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
-        int currentY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
 
         ActivityGuiRenderer.fill(context, 0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
-        if (isDragging) {
-            if (Math.abs(currentX - 6) <= 2) {
-                ActivityGuiRenderer.drawVerticalLine(context, 6, 0, height, 0x403EA4E8);
+        if (textRenderer != null) {
+            boolean vertical = config != null && config.cooldownHudVertical;
+            List<CooldownTrackerService.CooldownEntry> entries = getPreviewEntries();
+            int totalW = CooldownHudOverlay.calculateTotalWidth(textRenderer, entries, vertical);
+            int totalH = CooldownHudOverlay.calculateTotalHeight(entries, vertical);
+            int currentX = CooldownHudOverlay.getEffectiveX(width, totalW);
+            int currentY = CooldownHudOverlay.getEffectiveY(height, totalH);
+
+            if (isDragging) {
+                if (Math.abs(currentX - 6) <= 2) {
+                    ActivityGuiRenderer.drawVerticalLine(context, 6, 0, height, 0x403EA4E8);
+                }
+                if (Math.abs(currentX + totalW - (width - 6)) <= 2) {
+                    ActivityGuiRenderer.drawVerticalLine(context, width - 6, 0, height, 0x403EA4E8);
+                }
+                if (Math.abs(currentY - 6) <= 2) {
+                    ActivityGuiRenderer.drawHorizontalLine(context, 0, 6, width, 0x403EA4E8);
+                }
+                if (Math.abs(currentY + totalH - (height - 6)) <= 2) {
+                    ActivityGuiRenderer.drawHorizontalLine(context, 0, height - 6, width, 0x403EA4E8);
+                }
             }
-            if (Math.abs(currentX + totalW - (width - 6)) <= 2) {
-                ActivityGuiRenderer.drawVerticalLine(context, width - 6, 0, height, 0x403EA4E8);
-            }
-            if (Math.abs(currentY - 6) <= 2) {
-                ActivityGuiRenderer.drawHorizontalLine(context, 0, 6, width, 0x403EA4E8);
-            }
-            if (Math.abs(currentY + totalH - (height - 6)) <= 2) {
-                ActivityGuiRenderer.drawHorizontalLine(context, 0, height - 6, width, 0x403EA4E8);
-            }
-        }
 
-        boolean isHovered = mouseX >= currentX - 8 && mouseX <= currentX + totalW + 8 && mouseY >= currentY - 8 && mouseY <= currentY + totalH + 8;
+            boolean isHovered = mouseX >= currentX - 8 && mouseX <= currentX + totalW + 8 && mouseY >= currentY - 8 && mouseY <= currentY + totalH + 8;
 
-        if (mc != null) {
-            ActivityHudOverlay.renderHud(context, mc, config, currentX, currentY, totalW, width);
-        }
+            int boxBorder = (isDragging || isHovered) ? 0xCC3EA4E8 : 0x443EA4E8;
+            int boxBg = (isDragging || isHovered) ? 0x880A0D14 : 0x550A0D14;
+            ActivityGuiRenderer.drawPanel(context, currentX - 5, currentY - 5, totalW + 10, totalH + 10, boxBg, boxBorder, true);
 
-        int boxBorder = (isDragging || isHovered) ? 0xCC3EA4E8 : 0x443EA4E8;
-        ActivityGuiRenderer.drawBorder(context, currentX - 3, currentY - 3, totalW + 6, totalH + 6, boxBorder);
+            CooldownHudOverlay.renderCooldownList(context, textRenderer, entries, currentX, currentY, vertical);
 
-        if (isHovered || isDragging) {
-            int chipW = 100;
-            int chipH = 15;
-            int chipX = currentX + (totalW - chipW) / 2;
-            chipX = Math.max(4, Math.min(width - chipW - 4, chipX));
-            int chipY = (currentY - chipH - 8 >= 4) ? (currentY - chipH - 8) : (currentY + totalH + 8);
+            if (isHovered || isDragging) {
+                int chipW = 90;
+                int chipH = 15;
+                int chipX = currentX + (totalW - chipW) / 2;
+                chipX = Math.max(4, Math.min(width - chipW - 4, chipX));
+                int chipY = (currentY - chipH - 8 >= 4) ? (currentY - chipH - 8) : (currentY + totalH + 8);
 
-            ActivityGuiRenderer.drawPanel(context, chipX, chipY, chipW, chipH, ActivityColors.PANEL_INNER_BG, ActivityColors.BORDER, true);
-            ActivityGuiRenderer.fill(context, chipX + 5, chipY + 5, 4, 4, ActivityColors.ACCENT_PRIMARY);
-            if (textRenderer != null) {
+                ActivityGuiRenderer.drawPanel(context, chipX, chipY, chipW, chipH, ActivityColors.PANEL_INNER_BG, ActivityColors.BORDER, true);
+                ActivityGuiRenderer.fill(context, chipX + 5, chipY + 5, 4, 4, ActivityColors.ACCENT_PRIMARY);
                 UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("X: " + currentX + "  Y: " + currentY), chipX + 13, chipY + 4, ActivityColors.TEXT_PRIMARY);
             }
-        }
 
-        ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
-        ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
-        ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
+            ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
+            ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
+            ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
 
-        if (textRenderer != null) {
             ActivityGuiRenderer.fill(context, panelX + 8, panelY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
             UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("COOLDOWN HUD"), panelX + 18, panelY + 7, ActivityColors.TEXT_PRIMARY);
             UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Настройка HUD"), panelX + 18, panelY + 18, ActivityColors.TEXT_MUTED);
 
             ActivityGuiRenderer.drawHorizontalLine(context, panelX + 6, panelY + 31, PANEL_W - 12, 0x44353B49);
 
-            String posStr = (config != null && config.hudCustomX < 0 && config.hudCustomY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
+            String posStr = (config != null && config.cooldownHudCustomX < 0 && config.cooldownHudCustomY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(posStr), panelX + PANEL_W / 2, panelY + 37, ActivityColors.ACCENT_LIGHT);
         }
 
@@ -329,12 +349,7 @@ public class CooldownHudEditorScreen extends Screen {
         int doneBorder = (hoveredBtn == 2) ? ActivityColors.ACCENT_LIGHT : ActivityColors.ACCENT_PRIMARY;
         ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg, doneBorder, true);
         if (textRenderer != null) {
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Готово"), btnDoneX + btnDoneW / 2, btnDoneY + 7, 0xFFFFFFFF);
-        }
-
-        if (textRenderer != null) {
-            String hint = "ЛКМ — перемещение • ПКМ / R — сброс • Стрелки — подгонка (+Shift x5)";
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(hint), width / 2, height - 16, ActivityColors.TEXT_MUTED);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Готово"), btnDoneX + btnDoneW / 2, btnDoneY + 8, 0xFFFFFFFF);
         }
 
         super.render(context, mouseX, mouseY, delta);
