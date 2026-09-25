@@ -33,6 +33,22 @@ public class ActivityTextField extends ActivityComponent {
     private float hoverProgress = 0.0f;
     private float focusProgress = 0.0f;
     private Text cachedWrappedPlaceholder = null;
+    private boolean passwordMode = false;
+
+    public boolean isPasswordMode() {
+        return passwordMode;
+    }
+
+    public void setPasswordMode(boolean passwordMode) {
+        this.passwordMode = passwordMode;
+    }
+
+    private String getDisplayRepresentation(String raw) {
+        if (!passwordMode || raw == null || raw.isEmpty()) {
+            return raw;
+        }
+        return "●".repeat(raw.length());
+    }
 
     public ActivityTextField(int x, int y, int width, int height) {
         super(x, y, width, height);
@@ -141,7 +157,7 @@ public class ActivityTextField extends ActivityComponent {
             this.firstVisibleIndex = this.cursorPosition;
         }
 
-        String visibleStr = this.text.substring(this.firstVisibleIndex);
+        String visibleStr = getDisplayRepresentation(this.text.substring(this.firstVisibleIndex));
         String rendered = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, visibleStr, innerWidth);
         int endIndex = this.firstVisibleIndex + rendered.length();
 
@@ -182,7 +198,7 @@ public class ActivityTextField extends ActivityComponent {
                 activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, this.cachedWrappedPlaceholder, innerX, innerY, ActivityColors.TEXT_MUTED);
             } else {
                 clampVisible();
-                String visibleText = this.text.substring(this.firstVisibleIndex);
+                String visibleText = getDisplayRepresentation(this.text.substring(this.firstVisibleIndex));
                 String rendered = activity.client.gui.font.UiTextRenderer.trimToWidth(tr, visibleText, innerWidth);
 
                 activity.client.gui.font.UiTextRenderer.drawTextWithShadow(context, tr, rendered, innerX, innerY, this.enabled ? ActivityColors.TEXT_PRIMARY : ActivityColors.TEXT_DISABLED);
@@ -190,7 +206,7 @@ public class ActivityTextField extends ActivityComponent {
                 if (this.focused && this.enabled) {
                     boolean cursorVisible = AnimationClock.isCursorBlinkVisible(this.cursorBlinkStartTime);
                     if (cursorVisible && this.cursorPosition >= this.firstVisibleIndex) {
-                        String beforeCursor = this.text.substring(this.firstVisibleIndex, this.cursorPosition);
+                        String beforeCursor = getDisplayRepresentation(this.text.substring(this.firstVisibleIndex, this.cursorPosition));
                         int cursorX = innerX + activity.client.gui.font.UiTextRenderer.getWidth(tr, beforeCursor);
                         ActivityGuiRenderer.fill(context, cursorX, innerY - 1, 1, fontH + 2, ActivityColors.TEXT_PRIMARY);
                     }
@@ -204,8 +220,8 @@ public class ActivityTextField extends ActivityComponent {
                         int visSelStart = Math.max(selStart, this.firstVisibleIndex);
                         int visSelEnd = Math.min(selEnd, this.firstVisibleIndex + rendered.length());
 
-                        int selX1 = innerX + activity.client.gui.font.UiTextRenderer.getWidth(tr, this.text.substring(this.firstVisibleIndex, visSelStart));
-                        int selX2 = innerX + activity.client.gui.font.UiTextRenderer.getWidth(tr, this.text.substring(this.firstVisibleIndex, visSelEnd));
+                        int selX1 = innerX + activity.client.gui.font.UiTextRenderer.getWidth(tr, getDisplayRepresentation(this.text.substring(this.firstVisibleIndex, visSelStart)));
+                        int selX2 = innerX + activity.client.gui.font.UiTextRenderer.getWidth(tr, getDisplayRepresentation(this.text.substring(this.firstVisibleIndex, visSelEnd)));
 
                         ActivityGuiRenderer.fill(context, selX1, innerY - 1, selX2 - selX1, fontH + 2, ActivityColors.ACCENT_MUTED);
                     }

@@ -1,15 +1,19 @@
 package activity.client.gui.dev;
 
 import activity.client.gui.component.ActivityButton;
+import activity.client.gui.component.ActivityTextField;
+import activity.client.gui.font.UiTextRenderer;
 import activity.client.gui.render.ActivityGuiRenderer;
+import activity.client.gui.sound.SoundManager;
 import activity.client.gui.theme.ActivityColors;
 import activity.client.presence.DevAuthService;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +21,8 @@ import java.util.List;
 public final class DevLoginScreen extends Screen {
     private final Screen parent;
     private final List<ActivityButton> buttons = new ArrayList<>();
-    private TextFieldWidget usernameField;
-    private TextFieldWidget passwordField;
+    private ActivityTextField usernameField;
+    private ActivityTextField passwordField;
     private volatile String status = "";
     private int statusColor = 0xCCBBDD;
     private boolean successBorder;
@@ -33,46 +37,55 @@ public final class DevLoginScreen extends Screen {
     @Override
     protected void init() {
         buttons.clear();
-        int boxW = Math.min(220, width - 24);
+        int boxW = Math.min(260, width - 24);
+        int boxH = 220;
         int left = (width - boxW) / 2;
-        int top = Math.max(26, height / 2 - 62);
-        int halfBtnW = (boxW - 10) / 2;
-        usernameField = addDrawableChild(new TextFieldWidget(textRenderer, left, top, boxW, 20, Text.literal("Логин")));
+        int top = Math.max(16, (height - boxH) / 2);
+        int innerW = boxW - 32;
+        int halfBtnW = (innerW - 8) / 2;
+
+        usernameField = new ActivityTextField(left + 16, top + 52, innerW, 20, Text.literal("Логин"));
         usernameField.setMaxLength(32);
-        usernameField.setPlaceholder(Text.literal("Логин"));
-        passwordField = addDrawableChild(new TextFieldWidget(textRenderer, left, top + 26, boxW, 20, Text.literal("Пароль")));
+
+        passwordField = new ActivityTextField(left + 16, top + 92, innerW, 20, Text.literal("Пароль"));
         passwordField.setMaxLength(128);
-        passwordField.setPlaceholder(Text.literal("Пароль"));
-        passwordField.addFormatter((value, start) -> Text.literal("●".repeat(value.length())).asOrderedText());
-        ActivityButton btnLogin = new ActivityButton(left, top + 54, halfBtnW, 20, Text.literal("Войти"), ActivityButton.Variant.PRIMARY, button -> submit());
-        ActivityButton btnBack = new ActivityButton(left + halfBtnW + 10, top + 54, halfBtnW, 20, Text.literal("Назад"), ActivityButton.Variant.SECONDARY, button -> close());
+        passwordField.setPasswordMode(true);
+
+        ActivityButton btnLogin = new ActivityButton(left + 16, top + 148, halfBtnW, 20, Text.literal("Войти"), ActivityButton.Variant.PRIMARY, button -> submit());
+        ActivityButton btnBack = new ActivityButton(left + 16 + halfBtnW + 8, top + 148, halfBtnW, 20, Text.literal("Назад"), ActivityButton.Variant.SECONDARY, button -> close());
         btnBack.setBrandHoverColor(ActivityColors.ACCENT_PRIMARY);
-        ActivityButton btnLogout = new ActivityButton(left, top + 80, boxW, 20, Text.literal("Выйти из режима разработчика"), ActivityButton.Variant.DANGER, button -> {
+
+        ActivityButton btnLogout = new ActivityButton(left + 16, top + 176, innerW, 20, Text.literal("Выйти из режима разработчика"), ActivityButton.Variant.DANGER, button -> {
             DevAuthService.logout();
             status = "Режим разработчика отключён";
             statusColor = 0xFFFFAA00;
             successBorder = false;
             errorBorder = false;
-            activity.client.gui.sound.SoundManager.playClose();
+            SoundManager.playClose();
         });
+
         buttons.add(btnLogin);
         buttons.add(btnBack);
         buttons.add(btnLogout);
+
         if (DevAuthService.isLoggedIn()) {
             status = "Dev-доступ активен";
             statusColor = 0xFF55FF55;
             successBorder = true;
             errorBorder = false;
         } else {
+            status = "";
             statusColor = 0xCCBBDD;
             successBorder = false;
             errorBorder = false;
         }
-        setInitialFocus(usernameField);
+
+        usernameField.setFocused(true);
     }
 
     private void submit() {
         if (submitting) return;
+        if (usernameField == null || passwordField == null) return;
         String username = usernameField.getText().trim();
         String password = passwordField.getText();
         passwordField.setText("");
@@ -81,7 +94,8 @@ public final class DevLoginScreen extends Screen {
         statusColor = 0xFFCCCCCC;
         successBorder = false;
         errorBorder = false;
-        activity.client.gui.sound.SoundManager.playButtonPrimary();
+        SoundManager.playButtonPrimary();
+
         DevAuthService.login(username, password).thenAccept(result -> {
             if (client != null) client.execute(() -> {
                 submitting = false;
@@ -90,7 +104,7 @@ public final class DevLoginScreen extends Screen {
                     statusColor = 0xFF55FF55;
                     successBorder = true;
                     errorBorder = false;
-                    activity.client.gui.sound.SoundManager.playSuccess();
+                    SoundManager.playSuccess();
                 } else {
                     if (result != null && (result.contains("пароль") || result.contains("логин") || result.contains("Проверь"))) {
                         status = "Вы неправильно ввели пароль";
@@ -100,7 +114,7 @@ public final class DevLoginScreen extends Screen {
                     statusColor = 0xFFFF5555;
                     successBorder = false;
                     errorBorder = true;
-                    activity.client.gui.sound.SoundManager.playError();
+                    SoundManager.playError();
                 }
             });
         });
@@ -114,17 +128,41 @@ public final class DevLoginScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
         renderBackground(context, mouseX, mouseY, deltaTicks);
-        int boxW = Math.min(220, width - 24);
+
+        int boxW = Math.min(260, width - 24);
+        int boxH = 220;
         int left = (width - boxW) / 2;
-        int top = Math.max(26, height / 2 - 62);
+        int top = Math.max(16, (height - boxH) / 2);
+
         int borderColor = successBorder ? 0xFF28C840 : (errorBorder ? 0xFFFF5555 : 0x38FFFFFF);
         boolean glassGlow = successBorder || errorBorder;
-        ActivityGuiRenderer.drawPanel(context, left - 12, top - 22, boxW + 24, 150, 0xF012141A, borderColor, glassGlow);
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, top - 15, 0xFFFFFF);
-        if (status != null && !status.isEmpty()) {
-            context.drawCenteredTextWithShadow(textRenderer, Text.literal(status), width / 2, top + 114, statusColor);
+        ActivityGuiRenderer.drawPanel(context, left, top, boxW, boxH, 0xF511141C, borderColor, glassGlow);
+
+        // Header
+        UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("РЕЖИМ РАЗРАБОТЧИКА"), left + boxW / 2, top + 12, ActivityColors.ACCENT_PRIMARY);
+        UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Nivorat Dev — Авторизация"), left + boxW / 2, top + 24, ActivityColors.TEXT_MUTED);
+
+        // Separator line
+        context.fill(left + 16, top + 36, left + boxW - 16, top + 37, 0x25FFFFFF);
+
+        // Labels
+        UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Логин:"), left + 16, top + 42, ActivityColors.TEXT_SECONDARY);
+        UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Пароль:"), left + 16, top + 82, ActivityColors.TEXT_SECONDARY);
+
+        // Render input fields
+        if (usernameField != null) {
+            usernameField.render(context, mouseX, mouseY, deltaTicks);
         }
-        super.render(context, mouseX, mouseY, deltaTicks);
+        if (passwordField != null) {
+            passwordField.render(context, mouseX, mouseY, deltaTicks);
+        }
+
+        // Status text
+        if (status != null && !status.isEmpty()) {
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(status), left + boxW / 2, top + 124, statusColor);
+        }
+
+        // Render buttons
         for (ActivityButton btn : buttons) {
             btn.render(context, mouseX, mouseY, deltaTicks);
         }
@@ -132,6 +170,14 @@ public final class DevLoginScreen extends Screen {
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
+        if (usernameField != null && usernameField.mouseClicked(click, doubled)) {
+            if (passwordField != null) passwordField.setFocused(false);
+            return true;
+        }
+        if (passwordField != null && passwordField.mouseClicked(click, doubled)) {
+            if (usernameField != null) usernameField.setFocused(false);
+            return true;
+        }
         for (ActivityButton btn : buttons) {
             if (btn.mouseClicked(click, doubled)) {
                 return true;
@@ -149,11 +195,46 @@ public final class DevLoginScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyInput input) {
-        if (input != null && input.isEnterOrSpace()) {
-            submit();
+    public boolean charTyped(CharInput input) {
+        if (usernameField != null && usernameField.isFocused() && usernameField.charTyped(input)) {
             return true;
         }
+        if (passwordField != null && passwordField.isFocused() && passwordField.charTyped(input)) {
+            return true;
+        }
+        return super.charTyped(input);
+    }
+
+    @Override
+    public boolean keyPressed(KeyInput input) {
+        if (input != null) {
+            int key = input.key();
+            if (key == GLFW.GLFW_KEY_TAB) {
+                if (usernameField != null && usernameField.isFocused()) {
+                    usernameField.setFocused(false);
+                    if (passwordField != null) passwordField.setFocused(true);
+                    return true;
+                } else if (passwordField != null && passwordField.isFocused()) {
+                    passwordField.setFocused(false);
+                    if (usernameField != null) usernameField.setFocused(true);
+                    return true;
+                }
+            } else if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
+                submit();
+                return true;
+            } else if (key == GLFW.GLFW_KEY_ESCAPE) {
+                close();
+                return true;
+            }
+        }
+
+        if (usernameField != null && usernameField.isFocused() && usernameField.keyPressed(input)) {
+            return true;
+        }
+        if (passwordField != null && passwordField.isFocused() && passwordField.keyPressed(input)) {
+            return true;
+        }
+
         return super.keyPressed(input);
     }
 

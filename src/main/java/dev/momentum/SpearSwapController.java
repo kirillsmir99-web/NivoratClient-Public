@@ -78,11 +78,11 @@ public final class SpearSwapController {
     }
 
     private boolean isCooldownActive(long now) {
-        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE || SpearConfig.maxDelayMs <= 15) {
-            return false;
-        }
         if (cooldownTicks > 0) {
             return true;
+        }
+        if (SpearConfig.maxSpeed || SpearConfig.securityMode == SpearConfig.MODE_RAGE) {
+            return false;
         }
         if (SpearConfig.securityMode == SpearConfig.MODE_LEGIT) {
             return (clientTickCount - lastRestoreTick < 2L);
@@ -210,10 +210,8 @@ public final class SpearSwapController {
         long now = System.currentTimeMillis();
         if (isCooldownActive(now)) return;
 
-        if (SpearConfig.securityMode != SpearConfig.MODE_RAGE && SpearConfig.maxDelayMs > 15) {
-            if (player.getAttackCooldownProgress(0.0F) < 0.90F) {
-                return;
-            }
+        if (SpearConfig.checkCharge && player.getAttackCooldownProgress(0.0F) < 0.90F) {
+            return;
         }
 
         int curSlot = player.getInventory().getSelectedSlot();
@@ -252,8 +250,8 @@ public final class SpearSwapController {
     }
 
     private int calculateDelay() {
-        if (SpearConfig.maxDelayMs <= 10) {
-            return Math.max(0, SpearConfig.maxDelayMs);
+        if (SpearConfig.maxSpeed || SpearConfig.maxDelayMs <= 0) {
+            return 0;
         }
         int floor = SpearConfig.getMinFloor();
         if (!SpearConfig.randomDelay) {
@@ -269,7 +267,7 @@ public final class SpearSwapController {
     }
 
     private int getRestoreDelayTicks() {
-        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE || targetRestoreDelayMs <= 15) {
+        if (SpearConfig.maxSpeed || SpearConfig.maxDelayMs <= 0 || SpearConfig.securityMode == SpearConfig.MODE_RAGE) {
             return 0;
         }
         if (SpearConfig.securityMode == SpearConfig.MODE_SEMI_LEGIT) {
@@ -279,7 +277,7 @@ public final class SpearSwapController {
     }
 
     private int getCooldownTicks() {
-        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE || SpearConfig.maxDelayMs <= 15) {
+        if (SpearConfig.maxSpeed || SpearConfig.securityMode == SpearConfig.MODE_RAGE || SpearConfig.maxDelayMs <= 0) {
             return 0;
         }
         if (SpearConfig.securityMode == SpearConfig.MODE_SEMI_LEGIT) {

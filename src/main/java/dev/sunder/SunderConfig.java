@@ -17,7 +17,7 @@ public final class SunderConfig {
     public static int axeDelayMs = 0;
     public static int maceDelayMs = 0;
     public static int restoreDelayMs = 50;
-    public static int cooldownTicks = 3;
+    public static int cooldownTicks = 1;
 
     private SunderConfig() {}
 

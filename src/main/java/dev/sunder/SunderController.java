@@ -135,15 +135,8 @@ public final class SunderController {
             return;
         }
 
-        if (client.player.isOnGround() || client.player.isTouchingWater() || client.player.isClimbing() || client.player.hasVehicle()) {
+        if (client.player.isOnGround() || client.player.verticalCollision) {
             airTicks = 0;
-            if (stage != Stage.IDLE && stage != Stage.WAITING_RESTORE && stage != Stage.RESTORE_SLOT
-                    && stage != Stage.WAITING_MACE_SWAP && stage != Stage.SELECT_MACE && stage != Stage.WAITING_MACE_STRIKE
-                    && stage != Stage.SEMI_SELECT_MACE && stage != Stage.SEMI_AWAIT_MACE_HIT) {
-                restoreInitialSlot(client);
-                finishCombo(3);
-                return;
-            }
         } else {
             airTicks = Math.max(airTicks + 1, activity.client.module.service.PlayerStateService.getAirTicks());
         }
@@ -248,12 +241,12 @@ public final class SunderController {
                     timer--;
                 }
                 LivingEntity target = getTarget(client);
-                double maxReach = Math.max(3.8D, SunderConfig.triggerDistance + 1.2D);
+                double maxReach = Math.min(3.8D, Math.max(3.2D, SunderConfig.triggerDistance + 0.6D));
                 if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                     executeAutoStrikeMace(client);
                 } else if (timer <= 0) {
                     restoreInitialSlot(client);
-                    finishCombo(2);
+                    finishCombo(1);
                 }
             }
             case SEMI_SELECT_AXE -> {
@@ -300,12 +293,12 @@ public final class SunderController {
                     timer--;
                 }
                 LivingEntity target = getTarget(client);
-                double maxReach = Math.max(3.8D, SunderConfig.triggerDistance + 1.2D);
+                double maxReach = Math.min(3.8D, Math.max(3.2D, SunderConfig.triggerDistance + 0.6D));
                 if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                     executeAutoStrikeMace(client);
                 } else if (timer <= 0) {
                     restoreInitialSlot(client);
-                    finishCombo(2);
+                    finishCombo(1);
                 }
             }
             case WAITING_RESTORE -> {
@@ -405,18 +398,15 @@ public final class SunderController {
     private void executeAutoStrikeAxe(MinecraftClient client) {
         try {
             LivingEntity target = getTarget(client);
-            if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance + 0.5D)) {
+            if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance)) {
                 restoreInitialSlot(client);
-                finishCombo(2);
+                finishCombo(1);
                 return;
             }
 
             if (client.player.getInventory().getSelectedSlot() != axeSlot) {
                 selectSlot(client, axeSlot);
                 ensureFullAttackCharge(client.player);
-                stage = Stage.WAITING_AXE_STRIKE;
-                timer = 1;
-                return;
             }
 
             ensureFullAttackCharge(client.player);
@@ -424,47 +414,52 @@ public final class SunderController {
             client.player.swingHand(Hand.MAIN_HAND);
 
             if (maceSlot >= 0) {
-                stage = SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
-                timer = 1;
+                int maceDelay = getMaceDelayTicks();
+                if (maceDelay <= 0 && SunderConfig.mode != SunderConfig.MODE_SEMI_AUTO) {
+                    selectSlot(client, maceSlot);
+                    ensureFullAttackCharge(client.player);
+                    executeAutoStrikeMace(client);
+                } else {
+                    stage = SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
+                    timer = Math.max(1, maceDelay);
+                }
             } else {
                 stage = Stage.WAITING_RESTORE;
                 timer = Math.max(1, getRestoreDelayTicks());
             }
         } catch (Throwable t) {
             restoreInitialSlot(client);
-            finishCombo(2);
+            finishCombo(1);
         }
     }
 
     private void executeAutoStrikeMace(MinecraftClient client) {
         try {
             LivingEntity target = getTarget(client);
-            double maxReach = Math.max(3.8D, SunderConfig.triggerDistance + 1.2D);
+            double maxReach = Math.min(3.8D, Math.max(3.2D, SunderConfig.triggerDistance + 0.6D));
             if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                 if (client.player.getInventory().getSelectedSlot() != maceSlot) {
                     selectSlot(client, maceSlot);
                     ensureFullAttackCharge(client.player);
-                    stage = Stage.WAITING_MACE_STRIKE;
-                    timer = 1;
-                    return;
                 }
                 ensureFullAttackCharge(client.player);
                 client.interactionManager.attackEntity(client.player, target);
                 client.player.swingHand(Hand.MAIN_HAND);
-                stage = Stage.WAITING_RESTORE;
-                timer = Math.max(1, getRestoreDelayTicks());
-            } else {
-                if (stage != Stage.WAITING_MACE_STRIKE && stage != Stage.SEMI_AWAIT_MACE_HIT) {
-                    stage = (SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO) ? Stage.SEMI_AWAIT_MACE_HIT : Stage.WAITING_MACE_STRIKE;
-                    timer = 10;
-                } else if (timer <= 0) {
+
+                if (SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO) {
+                    restoreInitialSlot(client);
+                    finishCombo(1);
+                } else {
                     stage = Stage.WAITING_RESTORE;
                     timer = Math.max(1, getRestoreDelayTicks());
                 }
+            } else {
+                restoreInitialSlot(client);
+                finishCombo(1);
             }
         } catch (Throwable t) {
             restoreInitialSlot(client);
-            finishCombo(2);
+            finishCombo(1);
         }
     }
 
@@ -473,7 +468,7 @@ public final class SunderController {
             long randomized = GaussianTimingEngine.getShieldBreakerSwitchDelay();
             return (int) (randomized / 50L);
         }
-        return (int) (SunderConfig.axeDelayMs / 50.0D);
+        return (int) Math.round(SunderConfig.axeDelayMs / 50.0D);
     }
 
     private int getMaceDelayTicks() {
@@ -481,7 +476,7 @@ public final class SunderController {
             long randomized = GaussianTimingEngine.getMaceSwapDelay();
             return (int) (randomized / 50L);
         }
-        return (int) (SunderConfig.maceDelayMs / 50.0D);
+        return (int) Math.round(SunderConfig.maceDelayMs / 50.0D);
     }
 
     private int getRestoreDelayTicks() {
@@ -489,18 +484,15 @@ public final class SunderController {
             long randomized = GaussianTimingEngine.getShieldBreakerRestoreDelay();
             return (int) (randomized / 50L);
         }
-        return (int) (SunderConfig.restoreDelayMs / 50.0D);
+        return (int) Math.round(SunderConfig.restoreDelayMs / 50.0D);
     }
 
     private boolean isAirborneConditionMet(ClientPlayerEntity player) {
         if (player == null) return false;
-        if (player.hasVehicle() || player.isTouchingWater() || player.isClimbing()) {
-            return false;
-        }
         if (SunderConfig.airTimeSec <= 0.05D) {
-            return true;
+            return !player.isTouchingWater() && !player.isClimbing() && !player.hasVehicle();
         }
-        if (player.isOnGround() || player.verticalCollision) {
+        if (player.isOnGround() || player.isTouchingWater() || player.isClimbing() || player.hasVehicle()) {
             return false;
         }
         int neededTicks = Math.max(1, (int) Math.round(SunderConfig.airTimeSec * 20.0D));
@@ -548,7 +540,7 @@ public final class SunderController {
     private LivingEntity findTargetAlongRay(MinecraftClient client) {
         Vec3d eyePos = client.player.getEyePos();
         Vec3d lookVec = client.player.getRotationVec(1.0F);
-        double maxDist = Math.min(MAX_COMBAT_REACH, SunderConfig.triggerDistance);
+        double maxDist = Math.min(3.8D, Math.max(2.85D, SunderConfig.triggerDistance));
         Vec3d reachEnd = eyePos.add(lookVec.multiply(maxDist));
 
         LivingEntity best = null;
@@ -577,33 +569,33 @@ public final class SunderController {
         }
 
         Vec3d eyePos = client.player.getEyePos();
-        double effectiveReach = Math.min(MAX_COMBAT_REACH, maxReach);
+        double cappedReach = Math.min(3.8D, Math.max(2.85D, maxReach));
 
         if (!CombatRaytraceGuard.hasLineOfSight(client.player, target)) {
             return false;
         }
 
-        if (client.player.squaredDistanceTo(target) <= (effectiveReach + 0.6D) * (effectiveReach + 0.6D)) {
-            return true;
-        }
-
-        if (client.targetedEntity == target) {
-            return true;
+        if (client.player.canSee(target)) {
+            // direct view
         }
 
         if (client.crosshairTarget instanceof EntityHitResult ehr && ehr.getEntity() == target) {
-            return eyePos.squaredDistanceTo(ehr.getPos()) <= effectiveReach * effectiveReach;
+            return eyePos.squaredDistanceTo(ehr.getPos()) <= (cappedReach + 0.5) * (cappedReach + 0.5);
         }
 
         Vec3d lookVec = client.player.getRotationVec(1.0F);
-        Vec3d reachEnd = eyePos.add(lookVec.multiply(effectiveReach));
+        Vec3d reachEnd = eyePos.add(lookVec.multiply(cappedReach));
         Box box = target.getBoundingBox().expand(0.2D);
         var hit = box.raycast(eyePos, reachEnd);
         if (hit.isPresent()) {
-            return eyePos.squaredDistanceTo(hit.get()) <= effectiveReach * effectiveReach;
+            return eyePos.squaredDistanceTo(hit.get()) <= (cappedReach + 0.3) * (cappedReach + 0.3);
         }
 
-        return false;
+        double dx = Math.max(box.minX - eyePos.x, Math.max(0.0, eyePos.x - box.maxX));
+        double dy = Math.max(box.minY - eyePos.y, Math.max(0.0, eyePos.y - box.maxY));
+        double dz = Math.max(box.minZ - eyePos.z, Math.max(0.0, eyePos.z - box.maxZ));
+        double distSq = dx * dx + dy * dy + dz * dz;
+        return distSq <= cappedReach * cappedReach;
     }
 
     private int findMaceHotbarSlot(ClientPlayerEntity player) {

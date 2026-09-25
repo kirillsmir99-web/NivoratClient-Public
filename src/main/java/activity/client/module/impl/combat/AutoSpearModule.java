@@ -128,6 +128,40 @@ public class AutoSpearModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("max_speed", Text.literal("Максимальная скорость (0-Tick)"),
+                Text.literal("Мгновенный удар копьем и возврат оружия в том же тике"), SettingGroup.ADVANCED,
+                false,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoSpearMaxSpeed;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoSpearMaxSpeed = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("check_charge", Text.literal("Проверка заряда атаки"),
+                Text.literal("Ожидать перезарядки удара оружия перед использованием копья"), SettingGroup.ADVANCED,
+                false,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoSpearCheckCharge;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoSpearCheckCharge = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
                 true,
@@ -152,6 +186,8 @@ public class AutoSpearModule extends NivoratModule {
         SpearConfig.maxDelayMs = (int) c.autoSpearRestoreDelayMs;
         SpearConfig.randomDelay = c.autoSpearRandomDelay;
         SpearConfig.missChance = (int) c.autoSpearMissChance;
+        SpearConfig.maxSpeed = c.autoSpearMaxSpeed;
+        SpearConfig.checkCharge = c.autoSpearCheckCharge;
 
         if ("semi_legit".equals(c.autoSpearSecurityMode)) {
             SpearConfig.securityMode = SpearConfig.MODE_SEMI_LEGIT;

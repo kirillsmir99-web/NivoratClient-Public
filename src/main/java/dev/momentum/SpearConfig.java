@@ -17,15 +17,18 @@ public final class SpearConfig {
     public static int maxDelayMs = 185;
     public static int missChance = 0;
     public static int priorityMode = PRIORITY_AUTO;
+    public static boolean maxSpeed = false;
+    public static boolean checkCharge = false;
 
     private SpearConfig() {}
 
     public static int getMinFloor() {
-        if (securityMode == MODE_RAGE) {
-            return 0;
-        }
-        int base = (securityMode == MODE_SEMI_LEGIT) ? 70 : 140;
-        return Math.min(base, Math.max(0, maxDelayMs));
+        if (maxSpeed || maxDelayMs <= 0) return 0;
+        return switch (securityMode) {
+            case MODE_SEMI_LEGIT -> Math.min(30, maxDelayMs);
+            case MODE_RAGE -> 0;
+            default -> Math.min(70, maxDelayMs);
+        };
     }
 
     public static void load() {

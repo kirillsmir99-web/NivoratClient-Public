@@ -24,11 +24,15 @@ public class NivoratHudEditorScreen extends Screen {
     private int panelX = -1;
     private int panelY = -1;
     private static final int PANEL_W = 150;
-    private static final int PANEL_H = 114;
+    private static final int PANEL_H = 138;
     private boolean isPanelDragging = false;
     private int panelDragOffsetX = 0;
     private int panelDragOffsetY = 0;
 
+    private int btnUpX, btnUpY, btnUpW, btnUpH;
+    private int btnDownX, btnDownY, btnDownW, btnDownH;
+    private int btnLeftX, btnLeftY, btnLeftW, btnLeftH;
+    private int btnRightX, btnRightY, btnRightW, btnRightH;
     private int btnResetX, btnResetY, btnResetW, btnResetH;
     private int btnDoneX, btnDoneY, btnDoneW, btnDoneH;
     private int lastHoveredBtn = -1;
@@ -78,10 +82,12 @@ public class NivoratHudEditorScreen extends Screen {
         if (config == null) return;
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null || mc.textRenderer == null) return;
+
         int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
         int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
         int curX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
         int curY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
+
         int newX = Math.max(2, Math.min(width - totalW - 2, curX + dx));
         int newY = Math.max(2, Math.min(height - totalH - 2, curY + dy));
         config.hudCustomX = newX;
@@ -91,23 +97,28 @@ public class NivoratHudEditorScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyInput input) {
+        if (input == null) return super.keyPressed(input);
         int key = input.key();
-        int step = input.hasShift() ? 5 : 1;
+        int step = input.hasShift() ? 10 : 1;
 
         if (key == GLFW.GLFW_KEY_LEFT) {
             nudge(-step, 0);
+            SoundManager.playHoverImmediate();
             return true;
         }
         if (key == GLFW.GLFW_KEY_RIGHT) {
             nudge(step, 0);
+            SoundManager.playHoverImmediate();
             return true;
         }
         if (key == GLFW.GLFW_KEY_UP) {
             nudge(0, -step);
+            SoundManager.playHoverImmediate();
             return true;
         }
         if (key == GLFW.GLFW_KEY_DOWN) {
             nudge(0, step);
+            SoundManager.playHoverImmediate();
             return true;
         }
         if (key == GLFW.GLFW_KEY_R) {
@@ -120,7 +131,7 @@ public class NivoratHudEditorScreen extends Screen {
             SoundManager.playSelect();
             return true;
         }
-        if (input.isEscape()) {
+        if (input.isEscape() || key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
             close();
             return true;
         }
@@ -129,112 +140,140 @@ public class NivoratHudEditorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
-        double mx = click.x();
-        double my = click.y();
+        if (click == null) return false;
+        double mouseX = click.x();
+        double mouseY = click.y();
         int button = click.buttonInfo().button();
 
-        btnResetW = PANEL_W - 20;
-        btnResetH = 20;
-        btnResetX = panelX + 10;
-        btnResetY = panelY + 52;
-
-        btnDoneW = PANEL_W - 20;
-        btnDoneH = 22;
-        btnDoneX = panelX + 10;
-        btnDoneY = panelY + 78;
-
-        ActivityConfig config = ActivityConfigManager.getConfig();
-
         if (button == 0) {
-            if (mx >= btnResetX && mx <= btnResetX + btnResetW && my >= btnResetY && my <= btnResetY + btnResetH) {
+            if (mouseX >= panelX && mouseX <= panelX + PANEL_W && mouseY >= panelY && mouseY <= panelY + 28) {
+                isPanelDragging = true;
+                panelDragOffsetX = (int) Math.round(mouseX - panelX);
+                panelDragOffsetY = (int) Math.round(mouseY - panelY);
+                return true;
+            }
+
+            // Arrow buttons
+            if (mouseX >= btnUpX && mouseX <= btnUpX + btnUpW && mouseY >= btnUpY && mouseY <= btnUpY + btnUpH) {
+                nudge(0, -1);
+                SoundManager.playClick();
+                return true;
+            }
+            if (mouseX >= btnDownX && mouseX <= btnDownX + btnDownW && mouseY >= btnDownY && mouseY <= btnDownY + btnDownH) {
+                nudge(0, 1);
+                SoundManager.playClick();
+                return true;
+            }
+            if (mouseX >= btnLeftX && mouseX <= btnLeftX + btnLeftW && mouseY >= btnLeftY && mouseY <= btnLeftY + btnLeftH) {
+                nudge(-1, 0);
+                SoundManager.playClick();
+                return true;
+            }
+            if (mouseX >= btnRightX && mouseX <= btnRightX + btnRightW && mouseY >= btnRightY && mouseY <= btnRightY + btnRightH) {
+                nudge(1, 0);
+                SoundManager.playClick();
+                return true;
+            }
+
+            // Reset button
+            if (mouseX >= btnResetX && mouseX <= btnResetX + btnResetW && mouseY >= btnResetY && mouseY <= btnResetY + btnResetH) {
+                ActivityConfig config = ActivityConfigManager.getConfig();
                 if (config != null) {
                     config.hudCustomX = -1;
                     config.hudCustomY = -1;
                     ActivityConfigManager.markDirty();
                 }
-                SoundManager.playSelect();
+                SoundManager.playClick();
                 return true;
             }
-            if (mx >= btnDoneX && mx <= btnDoneX + btnDoneW && my >= btnDoneY && my <= btnDoneY + btnDoneH) {
+
+            // Done button
+            if (mouseX >= btnDoneX && mouseX <= btnDoneX + btnDoneW && mouseY >= btnDoneY && mouseY <= btnDoneY + btnDoneH) {
                 SoundManager.playClick();
                 close();
                 return true;
             }
-            if (mx >= panelX && mx <= panelX + PANEL_W && my >= panelY && my <= panelY + PANEL_H) {
-                isPanelDragging = true;
-                panelDragOffsetX = (int) Math.round(mx - panelX);
-                panelDragOffsetY = (int) Math.round(my - panelY);
-                return true;
+
+            // HUD drag click
+            ActivityConfig config = ActivityConfigManager.getConfig();
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.textRenderer != null && config != null) {
+                int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
+                int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
+                int curX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
+                int curY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
+
+                if (mouseX >= curX - 6 && mouseX <= curX + totalW + 6 && mouseY >= curY - 6 && mouseY <= curY + totalH + 6) {
+                    isDragging = true;
+                    dragOffsetX = (int) Math.round(mouseX - curX);
+                    dragOffsetY = (int) Math.round(mouseY - curY);
+                    SoundManager.playClick();
+                    return true;
+                }
             }
-        }
+        } else if (button == 1) {
+            ActivityConfig config = ActivityConfigManager.getConfig();
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.textRenderer != null && config != null) {
+                int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
+                int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
+                int curX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
+                int curY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
 
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc != null && mc.textRenderer != null) {
-            int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
-            int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
-            int curX = ActivityHudOverlay.getEffectiveX(config, width, totalW);
-            int curY = ActivityHudOverlay.getEffectiveY(config, height, totalH);
-
-            boolean inside = mx >= curX - 8 && mx <= curX + totalW + 8 && my >= curY - 8 && my <= curY + totalH + 8;
-
-            if (button == 0 && inside) {
-                isDragging = true;
-                dragOffsetX = (int) Math.round(mx - curX);
-                dragOffsetY = (int) Math.round(my - curY);
-                SoundManager.playClick();
-                return true;
-            } else if (button == 1 && inside) {
-                if (config != null) {
+                if (mouseX >= curX - 6 && mouseX <= curX + totalW + 6 && mouseY >= curY - 6 && mouseY <= curY + totalH + 6) {
                     config.hudCustomX = -1;
                     config.hudCustomY = -1;
                     ActivityConfigManager.markDirty();
+                    SoundManager.playSelect();
+                    return true;
                 }
-                SoundManager.playSelect();
-                return true;
             }
         }
-
         return super.mouseClicked(click, doubled);
     }
 
     @Override
     public boolean mouseReleased(Click click) {
-        if (click.buttonInfo().button() == 0) {
-            if (isPanelDragging) {
-                isPanelDragging = false;
-                return true;
-            }
-            if (isDragging) {
-                isDragging = false;
-                ActivityConfigManager.markDirty();
-                return true;
-            }
+        if (click != null && click.buttonInfo().button() == 0) {
+            isDragging = false;
+            isPanelDragging = false;
         }
         return super.mouseReleased(click);
     }
 
     @Override
     public boolean mouseDragged(Click click, double offsetX, double offsetY) {
+        if (click == null) return false;
+        double mouseX = click.x();
+        double mouseY = click.y();
+
         if (isPanelDragging) {
-            int newPX = (int) Math.round(click.x() - panelDragOffsetX);
-            int newPY = (int) Math.round(click.y() - panelDragOffsetY);
-            panelX = Math.max(2, Math.min(width - PANEL_W - 2, newPX));
-            panelY = Math.max(2, Math.min(height - PANEL_H - 2, newPY));
+            panelX = (int) Math.round(mouseX - panelDragOffsetX);
+            panelY = (int) Math.round(mouseY - panelDragOffsetY);
+            panelX = Math.max(2, Math.min(width - PANEL_W - 2, panelX));
+            panelY = Math.max(2, Math.min(height - PANEL_H - 2, panelY));
             return true;
         }
+
         if (isDragging) {
             ActivityConfig config = ActivityConfigManager.getConfig();
             MinecraftClient mc = MinecraftClient.getInstance();
-            if (mc != null && mc.textRenderer != null) {
+            if (mc != null && mc.textRenderer != null && config != null) {
                 int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
                 int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
-                int newX = (int) Math.round(click.x() - dragOffsetX);
-                int newY = (int) Math.round(click.y() - dragOffsetY);
-                if (config != null) {
-                    config.hudCustomX = Math.max(2, Math.min(width - totalW - 2, newX));
-                    config.hudCustomY = Math.max(2, Math.min(height - totalH - 2, newY));
-                    ActivityConfigManager.markDirty();
-                }
+
+                int newX = (int) Math.round(mouseX - dragOffsetX);
+                int newY = (int) Math.round(mouseY - dragOffsetY);
+
+                // Magnetic snap to edges
+                if (Math.abs(newX - 6) < 8) newX = 6;
+                if (Math.abs(newX + totalW - (width - 6)) < 8) newX = width - totalW - 6;
+                if (Math.abs(newY - 6) < 8) newY = 6;
+                if (Math.abs(newY + totalH - (height - 6)) < 8) newY = height - totalH - 6;
+
+                config.hudCustomX = Math.max(2, Math.min(width - totalW - 2, newX));
+                config.hudCustomY = Math.max(2, Math.min(height - totalH - 2, newY));
+                ActivityConfigManager.markDirty();
             }
             return true;
         }
@@ -244,10 +283,10 @@ public class NivoratHudEditorScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         ActivityConfig config = ActivityConfigManager.getConfig();
+        MinecraftClient mc = MinecraftClient.getInstance();
 
         ActivityGuiRenderer.fill(context, 0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
 
-        MinecraftClient mc = MinecraftClient.getInstance();
         if (mc != null && textRenderer != null) {
             int totalW = ActivityHudOverlay.getTotalWidth(mc, config);
             int totalH = ActivityHudOverlay.getTotalHeight(mc, config);
@@ -269,12 +308,13 @@ public class NivoratHudEditorScreen extends Screen {
                 }
             }
 
-            boolean isHovered = mouseX >= currentX - 8 && mouseX <= currentX + totalW + 8 && mouseY >= currentY - 8 && mouseY <= currentY + totalH + 8;
+            boolean isHovered = mouseX >= currentX - 6 && mouseX <= currentX + totalW + 6 && mouseY >= currentY - 6 && mouseY <= currentY + totalH + 6;
 
             int boxBorder = (isDragging || isHovered) ? 0xCC3EA4E8 : 0x443EA4E8;
-            int boxBg = (isDragging || isHovered) ? 0x880A0D14 : 0x550A0D14;
-            ActivityGuiRenderer.drawPanel(context, currentX - 5, currentY - 5, totalW + 10, totalH + 10, boxBg, boxBorder, true);
+            int boxBg = (isDragging || isHovered) ? 0x880A0D14 : 0x440A0D14;
+            ActivityGuiRenderer.drawPanel(context, currentX - 4, currentY - 4, totalW + 8, totalH + 8, boxBg, boxBorder, true);
 
+            // Render live watermark
             ActivityHudOverlay.renderHud(context, mc, config, currentX, currentY, totalW, width);
 
             if (isHovered || isDragging) {
@@ -289,29 +329,62 @@ public class NivoratHudEditorScreen extends Screen {
                 UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("X: " + currentX + "  Y: " + currentY), chipX + 13, chipY + 4, ActivityColors.TEXT_PRIMARY);
             }
 
+            // Draggable control panel
             ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
-            ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 28, ActivityColors.HEADER_BACKGROUND);
+            ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 26, ActivityColors.HEADER_BACKGROUND);
             ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
 
             ActivityGuiRenderer.fill(context, panelX + 8, panelY + 8, 5, 5, ActivityColors.ACCENT_PRIMARY);
-            UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("ВОДЯНОЙ ЗНАК"), panelX + 18, panelY + 7, ActivityColors.TEXT_PRIMARY);
-            UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Позиция оверлея"), panelX + 18, panelY + 18, ActivityColors.TEXT_MUTED);
+            UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("ВОДЯНОЙ ЗНАК"), panelX + 18, panelY + 6, ActivityColors.TEXT_PRIMARY);
+            UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Позиция HUD"), panelX + 18, panelY + 16, ActivityColors.TEXT_MUTED);
 
-            ActivityGuiRenderer.drawHorizontalLine(context, panelX + 6, panelY + 31, PANEL_W - 12, 0x44353B49);
+            ActivityGuiRenderer.drawHorizontalLine(context, panelX + 6, panelY + 28, PANEL_W - 12, 0x44353B49);
 
             String posStr = (config != null && config.hudCustomX < 0 && config.hudCustomY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(posStr), panelX + PANEL_W / 2, panelY + 37, ActivityColors.ACCENT_LIGHT);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(posStr), panelX + PANEL_W / 2, panelY + 34, ActivityColors.ACCENT_LIGHT);
+
+            // Nudge arrow buttons
+            int arrowSize = 16;
+            int arrowCenterX = panelX + PANEL_W / 2;
+            int arrowTopY = panelY + 46;
+
+            btnUpX = arrowCenterX - arrowSize / 2;
+            btnUpY = arrowTopY;
+            btnUpW = arrowSize;
+            btnUpH = arrowSize;
+
+            btnLeftX = arrowCenterX - arrowSize - 2;
+            btnLeftY = arrowTopY + arrowSize + 2;
+            btnLeftW = arrowSize;
+            btnLeftH = arrowSize;
+
+            btnRightX = arrowCenterX + 2;
+            btnRightY = arrowTopY + arrowSize + 2;
+            btnRightW = arrowSize;
+            btnRightH = arrowSize;
+
+            btnDownX = arrowCenterX - arrowSize / 2;
+            btnDownY = arrowTopY + (arrowSize + 2) * 2;
+            btnDownW = arrowSize;
+            btnDownH = arrowSize;
+
+            // Render arrow buttons
+            drawNudgeButton(context, btnUpX, btnUpY, btnUpW, btnUpH, "▲", mouseX, mouseY);
+            drawNudgeButton(context, btnDownX, btnDownY, btnDownW, btnDownH, "▼", mouseX, mouseY);
+            drawNudgeButton(context, btnLeftX, btnLeftY, btnLeftW, btnLeftH, "◄", mouseX, mouseY);
+            drawNudgeButton(context, btnRightX, btnRightY, btnRightW, btnRightH, "►", mouseX, mouseY);
         }
 
-        btnResetW = PANEL_W - 20;
+        int btnRowW = (PANEL_W - 24) / 2;
+        btnResetW = btnRowW;
         btnResetH = 20;
         btnResetX = panelX + 10;
-        btnResetY = panelY + 52;
+        btnResetY = panelY + 110;
 
-        btnDoneW = PANEL_W - 20;
-        btnDoneH = 22;
-        btnDoneX = panelX + 10;
-        btnDoneY = panelY + 78;
+        btnDoneW = btnRowW;
+        btnDoneH = 20;
+        btnDoneX = panelX + 14 + btnRowW;
+        btnDoneY = panelY + 110;
 
         int hoveredBtn = -1;
         if (mouseX >= btnResetX && mouseX <= btnResetX + btnResetW && mouseY >= btnResetY && mouseY <= btnResetY + btnResetH) hoveredBtn = 1;
@@ -325,17 +398,27 @@ public class NivoratHudEditorScreen extends Screen {
         int resetBg = (hoveredBtn == 1) ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
         ActivityGuiRenderer.drawPanel(context, btnResetX, btnResetY, btnResetW, btnResetH, resetBg, (hoveredBtn == 1) ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER, true);
         if (textRenderer != null) {
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Сбросить"), btnResetX + btnResetW / 2, btnResetY + 6, 0xFFFFFFFF);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Сброс"), btnResetX + btnResetW / 2, btnResetY + 6, 0xFFFFFFFF);
         }
 
         int doneBg = (hoveredBtn == 2) ? ActivityColors.BUTTON_PRIMARY_HOVER : ActivityColors.BUTTON_PRIMARY_BG;
         int doneBorder = (hoveredBtn == 2) ? ActivityColors.ACCENT_LIGHT : ActivityColors.ACCENT_PRIMARY;
         ActivityGuiRenderer.drawPanel(context, btnDoneX, btnDoneY, btnDoneW, btnDoneH, doneBg, doneBorder, true);
         if (textRenderer != null) {
-            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Готово"), btnDoneX + btnDoneW / 2, btnDoneY + 8, 0xFFFFFFFF);
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Готово"), btnDoneX + btnDoneW / 2, btnDoneY + 6, 0xFFFFFFFF);
         }
 
         super.render(context, mouseX, mouseY, delta);
+    }
+
+    private void drawNudgeButton(DrawContext context, int x, int y, int w, int h, String symbol, int mouseX, int mouseY) {
+        boolean hovered = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+        int bg = hovered ? ActivityColors.BUTTON_SECONDARY_HOVER : ActivityColors.BUTTON_SECONDARY_BG;
+        int border = hovered ? ActivityColors.BORDER_HOVER : ActivityColors.BORDER;
+        ActivityGuiRenderer.drawPanel(context, x, y, w, h, bg, border, true);
+        if (textRenderer != null) {
+            UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(symbol), x + w / 2, y + (h - 9) / 2, hovered ? ActivityColors.ACCENT_LIGHT : ActivityColors.TEXT_PRIMARY);
+        }
     }
 
     @Override

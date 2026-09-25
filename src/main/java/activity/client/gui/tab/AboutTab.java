@@ -199,7 +199,7 @@ public class AboutTab extends ActivityTab {
         int primaryBtnH = 24;
         int secBtnH = 20;
         int spacing = ActivityMetrics.ROW_SPACING;
-        int cardSocialsHeight = 22 + primaryBtnH + spacing + primaryBtnH + spacing + secBtnH + 6;
+        int cardSocialsHeight = 22 + primaryBtnH + spacing + secBtnH + 6;
 
         ActivityPanel cardSocials = createCard(container, card2X, curY, cardW, cardSocialsHeight, Text.translatable("activity.card.about.socials"));
         registerModuleCard("about_socials", cardSocials);
@@ -210,8 +210,12 @@ public class AboutTab extends ActivityTab {
 
         rowY = curY + 22;
 
+        int primGap = 4;
+        int primBtnW = Math.max(30, (innerRowW - primGap) / 2);
+        int lastPrimBtnW = Math.max(30, innerRowW - primBtnW - primGap);
+
         ActivityButton btnTg = new ActivityButton(
-            innerStartX, rowY, innerRowW, primaryBtnH,
+            innerStartX, rowY, primBtnW, primaryBtnH,
             ActivityIcon.TELEGRAM,
             Text.translatable("activity.button.telegram"),
             ActivityButton.Variant.PRIMARY,
@@ -222,9 +226,8 @@ public class AboutTab extends ActivityTab {
         btnTg.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnTg);
 
-        rowY += primaryBtnH + spacing;
         ActivityButton btnDonate = new ActivityButton(
-            innerStartX, rowY, innerRowW, primaryBtnH,
+            innerStartX + primBtnW + primGap, rowY, lastPrimBtnW, primaryBtnH,
             ActivityIcon.DONATE,
             Text.translatable("activity.button.donate_author"),
             ActivityButton.Variant.PRIMARY,

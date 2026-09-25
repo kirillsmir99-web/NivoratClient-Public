@@ -80,13 +80,13 @@ public class CombatTab extends ActivityTab {
             config.autoStunSlamEnabled = true;
             config.autoStunSlamKeybind = new Keybind(GLFW.GLFW_KEY_M, true, true, false);
             config.autoStunSlamMode = "full_auto";
-            config.autoStunSlamDistance = 2.4;
-            config.autoStunSlamChance = 75.0;
-            config.autoStunSlamAirTimeSec = 1.0;
-            config.autoStunSlamAxeDelayMs = 45.0;
-            config.autoStunSlamMaceDelayMs = 45.0;
+            config.autoStunSlamDistance = 2.85;
+            config.autoStunSlamChance = 100.0;
+            config.autoStunSlamAirTimeSec = 0.1;
+            config.autoStunSlamAxeDelayMs = 0.0;
+            config.autoStunSlamMaceDelayMs = 0.0;
             config.autoStunSlamRestoreDelayMs = 50.0;
-            config.autoStunSlamRandomDelay = true;
+            config.autoStunSlamRandomDelay = false;
             config.autoStunSlamLegitMode = true;
 
             config.autoPearlCatchEnabled = true;

@@ -63,6 +63,8 @@ public class ActivityConfig {
     public double autoSpearRestoreDelayMs = 185.0;
     public double autoSpearMissChance = 0.0;
     public boolean autoSpearRandomDelay = true;
+    public boolean autoSpearMaxSpeed = false;
+    public boolean autoSpearCheckCharge = false;
 
     public boolean autoShieldbreakerEnabled = true;
     public Keybind autoShieldbreakerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_J, true, true, false);
@@ -493,6 +495,8 @@ public class ActivityConfig {
         this.autoSpearRestoreDelayMs = 185.0;
         this.autoSpearMissChance = 0.0;
         this.autoSpearRandomDelay = true;
+        this.autoSpearMaxSpeed = false;
+        this.autoSpearCheckCharge = false;
 
         this.autoShieldbreakerEnabled = true;
         this.autoShieldbreakerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_J, true, true, false);
@@ -836,7 +840,7 @@ public class ActivityConfig {
         this.autoShieldbreakerReactionDelaySec = clampSanitize(this.autoShieldbreakerReactionDelaySec, 0.0, 2.0, 0.0);
 
         this.autoStunSlamDistance = clampSanitize(this.autoStunSlamDistance, 1.5, 4.0, 2.85);
-        this.autoStunSlamChance = clampSanitize(this.autoStunSlamChance, 10.0, 100.0, 75.0);
+        this.autoStunSlamChance = clampSanitize(this.autoStunSlamChance, 10.0, 100.0, 100.0);
         this.autoStunSlamAirTimeSec = clampSanitize(this.autoStunSlamAirTimeSec, 0.0, 5.0, 0.1);
         this.autoStunSlamAxeDelayMs = clampSanitize(this.autoStunSlamAxeDelayMs, 0.0, 200.0, 0.0);
         this.autoStunSlamMaceDelayMs = clampSanitize(this.autoStunSlamMaceDelayMs, 0.0, 200.0, 0.0);
@@ -1192,6 +1196,8 @@ public class ActivityConfig {
         entry.settings.put("restore_delay", this.autoSpearRestoreDelayMs);
         entry.settings.put("miss_chance", this.autoSpearMissChance);
         entry.settings.put("random_delay", this.autoSpearRandomDelay);
+        entry.settings.put("max_speed", this.autoSpearMaxSpeed);
+        entry.settings.put("check_charge", this.autoSpearCheckCharge);
         entry.settings.put("trigger_keybind", this.autoSpearTriggerKeybind);
     }
 
@@ -1457,6 +1463,8 @@ public class ActivityConfig {
                 this.autoSpearRestoreDelayMs = getSettingDouble(spear.settings, "restore_delay", this.autoSpearRestoreDelayMs);
                 this.autoSpearMissChance = getSettingDouble(spear.settings, "miss_chance", this.autoSpearMissChance);
                 this.autoSpearRandomDelay = getSettingBoolean(spear.settings, "random_delay", this.autoSpearRandomDelay);
+                this.autoSpearMaxSpeed = getSettingBoolean(spear.settings, "max_speed", this.autoSpearMaxSpeed);
+                this.autoSpearCheckCharge = getSettingBoolean(spear.settings, "check_charge", this.autoSpearCheckCharge);
                 Keybind tkb = getSettingKeybind(spear.settings, "trigger_keybind", null);
                 if (tkb != null) this.autoSpearTriggerKeybind.copyFrom(tkb);
             }
@@ -1699,6 +1707,8 @@ public class ActivityConfig {
         copy.autoSpearRestoreDelayMs = this.autoSpearRestoreDelayMs;
         copy.autoSpearMissChance = this.autoSpearMissChance;
         copy.autoSpearRandomDelay = this.autoSpearRandomDelay;
+        copy.autoSpearMaxSpeed = this.autoSpearMaxSpeed;
+        copy.autoSpearCheckCharge = this.autoSpearCheckCharge;
 
         copy.autoShieldbreakerEnabled = this.autoShieldbreakerEnabled;
         copy.autoShieldbreakerKeybind.copyFrom(this.autoShieldbreakerKeybind);
@@ -1938,6 +1948,8 @@ public class ActivityConfig {
 
                this.autoSpearEnabled == that.autoSpearEnabled &&
                this.autoSpearRandomDelay == that.autoSpearRandomDelay &&
+               this.autoSpearMaxSpeed == that.autoSpearMaxSpeed &&
+               this.autoSpearCheckCharge == that.autoSpearCheckCharge &&
                Double.compare(this.autoSpearRestoreDelayMs, that.autoSpearRestoreDelayMs) == 0 &&
                Double.compare(this.autoSpearMissChance, that.autoSpearMissChance) == 0 &&
                Objects.equals(this.autoSpearKeybind, that.autoSpearKeybind) &&
@@ -2163,7 +2175,7 @@ public class ActivityConfig {
             menuKeybind,
 
             autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay,
-            autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay,
+            autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay, autoSpearMaxSpeed, autoSpearCheckCharge,
             autoShieldbreakerEnabled, autoShieldbreakerKeybind, autoShieldbreakerMode, autoShieldbreakerDistance, autoShieldbreakerChance,
             autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerReactionDelaySec, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode,
             autoStunSlamEnabled, autoStunSlamKeybind, autoStunSlamMode, autoStunSlamDistance, autoStunSlamChance
