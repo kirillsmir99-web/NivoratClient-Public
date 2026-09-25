@@ -140,4 +140,24 @@ public class AutoStunSlamIntegrationTest {
         CombatLockManager.setLock(CombatLockManager.SHIELD_COMBO, false);
         assertFalse(CombatLockManager.isLocked());
     }
+
+    @Test
+    void testZeroDelaysAndMaceDelayPreservation() {
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        assertNotNull(config);
+
+        config.autoStunSlamMaceDelayMs = 0.0;
+        config.autoStunSlamAxeDelayMs = 0.0;
+        config.autoStunSlamRestoreDelayMs = 0.0;
+        config.autoStunSlamAirTimeSec = 0.0;
+        config.autoSpearRestoreDelayMs = 0.0;
+
+        config.sanitize();
+
+        assertEquals(0.0, config.autoStunSlamMaceDelayMs, 0.001);
+        assertEquals(0.0, config.autoStunSlamAxeDelayMs, 0.001);
+        assertEquals(0.0, config.autoStunSlamRestoreDelayMs, 0.001);
+        assertEquals(0.0, config.autoStunSlamAirTimeSec, 0.001);
+        assertEquals(0.0, config.autoSpearRestoreDelayMs, 0.001);
+    }
 }

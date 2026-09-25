@@ -96,7 +96,7 @@ public class AutoSpearModule extends NivoratModule {
 
         registerNumber("restore_delay", Text.translatable("activity.setting.combat.restore_delay"),
                 Text.translatable("activity.setting.combat.restore_delay.desc"), SettingGroup.BEHAVIOR,
-                10.0, 500.0, 5.0, " ms", true, 185.0,
+                0.0, 500.0, 5.0, " ms", true, 185.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     return c != null ? c.autoSpearRestoreDelayMs : 185.0;

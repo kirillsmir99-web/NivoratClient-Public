@@ -51,7 +51,7 @@ public class CooldownHudModule extends NivoratModule {
                 }
         );
 
-        registerAction("open_editor", Text.literal("Открыть редактор HUD"),
+        registerAction("open_editor", Text.literal("Редактировать место Cooldown HUD"),
                 Text.literal("Интерактивное перемещение и настройка отображения кулдаунов"), SettingGroup.EXTRA,
                 () -> {
                     MinecraftClient mc = MinecraftClient.getInstance();

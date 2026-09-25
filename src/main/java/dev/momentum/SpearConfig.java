@@ -21,11 +21,11 @@ public final class SpearConfig {
     private SpearConfig() {}
 
     public static int getMinFloor() {
-        return switch (securityMode) {
-            case MODE_SEMI_LEGIT -> 70;
-            case MODE_RAGE -> 0;
-            default -> 140;
-        };
+        if (securityMode == MODE_RAGE) {
+            return 0;
+        }
+        int base = (securityMode == MODE_SEMI_LEGIT) ? 70 : 140;
+        return Math.min(base, Math.max(0, maxDelayMs));
     }
 
     public static void load() {

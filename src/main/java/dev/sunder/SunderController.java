@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class SunderController {
     private static final int MIN_AXE_DURABILITY = 4;
-    private static final double MAX_COMBAT_REACH = 2.85D;
+    private static final double MAX_COMBAT_REACH = 4.2D;
 
     private static java.lang.reflect.Field lastAttackedTicksField;
 
@@ -74,6 +74,7 @@ public final class SunderController {
     private int timer = 0;
     private int cooldownTimer = 0;
     private int airTicks = 0;
+    private int comboLifetimeTicks = 0;
 
     public SunderController() {
     }
@@ -105,7 +106,7 @@ public final class SunderController {
 
         if (stage == Stage.SEMI_AWAIT_AXE_HIT) {
             if (isTarget) {
-                if (maceSlot >= 0 && net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
+                if (maceSlot >= 0) {
                     stage = Stage.SEMI_SELECT_MACE;
                     timer = 1;
                 } else {
@@ -160,6 +161,12 @@ public final class SunderController {
         }
 
         if (stage != Stage.IDLE) {
+            comboLifetimeTicks++;
+            if (comboLifetimeTicks > 40) {
+                restoreInitialSlot(client);
+                finishCombo(5);
+                return;
+            }
             int currentSlot = client.player.getInventory().getSelectedSlot();
             if (stage == Stage.WAITING_AXE_STRIKE || stage == Stage.SEMI_AWAIT_AXE_HIT) {
                 if (axeSlot >= 0 && currentSlot != axeSlot && currentSlot != initialSlot) {
@@ -241,7 +248,7 @@ public final class SunderController {
                     timer--;
                 }
                 LivingEntity target = getTarget(client);
-                double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
+                double maxReach = Math.max(3.8D, SunderConfig.triggerDistance + 1.2D);
                 if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                     executeAutoStrikeMace(client);
                 } else if (timer <= 0) {
@@ -293,7 +300,7 @@ public final class SunderController {
                     timer--;
                 }
                 LivingEntity target = getTarget(client);
-                double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
+                double maxReach = Math.max(3.8D, SunderConfig.triggerDistance + 1.2D);
                 if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                     executeAutoStrikeMace(client);
                 } else if (timer <= 0) {
@@ -398,7 +405,7 @@ public final class SunderController {
     private void executeAutoStrikeAxe(MinecraftClient client) {
         try {
             LivingEntity target = getTarget(client);
-            if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance)) {
+            if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance + 0.5D)) {
                 restoreInitialSlot(client);
                 finishCombo(2);
                 return;
@@ -407,6 +414,8 @@ public final class SunderController {
             if (client.player.getInventory().getSelectedSlot() != axeSlot) {
                 selectSlot(client, axeSlot);
                 ensureFullAttackCharge(client.player);
+                stage = Stage.WAITING_AXE_STRIKE;
+                timer = 1;
                 return;
             }
 
@@ -414,7 +423,7 @@ public final class SunderController {
             client.interactionManager.attackEntity(client.player, target);
             client.player.swingHand(Hand.MAIN_HAND);
 
-            if (maceSlot >= 0 && net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
+            if (maceSlot >= 0) {
                 stage = SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
                 timer = 1;
             } else {
@@ -430,11 +439,13 @@ public final class SunderController {
     private void executeAutoStrikeMace(MinecraftClient client) {
         try {
             LivingEntity target = getTarget(client);
-            double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
+            double maxReach = Math.max(3.8D, SunderConfig.triggerDistance + 1.2D);
             if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                 if (client.player.getInventory().getSelectedSlot() != maceSlot) {
                     selectSlot(client, maceSlot);
                     ensureFullAttackCharge(client.player);
+                    stage = Stage.WAITING_MACE_STRIKE;
+                    timer = 1;
                     return;
                 }
                 ensureFullAttackCharge(client.player);
@@ -489,14 +500,12 @@ public final class SunderController {
         if (SunderConfig.airTimeSec <= 0.05D) {
             return true;
         }
-        if (player.fallDistance > 0.4F || player.isGliding()) {
-            return true;
-        }
         if (player.isOnGround() || player.verticalCollision) {
             return false;
         }
         int neededTicks = Math.max(1, (int) Math.round(SunderConfig.airTimeSec * 20.0D));
-        return airTicks >= neededTicks;
+        int currentAirTicks = Math.max(airTicks, activity.client.module.service.PlayerStateService.getAirTicks());
+        return currentAirTicks >= neededTicks;
     }
 
     private boolean isPlayerBusy(ClientPlayerEntity player) {
@@ -568,26 +577,30 @@ public final class SunderController {
         }
 
         Vec3d eyePos = client.player.getEyePos();
-        double cappedReach = Math.min(MAX_COMBAT_REACH, maxReach);
+        double effectiveReach = Math.min(MAX_COMBAT_REACH, maxReach);
 
         if (!CombatRaytraceGuard.hasLineOfSight(client.player, target)) {
             return false;
         }
 
+        if (client.player.squaredDistanceTo(target) <= (effectiveReach + 0.6D) * (effectiveReach + 0.6D)) {
+            return true;
+        }
+
         if (client.targetedEntity == target) {
-            return client.player.squaredDistanceTo(target) <= (cappedReach + 0.6) * (cappedReach + 0.6);
+            return true;
         }
 
         if (client.crosshairTarget instanceof EntityHitResult ehr && ehr.getEntity() == target) {
-            return eyePos.squaredDistanceTo(ehr.getPos()) <= cappedReach * cappedReach;
+            return eyePos.squaredDistanceTo(ehr.getPos()) <= effectiveReach * effectiveReach;
         }
 
         Vec3d lookVec = client.player.getRotationVec(1.0F);
-        Vec3d reachEnd = eyePos.add(lookVec.multiply(cappedReach));
-        Box box = target.getBoundingBox().expand(0.1D);
+        Vec3d reachEnd = eyePos.add(lookVec.multiply(effectiveReach));
+        Box box = target.getBoundingBox().expand(0.2D);
         var hit = box.raycast(eyePos, reachEnd);
         if (hit.isPresent()) {
-            return eyePos.squaredDistanceTo(hit.get()) <= cappedReach * cappedReach;
+            return eyePos.squaredDistanceTo(hit.get()) <= effectiveReach * effectiveReach;
         }
 
         return false;
@@ -688,7 +701,9 @@ public final class SunderController {
         maceSlot = -1;
         axeSlot = -1;
         timer = 0;
+        comboLifetimeTicks = 0;
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.sunder_active", false);
+        System.clearProperty("pvp.sunder_active");
     }
 
     private void finishCombo() {
@@ -697,7 +712,7 @@ public final class SunderController {
 
     private void finishCombo(int cooldown) {
         clearState();
-        cooldownTimer = cooldown;
+        cooldownTimer = Math.max(0, cooldown);
     }
 
     private enum Stage {

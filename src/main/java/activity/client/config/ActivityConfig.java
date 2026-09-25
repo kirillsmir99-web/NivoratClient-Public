@@ -826,7 +826,7 @@ public class ActivityConfig {
 
         this.autoMaceRestoreDelayMs = clampSanitize(this.autoMaceRestoreDelayMs, 30.0, 300.0, 90.0);
         this.autoMaceMissChance = clampSanitize(this.autoMaceMissChance, 0.0, 50.0, 10.0);
-        this.autoSpearRestoreDelayMs = clampSanitize(this.autoSpearRestoreDelayMs, 10.0, 500.0, 185.0);
+        this.autoSpearRestoreDelayMs = clampSanitize(this.autoSpearRestoreDelayMs, 0.0, 500.0, 185.0);
         this.autoSpearMissChance = clampSanitize(this.autoSpearMissChance, 0.0, 50.0, 0.0);
 
         this.autoShieldbreakerDistance = clampSanitize(this.autoShieldbreakerDistance, 1.5, 4.5, 2.85);
@@ -835,12 +835,12 @@ public class ActivityConfig {
         this.autoShieldbreakerRestoreDelayMs = clampSanitize(this.autoShieldbreakerRestoreDelayMs, 10.0, 200.0, 50.0);
         this.autoShieldbreakerReactionDelaySec = clampSanitize(this.autoShieldbreakerReactionDelaySec, 0.0, 2.0, 0.0);
 
-        this.autoStunSlamDistance = clampSanitize(this.autoStunSlamDistance, 1.5, 4.0, 2.4);
+        this.autoStunSlamDistance = clampSanitize(this.autoStunSlamDistance, 1.5, 4.0, 2.85);
         this.autoStunSlamChance = clampSanitize(this.autoStunSlamChance, 10.0, 100.0, 75.0);
-        this.autoStunSlamAirTimeSec = clampSanitize(this.autoStunSlamAirTimeSec, 0.1, 5.0, 1.0);
-        this.autoStunSlamAxeDelayMs = clampSanitize(this.autoStunSlamAxeDelayMs, 10.0, 200.0, 45.0);
-        this.autoStunSlamMaceDelayMs = clampSanitize(this.autoStunSlamMaceDelayMs, 10.0, 200.0, 45.0);
-        this.autoStunSlamRestoreDelayMs = clampSanitize(this.autoStunSlamRestoreDelayMs, 10.0, 200.0, 50.0);
+        this.autoStunSlamAirTimeSec = clampSanitize(this.autoStunSlamAirTimeSec, 0.0, 5.0, 0.1);
+        this.autoStunSlamAxeDelayMs = clampSanitize(this.autoStunSlamAxeDelayMs, 0.0, 200.0, 0.0);
+        this.autoStunSlamMaceDelayMs = clampSanitize(this.autoStunSlamMaceDelayMs, 0.0, 200.0, 0.0);
+        this.autoStunSlamRestoreDelayMs = clampSanitize(this.autoStunSlamRestoreDelayMs, 0.0, 200.0, 50.0);
 
         this.autoPearlCatchThrowDelay = clampSanitize(this.autoPearlCatchThrowDelay, 1.0, 20.0, 2.0);
         this.autoPearlCatchRotationTimeMs = clampSanitize(this.autoPearlCatchRotationTimeMs, 50.0, 500.0, 135.0);

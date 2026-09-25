@@ -71,8 +71,12 @@ public final class TargetCacheService {
         boolean blocking = entity.isBlocking();
         if (!blocking && entity.isUsingItem()) {
             net.minecraft.item.ItemStack active = entity.getActiveItem();
-            blocking = active != null && !active.isEmpty()
-                    && (active.getItem() instanceof ShieldItem || active.isOf(Items.SHIELD));
+            if (active != null && !active.isEmpty()) {
+                blocking = (active.getItem() instanceof ShieldItem || active.isOf(Items.SHIELD));
+            } else {
+                blocking = (entity.getOffHandStack() != null && (entity.getOffHandStack().getItem() instanceof ShieldItem || entity.getOffHandStack().isOf(Items.SHIELD)))
+                        || (entity.getMainHandStack() != null && (entity.getMainHandStack().getItem() instanceof ShieldItem || entity.getMainHandStack().isOf(Items.SHIELD)));
+            }
         }
         SHIELD_BLOCKING_CACHE.put(id, blocking);
         return blocking;

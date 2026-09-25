@@ -78,6 +78,9 @@ public final class SpearSwapController {
     }
 
     private boolean isCooldownActive(long now) {
+        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE || SpearConfig.maxDelayMs <= 15) {
+            return false;
+        }
         if (cooldownTicks > 0) {
             return true;
         }
@@ -207,8 +210,10 @@ public final class SpearSwapController {
         long now = System.currentTimeMillis();
         if (isCooldownActive(now)) return;
 
-        if (player.getAttackCooldownProgress(0.0F) < 0.90F) {
-            return;
+        if (SpearConfig.securityMode != SpearConfig.MODE_RAGE && SpearConfig.maxDelayMs > 15) {
+            if (player.getAttackCooldownProgress(0.0F) < 0.90F) {
+                return;
+            }
         }
 
         int curSlot = player.getInventory().getSelectedSlot();
@@ -247,6 +252,9 @@ public final class SpearSwapController {
     }
 
     private int calculateDelay() {
+        if (SpearConfig.maxDelayMs <= 10) {
+            return Math.max(0, SpearConfig.maxDelayMs);
+        }
         int floor = SpearConfig.getMinFloor();
         if (!SpearConfig.randomDelay) {
             return Math.max(floor, Math.min(1000, SpearConfig.maxDelayMs));
@@ -261,17 +269,17 @@ public final class SpearSwapController {
     }
 
     private int getRestoreDelayTicks() {
-        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE) {
-            return 1;
+        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE || targetRestoreDelayMs <= 15) {
+            return 0;
         }
         if (SpearConfig.securityMode == SpearConfig.MODE_SEMI_LEGIT) {
-            return Math.max(1, (int) Math.round(targetRestoreDelayMs / 50.0D));
+            return Math.max(0, (int) Math.round(targetRestoreDelayMs / 50.0D));
         }
-        return Math.max(2, (int) Math.round(targetRestoreDelayMs / 50.0D));
+        return Math.max(1, (int) Math.round(targetRestoreDelayMs / 50.0D));
     }
 
     private int getCooldownTicks() {
-        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE) {
+        if (SpearConfig.securityMode == SpearConfig.MODE_RAGE || SpearConfig.maxDelayMs <= 15) {
             return 0;
         }
         if (SpearConfig.securityMode == SpearConfig.MODE_SEMI_LEGIT) {
@@ -306,11 +314,19 @@ public final class SpearSwapController {
 
         executeSpearStrike(client, player);
 
+        targetRestoreDelayMs = calculateDelay();
+        restoreDelayTicks = getRestoreDelayTicks();
+
+        if (targetRestoreDelayMs <= 0 && restoreDelayTicks <= 0) {
+            restoreSlot(client);
+            clearState();
+            cooldownTicks = getCooldownTicks();
+            return;
+        }
+
         state = State.WAITING_RESTORE;
         strikeTick = clientTickCount;
         lastStrikeTimeMs = System.currentTimeMillis();
-        targetRestoreDelayMs = calculateDelay();
-        restoreDelayTicks = getRestoreDelayTicks();
     }
 
     private void handleSwappedToSpear(MinecraftClient client, ClientPlayerEntity player) {
@@ -404,7 +420,7 @@ public final class SpearSwapController {
         boolean timeExpired = elapsedMs >= targetRestoreDelayMs;
         boolean ticksExpired = elapsedTicks >= restoreDelayTicks;
 
-        if ((timeExpired && ticksExpired && differentTick) || elapsedTicks > 20) {
+        if ((timeExpired && ticksExpired && (differentTick || targetRestoreDelayMs <= 15)) || elapsedTicks > 20) {
             restoreSlot(client);
             clearState();
             cooldownTicks = getCooldownTicks();
