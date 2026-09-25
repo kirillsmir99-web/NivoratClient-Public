@@ -135,172 +135,180 @@ public final class RedstoneTickEngine {
     }
 
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-        if (!world.isClient() || !(entity instanceof LivingEntity target)) {
-            return ActionResult.PASS;
-        }
-
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null || client.player != player || !RedstoneOptimizerConfig.enabled) {
-            return ActionResult.PASS;
-        }
-
-        if (state != State.IDLE || cooldownTicks > 0) {
-            return ActionResult.PASS;
-        }
-
-        if (client.currentScreen != null) {
-            return ActionResult.PASS;
-        }
-
-        ClientPlayerEntity clientPlayer = client.player;
-        if (!clientPlayer.isAlive() || clientPlayer.isSpectator() || clientPlayer.hasVehicle() || clientPlayer.isGliding()) {
-            return ActionResult.PASS;
-        }
-
-        if (isPlayerBusy(clientPlayer)) {
-            return ActionResult.PASS;
-        }
-
-        if (hasActiveConflict()) {
-            return ActionResult.PASS;
-        }
-
-        if (target.isBlocking() || activity.client.module.service.TargetCacheService.isTargetShielding(target)) {
-            return ActionResult.PASS;
-        }
-
-        int curSlot = clientPlayer.getInventory().getSelectedSlot();
-        long now = System.currentTimeMillis();
-        if (now - lastSwapTimeMs < 50L || (clientTick - lastSlotChangeTick < 1 && lastSlotChangeTick >= 0 && curSlot == activeMaceSlot)) {
-            return ActionResult.PASS;
-        }
-
-        if (!target.isAlive() || target.isSpectator() || target.isRemoved()) {
-            return ActionResult.PASS;
-        }
-
-        if (!isVanillaTarget(client, target)) {
-            return ActionResult.PASS;
-        }
-
-        double reach = getVanillaReach(clientPlayer);
-        if (!canReach(clientPlayer, target, reach)) {
-            return ActionResult.PASS;
-        }
-
-        if (RedstoneOptimizerConfig.legitMode && !hasLineOfSight(clientPlayer, target)) {
-            return ActionResult.PASS;
-        }
-
-        ItemStack heldStack = clientPlayer.getInventory().getStack(curSlot);
-
-        if (!isAllowedSourceItem(heldStack)) {
-            return ActionResult.PASS;
-        }
-
-        if (heldStack.isOf(Items.MACE)) {
-            return ActionResult.PASS;
-        }
-
-        float attackCooldown = clientPlayer.getAttackCooldownProgress(0.0f);
-        float requiredCharge = 0.90f;
-        if (attackCooldown < requiredCharge) {
-            return ActionResult.PASS;
-        }
-
-        if (clientPlayer.isOnGround() || clientPlayer.verticalCollision || clientPlayer.isTouchingWater() || clientPlayer.isClimbing() || clientPlayer.hasVehicle()) {
-            airTicks = 0;
-            lastOnGroundTimeMs = System.currentTimeMillis();
-        }
-
-        long airDurationMs = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision)
-                ? (System.currentTimeMillis() - lastOnGroundTimeMs)
-                : 0L;
-
-        boolean isHighFallDensity = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision)
-                && !clientPlayer.isTouchingWater()
-                && !clientPlayer.isClimbing()
-                && (airDurationMs >= 600L || airTicks >= 12);
-
-        if (RedstoneOptimizerConfig.enchantMode == RedstoneOptimizerConfig.ENCHANT_DENSITY_ONLY && !isHighFallDensity) {
-            return ActionResult.PASS;
-        }
-
-        int maceSlot = findBestMaceSlot(clientPlayer, curSlot, isHighFallDensity);
-        if (maceSlot < 0 || maceSlot == curSlot) {
-            return ActionResult.PASS;
-        }
-
-        if (RedstoneOptimizerConfig.missChance > 0 && ThreadLocalRandom.current().nextInt(100) < RedstoneOptimizerConfig.missChance) {
-            if (RedstoneOptimizerConfig.missBehavior == RedstoneOptimizerConfig.MISS_EMPTY_SWAP) {
-                performMaceMiss(client, clientPlayer, curSlot, maceSlot);
-                return ActionResult.FAIL;
-            } else {
+        try {
+            if (!world.isClient() || !(entity instanceof LivingEntity target)) {
                 return ActionResult.PASS;
             }
-        }
 
-        performMaceSwap(client, clientPlayer, target, curSlot, maceSlot);
-        return ActionResult.PASS;
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null || client.player == null || client.player != player || !RedstoneOptimizerConfig.enabled) {
+                return ActionResult.PASS;
+            }
+
+            if (state != State.IDLE || cooldownTicks > 0) {
+                return ActionResult.PASS;
+            }
+
+            if (client.currentScreen != null) {
+                return ActionResult.PASS;
+            }
+
+            ClientPlayerEntity clientPlayer = client.player;
+            if (!clientPlayer.isAlive() || clientPlayer.isSpectator() || clientPlayer.hasVehicle() || clientPlayer.isGliding()) {
+                return ActionResult.PASS;
+            }
+
+            if (isPlayerBusy(clientPlayer)) {
+                return ActionResult.PASS;
+            }
+
+            if (hasActiveConflict()) {
+                return ActionResult.PASS;
+            }
+
+            if (target.isBlocking() || activity.client.module.service.TargetCacheService.isTargetShielding(target)) {
+                return ActionResult.PASS;
+            }
+
+            int curSlot = clientPlayer.getInventory().getSelectedSlot();
+            long now = System.currentTimeMillis();
+            if (now - lastSwapTimeMs < 50L || (clientTick - lastSlotChangeTick < 1 && lastSlotChangeTick >= 0 && curSlot == activeMaceSlot)) {
+                return ActionResult.PASS;
+            }
+
+            if (!target.isAlive() || target.isSpectator() || target.isRemoved()) {
+                return ActionResult.PASS;
+            }
+
+            if (!isVanillaTarget(client, target)) {
+                return ActionResult.PASS;
+            }
+
+            double reach = getVanillaReach(clientPlayer);
+            if (!canReach(clientPlayer, target, reach)) {
+                return ActionResult.PASS;
+            }
+
+            if (RedstoneOptimizerConfig.legitMode && !hasLineOfSight(clientPlayer, target)) {
+                return ActionResult.PASS;
+            }
+
+            ItemStack heldStack = clientPlayer.getInventory().getStack(curSlot);
+
+            if (!isAllowedSourceItem(heldStack)) {
+                return ActionResult.PASS;
+            }
+
+            if (heldStack.isOf(Items.MACE)) {
+                return ActionResult.PASS;
+            }
+
+            float attackCooldown = clientPlayer.getAttackCooldownProgress(0.0f);
+            float requiredCharge = 0.90f;
+            if (attackCooldown < requiredCharge) {
+                return ActionResult.PASS;
+            }
+
+            if (clientPlayer.isOnGround() || clientPlayer.verticalCollision || clientPlayer.isTouchingWater() || clientPlayer.isClimbing() || clientPlayer.hasVehicle()) {
+                airTicks = 0;
+                lastOnGroundTimeMs = System.currentTimeMillis();
+            }
+
+            long airDurationMs = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision)
+                    ? (System.currentTimeMillis() - lastOnGroundTimeMs)
+                    : 0L;
+
+            boolean isHighFallDensity = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision)
+                    && !clientPlayer.isTouchingWater()
+                    && !clientPlayer.isClimbing()
+                    && (airDurationMs >= 600L || airTicks >= 12);
+
+            if (RedstoneOptimizerConfig.enchantMode == RedstoneOptimizerConfig.ENCHANT_DENSITY_ONLY && !isHighFallDensity) {
+                return ActionResult.PASS;
+            }
+
+            int maceSlot = findBestMaceSlot(clientPlayer, curSlot, isHighFallDensity);
+            if (maceSlot < 0 || maceSlot == curSlot) {
+                return ActionResult.PASS;
+            }
+
+            if (RedstoneOptimizerConfig.missChance > 0 && ThreadLocalRandom.current().nextInt(100) < RedstoneOptimizerConfig.missChance) {
+                if (RedstoneOptimizerConfig.missBehavior == RedstoneOptimizerConfig.MISS_EMPTY_SWAP) {
+                    performMaceMiss(client, clientPlayer, curSlot, maceSlot);
+                    return ActionResult.FAIL;
+                } else {
+                    return ActionResult.PASS;
+                }
+            }
+
+            performMaceSwap(client, clientPlayer, target, curSlot, maceSlot);
+            return ActionResult.PASS;
+        } catch (Throwable t) {
+            return ActionResult.PASS;
+        }
     }
 
     public void tick(MinecraftClient client) {
-        if (client == null || client.player == null || client.world == null) {
-            clearState();
-            return;
-        }
+        try {
+            if (client == null || client.player == null || client.world == null) {
+                clearState();
+                return;
+            }
 
-        clientTick++;
+            clientTick++;
 
-        ClientPlayerEntity player = client.player;
-        if (player.isOnGround() || player.verticalCollision || player.isTouchingWater() || player.isClimbing() || player.hasVehicle()) {
-            airTicks = 0;
-            lastOnGroundTimeMs = System.currentTimeMillis();
-        } else {
-            airTicks++;
-        }
+            ClientPlayerEntity player = client.player;
+            if (player.isOnGround() || player.verticalCollision || player.isTouchingWater() || player.isClimbing() || player.hasVehicle()) {
+                airTicks = 0;
+                lastOnGroundTimeMs = System.currentTimeMillis();
+            } else {
+                airTicks++;
+            }
 
-        if (client.player.isUsingItem() || client.player.isBlocking()) {
-            lastBusyTimeMs = System.currentTimeMillis();
-        }
+            if (client.player.isUsingItem() || client.player.isBlocking()) {
+                lastBusyTimeMs = System.currentTimeMillis();
+            }
 
-        if (cooldownTicks > 0) {
-            cooldownTicks--;
-        }
+            if (cooldownTicks > 0) {
+                cooldownTicks--;
+            }
 
-        if (state == State.IDLE) {
-            return;
-        }
+            if (state == State.IDLE) {
+                return;
+            }
 
-        if (!client.player.isAlive() || client.currentScreen != null || isPlayerBusy(client.player)) {
-            restoreSlot(client);
-            clearState();
-            return;
-        }
-
-        if (activeMaceSlot >= 0 && client.player.getInventory().getSelectedSlot() != activeMaceSlot) {
-            clearState();
-            return;
-        }
-
-        ticksSinceAttack++;
-        if (ticksSinceAttack > 20) {
-            restoreSlot(client);
-            clearState();
-            return;
-        }
-
-        if (state == State.WAITING_RESTORE) {
-            long elapsedMs = System.currentTimeMillis() - lastSwapTimeMs;
-            boolean timeExpired = elapsedMs >= targetHoldDurationMs;
-            boolean minTicksPassed = (clientTick - swapStartTick) >= 1;
-            boolean differentTick = (clientTick != lastSlotChangeTick);
-
-            if (timeExpired && minTicksPassed && differentTick) {
+            if (!client.player.isAlive() || client.currentScreen != null || isPlayerBusy(client.player)) {
                 restoreSlot(client);
                 clearState();
-                cooldownTicks = 1;
+                return;
             }
+
+            if (activeMaceSlot >= 0 && client.player.getInventory().getSelectedSlot() != activeMaceSlot) {
+                clearState();
+                return;
+            }
+
+            ticksSinceAttack++;
+            if (ticksSinceAttack > 20) {
+                restoreSlot(client);
+                clearState();
+                return;
+            }
+
+            if (state == State.WAITING_RESTORE) {
+                long elapsedMs = System.currentTimeMillis() - lastSwapTimeMs;
+                boolean timeExpired = elapsedMs >= targetHoldDurationMs;
+                boolean minTicksPassed = (clientTick - swapStartTick) >= 1;
+                boolean differentTick = (clientTick != lastSlotChangeTick);
+
+                if (timeExpired && minTicksPassed && differentTick) {
+                    restoreSlot(client);
+                    clearState();
+                    cooldownTicks = 1;
+                }
+            }
+        } catch (Throwable t) {
+            clearState();
         }
     }
 
@@ -486,6 +494,19 @@ public final class RedstoneTickEngine {
         return false;
     }
 
+    private static String getSafeEnchantmentId(net.minecraft.registry.entry.RegistryEntry<net.minecraft.enchantment.Enchantment> entry) {
+        if (entry == null) return "";
+        try {
+            if (entry.getKey().isPresent()) {
+                return entry.getKey().get().getValue().toString().toLowerCase(Locale.ROOT);
+            }
+        } catch (Throwable ignored) {}
+        try {
+            return entry.getIdAsString().toLowerCase(Locale.ROOT);
+        } catch (Throwable ignored) {}
+        return "";
+    }
+
     private static int getBreachLevel(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 0;
 
@@ -495,7 +516,7 @@ public final class RedstoneTickEngine {
                 if (entry.getKey().matchesKey(Enchantments.BREACH) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
-                String id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
+                String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_BREACH) || id.contains(S_PROBITIE)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
@@ -536,7 +557,7 @@ public final class RedstoneTickEngine {
                 if (entry.getKey().matchesKey(Enchantments.DENSITY) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
-                String id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
+                String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_DENSITY) || id.contains(S_PLOTNOST)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
@@ -579,7 +600,7 @@ public final class RedstoneTickEngine {
                 if (entry.getKey().matchesKey(Enchantments.WIND_BURST) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
-                String id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
+                String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_WIND_BURST) || id.contains(S_VETROVOY)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
@@ -740,7 +761,7 @@ public final class RedstoneTickEngine {
                 if (entry.getKey().matchesKey(Enchantments.SHARPNESS) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
-                String id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
+                String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_SHARPNESS) || id.contains(S_OSTROTA)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
@@ -783,7 +804,7 @@ public final class RedstoneTickEngine {
                 if (entry.getKey().matchesKey(key) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }
-                String id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
+                String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(idKeyword) || id.contains(ruKeyword)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
                 }

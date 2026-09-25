@@ -80,7 +80,7 @@ tasks.register("generateEditionResource") {
 processResources.dependsOn("generateEditionResource")
 
 remapJar {
-	archiveFileName = isDev ? "CooldownHUD-Dev.jar" : "CooldownHUD.jar"
+	archiveFileName = isDev ? "${project.archives_base_name}-Dev.jar" : "${project.archives_base_name}.jar"
 }
 
 tasks.register("buildDev") {

@@ -330,14 +330,6 @@ public final class SunderController {
             return;
         }
 
-        if (dev.nivora.ShieldBreakerConfig.enabled) {
-            return;
-        }
-
-        if (!net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
-            return;
-        }
-
         if (!isAirborneConditionMet(client.player)) {
             return;
         }
@@ -350,9 +342,6 @@ public final class SunderController {
         int foundMace = findMaceHotbarSlot(client.player);
         int foundAxe = findAxeHotbarSlot(client.player);
         if (foundAxe < 0) {
-            return;
-        }
-        if (foundMace < 0 && SunderConfig.mode != SunderConfig.MODE_FULL_AUTO) {
             return;
         }
 
@@ -407,54 +396,64 @@ public final class SunderController {
     }
 
     private void executeAutoStrikeAxe(MinecraftClient client) {
-        LivingEntity target = getTarget(client);
-        if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance)) {
+        try {
+            LivingEntity target = getTarget(client);
+            if (target == null || !target.isAlive() || !canReach(client, target, SunderConfig.triggerDistance)) {
+                restoreInitialSlot(client);
+                finishCombo(2);
+                return;
+            }
+
+            if (client.player.getInventory().getSelectedSlot() != axeSlot) {
+                selectSlot(client, axeSlot);
+                ensureFullAttackCharge(client.player);
+                return;
+            }
+
+            ensureFullAttackCharge(client.player);
+            client.interactionManager.attackEntity(client.player, target);
+            client.player.swingHand(Hand.MAIN_HAND);
+
+            if (maceSlot >= 0 && net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
+                stage = SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
+                timer = 1;
+            } else {
+                stage = Stage.WAITING_RESTORE;
+                timer = Math.max(1, getRestoreDelayTicks());
+            }
+        } catch (Throwable t) {
             restoreInitialSlot(client);
             finishCombo(2);
-            return;
-        }
-
-        if (client.player.getInventory().getSelectedSlot() != axeSlot) {
-            selectSlot(client, axeSlot);
-            ensureFullAttackCharge(client.player);
-            return;
-        }
-
-        ensureFullAttackCharge(client.player);
-        client.interactionManager.attackEntity(client.player, target);
-        client.player.swingHand(Hand.MAIN_HAND);
-
-        if (maceSlot >= 0 && net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled) {
-            stage = SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
-            timer = 1;
-        } else {
-            stage = Stage.WAITING_RESTORE;
-            timer = Math.max(1, getRestoreDelayTicks());
         }
     }
 
     private void executeAutoStrikeMace(MinecraftClient client) {
-        LivingEntity target = getTarget(client);
-        double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
-        if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
-            if (client.player.getInventory().getSelectedSlot() != maceSlot) {
-                selectSlot(client, maceSlot);
+        try {
+            LivingEntity target = getTarget(client);
+            double maxReach = Math.min(3.5D, Math.max(3.2D, SunderConfig.triggerDistance + 0.5D));
+            if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
+                if (client.player.getInventory().getSelectedSlot() != maceSlot) {
+                    selectSlot(client, maceSlot);
+                    ensureFullAttackCharge(client.player);
+                    return;
+                }
                 ensureFullAttackCharge(client.player);
-                return;
-            }
-            ensureFullAttackCharge(client.player);
-            client.interactionManager.attackEntity(client.player, target);
-            client.player.swingHand(Hand.MAIN_HAND);
-            stage = Stage.WAITING_RESTORE;
-            timer = Math.max(1, getRestoreDelayTicks());
-        } else {
-            if (stage != Stage.WAITING_MACE_STRIKE && stage != Stage.SEMI_AWAIT_MACE_HIT) {
-                stage = (SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO) ? Stage.SEMI_AWAIT_MACE_HIT : Stage.WAITING_MACE_STRIKE;
-                timer = 10;
-            } else if (timer <= 0) {
+                client.interactionManager.attackEntity(client.player, target);
+                client.player.swingHand(Hand.MAIN_HAND);
                 stage = Stage.WAITING_RESTORE;
                 timer = Math.max(1, getRestoreDelayTicks());
+            } else {
+                if (stage != Stage.WAITING_MACE_STRIKE && stage != Stage.SEMI_AWAIT_MACE_HIT) {
+                    stage = (SunderConfig.mode == SunderConfig.MODE_SEMI_AUTO) ? Stage.SEMI_AWAIT_MACE_HIT : Stage.WAITING_MACE_STRIKE;
+                    timer = 10;
+                } else if (timer <= 0) {
+                    stage = Stage.WAITING_RESTORE;
+                    timer = Math.max(1, getRestoreDelayTicks());
+                }
             }
+        } catch (Throwable t) {
+            restoreInitialSlot(client);
+            finishCombo(2);
         }
     }
 
@@ -484,7 +483,16 @@ public final class SunderController {
 
     private boolean isAirborneConditionMet(ClientPlayerEntity player) {
         if (player == null) return false;
-        if (player.isOnGround() || player.verticalCollision || player.isTouchingWater() || player.isClimbing() || player.hasVehicle()) {
+        if (player.hasVehicle() || player.isTouchingWater() || player.isClimbing()) {
+            return false;
+        }
+        if (SunderConfig.airTimeSec <= 0.05D) {
+            return true;
+        }
+        if (player.fallDistance > 0.4F || player.isGliding()) {
+            return true;
+        }
+        if (player.isOnGround() || player.verticalCollision) {
             return false;
         }
         int neededTicks = Math.max(1, (int) Math.round(SunderConfig.airTimeSec * 20.0D));

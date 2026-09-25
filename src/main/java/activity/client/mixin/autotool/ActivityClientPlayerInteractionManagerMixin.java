@@ -19,19 +19,25 @@ public abstract class ActivityClientPlayerInteractionManagerMixin {
     @Inject(method = "attackBlock", at = @At("HEAD"), cancellable = true)
     private void activity$autotool$onAttackBlock(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
-        boolean currentlyBreakingThis = this.breakingBlock && pos != null && pos.equals(this.currentBreakingPos);
-        AutoToolEngine.onAttackBlock((ClientPlayerInteractionManager)(Object)this, pos, direction, currentlyBreakingThis);
+        try {
+            boolean currentlyBreakingThis = this.breakingBlock && pos != null && pos.equals(this.currentBreakingPos);
+            AutoToolEngine.onAttackBlock((ClientPlayerInteractionManager)(Object)this, pos, direction, currentlyBreakingThis);
+        } catch (Throwable ignored) {}
     }
 
     @Inject(method = "cancelBlockBreaking", at = @At("HEAD"), cancellable = true)
     private void activity$autotool$onCancelBlockBreaking(CallbackInfo ci) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
-        AutoToolEngine.onStopMining();
+        try {
+            AutoToolEngine.onStopMining();
+        } catch (Throwable ignored) {}
     }
 
     @Inject(method = "breakBlock", at = @At("HEAD"), cancellable = true)
     private void activity$autotool$onBreakBlock(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
-        AutoToolEngine.onBlockBroken(pos);
+        try {
+            AutoToolEngine.onBlockBroken(pos);
+        } catch (Throwable ignored) {}
     }
 }

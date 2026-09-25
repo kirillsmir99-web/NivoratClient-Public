@@ -1,12 +1,13 @@
 # CooldownHUD
 
-> Высокопроизводительный клиентский мод для Minecraft **Fabric 1.21.1** с кастомным интерфейсом нового поколения, звуковым движком и боевыми модулями.
+> Высокопроизводительный клиентский мод для Minecraft **Fabric 1.21.11** (тестовая сборка test3) с кастомным интерфейсом нового поколения, звуковым движком и боевыми модулями.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen.svg)](https://minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-brightgreen.svg)](https://minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-blue.svg)](https://fabricmc.net/)
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
-[![Version](https://img.shields.io/badge/Version-v1.0.0-purple.svg)]()
-[![Author](https://img.shields.io/badge/Developer-kt1xW-red.svg)](https://t.me/virionDEV)
+[![Version](https://img.shields.io/badge/Version-v1.0.0--test3-purple.svg)]()
+[![Build](https://img.shields.io/badge/Build-test3-yellow.svg)]()
+[![Developer](https://img.shields.io/badge/Developer-kt1xW-red.svg)](https://t.me/virionDEV)
 
 ---
 

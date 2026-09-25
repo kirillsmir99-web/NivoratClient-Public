@@ -269,6 +269,7 @@ public class ActivityConfig {
     public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
     public String fontFamily = "minecraft";
     public String typographySize = "normal";
+    public String language = "auto";
     public double windowOpacity = 85.0;
     public double panelOpacity = 65.0;
     public boolean glassEffect = true;
@@ -348,6 +349,7 @@ public class ActivityConfig {
         public int hudCustomY = -1;
         public boolean hudShowActiveModules = false;
         public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
+        public String language = "auto";
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -380,7 +382,8 @@ public class ActivityConfig {
                     Objects.equals(coordFormat, that.coordFormat) &&
                     Objects.equals(customTitle, that.customTitle) &&
                     Objects.equals(themeVariant, that.themeVariant) &&
-                    Objects.equals(menuKeybind, that.menuKeybind);
+                    Objects.equals(menuKeybind, that.menuKeybind) &&
+                    Objects.equals(language, that.language);
         }
 
         @Override
@@ -390,7 +393,7 @@ public class ActivityConfig {
                 hideInF3, showCoordinates, showFps, showBiome, showWorldTime, showDirection,
                 coordFormat, hudPadding, customTitle, textShadow, themeVariant, compactMode,
                 tooltipsEnabled, showKeyHints, smoothTransitions, animationsEnabled,
-                spatialOpenAnimation, windowOpacity, panelOpacity, glassEffect, menuKeybind
+                spatialOpenAnimation, windowOpacity, panelOpacity, glassEffect, menuKeybind, language
             );
         }
     }
@@ -698,6 +701,7 @@ public class ActivityConfig {
 
         this.fontFamily = "minecraft";
         this.typographySize = "normal";
+        this.language = "auto";
         this.windowOpacity = 85.0;
         this.panelOpacity = 65.0;
         this.glassEffect = true;
@@ -990,6 +994,9 @@ public class ActivityConfig {
         if (!"small".equals(this.typographySize) && !"normal".equals(this.typographySize) && !"large".equals(this.typographySize)) {
             this.typographySize = "normal";
         }
+        if (!"auto".equals(this.language) && !"ru".equals(this.language) && !"en".equals(this.language)) {
+            this.language = "auto";
+        }
         if (!"serene".equals(this.soundProfile) && !"classic".equals(this.soundProfile) && !"minecraft".equals(this.soundProfile)) {
             this.soundProfile = "serene";
         }
@@ -1049,6 +1056,7 @@ public class ActivityConfig {
         this.client.ui.hudCustomY = this.hudCustomY;
         this.client.ui.hudShowActiveModules = this.hudShowActiveModules;
         this.client.ui.menuKeybind = this.menuKeybind;
+        this.client.ui.language = this.language;
 
         this.client.sound.soundEnabled = this.soundEnabled;
         this.client.sound.soundProfile = this.soundProfile;
@@ -1092,6 +1100,7 @@ public class ActivityConfig {
             this.hudCustomY = this.client.ui.hudCustomY;
             this.hudShowActiveModules = this.client.ui.hudShowActiveModules;
             if (this.client.ui.menuKeybind != null) this.menuKeybind = this.client.ui.menuKeybind;
+            if (this.client.ui.language != null) this.language = this.client.ui.language;
         }
         if (this.client.sound != null) {
             this.soundEnabled = this.client.sound.soundEnabled;
@@ -1882,6 +1891,7 @@ public class ActivityConfig {
 
         copy.fontFamily = this.fontFamily;
         copy.typographySize = this.typographySize;
+        copy.language = this.language;
         copy.windowOpacity = this.windowOpacity;
         copy.panelOpacity = this.panelOpacity;
         copy.glassEffect = this.glassEffect;
@@ -2125,6 +2135,7 @@ public class ActivityConfig {
                this.spatialOpenAnimation == that.spatialOpenAnimation &&
                Objects.equals(this.fontFamily, that.fontFamily) &&
                Objects.equals(this.typographySize, that.typographySize) &&
+               Objects.equals(this.language, that.language) &&
                Objects.equals(this.hudPosition, that.hudPosition) &&
                Objects.equals(this.searchFilter, that.searchFilter) &&
                Objects.equals(this.filterCategory, that.filterCategory) &&
@@ -2185,7 +2196,7 @@ public class ActivityConfig {
             customPrefix, toastStyle, showCoordinates, showFps, showBiome, showWorldTime, showDirection, coordFormat, hudPadding,
             customTitle, textShadow, hudCustomX, hudCustomY, hudShowActiveModules, debugLogging, profilerActive, asyncTickEnabled, logLevel, benchmarksEnabled, maxCacheEntries,
             scissorOpt, filterRegex, gcPolicy,
-            fontFamily, typographySize, windowOpacity, panelOpacity, glassEffect, windowPosX, windowPosY, windowWidth, windowHeight, windowMaximized, unmaximizedX, unmaximizedY, unmaximizedWidth, unmaximizedHeight, soundEnabled, soundProfile, sliderSoundEnabled, animationsEnabled, spatialOpenAnimation
+            fontFamily, typographySize, language, windowOpacity, panelOpacity, glassEffect, windowPosX, windowPosY, windowWidth, windowHeight, windowMaximized, unmaximizedX, unmaximizedY, unmaximizedWidth, unmaximizedHeight, soundEnabled, soundProfile, sliderSoundEnabled, animationsEnabled, spatialOpenAnimation
         );
         return result;
     }

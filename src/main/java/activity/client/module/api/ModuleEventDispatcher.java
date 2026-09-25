@@ -22,6 +22,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -144,18 +145,27 @@ public final class ModuleEventDispatcher {
             return ActionResult.PASS;
         }
 
-        if (player != null && (activity.client.module.service.CooldownTrackerService.isTridentItem(player.getMainHandStack().getItem()) || activity.client.module.service.CooldownTrackerService.isTridentItem(player.getOffHandStack().getItem()))) {
-            activity.client.module.service.CooldownTrackerService.recordTridentUsed();
-        }
+        try {
+            if (player != null) {
+                ItemStack main = player.getMainHandStack();
+                ItemStack off = player.getOffHandStack();
+                if ((main != null && !main.isEmpty() && activity.client.module.service.CooldownTrackerService.isTridentItem(main.getItem()))
+                        || (off != null && !off.isEmpty() && activity.client.module.service.CooldownTrackerService.isTridentItem(off.getItem()))) {
+                    activity.client.module.service.CooldownTrackerService.recordTridentUsed();
+                }
+            }
+        } catch (Throwable ignored) {}
 
         IModule[] modules = activeAttackModules;
-        if (modules.length == 0) return ActionResult.PASS;
+        if (modules == null || modules.length == 0) return ActionResult.PASS;
 
         for (int i = 0; i < modules.length; i++) {
             try {
-                ActionResult result = modules[i].onAttackEntity(player, world, hand, entity, hitResult);
-                if (result != ActionResult.PASS) {
-                    return result;
+                if (modules[i] != null) {
+                    ActionResult result = modules[i].onAttackEntity(player, world, hand, entity, hitResult);
+                    if (result != ActionResult.PASS) {
+                        return result;
+                    }
                 }
             } catch (Throwable ignored) {}
         }

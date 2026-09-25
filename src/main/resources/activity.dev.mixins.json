@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "MixinEntityRenderer",
-    "MixinPlayerListHud"
+    "MixinPlayerListHud",
+    "MixinTranslationStorage"
   ],
   "injectors": {
     "defaultRequire": 0

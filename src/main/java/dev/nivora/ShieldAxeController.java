@@ -51,67 +51,75 @@ public final class ShieldAxeController {
     }
 
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-        if (!world.isClient() || !(entity instanceof PlayerEntity target)) {
-            return ActionResult.PASS;
-        }
-
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null || client.player != player || !enabled) {
-            return ActionResult.PASS;
-        }
-
-        if (stage == Stage.SEMI_AWAIT_HIT) {
-            if (targetId == null || target.getUuid().equals(targetId)) {
-                stage = Stage.WAITING_RESTORE;
-                stageTicks = 0;
-                restoreDelayTicks = Math.max(1, getRestoreDelayTicks());
+        try {
+            if (!world.isClient() || !(entity instanceof PlayerEntity target)) {
+                return ActionResult.PASS;
             }
+
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null || client.player == null || client.player != player || !enabled) {
+                return ActionResult.PASS;
+            }
+
+            if (stage == Stage.SEMI_AWAIT_HIT) {
+                if (targetId == null || target.getUuid().equals(targetId)) {
+                    stage = Stage.WAITING_RESTORE;
+                    stageTicks = 0;
+                    restoreDelayTicks = Math.max(1, getRestoreDelayTicks());
+                }
+                return ActionResult.PASS;
+            }
+
+            return ActionResult.PASS;
+        } catch (Throwable t) {
             return ActionResult.PASS;
         }
-
-        return ActionResult.PASS;
     }
 
     public void tick(MinecraftClient client) {
-        if (client.player == null || client.world == null || client.interactionManager == null) {
-            clearState();
-            return;
-        }
-
-        if (!enabled || !client.player.isAlive()) {
-            if (stage != Stage.IDLE) {
-                restoreWeapon(client);
+        try {
+            if (client.player == null || client.world == null || client.interactionManager == null) {
                 clearState();
+                return;
             }
-            return;
-        }
 
-        if (cooldownTicks > 0) {
-            cooldownTicks--;
-        }
-
-        if (ShieldBreakerConfig.abortOnManualSwitch && stage != Stage.IDLE) {
-            int currentSlot = client.player.getInventory().getSelectedSlot();
-            if (stage == Stage.SWAPPED_TO_AXE) {
-                if (activeAxeSlot >= 0 && currentSlot != activeAxeSlot) {
+            if (!enabled || !client.player.isAlive()) {
+                if (stage != Stage.IDLE) {
+                    restoreWeapon(client);
                     clearState();
-                    cooldownTicks = Math.max(4, ShieldBreakerConfig.cooldownTicks);
-                    return;
                 }
-            } else if (stage == Stage.WAITING_RESTORE) {
-                if (activeAxeSlot >= 0 && currentSlot != activeAxeSlot && currentSlot != initialSlot) {
-                    clearState();
-                    cooldownTicks = Math.max(4, ShieldBreakerConfig.cooldownTicks);
-                    return;
+                return;
+            }
+
+            if (cooldownTicks > 0) {
+                cooldownTicks--;
+            }
+
+            if (ShieldBreakerConfig.abortOnManualSwitch && stage != Stage.IDLE) {
+                int currentSlot = client.player.getInventory().getSelectedSlot();
+                if (stage == Stage.SWAPPED_TO_AXE) {
+                    if (activeAxeSlot >= 0 && currentSlot != activeAxeSlot) {
+                        clearState();
+                        cooldownTicks = Math.max(4, ShieldBreakerConfig.cooldownTicks);
+                        return;
+                    }
+                } else if (stage == Stage.WAITING_RESTORE) {
+                    if (activeAxeSlot >= 0 && currentSlot != activeAxeSlot && currentSlot != initialSlot) {
+                        clearState();
+                        cooldownTicks = Math.max(4, ShieldBreakerConfig.cooldownTicks);
+                        return;
+                    }
                 }
             }
-        }
 
-        switch (stage) {
-            case IDLE -> handleIdle(client);
-            case SWAPPED_TO_AXE -> handleSwappedToAxe(client);
-            case WAITING_RESTORE -> handleWaitingRestore(client);
-            case SEMI_AWAIT_HIT -> handleSemiAwaitHit(client);
+            switch (stage) {
+                case IDLE -> handleIdle(client);
+                case SWAPPED_TO_AXE -> handleSwappedToAxe(client);
+                case WAITING_RESTORE -> handleWaitingRestore(client);
+                case SEMI_AWAIT_HIT -> handleSemiAwaitHit(client);
+            }
+        } catch (Throwable t) {
+            clearState();
         }
     }
 
@@ -212,8 +220,14 @@ public final class ShieldAxeController {
             return;
         }
 
-        client.interactionManager.attackEntity(client.player, target);
-        client.player.swingHand(Hand.MAIN_HAND);
+        try {
+            client.interactionManager.attackEntity(client.player, target);
+            client.player.swingHand(Hand.MAIN_HAND);
+        } catch (Throwable t) {
+            restoreWeapon(client);
+            finish(1);
+            return;
+        }
 
         stage = Stage.WAITING_RESTORE;
         stageTicks = 0;

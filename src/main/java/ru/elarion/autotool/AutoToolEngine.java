@@ -99,25 +99,27 @@ public final class AutoToolEngine {
     }
 
     public static void onAttackEntity(Entity entity) {
-        long now = System.currentTimeMillis();
-        lastAttackEntityTimeMs = now;
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null) return;
-        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
+        try {
+            long now = System.currentTimeMillis();
+            lastAttackEntityTimeMs = now;
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null || client.player == null) return;
+            if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
 
-        AutoToolConfig config = AutoToolClient.CONFIG;
-        if (!config.enabled || !config.weaponSwitch) return;
-        if (client.player.isCreative() || client.player.isSpectator()) return;
+            AutoToolConfig config = AutoToolClient.CONFIG;
+            if (!config.enabled || !config.weaponSwitch) return;
+            if (client.player.isCreative() || client.player.isSpectator()) return;
 
-        Entity target = entity;
-        if (target == null) {
-            target = client.targetedEntity;
-            if (target == null && client.crosshairTarget instanceof EntityHitResult ehr) {
-                target = ehr.getEntity();
+            Entity target = entity;
+            if (target == null) {
+                target = client.targetedEntity;
+                if (target == null && client.crosshairTarget instanceof EntityHitResult ehr) {
+                    target = ehr.getEntity();
+                }
             }
-        }
 
-        triggerWeaponSwitch(client, target, config, now);
+            triggerWeaponSwitch(client, target, config, now);
+        } catch (Throwable ignored) {}
     }
 
     private static void checkCombatTarget(MinecraftClient client, AutoToolConfig config, long now) {
@@ -138,48 +140,50 @@ public final class AutoToolEngine {
     }
 
     public static void triggerWeaponSwitch(MinecraftClient client, Entity target, AutoToolConfig config, long now) {
-        if (now - lastSwitchTimeMs < 50L) return;
-        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
+        try {
+            if (now - lastSwitchTimeMs < 50L) return;
+            if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
 
-        int bestSlot = findBestWeaponSlot(client, target, config);
-        if (bestSlot < 0) {
-            lastAttackEntityTimeMs = now;
-            return;
-        }
-
-        ClientPlayerEntity player = client.player;
-        int currentSlot = player.getInventory().getSelectedSlot();
-
-        if (!isCombatSessionActive && !isMiningSessionActive) {
-            originalHotbarSlot = currentSlot;
-            isCombatSessionActive = true;
-            recalculateReturnDelay();
-        }
-        lastAttackEntityTimeMs = now;
-
-        if (config.singleSlotMode) {
-            int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
-            if (bestSlot != targetHotbar && bestSlot >= 0 && client.interactionManager != null) {
-                int containerSlot = (bestSlot < 9) ? (36 + bestSlot) : bestSlot;
-                try {
-                    client.interactionManager.clickSlot(
-                        player.playerScreenHandler.syncId,
-                        containerSlot,
-                        targetHotbar,
-                        net.minecraft.screen.slot.SlotActionType.SWAP,
-                        player
-                    );
-                    swappedFromContainerSlot = containerSlot;
-                } catch (Throwable ignored) {}
+            int bestSlot = findBestWeaponSlot(client, target, config);
+            if (bestSlot < 0) {
+                lastAttackEntityTimeMs = now;
+                return;
             }
-            net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, targetHotbar);
-            expectedToolSlot = targetHotbar;
-            lastSwitchTimeMs = now;
-        } else if (bestSlot < 9) {
-            net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, bestSlot);
-            expectedToolSlot = bestSlot;
-            lastSwitchTimeMs = now;
-        }
+
+            ClientPlayerEntity player = client.player;
+            int currentSlot = player.getInventory().getSelectedSlot();
+
+            if (!isCombatSessionActive && !isMiningSessionActive) {
+                originalHotbarSlot = currentSlot;
+                isCombatSessionActive = true;
+                recalculateReturnDelay();
+            }
+            lastAttackEntityTimeMs = now;
+
+            if (config.singleSlotMode) {
+                int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+                if (bestSlot != targetHotbar && bestSlot >= 0 && client.interactionManager != null) {
+                    int containerSlot = (bestSlot < 9) ? (36 + bestSlot) : bestSlot;
+                    try {
+                        client.interactionManager.clickSlot(
+                            player.playerScreenHandler.syncId,
+                            containerSlot,
+                            targetHotbar,
+                            net.minecraft.screen.slot.SlotActionType.SWAP,
+                            player
+                        );
+                        swappedFromContainerSlot = containerSlot;
+                    } catch (Throwable ignored) {}
+                }
+                net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, targetHotbar);
+                expectedToolSlot = targetHotbar;
+                lastSwitchTimeMs = now;
+            } else if (bestSlot < 9) {
+                net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, bestSlot);
+                expectedToolSlot = bestSlot;
+                lastSwitchTimeMs = now;
+            }
+        } catch (Throwable ignored) {}
     }
 
     private static boolean shouldSuppressForCombat(MinecraftClient client, AutoToolConfig config) {
@@ -199,18 +203,30 @@ public final class AutoToolEngine {
 
     private static int getEnchantmentLevel(ItemStack stack, RegistryKey<Enchantment> key, String namePattern) {
         if (stack == null || stack.isEmpty()) return 0;
-        ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
-        if (ench != null) {
-            for (var entry : ench.getEnchantmentEntries()) {
-                if (key != null && entry.getKey().matchesKey(key)) {
-                    return entry.getIntValue();
-                }
-                String id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
-                if (namePattern != null && id.contains(namePattern)) {
-                    return entry.getIntValue();
+        try {
+            ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
+            if (ench != null) {
+                for (var entry : ench.getEnchantmentEntries()) {
+                    if (entry == null || entry.getKey() == null) continue;
+                    if (key != null && entry.getKey().matchesKey(key)) {
+                        return entry.getIntValue();
+                    }
+                    if (namePattern != null) {
+                        String id = null;
+                        try {
+                            if (entry.getKey().getKey().isPresent()) {
+                                id = entry.getKey().getKey().get().getValue().toString().toLowerCase(Locale.ROOT);
+                            } else {
+                                id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
+                            }
+                        } catch (Throwable ignored) {}
+                        if (id != null && id.contains(namePattern)) {
+                            return entry.getIntValue();
+                        }
+                    }
                 }
             }
-        }
+        } catch (Throwable ignored) {}
         return 0;
     }
 
@@ -593,84 +609,87 @@ public final class AutoToolEngine {
     }
 
     public static void onAttackBlock(ClientPlayerInteractionManager im, BlockPos pos, Direction direction, boolean currentlyBreakingThis) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null || client.world == null || client.interactionManager == null) return;
+        if (pos == null) return;
+        try {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null || client.player == null || client.world == null || client.interactionManager == null) return;
 
-        AutoToolConfig config = AutoToolClient.CONFIG;
-        if (!config.enabled) return;
+            AutoToolConfig config = AutoToolClient.CONFIG;
+            if (!config.enabled) return;
 
-        if (client.player.isCreative() || client.player.isSpectator()) return;
+            if (client.player.isCreative() || client.player.isSpectator()) return;
 
-        GameMode gameMode = client.interactionManager.getCurrentGameMode();
-        if (gameMode == null || client.player.isBlockBreakingRestricted(client.world, pos, gameMode)) {
-            return;
-        }
-
-        if (shouldSuppressForCombat(client, config)) {
-            return;
-        }
-
-        if (config.lockWhileMining && currentlyBreakingThis) {
-            lastMiningActivityMs = System.currentTimeMillis();
-            return;
-        }
-
-        World world = client.world;
-        BlockState state = world.getBlockState(pos);
-        if (state.isAir()) return;
-
-        float hardness = state.getHardness(world, pos);
-        if (hardness < 0.0F) return;
-
-        if (config.ignoreInstantBreak && hardness == 0.0F) {
-            return;
-        }
-
-        long now = System.currentTimeMillis();
-        if (now - lastSwitchTimeMs < 50L) {
-            return;
-        }
-
-        int bestSlot = findBestSlot(client, state, config);
-        if (bestSlot < 0) {
-            lastMiningActivityMs = now;
-            return;
-        }
-
-        ClientPlayerEntity player = client.player;
-        int currentSlot = player.getInventory().getSelectedSlot();
-
-        if (!isMiningSessionActive && !isCombatSessionActive) {
-            originalHotbarSlot = currentSlot;
-            swappedFromContainerSlot = -1;
-            isMiningSessionActive = true;
-            recalculateReturnDelay();
-        }
-        lastMiningActivityMs = now;
-
-        if (config.singleSlotMode) {
-            int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
-            if (bestSlot != targetHotbar && bestSlot >= 0 && client.interactionManager != null) {
-                int containerSlot = (bestSlot < 9) ? (36 + bestSlot) : bestSlot;
-                try {
-                    client.interactionManager.clickSlot(
-                        player.playerScreenHandler.syncId,
-                        containerSlot,
-                        targetHotbar,
-                        net.minecraft.screen.slot.SlotActionType.SWAP,
-                        player
-                    );
-                    swappedFromContainerSlot = containerSlot;
-                } catch (Throwable ignored) {}
+            GameMode gameMode = client.interactionManager.getCurrentGameMode();
+            if (gameMode == null || client.player.isBlockBreakingRestricted(client.world, pos, gameMode)) {
+                return;
             }
-            net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, targetHotbar);
-            expectedToolSlot = targetHotbar;
-            lastSwitchTimeMs = now;
-        } else if (bestSlot < 9) {
-            net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, bestSlot);
-            expectedToolSlot = bestSlot;
-            lastSwitchTimeMs = now;
-        }
+
+            if (shouldSuppressForCombat(client, config)) {
+                return;
+            }
+
+            if (config.lockWhileMining && currentlyBreakingThis) {
+                lastMiningActivityMs = System.currentTimeMillis();
+                return;
+            }
+
+            World world = client.world;
+            BlockState state = world.getBlockState(pos);
+            if (state == null || state.isAir()) return;
+
+            float hardness = state.getHardness(world, pos);
+            if (hardness < 0.0F) return;
+
+            if (config.ignoreInstantBreak && hardness == 0.0F) {
+                return;
+            }
+
+            long now = System.currentTimeMillis();
+            if (now - lastSwitchTimeMs < 50L) {
+                return;
+            }
+
+            int bestSlot = findBestSlot(client, state, config);
+            if (bestSlot < 0) {
+                lastMiningActivityMs = now;
+                return;
+            }
+
+            ClientPlayerEntity player = client.player;
+            int currentSlot = player.getInventory().getSelectedSlot();
+
+            if (!isMiningSessionActive && !isCombatSessionActive) {
+                originalHotbarSlot = currentSlot;
+                swappedFromContainerSlot = -1;
+                isMiningSessionActive = true;
+                recalculateReturnDelay();
+            }
+            lastMiningActivityMs = now;
+
+            if (config.singleSlotMode) {
+                int targetHotbar = Math.max(0, Math.min(8, config.singleSlot));
+                if (bestSlot != targetHotbar && bestSlot >= 0 && client.interactionManager != null) {
+                    int containerSlot = (bestSlot < 9) ? (36 + bestSlot) : bestSlot;
+                    try {
+                        client.interactionManager.clickSlot(
+                            player.playerScreenHandler.syncId,
+                            containerSlot,
+                            targetHotbar,
+                            net.minecraft.screen.slot.SlotActionType.SWAP,
+                            player
+                        );
+                        swappedFromContainerSlot = containerSlot;
+                    } catch (Throwable ignored) {}
+                }
+                net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, targetHotbar);
+                expectedToolSlot = targetHotbar;
+                lastSwitchTimeMs = now;
+            } else if (bestSlot < 9) {
+                net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, bestSlot);
+                expectedToolSlot = bestSlot;
+                lastSwitchTimeMs = now;
+            }
+        } catch (Throwable ignored) {}
     }
 
     public static void onBlockBroken(BlockPos pos) {

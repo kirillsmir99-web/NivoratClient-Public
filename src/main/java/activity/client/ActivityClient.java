@@ -23,6 +23,7 @@ public class ActivityClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static KeyBinding openCooldownHudKey;
+    public static KeyBinding openMenuKey;
     private static boolean menuKeyDown = false;
 
     @Override
@@ -41,6 +42,12 @@ public class ActivityClient implements ClientModInitializer {
                 "key.cooldown_hud.open",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
+                cooldownCategory
+        ));
+        openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.activity.open_gui",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_O,
                 cooldownCategory
         ));
 
@@ -63,6 +70,27 @@ public class ActivityClient implements ClientModInitializer {
                         return 1;
                     })
             );
+
+            com.mojang.brigadier.Command<net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource> menuCommand = context -> {
+                MinecraftClient mc = MinecraftClient.getInstance();
+                if (mc != null) {
+                    mc.send(() -> {
+                        try {
+                            mc.setScreen(new ActivityScreen());
+                        } catch (Throwable t) {
+                            try {
+                                ActivityScreen.clearSession();
+                                mc.setScreen(new ActivityScreen());
+                            } catch (Throwable ignored) {}
+                        }
+                    });
+                }
+                return 1;
+            };
+
+            dispatcher.register(ClientCommandManager.literal("menu").executes(menuCommand));
+            dispatcher.register(ClientCommandManager.literal("activity").executes(menuCommand));
+            dispatcher.register(ClientCommandManager.literal("ac").executes(menuCommand));
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -79,6 +107,11 @@ public class ActivityClient implements ClientModInitializer {
                 }
             }
 
+            boolean vanillaMenuPressed = false;
+            while (openMenuKey != null && openMenuKey.wasPressed()) {
+                vanillaMenuPressed = true;
+            }
+
             if (client == null || client.player == null) {
                 activity.client.module.service.CooldownTrackerService.clear();
                 menuKeyDown = false;
@@ -92,10 +125,9 @@ public class ActivityClient implements ClientModInitializer {
             }
 
             ActivityConfig config = ActivityConfigManager.getConfig();
-            if (config == null || config.menuKeybind == null || config.menuKeybind.isUnbound()) {
-                menuKeyDown = false;
-                return;
-            }
+            int menuKeyCode = (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound())
+                    ? config.menuKeybind.getKeyCode()
+                    : GLFW.GLFW_KEY_O;
 
             boolean ctrl = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL)
                     || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
@@ -104,10 +136,17 @@ public class ActivityClient implements ClientModInitializer {
             boolean alt = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_ALT)
                     || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_ALT);
 
-            boolean isDown = config.menuKeybind.matchesWindow(window, ctrl, shift, alt);
+            boolean configMatches = (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound())
+                    && config.menuKeybind.matchesWindow(window, ctrl, shift, alt);
+
+            boolean rawPressed = menuKeyCode > 0 && InputUtil.isKeyPressed(window, menuKeyCode);
+            boolean requiresModifiers = config != null && config.menuKeybind != null && (config.menuKeybind.isCtrl() || config.menuKeybind.isAlt());
+            boolean isDown = vanillaMenuPressed || configMatches || (rawPressed && !requiresModifiers);
 
             if (client.currentScreen != null) {
-                menuKeyDown = isDown;
+                if (!isDown) {
+                    menuKeyDown = false;
+                }
                 return;
             }
 
@@ -115,7 +154,12 @@ public class ActivityClient implements ClientModInitializer {
                 menuKeyDown = true;
                 try {
                     client.setScreen(new ActivityScreen());
-                } catch (Throwable ignored) {
+                } catch (Throwable t) {
+                    try {
+                        ActivityScreen.clearSession();
+                        client.setScreen(new ActivityScreen());
+                    } catch (Throwable ignored) {
+                    }
                 }
             } else if (!isDown && menuKeyDown) {
                 menuKeyDown = false;

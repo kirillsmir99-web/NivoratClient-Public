@@ -51,6 +51,11 @@ public class SettingsTab extends ActivityTab {
         TypographySize.NORMAL,
         TypographySize.LARGE
     );
+    private static final List<String> LANGUAGE_OPTIONS = List.of(
+        "auto",
+        "ru",
+        "en"
+    );
 
     private static final Text HEADER_TITLE = Text.translatable("activity.tab.settings.header");
     private static final Text SUBTITLE = Text.translatable("activity.tab.settings.subtitle");
@@ -177,6 +182,26 @@ public class SettingsTab extends ActivityTab {
         );
         addControl(container, labelSize);
         addControl(container, dropdownSize);
+
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        ActivityLabel labelLanguage = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.language"));
+        labelLanguage.setMaxWidth(Math.max(20, innerRowW - dropdownW - 6));
+        ActivityDropdown<String> dropdownLanguage = new ActivityDropdown<>(
+            innerStartX1 + innerRowW - dropdownW, rowY, dropdownW, ActivityMetrics.CONTROL_HEIGHT,
+            screen.getOverlayManager(),
+            LANGUAGE_OPTIONS,
+            config.language != null ? config.language : "auto",
+            lang -> Text.translatable("activity.setting.interface.language." + lang),
+            lang -> {
+                config.language = lang;
+                ActivityConfigManager.markDirty();
+                ActivityConfigManager.save();
+                screen.invalidateLayoutCache();
+                screen.reloadCurrentTab();
+            }
+        );
+        addControl(container, labelLanguage);
+        addControl(container, dropdownLanguage);
 
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelGlass = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.glass_effect"));

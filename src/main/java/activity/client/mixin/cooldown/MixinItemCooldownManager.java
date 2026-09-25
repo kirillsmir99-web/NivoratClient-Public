@@ -15,22 +15,28 @@ public class MixinItemCooldownManager {
 
     @Inject(method = "set(Lnet/minecraft/item/ItemStack;I)V", at = @At("HEAD"))
     private void onSetCooldownStack(ItemStack stack, int duration, CallbackInfo ci) {
-        if (stack != null) {
-            CooldownTrackerService.onCooldownSet(stack.getItem(), duration);
-        }
+        try {
+            if (stack != null && !stack.isEmpty()) {
+                CooldownTrackerService.onCooldownSet(stack.getItem(), duration);
+            }
+        } catch (Throwable ignored) {}
     }
 
     @Inject(method = "set(Lnet/minecraft/util/Identifier;I)V", at = @At("HEAD"))
     private void onSetCooldownId(Identifier id, int duration, CallbackInfo ci) {
-        if (id != null) {
-            CooldownTrackerService.onCooldownSet(Registries.ITEM.get(id), duration);
-        }
+        try {
+            if (id != null) {
+                CooldownTrackerService.onCooldownSet(Registries.ITEM.get(id), duration);
+            }
+        } catch (Throwable ignored) {}
     }
 
     @Inject(method = "remove(Lnet/minecraft/util/Identifier;)V", at = @At("HEAD"))
     private void onRemoveCooldownId(Identifier id, CallbackInfo ci) {
-        if (id != null) {
-            CooldownTrackerService.onCooldownRemoved(Registries.ITEM.get(id));
-        }
+        try {
+            if (id != null) {
+                CooldownTrackerService.onCooldownRemoved(Registries.ITEM.get(id));
+            }
+        } catch (Throwable ignored) {}
     }
 }

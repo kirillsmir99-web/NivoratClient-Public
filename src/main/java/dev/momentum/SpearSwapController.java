@@ -333,58 +333,61 @@ public final class SpearSwapController {
     }
 
     private void executeSpearStrike(MinecraftClient client, ClientPlayerEntity player) {
-        int curSlot = player.getInventory().getSelectedSlot();
-        if (curSlot != spearSlot) {
-            return;
-        }
-
-        ItemStack stack = player.getInventory().getStack(spearSlot);
-        if (stack.isEmpty() || !isSpear(stack)) {
-            return;
-        }
-
-        boolean isMiss = false;
-        if (SpearConfig.missChance > 0 && ThreadLocalRandom.current().nextInt(100) < SpearConfig.missChance) {
-            isMiss = true;
-        }
-
-        if (isMiss) {
-            player.swingHand(Hand.MAIN_HAND);
-            player.resetTicksSinceLastAttack();
-            return;
-        }
-
-        LivingEntity target = null;
-        if (targetEntityId >= 0 && client.world != null) {
-            Entity entity = client.world.getEntityById(targetEntityId);
-            if (entity instanceof LivingEntity living && isLivingTargetValid(player, living)) {
-                target = living;
+        try {
+            int curSlot = player.getInventory().getSelectedSlot();
+            if (curSlot != spearSlot) {
+                return;
             }
-        }
-        if (target == null) {
-            target = findTarget(client, stack);
-        }
 
-        PiercingWeaponComponent piercing = stack.get(DataComponentTypes.PIERCING_WEAPON);
-        if (piercing != null && !client.interactionManager.isFlyingLocked()) {
-            client.interactionManager.attackWithPiercingWeapon(piercing);
-            player.swingHand(Hand.MAIN_HAND);
-        } else {
-            if (client.getNetworkHandler() != null) {
-                client.getNetworkHandler().sendPacket(new net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket(
-                        net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action.STAB,
-                        net.minecraft.util.math.BlockPos.ORIGIN,
-                        net.minecraft.util.math.Direction.DOWN
-                ));
+            ItemStack stack = player.getInventory().getStack(spearSlot);
+            if (stack.isEmpty() || !isSpear(stack)) {
+                return;
             }
-            player.swingHand(Hand.MAIN_HAND);
-            player.resetTicksSinceLastAttack();
 
-            if (target != null) {
-                client.interactionManager.attackEntity(player, target);
+            boolean isMiss = false;
+            if (SpearConfig.missChance > 0 && ThreadLocalRandom.current().nextInt(100) < SpearConfig.missChance) {
+                isMiss = true;
             }
+
+            if (isMiss) {
+                player.swingHand(Hand.MAIN_HAND);
+                player.resetTicksSinceLastAttack();
+                return;
+            }
+
+            LivingEntity target = null;
+            if (targetEntityId >= 0 && client.world != null) {
+                Entity entity = client.world.getEntityById(targetEntityId);
+                if (entity instanceof LivingEntity living && isLivingTargetValid(player, living)) {
+                    target = living;
+                }
+            }
+            if (target == null) {
+                target = findTarget(client, stack);
+            }
+
+            PiercingWeaponComponent piercing = stack.get(DataComponentTypes.PIERCING_WEAPON);
+            if (piercing != null && !client.interactionManager.isFlyingLocked()) {
+                client.interactionManager.attackWithPiercingWeapon(piercing);
+                player.swingHand(Hand.MAIN_HAND);
+            } else {
+                if (client.getNetworkHandler() != null) {
+                    client.getNetworkHandler().sendPacket(new net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket(
+                            net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action.STAB,
+                            net.minecraft.util.math.BlockPos.ORIGIN,
+                            net.minecraft.util.math.Direction.DOWN
+                    ));
+                }
+                player.swingHand(Hand.MAIN_HAND);
+                player.resetTicksSinceLastAttack();
+
+                if (target != null) {
+                    client.interactionManager.attackEntity(player, target);
+                }
+            }
+            activity.client.module.service.CooldownTrackerService.recordTridentUsed();
+        } catch (Throwable ignored) {
         }
-        activity.client.module.service.CooldownTrackerService.recordTridentUsed();
     }
 
     private void handleWaitingRestore(MinecraftClient client) {
@@ -618,43 +621,58 @@ public final class SpearSwapController {
         return bestSlot;
     }
 
+    private static String getSafeEnchantmentId(net.minecraft.registry.entry.RegistryEntry<net.minecraft.enchantment.Enchantment> entry) {
+        if (entry == null) return "";
+        try {
+            if (entry.getKey().isPresent()) {
+                return entry.getKey().get().getValue().toString().toLowerCase(Locale.ROOT);
+            }
+        } catch (Throwable ignored) {}
+        try {
+            return entry.getIdAsString().toLowerCase(Locale.ROOT);
+        } catch (Throwable ignored) {}
+        return "";
+    }
+
     private static int getLungeLevel(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 0;
-        ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
-        if (ench == null || ench.isEmpty()) {
-            ench = EnchantmentHelper.getEnchantments(stack);
-        }
-        if (ench != null && !ench.isEmpty()) {
-            for (var entry : ench.getEnchantmentEntries()) {
-                int lvl = entry.getIntValue();
-                String id = entry.getKey().getIdAsString().toLowerCase(Locale.ROOT);
-                if (id.contains("lunge") || id.contains("рывок") || id.contains("выпад")) {
-                    return lvl;
+        try {
+            ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
+            if (ench == null || ench.isEmpty()) {
+                ench = EnchantmentHelper.getEnchantments(stack);
+            }
+            if (ench != null && !ench.isEmpty()) {
+                for (var entry : ench.getEnchantmentEntries()) {
+                    int lvl = entry.getIntValue();
+                    String id = getSafeEnchantmentId(entry.getKey());
+                    if (id.contains("lunge") || id.contains("рывок") || id.contains("выпад")) {
+                        return lvl;
+                    }
                 }
             }
-        }
-        LoreComponent lore = stack.get(DataComponentTypes.LORE);
-        if (lore != null) {
-            for (Text t : lore.lines()) {
-                String str = t.getString().toLowerCase(Locale.ROOT);
-                int parsed = parseLungeLevel(str);
-                if (parsed > 0) return parsed;
+            LoreComponent lore = stack.get(DataComponentTypes.LORE);
+            if (lore != null) {
+                for (Text t : lore.lines()) {
+                    String str = t.getString().toLowerCase(Locale.ROOT);
+                    int parsed = parseLungeLevel(str);
+                    if (parsed > 0) return parsed;
+                }
             }
-        }
-        try {
-            String name = stack.getName().getString().toLowerCase(Locale.ROOT);
-            int parsed = parseLungeLevel(name);
-            if (parsed > 0) return parsed;
-        } catch (Exception ignored) {}
-        var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (customData != null) {
-            String nbt = customData.copyNbt().toString().toLowerCase(Locale.ROOT);
-            int parsed = parseLungeLevel(nbt);
-            if (parsed > 0) return parsed;
-            if (nbt.contains("form_id:3") || nbt.contains("form_id: 3")) return 3;
-            if (nbt.contains("form_id:2") || nbt.contains("form_id: 2")) return 2;
-            if (nbt.contains("form_id:1") || nbt.contains("form_id: 1")) return 1;
-        }
+            try {
+                String name = stack.getName().getString().toLowerCase(Locale.ROOT);
+                int parsed = parseLungeLevel(name);
+                if (parsed > 0) return parsed;
+            } catch (Exception ignored) {}
+            var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+            if (customData != null) {
+                String nbt = customData.copyNbt().toString().toLowerCase(Locale.ROOT);
+                int parsed = parseLungeLevel(nbt);
+                if (parsed > 0) return parsed;
+                if (nbt.contains("form_id:3") || nbt.contains("form_id: 3")) return 3;
+                if (nbt.contains("form_id:2") || nbt.contains("form_id: 2")) return 2;
+                if (nbt.contains("form_id:1") || nbt.contains("form_id: 1")) return 1;
+            }
+        } catch (Throwable ignored) {}
         return 0;
     }
 
