@@ -20,7 +20,7 @@ public final class RedstoneOptimizerConfig {
     public static int restoreDelayMs = 90;
     public static int randomMaxRestoreDelayMs = 120;
     public static boolean legitMode = true;
-    public static int missChance = 10;
+    public static int missChance = 0;
 
     private RedstoneOptimizerConfig() {}
 

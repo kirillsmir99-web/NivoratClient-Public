@@ -75,29 +75,7 @@ public final class CartHudConfig {
     }
 
     public static void save() {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            return;
-        }
-        if (saving) {
-            return;
-        }
-        saving = true;
-        try {
-            File dir = CONFIG_FILE.getParentFile();
-            if (dir != null && !dir.exists()) {
-                dir.mkdirs();
-            }
-            try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
-                writer.write("enabled=" + enabled + "\n");
-                writer.write("hud_x=" + customX + "\n");
-                writer.write("hud_y=" + customY + "\n");
-            } catch (IOException ignored) {
-            }
-
-            dev.storage.RefillConfig.customX = customX;
-            dev.storage.RefillConfig.customY = customY;
-        } finally {
-            saving = false;
-        }
+        dev.storage.RefillConfig.customX = customX;
+        dev.storage.RefillConfig.customY = customY;
     }
 }

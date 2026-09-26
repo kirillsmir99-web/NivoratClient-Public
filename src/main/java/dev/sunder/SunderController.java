@@ -91,41 +91,45 @@ public final class SunderController {
     }
 
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-        if (!world.isClient() || !(entity instanceof net.minecraft.entity.LivingEntity target)) {
-            return ActionResult.PASS;
-        }
+        try {
+            if (world == null || !world.isClient() || !(entity instanceof net.minecraft.entity.LivingEntity target)) {
+                return ActionResult.PASS;
+            }
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null || client.player != player || !enabled) {
-            return ActionResult.PASS;
-        }
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null || client.player == null || client.player != player || !enabled) {
+                return ActionResult.PASS;
+            }
 
-        boolean isTarget = (targetEntityId != -1 && target.getId() == targetEntityId)
-                || (targetId != null && target.getUuid().equals(targetId))
-                || targetId == null;
+            boolean isTarget = (targetEntityId != -1 && target.getId() == targetEntityId)
+                    || (targetId != null && target.getUuid().equals(targetId))
+                    || targetId == null;
 
-        if (stage == Stage.SEMI_AWAIT_AXE_HIT) {
-            if (isTarget) {
-                if (maceSlot >= 0) {
-                    stage = Stage.SEMI_SELECT_MACE;
-                    timer = 1;
-                } else {
+            if (stage == Stage.SEMI_AWAIT_AXE_HIT) {
+                if (isTarget) {
+                    if (maceSlot >= 0) {
+                        stage = Stage.SEMI_SELECT_MACE;
+                        timer = 1;
+                    } else {
+                        stage = Stage.WAITING_RESTORE;
+                        timer = Math.max(1, getRestoreDelayTicks());
+                    }
+                }
+                return ActionResult.PASS;
+            }
+
+            if (stage == Stage.SEMI_AWAIT_MACE_HIT || stage == Stage.WAITING_MACE_STRIKE) {
+                if (isTarget) {
                     stage = Stage.WAITING_RESTORE;
                     timer = Math.max(1, getRestoreDelayTicks());
                 }
+                return ActionResult.PASS;
             }
+
+            return ActionResult.PASS;
+        } catch (Throwable ignored) {
             return ActionResult.PASS;
         }
-
-        if (stage == Stage.SEMI_AWAIT_MACE_HIT || stage == Stage.WAITING_MACE_STRIKE) {
-            if (isTarget) {
-                stage = Stage.WAITING_RESTORE;
-                timer = Math.max(1, getRestoreDelayTicks());
-            }
-            return ActionResult.PASS;
-        }
-
-        return ActionResult.PASS;
     }
 
     public void tick(MinecraftClient client) {
@@ -575,10 +579,6 @@ public final class SunderController {
             return false;
         }
 
-        if (client.player.canSee(target)) {
-            // direct view
-        }
-
         if (client.crosshairTarget instanceof EntityHitResult ehr && ehr.getEntity() == target) {
             return eyePos.squaredDistanceTo(ehr.getPos()) <= (cappedReach + 0.5) * (cappedReach + 0.5);
         }
@@ -611,14 +611,26 @@ public final class SunderController {
             ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
             if (ench != null) {
                 for (var entry : ench.getEnchantmentEntries()) {
-                    if (entry.getKey().matchesKey(Enchantments.DENSITY)) {
-                        score += (airTicks > 0 ? 15 : 4) * entry.getIntValue();
-                    }
-                    if (entry.getKey().matchesKey(Enchantments.BREACH)) {
-                        score += (airTicks == 0 ? 15 : 4) * entry.getIntValue();
+                    boolean isDensity = entry.getKey().matchesKey(Enchantments.DENSITY);
+                    boolean isBreach = entry.getKey().matchesKey(Enchantments.BREACH);
+                    int lvl = entry.getIntValue();
+
+                    if (SunderConfig.enchantPreference == SunderConfig.ENCHANT_DENSITY) {
+                        if (isDensity) score += 2000 * lvl;
+                        if (isBreach) score += 10 * lvl;
+                    } else if (SunderConfig.enchantPreference == SunderConfig.ENCHANT_BREACH) {
+                        if (isBreach) score += 2000 * lvl;
+                        if (isDensity) score += 10 * lvl;
+                    } else {
+                        if (isDensity) {
+                            score += (airTicks > 0 ? 25 : 15) * lvl;
+                        }
+                        if (isBreach) {
+                            score += (airTicks == 0 ? 16 : 8) * lvl;
+                        }
                     }
                     if (entry.getKey().matchesKey(Enchantments.WIND_BURST)) {
-                        score += 5 * entry.getIntValue();
+                        score += 5 * lvl;
                     }
                 }
             }

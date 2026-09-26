@@ -205,11 +205,27 @@ public abstract class AbstractModule implements IModule {
         return registerSetting(new EnumSetting(id, name, description, group, options, defaultValue, nameProvider, getter, setter));
     }
 
+    public EnumSetting registerEnum(String id, Text name, Text description, SettingGroup group,
+                                    List<String> options, String defaultValue,
+                                    java.util.function.Function<String, Text> nameProvider,
+                                    java.util.function.Function<String, Text> tooltipProvider,
+                                    Supplier<String> getter, Consumer<String> setter) {
+        return registerSetting(new EnumSetting(id, name, description, group, options, defaultValue, nameProvider, tooltipProvider, getter, setter));
+    }
+
     public EnumSetting registerEnum(String id, Text name, Text description, SettingSection section,
                                     List<String> options, String defaultValue,
                                     java.util.function.Function<String, Text> nameProvider,
                                     Supplier<String> getter, Consumer<String> setter) {
         return registerSetting(new EnumSetting(id, name, description, section, options, defaultValue, nameProvider, getter, setter));
+    }
+
+    public EnumSetting registerEnum(String id, Text name, Text description, SettingSection section,
+                                    List<String> options, String defaultValue,
+                                    java.util.function.Function<String, Text> nameProvider,
+                                    java.util.function.Function<String, Text> tooltipProvider,
+                                    Supplier<String> getter, Consumer<String> setter) {
+        return registerSetting(new EnumSetting(id, name, description, section, options, defaultValue, nameProvider, tooltipProvider, getter, setter));
     }
 
     public KeybindSetting registerKeybind(String id, Text name, Text description, SettingGroup group,

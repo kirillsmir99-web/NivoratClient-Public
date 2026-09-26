@@ -162,7 +162,7 @@ public final class ActivityConfigManager {
             save();
             return true;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[Activity] Failed to parse imported preset: {}", e.getMessage());
+            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to parse imported preset: {}", e.getMessage());
             return false;
         }
     }
@@ -260,7 +260,7 @@ public final class ActivityConfigManager {
             cleanLegacyFiles();
             return currentConfig;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[Activity] Failed to parse configuration at {}: {}", configPath, e.getMessage());
+            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to parse configuration at {}: {}", configPath, e.getMessage());
             handleCorruptedConfig(e);
             cleanLegacyFiles();
             return currentConfig;
@@ -300,7 +300,6 @@ public final class ActivityConfigManager {
             items.add("minecraft:respawn_anchor");
             items.add("minecraft:shield");
             items.add("minecraft:mace");
-            items.add("minecraft:trident");
             hud.add("trackedItems", items);
 
             root.add("hud", hud);
@@ -332,7 +331,7 @@ public final class ActivityConfigManager {
             manualDirty = false;
             return true;
         } catch (IOException e) {
-            ActivityClient.LOGGER.debug("[Activity] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
             return false;
         }
     }
@@ -343,13 +342,15 @@ public final class ActivityConfigManager {
             if (Files.exists(legacy)) {
                 Files.deleteIfExists(legacy);
             }
-            Path dir = legacy.getParent();
-            if (dir != null) {
+            Path dir = resolveConfigDir();
+            if (dir != null && Files.exists(dir)) {
                 Files.deleteIfExists(dir.resolve("autogg.json"));
                 Files.deleteIfExists(dir.resolve("autotool.json"));
                 Files.deleteIfExists(dir.resolve("activity_presets.json"));
                 Files.deleteIfExists(dir.resolve("activity.json.tmp"));
                 Files.deleteIfExists(dir.resolve("activity_presets.json.tmp"));
+                Files.deleteIfExists(dir.resolve(".nivorat_legacy_migrated"));
+                activity.client.config.migration.LegacyConfigMigrator.cleanupLegacyFiles(dir);
             }
         } catch (Throwable ignored) {
         }
@@ -380,5 +381,6 @@ public final class ActivityConfigManager {
         currentConfig.menuKeybind = new activity.client.module.keybind.Keybind();
         savedSnapshot = null;
         manualDirty = false;
+        cleanLegacyFiles();
     }
 }

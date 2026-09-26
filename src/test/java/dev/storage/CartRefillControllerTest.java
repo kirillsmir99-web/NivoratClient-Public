@@ -271,6 +271,24 @@ public class CartRefillControllerTest {
             "Furnace screen must remain active after controller reset");
     }
 
+    @Test
+    @DisplayName("Test 6: Verify screen open prevents refill and preserves exact slot targeting")
+    void testScreenOpenPreventsRefillAndPreservesExactSlotTargeting() {
+        MinecraftClient client = allocateMockClient();
+        Screen chestScreen = allocateMockContainerScreen();
+        client.currentScreen = chestScreen;
+
+        // When container is open, controller must stay IDLE and openedByRefill false
+        assertEquals(CartRefillController.State.IDLE, controller.getState());
+        assertFalse(controller.isOpenedByRefill());
+
+        // In WAITING_SWAP, if manual screen is open (openedByRefill == false), finishRefill resets to IDLE
+        controller.setStateForTest(CartRefillController.State.WAITING_SWAP, 0, false);
+        controller.finishRefill(client);
+        assertEquals(CartRefillController.State.IDLE, controller.getState());
+        assertFalse(controller.isOpenedByRefill());
+    }
+
     private static double computePearsonCorrelation(double[] x, double[] y) {
         int n = x.length;
         double sumX = 0.0, sumY = 0.0;

@@ -48,12 +48,10 @@ public final class AnchorConfig {
                 chance = 85;
             }
         }
-        save();
     }
 
     public static void load() {
         if (!CONFIG_FILE.exists()) {
-            save();
             return;
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(CONFIG_FILE))) {
@@ -86,37 +84,10 @@ public final class AnchorConfig {
                     case "double_chain" -> doubleChain = Boolean.parseBoolean(value);
                 }
             }
-        } catch (Exception e) {
-            save();
+        } catch (Exception ignored) {
         }
     }
 
     public static void save() {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            return;
-        }
-        try {
-            File dir = CONFIG_FILE.getParentFile();
-            if (dir != null && !dir.exists()) {
-                dir.mkdirs();
-            }
-            try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
-                writer.write("enabled=" + enabled + "\n");
-                writer.write("mode=" + mode + "\n");
-                writer.write("auto_explode=" + autoExplode + "\n");
-                writer.write("auto_return=" + autoReturn + "\n");
-                writer.write("charge_delay_ticks=" + chargeDelayTicks + "\n");
-                writer.write("explode_delay_ticks=" + explodeDelayTicks + "\n");
-                writer.write("chance=" + chance + "\n");
-                writer.write("legit_mode=" + legitMode + "\n");
-                writer.write("target_charges=" + targetCharges + "\n");
-                writer.write("preset=" + preset + "\n");
-                writer.write("preset_double=" + presetDouble + "\n");
-                writer.write("double_delay_ticks=" + doubleDelayTicks + "\n");
-                writer.write("double_auto_explode=" + doubleAutoExplode + "\n");
-                writer.write("double_chain=" + doubleChain + "\n");
-            }
-        } catch (IOException ignored) {
-        }
     }
 }

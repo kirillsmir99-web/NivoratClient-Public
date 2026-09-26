@@ -46,21 +46,9 @@ public final class AutoToolConfig {
         } catch (Exception ignored) {
         }
         AutoToolConfig fallback = new AutoToolConfig();
-        fallback.save();
         return fallback;
     }
 
     public void save() {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            return;
-        }
-        try {
-            Path path = getConfigPath();
-            if (path.getParent() != null) {
-                Files.createDirectories(path.getParent());
-            }
-            Files.writeString(path, GSON.toJson(this));
-        } catch (Exception ignored) {
-        }
     }
 }

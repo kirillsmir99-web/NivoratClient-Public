@@ -153,7 +153,6 @@ public class NivoratHudEditorScreen extends Screen {
                 return true;
             }
 
-            // Arrow buttons
             if (mouseX >= btnUpX && mouseX <= btnUpX + btnUpW && mouseY >= btnUpY && mouseY <= btnUpY + btnUpH) {
                 nudge(0, -1);
                 SoundManager.playClick();
@@ -175,7 +174,6 @@ public class NivoratHudEditorScreen extends Screen {
                 return true;
             }
 
-            // Reset button
             if (mouseX >= btnResetX && mouseX <= btnResetX + btnResetW && mouseY >= btnResetY && mouseY <= btnResetY + btnResetH) {
                 ActivityConfig config = ActivityConfigManager.getConfig();
                 if (config != null) {
@@ -187,14 +185,12 @@ public class NivoratHudEditorScreen extends Screen {
                 return true;
             }
 
-            // Done button
             if (mouseX >= btnDoneX && mouseX <= btnDoneX + btnDoneW && mouseY >= btnDoneY && mouseY <= btnDoneY + btnDoneH) {
                 SoundManager.playClick();
                 close();
                 return true;
             }
 
-            // HUD drag click
             ActivityConfig config = ActivityConfigManager.getConfig();
             MinecraftClient mc = MinecraftClient.getInstance();
             if (mc != null && mc.textRenderer != null && config != null) {
@@ -265,7 +261,6 @@ public class NivoratHudEditorScreen extends Screen {
                 int newX = (int) Math.round(mouseX - dragOffsetX);
                 int newY = (int) Math.round(mouseY - dragOffsetY);
 
-                // Magnetic snap to edges
                 if (Math.abs(newX - 6) < 8) newX = 6;
                 if (Math.abs(newX + totalW - (width - 6)) < 8) newX = width - totalW - 6;
                 if (Math.abs(newY - 6) < 8) newY = 6;
@@ -314,7 +309,6 @@ public class NivoratHudEditorScreen extends Screen {
             int boxBg = (isDragging || isHovered) ? 0x880A0D14 : 0x440A0D14;
             ActivityGuiRenderer.drawPanel(context, currentX - 4, currentY - 4, totalW + 8, totalH + 8, boxBg, boxBorder, true);
 
-            // Render live watermark
             ActivityHudOverlay.renderHud(context, mc, config, currentX, currentY, totalW, width);
 
             if (isHovered || isDragging) {
@@ -329,7 +323,6 @@ public class NivoratHudEditorScreen extends Screen {
                 UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("X: " + currentX + "  Y: " + currentY), chipX + 13, chipY + 4, ActivityColors.TEXT_PRIMARY);
             }
 
-            // Draggable control panel
             ActivityGuiRenderer.drawWindowFrame(context, panelX, panelY, PANEL_W, PANEL_H, ActivityColors.WINDOW_BACKGROUND, ActivityColors.BORDER, true);
             ActivityGuiRenderer.fill(context, panelX + 1, panelY + 1, PANEL_W - 2, 26, ActivityColors.HEADER_BACKGROUND);
             ActivityGuiRenderer.drawGlassHighlight(context, panelX, panelY, PANEL_W, PANEL_H, 1.0f);
@@ -343,7 +336,6 @@ public class NivoratHudEditorScreen extends Screen {
             String posStr = (config != null && config.hudCustomX < 0 && config.hudCustomY < 0) ? "АВТО-ПОЗИЦИЯ" : ("X: " + currentX + " | Y: " + currentY);
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(posStr), panelX + PANEL_W / 2, panelY + 34, ActivityColors.ACCENT_LIGHT);
 
-            // Nudge arrow buttons
             int arrowSize = 16;
             int arrowCenterX = panelX + PANEL_W / 2;
             int arrowTopY = panelY + 46;
@@ -368,7 +360,6 @@ public class NivoratHudEditorScreen extends Screen {
             btnDownW = arrowSize;
             btnDownH = arrowSize;
 
-            // Render arrow buttons
             drawNudgeButton(context, btnUpX, btnUpY, btnUpW, btnUpH, "▲", mouseX, mouseY);
             drawNudgeButton(context, btnDownX, btnDownY, btnDownW, btnDownH, "▼", mouseX, mouseY);
             drawNudgeButton(context, btnLeftX, btnLeftY, btnLeftW, btnLeftH, "◄", mouseX, mouseY);

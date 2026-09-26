@@ -29,13 +29,14 @@ public class AutoCartModule extends NivoratModule {
                 .version("2.1.2")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)
-                .aliases("autocart", "cart", "вагонетка", "вагонетки", "автовагонетка", "авто-вагонетка", "автокарт", "авто-карт", "подрыв вагонеток", "подрыв", "тнт", "tnt", "delay", "задержка", "дистанция", "distance", "яма", "pit", "рельсы", "rails")
+                .aliases("autocart", "cart", "вагонетка", "вагонетки", "автовагонетка", "авто-вагонетка", "автокарт", "авто-карт", "подрыв вагонеток", "подрыв", "тнт", "tnt", "delay", "задержка", "дистанция", "distance", "яма", "pit", "рельсы", "rails", "камера", "camera", "автокамера", "плавная камера")
                 .build();
 
         registerEnum("preset", Text.translatable("activity.setting.defense.cart_preset"),
                 Text.translatable("activity.setting.defense.cart_preset.desc"), SettingGroup.GENERAL,
                 List.of("fast", "medium", "safe"), "medium",
                 opt -> Text.translatable("activity.dropdown.cart_preset." + opt),
+                opt -> Text.translatable("activity.dropdown.cart_preset." + opt + ".desc"),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     return c != null ? c.autoCartPreset : "medium";
@@ -46,6 +47,9 @@ public class AutoCartModule extends NivoratModule {
                         c.autoCartPreset = val;
                         double minD, maxD, chance, maxDist;
                         boolean pit, legit;
+                        String camMode;
+                        double camSmooth, camRetSmooth, camCurve, camRand;
+                        boolean camRet = true, camGcd = true;
                         if ("fast".equalsIgnoreCase(val)) {
                             minD = 40.0;
                             maxD = 60.0;
@@ -53,6 +57,11 @@ public class AutoCartModule extends NivoratModule {
                             maxDist = 4.5;
                             pit = true;
                             legit = false;
+                            camMode = "packet";
+                            camSmooth = 80.0;
+                            camRetSmooth = 80.0;
+                            camCurve = 20.0;
+                            camRand = 20.0;
                         } else if ("safe".equalsIgnoreCase(val)) {
                             minD = 120.0;
                             maxD = 180.0;
@@ -60,6 +69,11 @@ public class AutoCartModule extends NivoratModule {
                             maxDist = 4.2;
                             pit = true;
                             legit = true;
+                            camMode = "off";
+                            camSmooth = 180.0;
+                            camRetSmooth = 160.0;
+                            camCurve = 50.0;
+                            camRand = 50.0;
                         } else {
                             minD = 70.0;
                             maxD = 110.0;
@@ -67,6 +81,11 @@ public class AutoCartModule extends NivoratModule {
                             maxDist = 4.4;
                             pit = true;
                             legit = true;
+                            camMode = "auto";
+                            camSmooth = 140.0;
+                            camRetSmooth = 120.0;
+                            camCurve = 40.0;
+                            camRand = 35.0;
                         }
                         c.autoCartMinDelayMs = minD;
                         c.autoCartMaxDelayMs = maxD;
@@ -75,6 +94,14 @@ public class AutoCartModule extends NivoratModule {
                         c.autoCartAllowPitPlacement = pit;
                         c.autoCartRandomDelay = true;
                         c.autoCartLegitMode = legit;
+                        c.autoCartCameraMode = camMode;
+                        c.autoCartAutoCamera = "auto".equalsIgnoreCase(camMode);
+                        c.autoCartCameraSmoothness = camSmooth;
+                        c.autoCartCameraReturn = camRet;
+                        c.autoCartCameraReturnSmoothness = camRetSmooth;
+                        c.autoCartCameraCurve = camCurve;
+                        c.autoCartCameraRandomness = camRand;
+                        c.autoCartCameraMouseGcd = camGcd;
 
                         updateNumberSetting("min_delay", minD);
                         updateNumberSetting("max_delay", maxD);
@@ -82,9 +109,19 @@ public class AutoCartModule extends NivoratModule {
                         updateNumberSetting("max_distance", maxDist);
                         updateBooleanSetting("allow_pit_placement", pit);
                         updateBooleanSetting("legit_mode", legit);
+                        updateEnumSetting("camera_mode", camMode);
+                        updateNumberSetting("camera_smoothness", camSmooth);
+                        updateBooleanSetting("camera_return", camRet);
+                        updateNumberSetting("camera_return_smoothness", camRetSmooth);
+                        updateNumberSetting("camera_curve", camCurve);
+                        updateNumberSetting("camera_randomness", camRand);
+                        updateBooleanSetting("camera_mouse_gcd", camGcd);
 
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
+                        if ("fast".equalsIgnoreCase(val) || "medium".equalsIgnoreCase(val)) {
+                            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_camera_beta_warning"));
+                        }
                     }
                 }
         );
@@ -174,6 +211,131 @@ public class AutoCartModule extends NivoratModule {
                 }
         );
 
+        registerEnum("camera_mode", Text.translatable("activity.setting.defense.cart_camera_mode"),
+                Text.translatable("activity.setting.defense.cart_camera_mode.desc"), SettingGroup.BEHAVIOR,
+                List.of("off", "packet", "auto"), "off",
+                opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt),
+                opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt + ".desc"),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoCartCameraMode : "off";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartCameraMode = val;
+                        c.autoCartAutoCamera = "auto".equalsIgnoreCase(val);
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                        if ("packet".equalsIgnoreCase(val) || "auto".equalsIgnoreCase(val)) {
+                            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_camera_beta_warning"));
+                        }
+                    }
+                }
+        );
+
+        registerNumber("camera_smoothness", Text.translatable("activity.setting.defense.cart_camera_smoothness"),
+                Text.translatable("activity.setting.defense.cart_camera_smoothness.desc"), SettingGroup.BEHAVIOR,
+                50.0, 300.0, 5.0, " ms", true, 140.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoCartCameraSmoothness : 140.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartCameraSmoothness = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("camera_return", Text.translatable("activity.setting.defense.cart_camera_return"),
+                Text.translatable("activity.setting.defense.cart_camera_return.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoCartCameraReturn;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartCameraReturn = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerNumber("camera_return_smoothness", Text.translatable("activity.setting.defense.cart_camera_return_smoothness"),
+                Text.translatable("activity.setting.defense.cart_camera_return_smoothness.desc"), SettingGroup.BEHAVIOR,
+                50.0, 300.0, 5.0, " ms", true, 120.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoCartCameraReturnSmoothness : 120.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartCameraReturnSmoothness = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerNumber("camera_curve", Text.translatable("activity.setting.defense.cart_camera_curve"),
+                Text.translatable("activity.setting.defense.cart_camera_curve.desc"), SettingGroup.BEHAVIOR,
+                0.0, 100.0, 5.0, "%", true, 40.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoCartCameraCurve : 40.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartCameraCurve = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerNumber("camera_randomness", Text.translatable("activity.setting.defense.cart_camera_randomness"),
+                Text.translatable("activity.setting.defense.cart_camera_randomness.desc"), SettingGroup.BEHAVIOR,
+                0.0, 100.0, 5.0, "%", true, 35.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoCartCameraRandomness : 35.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartCameraRandomness = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("camera_mouse_gcd", Text.translatable("activity.setting.defense.cart_camera_mouse_gcd"),
+                Text.translatable("activity.setting.defense.cart_camera_mouse_gcd.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoCartCameraMouseGcd;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartCameraMouseGcd = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerBoolean("allow_self_cart", Text.translatable("activity.setting.defense.allow_self_cart"),
                 Text.translatable("activity.setting.defense.allow_self_cart.desc"), SettingGroup.EXTRA,
                 false,
@@ -254,6 +416,14 @@ public class AutoCartModule extends NivoratModule {
         MorrowConfig.useMainhandCart = c.autoCartUseMainHand;
         MorrowConfig.randomDelay = c.autoCartRandomDelay;
         MorrowConfig.legitMode = c.autoCartLegitMode;
+        MorrowConfig.cameraMode = c.autoCartCameraMode != null ? c.autoCartCameraMode : "off";
+        MorrowConfig.autoCamera = c.autoCartAutoCamera;
+        MorrowConfig.cameraSmoothnessMs = (int) Math.round(c.autoCartCameraSmoothness);
+        MorrowConfig.cameraReturn = c.autoCartCameraReturn;
+        MorrowConfig.cameraReturnSmoothnessMs = (int) Math.round(c.autoCartCameraReturnSmoothness);
+        MorrowConfig.cameraCurve = (int) Math.round(c.autoCartCameraCurve);
+        MorrowConfig.cameraRandomness = (int) Math.round(c.autoCartCameraRandomness);
+        MorrowConfig.cameraMouseGcd = c.autoCartCameraMouseGcd;
 
         if ("safe".equals(c.autoCartPreset)) {
             MorrowConfig.preset = MorrowConfig.PRESET_SAFE;
@@ -275,6 +445,9 @@ public class AutoCartModule extends NivoratModule {
         if (c != null) {
             c.autoCartEnabled = enabled;
             ActivityConfigManager.markDirty();
+            if (enabled && ("packet".equalsIgnoreCase(c.autoCartCameraMode) || "auto".equalsIgnoreCase(c.autoCartCameraMode))) {
+                activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_camera_beta_warning"));
+            }
         }
         if (controller.isEnabled() != enabled) {
             controller.toggle();
@@ -323,6 +496,13 @@ public class AutoCartModule extends NivoratModule {
         activity.client.module.setting.Setting<?> s = getSetting(id);
         if (s instanceof activity.client.module.setting.BooleanSetting bs) {
             bs.set(val);
+        }
+    }
+
+    private void updateEnumSetting(String id, String val) {
+        activity.client.module.setting.Setting<?> s = getSetting(id);
+        if (s instanceof activity.client.module.setting.EnumSetting es) {
+            es.set(val);
         }
     }
 }

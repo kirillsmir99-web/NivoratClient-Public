@@ -948,7 +948,7 @@ public class ActivityScreen extends Screen {
             if (!isAnimating && !isMaximizeAnimating && this.controlButtons != null) {
                 this.controlButtons.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
-            if (!isAnimating && !isMaximizeAnimating && this.currentScrollContainer != null) {
+            if (!isAnimating && !isMaximizeAnimating && this.currentScrollContainer != null && !this.overlayManager.hasActiveOverlay()) {
                 this.currentScrollContainer.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
 

@@ -140,4 +140,52 @@ public final class ActivityClientPlayNetworkHandlerMixin {
             AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.text().getString());
         }
     }
+
+    @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true)
+    private void activity$onSendChatMessage(String content, CallbackInfo ci) {
+        if (content != null && content.startsWith("/")) {
+            if (activity$executeMenuCommand(content)) {
+                ci.cancel();
+            }
+        }
+    }
+
+    @Inject(method = "sendChatCommand", at = @At("HEAD"), cancellable = true)
+    private void activity$onSendChatCommand(String command, CallbackInfo ci) {
+        if (activity$executeMenuCommand(command)) {
+            ci.cancel();
+        }
+    }
+
+    private boolean activity$executeMenuCommand(String command) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return false;
+        }
+        if (command == null) return false;
+        String clean = command.trim();
+        if (clean.startsWith("/")) clean = clean.substring(1).trim();
+        String activeCmd = activity.client.config.ActivityConfigManager.getConfig() != null
+                ? activity.client.config.ActivityConfigManager.getConfig().menuCommand
+                : "nt";
+        if (activeCmd == null || activeCmd.isBlank()) activeCmd = "nt";
+        if (activeCmd.startsWith("/")) activeCmd = activeCmd.substring(1).trim();
+
+        if (clean.equalsIgnoreCase(activeCmd)) {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null) {
+                mc.send(() -> {
+                    try {
+                        mc.setScreen(new activity.client.gui.ActivityScreen());
+                    } catch (Throwable t) {
+                        try {
+                            activity.client.gui.ActivityScreen.clearSession();
+                            mc.setScreen(new activity.client.gui.ActivityScreen());
+                        } catch (Throwable ignored) {}
+                    }
+                });
+            }
+            return true;
+        }
+        return false;
+    }
 }

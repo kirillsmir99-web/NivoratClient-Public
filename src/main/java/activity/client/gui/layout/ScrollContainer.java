@@ -729,7 +729,7 @@ public class ScrollContainer extends ActivityComponent {
             ActivityComponent comp = entry.getComponent();
             if (comp.isVisible() && comp.isMouseOver(mouseX, mouseY)) {
                 if (comp.getTooltip() != null) {
-                    context.drawTooltip(textRenderer, activity.client.gui.font.FontManager.wrap(comp.getTooltip()), mouseX, mouseY);
+                    context.drawOrderedTooltip(textRenderer, textRenderer.wrapLines(activity.client.gui.font.FontManager.wrap(comp.getTooltip()), 200), mouseX, mouseY);
                     return;
                 }
             }

@@ -11,6 +11,7 @@ public final class CombatLockManager {
     public static final String SPEAR          = "pvp.spear_active";
     public static final String TOTEM          = "pvp.totem_active";
     public static final String PEARL_CATCH    = "pvp.pearl_catch_active";
+    public static final String INVENTORY_ACTION = "pvp.inventory_action_active";
 
     private static final int MASK_SHIELD_COMBO   = 1 << 0;
     private static final int MASK_SUNDER         = 1 << 1;
@@ -20,6 +21,7 @@ public final class CombatLockManager {
     private static final int MASK_SPEAR          = 1 << 5;
     private static final int MASK_TOTEM          = 1 << 6;
     private static final int MASK_PEARL_CATCH    = 1 << 7;
+    private static final int MASK_INVENTORY_ACTION = 1 << 8;
 
     private static final AtomicInteger LOCK_MASK = new AtomicInteger(0);
 
@@ -88,6 +90,7 @@ public final class CombatLockManager {
         System.clearProperty("pvp.spear_active");
         System.clearProperty("pvp.totem_active");
         System.clearProperty("pvp.pearl_catch_active");
+        System.clearProperty("pvp.inventory_action_active");
     }
 
     private static int getBitForKey(String key) {
@@ -100,6 +103,7 @@ public final class CombatLockManager {
             case "pvp.spear_active" -> MASK_SPEAR;
             case "pvp.totem_active" -> MASK_TOTEM;
             case "pvp.pearl_catch_active" -> MASK_PEARL_CATCH;
+            case "pvp.inventory_action_active" -> MASK_INVENTORY_ACTION;
             default -> 0;
         };
     }

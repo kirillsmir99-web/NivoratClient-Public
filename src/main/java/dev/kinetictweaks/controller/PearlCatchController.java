@@ -16,6 +16,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
@@ -61,6 +62,7 @@ public final class PearlCatchController {
     private long pearlThrowTimeMs = 0L;
     private long windThrowTimeMs = 0L;
     private long lastTriggerTime = 0L;
+    private int stateLifetimeTicks = 0;
     public static final long COOLDOWN_MS = 0L;
 
     public static PearlCatchController getInstance() {
@@ -104,12 +106,20 @@ public final class PearlCatchController {
             return;
         }
 
+        long now = System.currentTimeMillis();
+        if (state != State.IDLE && (now - lastTriggerTime > 1200L || stateLifetimeTicks > 25)) {
+            reset();
+        }
+
+        if (CombatLockManager.isLocked(CombatLockManager.PEARL_CATCH) && state == State.IDLE) {
+            CombatLockManager.setLock(CombatLockManager.PEARL_CATCH, false);
+        }
+
         boolean isCleanupState = (state == State.POST_THROW_HOLD || state == State.ROTATING_BACK || state == State.RESTORE_SLOT);
         if (state != State.IDLE && !isCleanupState) {
             return;
         }
 
-        long now = System.currentTimeMillis();
         if (now - lastTriggerTime < COOLDOWN_MS) {
             return;
         }
@@ -219,8 +229,16 @@ public final class PearlCatchController {
 
     public void onTick(MinecraftClient client) {
         if (state == State.IDLE) {
+            stateLifetimeTicks = 0;
             return;
         }
+
+        stateLifetimeTicks++;
+        if (stateLifetimeTicks > 30) {
+            reset();
+            return;
+        }
+
         if (client == null || client.player == null || client.world == null || client.interactionManager == null || !client.player.isAlive()) {
             reset();
             return;
@@ -240,7 +258,10 @@ public final class PearlCatchController {
         boolean legit = config.autoPearlCatchLegitMode;
 
         if (state == State.ROTATING_TO_PEARL) {
-            if (!cameraInterpolator.isActive()) {
+            if (!cameraInterpolator.isActive() || stateLifetimeTicks >= 10) {
+                if (cameraInterpolator.isActive()) {
+                    cameraInterpolator.finalizeInterpolation(client, pearlPitch, initialYaw);
+                }
                 state = State.THROW_PEARL;
             }
             return;
@@ -339,7 +360,10 @@ public final class PearlCatchController {
         }
 
         if (state == State.ROTATING_BACK) {
-            if (!cameraInterpolator.isActive()) {
+            if (!cameraInterpolator.isActive() || stateLifetimeTicks >= 25) {
+                if (cameraInterpolator.isActive()) {
+                    cameraInterpolator.finalizeInterpolation(client, initialPitch, initialYaw);
+                }
                 if (config.autoPearlCatchRestoreSlot && initialSlot >= 0 && initialSlot < 9 && initialSlot != client.player.getInventory().getSelectedSlot()) {
                     state = State.RESTORE_SLOT;
                 } else {
@@ -475,6 +499,7 @@ public final class PearlCatchController {
         holdTicksRemaining = 0;
         pearlThrowTimeMs = 0L;
         windThrowTimeMs = 0L;
+        stateLifetimeTicks = 0;
         CombatLockManager.setLock(CombatLockManager.PEARL_CATCH, false);
     }
 }

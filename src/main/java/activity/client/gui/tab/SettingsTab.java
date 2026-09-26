@@ -121,7 +121,7 @@ public class SettingsTab extends ActivityTab {
         int col1Y = startY;
         int col2Y = startY;
 
-        int rows1 = 6;
+        int rows1 = 8;
         int card1Height = 22 + rows1 * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         int card1X = col1X;
         int innerStartX1 = card1X + ActivityMetrics.PADDING_PANEL;
@@ -145,6 +145,49 @@ public class SettingsTab extends ActivityTab {
         );
         addControl(container, labelMenuKey);
         addControl(container, btnMenuKey);
+
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        ActivityLabel labelMenuCmd = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.menu_command"));
+        labelMenuCmd.setMaxWidth(Math.max(20, innerRowW - keybindW - 6));
+        String cmdDisplay = "/" + (config.menuCommand != null && !config.menuCommand.isBlank() ? config.menuCommand : "nt");
+        ActivityButton btnMenuCmd = new ActivityButton(
+            innerStartX1 + innerRowW - keybindW, rowY, keybindW, ActivityMetrics.CONTROL_HEIGHT,
+            Text.literal(cmdDisplay),
+            ActivityButton.Variant.SECONDARY,
+            btn -> {
+                screen.getModalManager().showTextInput(
+                    Text.translatable("activity.modal.menu_command.title"),
+                    Text.translatable("activity.modal.menu_command.desc"),
+                    Text.literal("nt"),
+                    config.menuCommand != null && !config.menuCommand.isBlank() ? config.menuCommand : "nt",
+                    cmd -> {
+                        if (cmd == null) return false;
+                        String clean = cmd.trim();
+                        if (clean.startsWith("/")) clean = clean.substring(1).trim();
+                        if (clean.isEmpty() || clean.length() > 32) return false;
+                        for (int i = 0; i < clean.length(); i++) {
+                            char c = clean.charAt(i);
+                            if (Character.isWhitespace(c) || c == '/' || c == '\\' || Character.isISOControl(c)) return false;
+                        }
+                        return true;
+                    },
+                    newCmd -> {
+                        String clean = newCmd.trim();
+                        if (clean.startsWith("/")) clean = clean.substring(1).trim();
+                        if (clean.isEmpty()) clean = "nt";
+                        config.menuCommand = clean;
+                        ActivityConfigManager.markDirty();
+                        ActivityConfigManager.save();
+                        screen.reloadCurrentTab();
+                    },
+                    null
+                );
+            }
+        );
+        btnMenuCmd.setTooltip(Text.translatable("activity.setting.interface.menu_command.tooltip"));
+        btnMenuCmd.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
+        addControl(container, labelMenuCmd);
+        addControl(container, btnMenuCmd);
 
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelFont = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.font_family"));

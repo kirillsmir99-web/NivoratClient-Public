@@ -109,6 +109,7 @@ public final class AutoToolEngine {
             AutoToolConfig config = AutoToolClient.CONFIG;
             if (!config.enabled || !config.weaponSwitch) return;
             if (client.player.isCreative() || client.player.isSpectator()) return;
+            if (isWeapon(client.player.getMainHandStack())) return;
 
             Entity target = entity;
             if (target == null) {
@@ -125,6 +126,7 @@ public final class AutoToolEngine {
     private static void checkCombatTarget(MinecraftClient client, AutoToolConfig config, long now) {
         if (!config.enabled || !config.weaponSwitch) return;
         if (client.player == null || client.player.isCreative() || client.player.isSpectator()) return;
+        if (isWeapon(client.player.getMainHandStack())) return;
         if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
 
         Entity target = client.targetedEntity;

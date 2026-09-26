@@ -138,18 +138,14 @@ public final class DevLoginScreen extends Screen {
         boolean glassGlow = successBorder || errorBorder;
         ActivityGuiRenderer.drawPanel(context, left, top, boxW, boxH, 0xF511141C, borderColor, glassGlow);
 
-        // Header
         UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("РЕЖИМ РАЗРАБОТЧИКА"), left + boxW / 2, top + 12, ActivityColors.ACCENT_PRIMARY);
         UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal("Nivorat Dev — Авторизация"), left + boxW / 2, top + 24, ActivityColors.TEXT_MUTED);
 
-        // Separator line
         context.fill(left + 16, top + 36, left + boxW - 16, top + 37, 0x25FFFFFF);
 
-        // Labels
         UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Логин:"), left + 16, top + 42, ActivityColors.TEXT_SECONDARY);
         UiTextRenderer.drawTextWithShadow(context, textRenderer, Text.literal("Пароль:"), left + 16, top + 82, ActivityColors.TEXT_SECONDARY);
 
-        // Render input fields
         if (usernameField != null) {
             usernameField.render(context, mouseX, mouseY, deltaTicks);
         }
@@ -157,12 +153,10 @@ public final class DevLoginScreen extends Screen {
             passwordField.render(context, mouseX, mouseY, deltaTicks);
         }
 
-        // Status text
         if (status != null && !status.isEmpty()) {
             UiTextRenderer.drawCenteredTextWithShadow(context, textRenderer, Text.literal(status), left + boxW / 2, top + 124, statusColor);
         }
 
-        // Render buttons
         for (ActivityButton btn : buttons) {
             btn.render(context, mouseX, mouseY, deltaTicks);
         }

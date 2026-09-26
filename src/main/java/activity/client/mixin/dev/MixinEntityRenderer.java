@@ -22,10 +22,12 @@ public abstract class MixinEntityRenderer<T extends Entity, S extends EntityRend
             return;
         }
         if (entity instanceof PlayerEntity player && state != null && state.displayName != null) {
-            String name = player.getNameForScoreboard();
-            if (DevPeerTracker.isPeer(name)) {
-                state.displayName = DevBadgeText.prefix(state.displayName);
-            }
+            try {
+                String name = player.getNameForScoreboard();
+                if (DevPeerTracker.isPeer(name)) {
+                    state.displayName = DevBadgeText.prefix(state.displayName);
+                }
+            } catch (Throwable ignored) {}
         }
     }
 }

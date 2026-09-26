@@ -34,7 +34,7 @@ public class AutoPearlCatchModule extends NivoratModule {
                 .aliases("pearlcatch", "pearl_catch", "autopearlcatch", "pearl", "эндерперл", "перл", "пёрл", "перлкэтч", "windcharge", "ветер", "заряд ветра", "катч", "catch")
                 .build();
 
-        registerEnum("mode", Text.translatable("activity.setting.combat.pearl_catch_mode"),
+        var modeSetting = registerEnum("mode", Text.translatable("activity.setting.combat.pearl_catch_mode"),
                 Text.translatable("activity.setting.combat.pearl_catch_mode.desc"), SettingGroup.GENERAL,
                 List.of("semi_auto", "full_auto"), "semi_auto",
                 opt -> Text.translatable("activity.dropdown.pearl_catch_mode." + opt),
@@ -50,6 +50,28 @@ public class AutoPearlCatchModule extends NivoratModule {
                     }
                 }
         );
+
+        registerKeybind("throw_keybind",
+                Text.translatable("activity.setting.combat.pearl_catch_throw_keybind"),
+                Text.translatable("activity.setting.combat.pearl_catch_throw_keybind.desc"),
+                SettingGroup.GENERAL,
+                new Keybind(GLFW.GLFW_KEY_V, false, false, false),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoPearlCatchThrowKeybind : new Keybind(GLFW.GLFW_KEY_V);
+                },
+                kb -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoPearlCatchThrowKeybind.copyFrom(kb);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).onPress(client -> {
+            if (isEnabled()) {
+                controller.trigger(client, PearlCatchController.Mode.VERTICAL);
+            }
+        }).visibleWhen(modeSetting, "semi_auto");
 
         registerKeybind("action_keybind",
                 Text.translatable("activity.setting.combat.pearl_catch_action_keybind"),
@@ -71,7 +93,7 @@ public class AutoPearlCatchModule extends NivoratModule {
             if (isEnabled()) {
                 controller.trigger(client, PearlCatchController.Mode.VERTICAL);
             }
-        });
+        }).visibleWhen(modeSetting, "full_auto");
 
         registerKeybind("horizontal_keybind",
                 Text.translatable("activity.setting.combat.pearl_catch_horizontal_keybind"),
@@ -93,7 +115,7 @@ public class AutoPearlCatchModule extends NivoratModule {
             if (isEnabled()) {
                 controller.trigger(client, PearlCatchController.Mode.HORIZONTAL);
             }
-        });
+        }).visibleWhen(modeSetting, "full_auto");
 
         registerNumber("throw_delay", Text.translatable("activity.setting.combat.throw_delay"),
                 Text.translatable("activity.setting.combat.throw_delay.desc"), SettingGroup.BEHAVIOR,
@@ -125,7 +147,7 @@ public class AutoPearlCatchModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(modeSetting, "full_auto");
 
         registerNumber("horizontal_offset", Text.translatable("activity.setting.combat.horizontal_offset"),
                 Text.translatable("activity.setting.combat.horizontal_offset.desc"), SettingGroup.BEHAVIOR,
@@ -141,7 +163,7 @@ public class AutoPearlCatchModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(modeSetting, "full_auto");
 
         registerBoolean("restore_slot", Text.translatable("activity.setting.combat.restore_slot"),
                 Text.translatable("activity.setting.combat.restore_slot.desc"), SettingGroup.BEHAVIOR,
@@ -173,7 +195,7 @@ public class AutoPearlCatchModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(modeSetting, "full_auto");
 
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_jitter"),
                 Text.translatable("activity.setting.combat.random_jitter.desc"), SettingGroup.BEHAVIOR,
@@ -205,7 +227,7 @@ public class AutoPearlCatchModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(modeSetting, "full_auto");
     }
 
     public PearlCatchController getController() {

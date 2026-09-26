@@ -620,12 +620,14 @@ public final class AutoTotemController {
     }
 
     private void startRefill(MinecraftClient client, int targetHotbar) {
+        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, true);
         refillTargetHotbarSlot = targetHotbar;
         timer = 1;
         state = State.REFILL_WAIT_OPEN;
     }
 
     private void finishRefill(MinecraftClient client) {
+        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, false);
         if (client != null && openedByRefill && client.currentScreen instanceof InventoryScreen) {
             if (client.player != null) {
                 client.player.closeHandledScreen();
@@ -833,6 +835,7 @@ public final class AutoTotemController {
         refillTargetHotbarSlot = -1;
         refillInvSlot = -1;
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
+        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, false);
     }
 
     private int findPreferredWeaponSlot(ClientPlayerEntity player) {

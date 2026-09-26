@@ -60,7 +60,12 @@ public final class PearlCatchTrajectory {
                 nominalPearlPitch - 1.0f,
                 nominalPearlPitch + 1.0f,
                 nominalPearlPitch - 2.0f,
-                nominalPearlPitch + 2.0f
+                nominalPearlPitch + 2.0f,
+                nominalPearlPitch - 4.0f,
+                nominalPearlPitch + 4.0f,
+                -20.0f,
+                -15.0f,
+                -10.0f
         };
 
         float bestPearlPitch = nominalPearlPitch;

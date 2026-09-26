@@ -136,7 +136,7 @@ public final class RedstoneTickEngine {
 
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         try {
-            if (!world.isClient() || !(entity instanceof LivingEntity target)) {
+            if (world == null || !world.isClient() || !(entity instanceof LivingEntity target)) {
                 return ActionResult.PASS;
             }
 
@@ -209,21 +209,25 @@ public final class RedstoneTickEngine {
                 return ActionResult.PASS;
             }
 
-            if (clientPlayer.isOnGround() || clientPlayer.verticalCollision || clientPlayer.isTouchingWater() || clientPlayer.isClimbing() || clientPlayer.hasVehicle()) {
+            boolean inCobweb = isInCobweb(clientPlayer);
+            if (clientPlayer.isOnGround() || clientPlayer.verticalCollision || clientPlayer.isTouchingWater() || clientPlayer.isClimbing() || clientPlayer.hasVehicle() || inCobweb) {
                 airTicks = 0;
                 lastOnGroundTimeMs = System.currentTimeMillis();
             }
 
-            long airDurationMs = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision)
+            long airDurationMs = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision && !inCobweb)
                     ? (System.currentTimeMillis() - lastOnGroundTimeMs)
                     : 0L;
 
-            boolean isHighFallDensity = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision)
+            boolean isCrit = (!clientPlayer.isOnGround() && !clientPlayer.verticalCollision)
                     && !clientPlayer.isTouchingWater()
                     && !clientPlayer.isClimbing()
-                    && (airDurationMs >= 600L || airTicks >= 12);
+                    && !inCobweb
+                    && clientPlayer.getVelocity().y < 0.0D;
 
-            if (RedstoneOptimizerConfig.enchantMode == RedstoneOptimizerConfig.ENCHANT_DENSITY_ONLY && !isHighFallDensity) {
+            boolean isHighFallDensity = (airTicks >= 20 || airDurationMs >= 1000L);
+
+            if (RedstoneOptimizerConfig.enchantMode == RedstoneOptimizerConfig.ENCHANT_DENSITY_ONLY && !isCrit) {
                 return ActionResult.PASS;
             }
 
@@ -258,7 +262,7 @@ public final class RedstoneTickEngine {
             clientTick++;
 
             ClientPlayerEntity player = client.player;
-            if (player.isOnGround() || player.verticalCollision || player.isTouchingWater() || player.isClimbing() || player.hasVehicle()) {
+            if (player.isOnGround() || player.verticalCollision || player.isTouchingWater() || player.isClimbing() || player.hasVehicle() || isInCobweb(player)) {
                 airTicks = 0;
                 lastOnGroundTimeMs = System.currentTimeMillis();
             } else {
@@ -364,11 +368,34 @@ public final class RedstoneTickEngine {
         ensureFullAttackCharge(player);
     }
 
+    private static boolean isInCobweb(ClientPlayerEntity player) {
+        if (player == null || player.getEntityWorld() == null) return false;
+        try {
+            Box box = player.getBoundingBox();
+            net.minecraft.util.math.BlockPos min = net.minecraft.util.math.BlockPos.ofFloored(box.minX, box.minY, box.minZ);
+            net.minecraft.util.math.BlockPos max = net.minecraft.util.math.BlockPos.ofFloored(box.maxX, box.maxY, box.maxZ);
+            for (net.minecraft.util.math.BlockPos pos : net.minecraft.util.math.BlockPos.iterate(min, max)) {
+                if (player.getEntityWorld().getBlockState(pos).isOf(net.minecraft.block.Blocks.COBWEB)) {
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
     private boolean isAllowedSourceItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return false;
         }
-        return stack.isIn(ItemTags.SWORDS) || stack.isIn(ItemTags.AXES);
+        boolean isSword = stack.isIn(ItemTags.SWORDS);
+        boolean isAxe = stack.isIn(ItemTags.AXES);
+        if (RedstoneOptimizerConfig.sourceMode == RedstoneOptimizerConfig.MODE_SWORD_ONLY) {
+            return isSword;
+        }
+        if (RedstoneOptimizerConfig.sourceMode == RedstoneOptimizerConfig.MODE_AXE_ONLY) {
+            return isAxe;
+        }
+        return isSword || isAxe;
     }
 
     private int findBestMaceSlot(ClientPlayerEntity player, int currentSlot, boolean isHighFallDensity) {
@@ -416,8 +443,7 @@ public final class RedstoneTickEngine {
         }
 
         if (mode == RedstoneOptimizerConfig.ENCHANT_DENSITY_ONLY) {
-
-            if (densityLevel <= 0 || !isHighFallDensity) {
+            if (densityLevel <= 0) {
                 return -1;
             }
             int score = 10000 + densityLevel * 2000 + breachLevel * 100 + windBurstLevel * 50;
@@ -428,7 +454,6 @@ public final class RedstoneTickEngine {
         }
 
         if (isHighFallDensity) {
-
             if (densityLevel > 0) {
                 int score = 10000 + densityLevel * 2000 + breachLevel * 100 + windBurstLevel * 50;
                 if (stack.isDamageable()) {
@@ -436,25 +461,29 @@ public final class RedstoneTickEngine {
                 }
                 return score;
             } else if (breachLevel > 0) {
-                int score = 5000 + breachLevel * 500 + windBurstLevel * 50;
+                int score = 6000 + breachLevel * 500 + windBurstLevel * 50;
                 if (stack.isDamageable()) {
                     score += (stack.getMaxDamage() - stack.getDamage()) / 10;
                 }
                 return score;
             } else {
-                return 2000;
+                return 3000 + windBurstLevel * 50;
             }
         } else {
-
             if (breachLevel > 0) {
                 int score = 10000 + breachLevel * 2000 + densityLevel * 100 + windBurstLevel * 50;
                 if (stack.isDamageable()) {
                     score += (stack.getMaxDamage() - stack.getDamage()) / 10;
                 }
                 return score;
+            } else if (densityLevel > 0) {
+                int score = 7000 + densityLevel * 1000 + windBurstLevel * 50;
+                if (stack.isDamageable()) {
+                    score += (stack.getMaxDamage() - stack.getDamage()) / 10;
+                }
+                return score;
             } else {
-
-                return -1;
+                return 3000 + windBurstLevel * 50;
             }
         }
     }
@@ -513,9 +542,12 @@ public final class RedstoneTickEngine {
         ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
         if (ench != null) {
             for (var entry : ench.getEnchantmentEntries()) {
-                if (entry.getKey().matchesKey(Enchantments.BREACH) && entry.getIntValue() > 0) {
-                    return entry.getIntValue();
-                }
+                if (entry == null || entry.getKey() == null) continue;
+                try {
+                    if (entry.getKey().matchesKey(Enchantments.BREACH) && entry.getIntValue() > 0) {
+                        return entry.getIntValue();
+                    }
+                } catch (Throwable ignored) {}
                 String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_BREACH) || id.contains(S_PROBITIE)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
@@ -554,9 +586,12 @@ public final class RedstoneTickEngine {
         ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
         if (ench != null) {
             for (var entry : ench.getEnchantmentEntries()) {
-                if (entry.getKey().matchesKey(Enchantments.DENSITY) && entry.getIntValue() > 0) {
-                    return entry.getIntValue();
-                }
+                if (entry == null || entry.getKey() == null) continue;
+                try {
+                    if (entry.getKey().matchesKey(Enchantments.DENSITY) && entry.getIntValue() > 0) {
+                        return entry.getIntValue();
+                    }
+                } catch (Throwable ignored) {}
                 String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_DENSITY) || id.contains(S_PLOTNOST)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
@@ -597,9 +632,12 @@ public final class RedstoneTickEngine {
         ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
         if (ench != null) {
             for (var entry : ench.getEnchantmentEntries()) {
-                if (entry.getKey().matchesKey(Enchantments.WIND_BURST) && entry.getIntValue() > 0) {
-                    return entry.getIntValue();
-                }
+                if (entry == null || entry.getKey() == null) continue;
+                try {
+                    if (entry.getKey().matchesKey(Enchantments.WIND_BURST) && entry.getIntValue() > 0) {
+                        return entry.getIntValue();
+                    }
+                } catch (Throwable ignored) {}
                 String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_WIND_BURST) || id.contains(S_VETROVOY)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
@@ -758,9 +796,12 @@ public final class RedstoneTickEngine {
         ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
         if (ench != null) {
             for (var entry : ench.getEnchantmentEntries()) {
-                if (entry.getKey().matchesKey(Enchantments.SHARPNESS) && entry.getIntValue() > 0) {
-                    return entry.getIntValue();
-                }
+                if (entry == null || entry.getKey() == null) continue;
+                try {
+                    if (entry.getKey().matchesKey(Enchantments.SHARPNESS) && entry.getIntValue() > 0) {
+                        return entry.getIntValue();
+                    }
+                } catch (Throwable ignored) {}
                 String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(S_SHARPNESS) || id.contains(S_OSTROTA)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
@@ -801,9 +842,12 @@ public final class RedstoneTickEngine {
         ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
         if (ench != null) {
             for (var entry : ench.getEnchantmentEntries()) {
-                if (entry.getKey().matchesKey(key) && entry.getIntValue() > 0) {
-                    return entry.getIntValue();
-                }
+                if (entry == null || entry.getKey() == null) continue;
+                try {
+                    if (entry.getKey().matchesKey(key) && entry.getIntValue() > 0) {
+                        return entry.getIntValue();
+                    }
+                } catch (Throwable ignored) {}
                 String id = getSafeEnchantmentId(entry.getKey());
                 if ((id.contains(idKeyword) || id.contains(ruKeyword)) && entry.getIntValue() > 0) {
                     return entry.getIntValue();
@@ -827,6 +871,7 @@ public final class RedstoneTickEngine {
         swapStartTick = -1;
         ticksSinceAttack = 0;
         airTicks = 0;
+        lastOnGroundTimeMs = System.currentTimeMillis();
         maceActive = false;
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.mace_active", false);
     }

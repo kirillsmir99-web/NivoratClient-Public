@@ -91,13 +91,20 @@ public class AutoPearlCatchModuleTest {
 
         assertNull(module.getSetting("direction"), "Direction setting must be hidden");
 
+        KeybindSetting throwKb = (KeybindSetting) module.getSetting("throw_keybind");
+        assertNotNull(throwKb);
+        assertEquals(GLFW.GLFW_KEY_V, throwKb.get().getKeyCode());
+        assertTrue(throwKb.isVisible(), "throw_keybind must be visible in semi_auto mode");
+
         KeybindSetting actionKb = (KeybindSetting) module.getSetting("action_keybind");
         assertNotNull(actionKb);
         assertEquals(GLFW.GLFW_KEY_V, actionKb.get().getKeyCode());
+        assertFalse(actionKb.isVisible(), "action_keybind must be hidden in semi_auto mode");
 
         KeybindSetting horKb = (KeybindSetting) module.getSetting("horizontal_keybind");
         assertNotNull(horKb);
         assertEquals(GLFW.GLFW_KEY_C, horKb.get().getKeyCode());
+        assertFalse(horKb.isVisible(), "horizontal_keybind must be hidden in semi_auto mode");
 
         NumberSetting throwDelay = (NumberSetting) module.getSetting("throw_delay");
         assertNotNull(throwDelay);
@@ -157,6 +164,7 @@ public class AutoPearlCatchModuleTest {
         config.autoPearlCatchHorizontalOffset = 12.5;
         config.autoPearlCatchActionKeybind = new Keybind(GLFW.GLFW_KEY_X, true, false, false);
         config.autoPearlCatchHorizontalKeybind = new Keybind(GLFW.GLFW_KEY_Z, false, true, false);
+        config.autoPearlCatchThrowKeybind = new Keybind(GLFW.GLFW_KEY_B, true, false, false);
 
         config.syncModuleConfigEntries();
 
@@ -176,6 +184,8 @@ public class AutoPearlCatchModuleTest {
         assertTrue(copy.autoPearlCatchActionKeybind.isCtrl());
         assertEquals(GLFW.GLFW_KEY_Z, copy.autoPearlCatchHorizontalKeybind.getKeyCode());
         assertTrue(copy.autoPearlCatchHorizontalKeybind.isShift());
+        assertEquals(GLFW.GLFW_KEY_B, copy.autoPearlCatchThrowKeybind.getKeyCode());
+        assertTrue(copy.autoPearlCatchThrowKeybind.isCtrl());
     }
 
     @Test

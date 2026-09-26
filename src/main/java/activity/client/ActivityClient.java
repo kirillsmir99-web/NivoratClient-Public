@@ -5,8 +5,6 @@ import activity.client.config.ActivityConfigManager;
 import activity.client.gui.ActivityScreen;
 import activity.client.gui.hud.CooldownHudStandaloneScreen;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -20,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public class ActivityClient implements ClientModInitializer {
     public static final String MOD_ID = "activity";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final Logger LOGGER = LoggerFactory.getLogger("CooldownHUD");
 
     public static KeyBinding openCooldownHudKey;
     public static KeyBinding openMenuKey;
@@ -28,7 +26,6 @@ public class ActivityClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        LOGGER.debug("[Activity] Initializing Activity client mod...");
 
         ActivityConfigManager.load();
         activity.client.module.api.ModuleRegistry.initEvents();
@@ -44,54 +41,7 @@ public class ActivityClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_H,
                 cooldownCategory
         ));
-        openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.activity.open_gui",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_O,
-                cooldownCategory
-        ));
 
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager.literal("cooldownhud")
-                    .executes(context -> {
-                        MinecraftClient mc = MinecraftClient.getInstance();
-                        if (mc != null) {
-                            mc.send(() -> mc.setScreen(new CooldownHudStandaloneScreen(null)));
-                        }
-                        return 1;
-                    })
-            );
-            dispatcher.register(ClientCommandManager.literal("cdhud")
-                    .executes(context -> {
-                        MinecraftClient mc = MinecraftClient.getInstance();
-                        if (mc != null) {
-                            mc.send(() -> mc.setScreen(new CooldownHudStandaloneScreen(null)));
-                        }
-                        return 1;
-                    })
-            );
-
-            com.mojang.brigadier.Command<net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource> menuCommand = context -> {
-                MinecraftClient mc = MinecraftClient.getInstance();
-                if (mc != null) {
-                    mc.send(() -> {
-                        try {
-                            mc.setScreen(new ActivityScreen());
-                        } catch (Throwable t) {
-                            try {
-                                ActivityScreen.clearSession();
-                                mc.setScreen(new ActivityScreen());
-                            } catch (Throwable ignored) {}
-                        }
-                    });
-                }
-                return 1;
-            };
-
-            dispatcher.register(ClientCommandManager.literal("menu").executes(menuCommand));
-            dispatcher.register(ClientCommandManager.literal("activity").executes(menuCommand));
-            dispatcher.register(ClientCommandManager.literal("ac").executes(menuCommand));
-        });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             activity.client.module.service.CooldownTrackerService.tick(client);
@@ -105,11 +55,6 @@ public class ActivityClient implements ClientModInitializer {
                 if (client != null && client.currentScreen == null) {
                     client.setScreen(new CooldownHudStandaloneScreen(null));
                 }
-            }
-
-            boolean vanillaMenuPressed = false;
-            while (openMenuKey != null && openMenuKey.wasPressed()) {
-                vanillaMenuPressed = true;
             }
 
             if (client == null || client.player == null) {
@@ -141,7 +86,7 @@ public class ActivityClient implements ClientModInitializer {
 
             boolean rawPressed = menuKeyCode > 0 && InputUtil.isKeyPressed(window, menuKeyCode);
             boolean requiresModifiers = config != null && config.menuKeybind != null && (config.menuKeybind.isCtrl() || config.menuKeybind.isAlt());
-            boolean isDown = vanillaMenuPressed || configMatches || (rawPressed && !requiresModifiers);
+            boolean isDown = configMatches || (rawPressed && !requiresModifiers);
 
             if (client.currentScreen != null) {
                 if (!isDown) {
@@ -174,12 +119,9 @@ public class ActivityClient implements ClientModInitializer {
                 return;
             }
             if (ActivityConfigManager.isDirty()) {
-                LOGGER.debug("[Activity] Flushing dirty configuration on client shutdown...");
                 ActivityConfigManager.save();
             }
         });
-
-        LOGGER.debug("[Activity] Activity client loaded successfully. Masked menu keybind active.");
     }
 
     public static void suppressMenuKey() {

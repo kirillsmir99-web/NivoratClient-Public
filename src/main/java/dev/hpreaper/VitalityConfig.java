@@ -142,36 +142,6 @@ public final class VitalityConfig {
     }
 
     public static void save() {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            return;
-        }
-        if (saving) {
-            return;
-        }
-        saving = true;
-        try {
-            File dir = CONFIG_FILE.getParentFile();
-            if (dir != null && !dir.exists()) {
-                dir.mkdirs();
-            }
-            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(CONFIG_FILE), StandardCharsets.UTF_8)) {
-                writer.write("own_health_x=" + ownHealthX + "\n");
-                writer.write("own_health_y=" + ownHealthY + "\n");
-                writer.write("crosshair_target_x=" + crosshairTargetX + "\n");
-                writer.write("crosshair_target_y=" + crosshairTargetY + "\n");
-                writer.write("target_health_x=" + targetHealthX + "\n");
-                writer.write("target_health_y=" + targetHealthY + "\n");
-                writer.write("diff_x=" + diffX + "\n");
-                writer.write("diff_y=" + diffY + "\n");
-                writer.write("custom_x=" + getModeX(displayMode) + "\n");
-                writer.write("custom_y=" + getModeY(displayMode) + "\n");
-                writer.write("target_filter=" + targetFilter.name() + "\n");
-                writer.write("display_mode=" + displayMode.name() + "\n");
-            } catch (Exception ignored) {
-            }
-        } finally {
-            saving = false;
-        }
     }
 
     public enum TargetFilter {

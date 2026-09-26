@@ -27,6 +27,8 @@ public class ActivityDropdown<T> extends ActivityComponent {
     private List<T> options;
     private T selectedOption;
     private Function<T, Text> nameProvider;
+    @Nullable
+    private Function<T, Text> tooltipProvider = null;
     private Consumer<T> onSelect;
     @Nullable
     private Consumer<T> onRightClick = null;
@@ -98,6 +100,15 @@ public class ActivityDropdown<T> extends ActivityComponent {
 
     public void setOnSelect(Consumer<T> onSelect) {
         this.onSelect = onSelect;
+    }
+
+    @Nullable
+    public Function<T, Text> getTooltipProvider() {
+        return tooltipProvider;
+    }
+
+    public void setTooltipProvider(@Nullable Function<T, Text> tooltipProvider) {
+        this.tooltipProvider = tooltipProvider;
     }
 
     public boolean isExpanded() {

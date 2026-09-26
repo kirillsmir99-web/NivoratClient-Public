@@ -99,11 +99,8 @@ public class AboutTab extends ActivityTab {
                     MinecraftClient mc = MinecraftClient.getInstance();
                     if (mc != null && mc.player != null) {
                         mc.player.sendMessage(Text.translatable("activity.toast.url_copied"), false);
-                    } else {
-                        ActivityClient.LOGGER.debug("[Activity] URL copied to clipboard: {}", url);
                     }
                 } catch (Throwable ignored) {
-                    ActivityClient.LOGGER.debug("[Activity] URL copied to clipboard: {}", url);
                 }
             }
         }

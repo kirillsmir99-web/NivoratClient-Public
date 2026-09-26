@@ -138,6 +138,7 @@ public class DropdownPopup<T> implements Overlay {
         int ry = getRenderY();
         int rh = getRenderHeight();
 
+        T hoveredItem = null;
         ScissorHelper.pushScissor(context, this.x, ry, this.width, rh);
         try {
 
@@ -157,6 +158,10 @@ public class DropdownPopup<T> implements Overlay {
                 boolean isHovered = mouseX >= this.x && mouseX < this.x + this.width &&
                                     mouseY >= rowY && mouseY < rowY + this.itemHeight;
                 boolean isSelected = item.equals(this.dropdown.getSelectedOption());
+
+                if (isHovered) {
+                    hoveredItem = item;
+                }
 
                 if (isSelected) {
                     ActivityGuiRenderer.fill(context, this.x + 1, rowY, this.width - 2, this.itemHeight, ActivityColors.ITEM_SELECTED_BG);
@@ -207,6 +212,14 @@ public class DropdownPopup<T> implements Overlay {
         }
 
         ActivityGuiRenderer.drawBorder(context, this.x, ry, this.width, rh, ActivityColors.BORDER_LIGHT);
+
+        if (hoveredItem != null && this.dropdown.getTooltipProvider() != null) {
+            Text tooltip = this.dropdown.getTooltipProvider().apply(hoveredItem);
+            if (tooltip != null && !tooltip.getString().isEmpty()) {
+                TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+                context.drawOrderedTooltip(tr, tr.wrapLines(activity.client.gui.font.FontManager.wrap(tooltip), 170), mouseX, mouseY);
+            }
+        }
     }
 
     @Override

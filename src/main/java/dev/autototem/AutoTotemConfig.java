@@ -38,7 +38,6 @@ public final class AutoTotemConfig {
 
     public static void load() {
         if (!Files.exists(CONFIG_PATH)) {
-            save();
             return;
         }
         try (InputStream in = Files.newInputStream(CONFIG_PATH)) {
@@ -79,33 +78,5 @@ public final class AutoTotemConfig {
     }
 
     public static void save() {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            return;
-        }
-        try {
-            if (CONFIG_PATH.getParent() != null && !Files.exists(CONFIG_PATH.getParent())) {
-                Files.createDirectories(CONFIG_PATH.getParent());
-            }
-            Properties props = new Properties();
-            props.setProperty("triggerHearts", String.valueOf(triggerHearts));
-            props.setProperty("restoreHearts", String.valueOf(restoreHearts));
-            props.setProperty("mainhandTriggerHearts", String.valueOf(mainhandTriggerHearts));
-            props.setProperty("mainhandRestoreHearts", String.valueOf(mainhandRestoreHearts));
-            props.setProperty("offhandTriggerHearts", String.valueOf(offhandTriggerHearts));
-            props.setProperty("offhandRestoreHearts", String.valueOf(offhandRestoreHearts));
-            props.setProperty("crystalTriggerHearts", String.valueOf(crystalTriggerHearts));
-            props.setProperty("crystalRestoreHearts", String.valueOf(crystalRestoreHearts));
-            props.setProperty("countAbsorption", String.valueOf(countAbsorption));
-            props.setProperty("chance", String.valueOf(chance));
-            props.setProperty("returnItem", String.valueOf(returnItem));
-            props.setProperty("returnOnPop", String.valueOf(returnOnPop));
-            props.setProperty("mode", String.valueOf(mode));
-            props.setProperty("autoRefill", String.valueOf(autoRefill));
-            props.setProperty("refillSlot", String.valueOf(refillSlot));
-            try (OutputStream out = Files.newOutputStream(CONFIG_PATH)) {
-                props.store(out, "AutoTotem configuration");
-            }
-        } catch (Exception ignored) {
-        }
     }
 }

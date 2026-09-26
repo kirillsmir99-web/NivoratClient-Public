@@ -27,37 +27,41 @@ public final class SafeSlotManager {
     }
 
     public static boolean selectSlot(MinecraftClient client, int slot, long currentTick) {
-        if (client == null || client.player == null || client.interactionManager == null || slot < 0 || slot >= 9) {
-            return false;
-        }
-        if (currentTick < 0) {
-            long schedTick = TickBoundScheduler.getTickCount();
-            if (schedTick > 0) {
-                currentTick = schedTick;
-            } else if (client.world != null) {
-                currentTick = client.world.getTime();
+        try {
+            if (client == null || client.player == null || client.interactionManager == null || slot < 0 || slot >= 9) {
+                return false;
             }
-        }
-        int cur = client.player.getInventory().getSelectedSlot();
-        if (cur == slot && lastSelectedSlot == slot) {
-            return false;
-        }
-        if (currentTick >= 0 && currentTick == lastChangeTick && cur == slot) {
-            return false;
-        }
-        client.player.getInventory().setSelectedSlot(slot);
-        if (client.interactionManager instanceof ActivityClientPlayerInteractionManagerAccessor accessor) {
-            accessor.invokeSyncSelectedSlot();
-        } else {
-            setLastSelectedSlot(client.interactionManager, slot);
-            if (client.getNetworkHandler() != null) {
-                client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+            if (currentTick < 0) {
+                long schedTick = TickBoundScheduler.getTickCount();
+                if (schedTick > 0) {
+                    currentTick = schedTick;
+                } else if (client.world != null) {
+                    currentTick = client.world.getTime();
+                }
             }
+            int cur = client.player.getInventory().getSelectedSlot();
+            if (cur == slot && lastSelectedSlot == slot) {
+                return false;
+            }
+            if (currentTick >= 0 && currentTick == lastChangeTick && cur == slot) {
+                return false;
+            }
+            client.player.getInventory().setSelectedSlot(slot);
+            if (client.interactionManager instanceof ActivityClientPlayerInteractionManagerAccessor accessor) {
+                accessor.invokeSyncSelectedSlot();
+            } else {
+                setLastSelectedSlot(client.interactionManager, slot);
+                if (client.getNetworkHandler() != null) {
+                    client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+                }
+            }
+            lastChangeTick = currentTick;
+            lastSelectedSlot = slot;
+            activity.client.module.service.PlayerStateService.updateSelectedSlot(slot);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
         }
-        lastChangeTick = currentTick;
-        lastSelectedSlot = slot;
-        activity.client.module.service.PlayerStateService.updateSelectedSlot(slot);
-        return true;
     }
 
     public static boolean selectSlot(MinecraftClient client, int slot) {

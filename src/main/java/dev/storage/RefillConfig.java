@@ -89,36 +89,7 @@ public final class RefillConfig {
     }
 
     public static void save() {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            return;
-        }
-        if (saving) {
-            return;
-        }
-        saving = true;
-        try {
-            File dir = CONFIG_FILE.getParentFile();
-            if (dir != null && !dir.exists()) {
-                dir.mkdirs();
-            }
-            try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
-                writer.write("enabled=" + enabled + "\n");
-                writer.write("refill_delay_ticks=" + refillDelayTicks + "\n");
-                writer.write("chance=" + chance + "\n");
-                writer.write("legit_mode=" + legitMode + "\n");
-                writer.write("auto_close=" + autoClose + "\n");
-                writer.write("show_hud=" + showHud + "\n");
-                writer.write("random_delay=" + randomDelay + "\n");
-                writer.write("random_spread_ticks=" + randomSpreadTicks + "\n");
-                writer.write("hud_x=" + customX + "\n");
-                writer.write("hud_y=" + customY + "\n");
-            } catch (IOException ignored) {
-            }
-
-            dev.carthud.CartHudConfig.customX = customX;
-            dev.carthud.CartHudConfig.customY = customY;
-        } finally {
-            saving = false;
-        }
+        dev.carthud.CartHudConfig.customX = customX;
+        dev.carthud.CartHudConfig.customY = customY;
     }
 }

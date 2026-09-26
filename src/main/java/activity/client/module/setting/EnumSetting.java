@@ -13,20 +13,30 @@ public class EnumSetting extends Setting<String> {
     private final Supplier<String> getter;
     private final Consumer<String> setter;
     private final java.util.function.Function<String, Text> nameProvider;
+    private final java.util.function.Function<String, Text> tooltipProvider;
 
     public EnumSetting(String id, Text name, Text description, SettingGroup group,
                        List<String> options, String defaultValue,
                        Supplier<String> getter, Consumer<String> setter) {
-        this(id, name, description, group, options, defaultValue, null, getter, setter);
+        this(id, name, description, group, options, defaultValue, null, null, getter, setter);
     }
 
     public EnumSetting(String id, Text name, Text description, SettingGroup group,
                        List<String> options, String defaultValue,
                        java.util.function.Function<String, Text> nameProvider,
                        Supplier<String> getter, Consumer<String> setter) {
+        this(id, name, description, group, options, defaultValue, nameProvider, null, getter, setter);
+    }
+
+    public EnumSetting(String id, Text name, Text description, SettingGroup group,
+                       List<String> options, String defaultValue,
+                       java.util.function.Function<String, Text> nameProvider,
+                       java.util.function.Function<String, Text> tooltipProvider,
+                       Supplier<String> getter, Consumer<String> setter) {
         super(id, name, description, group, defaultValue);
         this.options = options != null ? Collections.unmodifiableList(options) : Collections.emptyList();
         this.nameProvider = nameProvider;
+        this.tooltipProvider = tooltipProvider;
         this.getter = getter;
         this.setter = setter;
     }
@@ -34,16 +44,25 @@ public class EnumSetting extends Setting<String> {
     public EnumSetting(String id, Text name, Text description, SettingSection section,
                        List<String> options, String defaultValue,
                        Supplier<String> getter, Consumer<String> setter) {
-        this(id, name, description, section, options, defaultValue, null, getter, setter);
+        this(id, name, description, section, options, defaultValue, null, null, getter, setter);
     }
 
     public EnumSetting(String id, Text name, Text description, SettingSection section,
                        List<String> options, String defaultValue,
                        java.util.function.Function<String, Text> nameProvider,
                        Supplier<String> getter, Consumer<String> setter) {
+        this(id, name, description, section, options, defaultValue, nameProvider, null, getter, setter);
+    }
+
+    public EnumSetting(String id, Text name, Text description, SettingSection section,
+                       List<String> options, String defaultValue,
+                       java.util.function.Function<String, Text> nameProvider,
+                       java.util.function.Function<String, Text> tooltipProvider,
+                       Supplier<String> getter, Consumer<String> setter) {
         super(id, name, description, section, defaultValue);
         this.options = options != null ? Collections.unmodifiableList(options) : Collections.emptyList();
         this.nameProvider = nameProvider;
+        this.tooltipProvider = tooltipProvider;
         this.getter = getter;
         this.setter = setter;
     }
@@ -52,11 +71,22 @@ public class EnumSetting extends Setting<String> {
         return options;
     }
 
+    public java.util.function.Function<String, Text> getTooltipProvider() {
+        return tooltipProvider;
+    }
+
     public Text getOptionName(String option) {
         if (nameProvider != null) {
             return nameProvider.apply(option);
         }
         return Text.literal(option);
+    }
+
+    public Text getOptionTooltip(String option) {
+        if (tooltipProvider != null) {
+            return tooltipProvider.apply(option);
+        }
+        return null;
     }
 
     @Override

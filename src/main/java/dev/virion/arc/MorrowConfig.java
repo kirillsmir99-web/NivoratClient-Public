@@ -26,6 +26,14 @@ public final class MorrowConfig {
     public static int minDelayMs = 70;
     public static int maxDelayMs = 110;
     public static boolean useMainhandCart = true;
+    public static String cameraMode = "off";
+    public static boolean autoCamera = false;
+    public static int cameraSmoothnessMs = 140;
+    public static boolean cameraReturn = true;
+    public static int cameraReturnSmoothnessMs = 120;
+    public static int cameraCurve = 40;
+    public static int cameraRandomness = 35;
+    public static boolean cameraMouseGcd = true;
 
     public static final int PRESET_FAST = 0;
     public static final int PRESET_MEDIUM = 1;
@@ -56,6 +64,14 @@ public final class MorrowConfig {
                 randomDelay = true;
                 minDelayMs = 40;
                 maxDelayMs = 60;
+                cameraMode = "packet";
+                autoCamera = false;
+                cameraSmoothnessMs = 80;
+                cameraReturn = true;
+                cameraReturnSmoothnessMs = 80;
+                cameraCurve = 20;
+                cameraRandomness = 20;
+                cameraMouseGcd = true;
             }
             case PRESET_MEDIUM -> {
                 placementChance = 100;
@@ -65,6 +81,14 @@ public final class MorrowConfig {
                 randomDelay = true;
                 minDelayMs = 70;
                 maxDelayMs = 110;
+                cameraMode = "auto";
+                autoCamera = true;
+                cameraSmoothnessMs = 140;
+                cameraReturn = true;
+                cameraReturnSmoothnessMs = 120;
+                cameraCurve = 40;
+                cameraRandomness = 35;
+                cameraMouseGcd = true;
             }
             case PRESET_SAFE -> {
                 placementChance = 100;
@@ -74,9 +98,16 @@ public final class MorrowConfig {
                 randomDelay = true;
                 minDelayMs = 120;
                 maxDelayMs = 180;
+                cameraMode = "off";
+                autoCamera = false;
+                cameraSmoothnessMs = 180;
+                cameraReturn = true;
+                cameraReturnSmoothnessMs = 160;
+                cameraCurve = 50;
+                cameraRandomness = 50;
+                cameraMouseGcd = true;
             }
         }
-        save();
     }
 
     public static int getMinDelayMs() {
@@ -93,7 +124,6 @@ public final class MorrowConfig {
 
     public static void load() {
         if (!Files.exists(CONFIG_PATH)) {
-            save();
             return;
         }
         try (InputStream input = Files.newInputStream(CONFIG_PATH)) {
@@ -109,6 +139,14 @@ public final class MorrowConfig {
             minDelayMs = clamp(Integer.parseInt(properties.getProperty("minDelayMs", "70")), 10, 200);
             maxDelayMs = clamp(Integer.parseInt(properties.getProperty("maxDelayMs", "110")), 10, 300);
             useMainhandCart = Boolean.parseBoolean(properties.getProperty("useMainhandCart", "true"));
+            cameraMode = properties.getProperty("cameraMode", "off");
+            autoCamera = Boolean.parseBoolean(properties.getProperty("autoCamera", "false"));
+            cameraSmoothnessMs = clamp(Integer.parseInt(properties.getProperty("cameraSmoothnessMs", "140")), 50, 300);
+            cameraReturn = Boolean.parseBoolean(properties.getProperty("cameraReturn", "true"));
+            cameraReturnSmoothnessMs = clamp(Integer.parseInt(properties.getProperty("cameraReturnSmoothnessMs", "120")), 50, 300);
+            cameraCurve = clamp(Integer.parseInt(properties.getProperty("cameraCurve", "40")), 0, 100);
+            cameraRandomness = clamp(Integer.parseInt(properties.getProperty("cameraRandomness", "35")), 0, 100);
+            cameraMouseGcd = Boolean.parseBoolean(properties.getProperty("cameraMouseGcd", "true"));
             if (maxDelayMs < minDelayMs) maxDelayMs = minDelayMs;
         } catch (Exception ignored) {
             resetDefaults();
@@ -116,26 +154,6 @@ public final class MorrowConfig {
     }
 
     public static void save() {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
-            return;
-        }
-        try {
-            if (CONFIG_PATH.getParent() != null) Files.createDirectories(CONFIG_PATH.getParent());
-            Properties properties = new Properties();
-            properties.setProperty("placementChance", String.valueOf(clamp(placementChance, 0, 100)));
-            properties.setProperty("legitMode", String.valueOf(legitMode));
-            properties.setProperty("randomDelay", String.valueOf(randomDelay));
-            properties.setProperty("preset", String.valueOf(preset));
-            properties.setProperty("allowPitPlacement", String.valueOf(allowPitPlacement));
-            properties.setProperty("maxDistance", String.valueOf(maxDistance));
-            properties.setProperty("allowSelfCart", String.valueOf(allowSelfCart));
-            properties.setProperty("minDelayMs", String.valueOf(minDelayMs));
-            properties.setProperty("maxDelayMs", String.valueOf(maxDelayMs));
-            properties.setProperty("useMainhandCart", String.valueOf(useMainhandCart));
-            try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
-                properties.store(output, "AutoCart settings");
-            }
-        } catch (Exception ignored) { }
     }
 
     public static void resetDefaults() {
@@ -149,7 +167,14 @@ public final class MorrowConfig {
         minDelayMs = 70;
         maxDelayMs = 110;
         useMainhandCart = true;
-        save();
+        cameraMode = "off";
+        autoCamera = false;
+        cameraSmoothnessMs = 140;
+        cameraReturn = true;
+        cameraReturnSmoothnessMs = 120;
+        cameraCurve = 40;
+        cameraRandomness = 35;
+        cameraMouseGcd = true;
     }
 
     private static int clamp(int value, int min, int max) {

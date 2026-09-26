@@ -373,7 +373,7 @@ public final class PresetManager {
                 }
             }
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[Activity] Failed to load custom presets from {}: {}", targetToRead, e.getMessage());
+            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to load custom presets from {}: {}", targetToRead, e.getMessage());
         }
     }
 
@@ -426,7 +426,7 @@ public final class PresetManager {
             } catch (Throwable ignored) {
             }
         } catch (IOException e) {
-            ActivityClient.LOGGER.debug("[Activity] Failed to save custom presets: {}", e.getMessage());
+            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to save custom presets: {}", e.getMessage());
         }
     }
 

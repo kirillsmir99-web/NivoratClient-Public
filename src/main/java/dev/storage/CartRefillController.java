@@ -47,6 +47,7 @@ public final class CartRefillController {
         invCartSlot = -1;
         timer = 0;
         openedByRefill = false;
+        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, false);
         for (int i = 0; i < 9; i++) {
             hadCartInHotbar[i] = false;
         }
@@ -63,7 +64,7 @@ public final class CartRefillController {
             return;
         }
 
-        if (client.currentScreen != null && !(client.currentScreen instanceof InventoryScreen)) {
+        if (client.currentScreen != null && (!openedByRefill || !(client.currentScreen instanceof InventoryScreen))) {
             updateSnapshot(client.player);
             return;
         }
@@ -89,11 +90,17 @@ public final class CartRefillController {
         invCartSlot = -1;
         timer = 0;
         openedByRefill = false;
+        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, false);
     }
 
     private void detectSpentCart(MinecraftClient client) {
         ClientPlayerEntity player = client.player;
         if (player == null) return;
+        if (client.currentScreen != null) return;
+
+        if (!player.playerScreenHandler.getCursorStack().isEmpty()) {
+            return;
+        }
 
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getStack(i);
@@ -113,6 +120,7 @@ public final class CartRefillController {
     private void scheduleRefill(int hotbarSlot, MinecraftClient client) {
         ClientPlayerEntity player = client.player;
         if (player == null) return;
+        if (client.currentScreen != null) return;
 
         long now = System.currentTimeMillis();
         if (RefillConfig.chance < 100) {
@@ -126,6 +134,11 @@ public final class CartRefillController {
             return;
         }
 
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked(net.fabricmc.pack.api.CombatLockManager.TOTEM)
+                || net.fabricmc.pack.api.CombatLockManager.isLocked(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION)) {
+            return;
+        }
+
         int foundInvSlot = findInventoryCart(player);
         if (foundInvSlot < 0) {
             return;
@@ -133,18 +146,9 @@ public final class CartRefillController {
 
         targetSlot = hotbarSlot;
         invCartSlot = foundInvSlot;
-
-        if (client.currentScreen instanceof InventoryScreen) {
-
-            openedByRefill = false;
-            timer = sampleSwapDelayTicks();
-            state = State.WAITING_SWAP;
-        } else {
-
-            openedByRefill = false;
-            timer = sampleOpenDelayTicks();
-            state = State.WAITING_OPEN;
-        }
+        openedByRefill = false;
+        timer = sampleOpenDelayTicks();
+        state = State.WAITING_OPEN;
     }
 
     private void processWaitingOpen(MinecraftClient client) {
@@ -159,17 +163,25 @@ public final class CartRefillController {
             return;
         }
 
-        if (client.currentScreen != null && !(client.currentScreen instanceof InventoryScreen)) {
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked(net.fabricmc.pack.api.CombatLockManager.TOTEM)) {
             reset();
             return;
         }
 
-        if (client.currentScreen == null) {
-            client.setScreen(new InventoryScreen(player));
-            openedByRefill = true;
-        } else {
-            openedByRefill = false;
+        if (client.currentScreen != null) {
+            reset();
+            return;
         }
+
+        if (targetSlot < 0 || targetSlot >= 9 || !player.getInventory().getStack(targetSlot).isEmpty()) {
+            reset();
+            return;
+        }
+
+        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, true);
+
+        client.setScreen(new InventoryScreen(player));
+        openedByRefill = true;
 
         timer = sampleSwapDelayTicks();
         state = State.WAITING_SWAP;
@@ -187,7 +199,7 @@ public final class CartRefillController {
             return;
         }
 
-        if (openedByRefill && client.currentScreen == null) {
+        if (!openedByRefill || !(client.currentScreen instanceof InventoryScreen)) {
             reset();
             return;
         }
@@ -205,14 +217,13 @@ public final class CartRefillController {
         }
 
         if (!currentTargetStack.isEmpty()) {
-            int emptySlot = findEmptyHotbarSlot(player);
-            if (emptySlot >= 0) {
-                targetSlot = emptySlot;
-            } else {
+            finishRefill(client);
+            return;
+        }
 
-                finishRefill(client);
-                return;
-            }
+        if (!player.playerScreenHandler.getCursorStack().isEmpty()) {
+            finishRefill(client);
+            return;
         }
 
         int currentInvSlot = findInventoryCart(player);
@@ -256,19 +267,16 @@ public final class CartRefillController {
     }
 
     void finishRefill(MinecraftClient client) {
-
         if (openedByRefill && RefillConfig.autoClose && client != null && client.currentScreen instanceof InventoryScreen) {
-            if (client.player != null) {
-                client.player.closeHandledScreen();
+            if (!net.fabricmc.pack.api.CombatLockManager.isLocked(net.fabricmc.pack.api.CombatLockManager.TOTEM)) {
+                if (client.player != null) {
+                    client.player.closeHandledScreen();
+                }
+                client.setScreen(null);
             }
-            client.setScreen(null);
         }
 
-        state = State.IDLE;
-        targetSlot = -1;
-        invCartSlot = -1;
-        timer = 0;
-        openedByRefill = false;
+        reset();
     }
 
     public boolean shouldCloseScreen(net.minecraft.client.gui.screen.Screen screen, boolean openedByRefill) {

@@ -110,9 +110,9 @@ public final class SpearSwapController {
 
             int cur = client.player.getInventory().getSelectedSlot();
             if (cur >= 0 && cur < 9) {
+                originalSlot = cur;
                 ItemStack stack = client.player.getInventory().getStack(cur);
-                if (!stack.isEmpty() && !isSpear(stack)) {
-                    originalSlot = cur;
+                if (!isSpear(stack)) {
                     lastNonSpearSlot = cur;
                 }
             }
@@ -221,7 +221,9 @@ public final class SpearSwapController {
         targetEntityId = (target != null) ? target.getId() : -1;
 
         if (isSpear(inHand)) {
-            originalSlot = findWeaponSlot(player);
+            originalSlot = (lastNonSpearSlot >= 0 && lastNonSpearSlot < 9 && lastNonSpearSlot != curSlot)
+                    ? lastNonSpearSlot
+                    : findWeaponSlot(player);
             spearSlot = curSlot;
             startSpearActive(client, player, curSlot, false);
             return;
@@ -237,14 +239,8 @@ public final class SpearSwapController {
             return;
         }
 
-        if (originalSlot < 0 || originalSlot >= 9 || player.getInventory().getStack(originalSlot).isEmpty() || isSpear(player.getInventory().getStack(originalSlot))) {
-            if (!inHand.isEmpty() && !isSpear(inHand)) {
-                originalSlot = curSlot;
-            } else {
-                originalSlot = findWeaponSlot(player);
-            }
-        }
-
+        originalSlot = curSlot;
+        lastNonSpearSlot = curSlot;
         spearSlot = targetSpearSlot;
         startSpearActive(client, player, targetSpearSlot, true);
     }
@@ -399,7 +395,6 @@ public final class SpearSwapController {
                     client.interactionManager.attackEntity(player, target);
                 }
             }
-            activity.client.module.service.CooldownTrackerService.recordTridentUsed();
         } catch (Throwable ignored) {
         }
     }
@@ -715,6 +710,21 @@ public final class SpearSwapController {
 
     private static boolean isSpear(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
+        if (stack.isOf(Items.TRIDENT)) {
+            return false;
+        }
+
+        String itemStr = "";
+        try {
+            itemStr = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).getPath().toLowerCase(Locale.ROOT);
+        } catch (Throwable ignored) {
+            itemStr = stack.getItem().toString().toLowerCase(Locale.ROOT);
+        }
+
+        if (itemStr.contains("trident")) {
+            return false;
+        }
+
         try {
             if (stack.isIn(ItemTags.SPEARS)) return true;
         } catch (Throwable ignored) {}
@@ -724,16 +734,8 @@ public final class SpearSwapController {
         try {
             if (stack.contains(DataComponentTypes.KINETIC_WEAPON)) return true;
         } catch (Throwable ignored) {}
-        if (stack.isOf(Items.TRIDENT)) return true;
 
-        String itemStr = "";
-        try {
-            itemStr = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).getPath().toLowerCase(Locale.ROOT);
-        } catch (Throwable ignored) {
-            itemStr = stack.getItem().toString().toLowerCase(Locale.ROOT);
-        }
-
-        if (itemStr.endsWith("_spear") || itemStr.equals("spear") || itemStr.contains("spear") || itemStr.equals("trident")) {
+        if (itemStr.endsWith("_spear") || itemStr.equals("spear") || itemStr.contains("spear")) {
             return true;
         }
         if (getLungeLevel(stack) > 0) {
@@ -742,7 +744,7 @@ public final class SpearSwapController {
         try {
             String name = stack.getName().getString().toLowerCase(Locale.ROOT);
             if (name.contains("spear") || name.contains("копь") || name.contains("пика")
-                    || name.contains("дротик") || name.contains("трезубец") || name.contains("trident")) {
+                    || name.contains("дротик")) {
                 return true;
             }
         } catch (Exception ignored) {}
@@ -751,9 +753,8 @@ public final class SpearSwapController {
             for (Text t : lore.lines()) {
                 String str = t.getString().toLowerCase(Locale.ROOT);
                 if (str.contains("spear") || str.contains("копь") || str.contains("пика")
-                        || str.contains("дротик") || str.contains("трезубец") || str.contains("trident")
-                        || str.contains("рывок") || str.contains("выпад") || str.contains("lunge")
-                        || str.contains("пробиван") || str.contains("pierc")) {
+                        || str.contains("дротик")
+                        || str.contains("рывок") || str.contains("выпад") || str.contains("lunge")) {
                     return true;
                 }
             }
@@ -778,11 +779,10 @@ public final class SpearSwapController {
         if (client == null || client.player == null) return;
         int cur = client.player.getInventory().getSelectedSlot();
         int target = originalSlot;
-        if (target < 0 || target >= 9
-                || target == spearSlot
-                || client.player.getInventory().getStack(target).isEmpty()
-                || isSpear(client.player.getInventory().getStack(target))) {
-            target = findWeaponSlot(client.player);
+        if (target < 0 || target >= 9 || target == spearSlot) {
+            target = (lastNonSpearSlot >= 0 && lastNonSpearSlot < 9 && lastNonSpearSlot != spearSlot)
+                    ? lastNonSpearSlot
+                    : findWeaponSlot(client.player);
         }
         if (target >= 0 && target < 9) {
             if (cur != target) {

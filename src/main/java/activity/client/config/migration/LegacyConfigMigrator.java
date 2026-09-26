@@ -198,12 +198,20 @@ public final class LegacyConfigMigrator {
                 Path markerPath = configDir.resolve(MIGRATION_MARKER_FILE);
                 String markerContent = "migration_version=" + CURRENT_MIGRATION_VERSION + "\n" +
                                        "migrated_at=" + System.currentTimeMillis() + "\n" +
-                                       "client=CooldownHUD\n" +
-                                       "legacy_client=NivoratClient\n";
+                                       "client=CooldownHUD\n";
                 Files.writeString(markerPath, markerContent, StandardCharsets.UTF_8);
             } catch (Exception e) {
                 ActivityClient.LOGGER.debug("[CooldownHUD] Could not write migration marker: {}", e.getMessage());
             }
+        }
+    }
+
+    public static void cleanupLegacyFiles(Path configDir) {
+        if (configDir == null || !Files.exists(configDir)) return;
+        for (String filename : ALL_LEGACY_FILENAMES) {
+            try {
+                Files.deleteIfExists(configDir.resolve(filename));
+            } catch (Exception ignored) {}
         }
     }
 
@@ -265,6 +273,7 @@ public final class LegacyConfigMigrator {
         NivoratConfigManager.syncToModules(config);
 
         markMigrated(config, configDir);
+        cleanupLegacyFiles(configDir);
 
         ActivityClient.LOGGER.debug("[CooldownHUD] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
         return true;

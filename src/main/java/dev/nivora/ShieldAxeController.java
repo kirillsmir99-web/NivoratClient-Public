@@ -52,7 +52,7 @@ public final class ShieldAxeController {
 
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         try {
-            if (!world.isClient() || !(entity instanceof PlayerEntity target)) {
+            if (world == null || !world.isClient() || !(entity instanceof PlayerEntity target)) {
                 return ActionResult.PASS;
             }
 

@@ -194,6 +194,10 @@ public final class SettingComponentFactory {
                     if (onModified != null) onModified.run();
                 }
         );
+        if (setting.getTooltipProvider() != null) {
+            dropdown.setTooltipProvider(setting::getOptionTooltip);
+        }
+        dropdown.setTooltip(setting.getDescription());
         Consumer<String> listener = val -> {
             if (!java.util.Objects.equals(dropdown.getSelectedOption(), val)) {
                 dropdown.setSelectedOptionSilently(val);

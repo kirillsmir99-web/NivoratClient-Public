@@ -62,6 +62,7 @@ public final class ModuleEventDispatcher {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null) {
                 dev.kinetictweaks.controller.PearlCatchController.getInstance().onRender(client);
+                dev.virion.arc.VirionArcController.onRender(client);
             }
         });
 
@@ -141,33 +142,37 @@ public final class ModuleEventDispatcher {
     }
 
     public static ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
-            return ActionResult.PASS;
-        }
-
         try {
-            if (player != null) {
-                ItemStack main = player.getMainHandStack();
-                ItemStack off = player.getOffHandStack();
-                if ((main != null && !main.isEmpty() && activity.client.module.service.CooldownTrackerService.isTridentItem(main.getItem()))
-                        || (off != null && !off.isEmpty() && activity.client.module.service.CooldownTrackerService.isTridentItem(off.getItem()))) {
-                    activity.client.module.service.CooldownTrackerService.recordTridentUsed();
-                }
+            if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
+                return ActionResult.PASS;
             }
-        } catch (Throwable ignored) {}
 
-        IModule[] modules = activeAttackModules;
-        if (modules == null || modules.length == 0) return ActionResult.PASS;
-
-        for (int i = 0; i < modules.length; i++) {
             try {
-                if (modules[i] != null) {
-                    ActionResult result = modules[i].onAttackEntity(player, world, hand, entity, hitResult);
-                    if (result != ActionResult.PASS) {
-                        return result;
+                if (player != null) {
+                    ItemStack main = player.getMainHandStack();
+                    ItemStack off = player.getOffHandStack();
+                    if ((main != null && !main.isEmpty() && activity.client.module.service.CooldownTrackerService.isTridentItem(main.getItem()))
+                            || (off != null && !off.isEmpty() && activity.client.module.service.CooldownTrackerService.isTridentItem(off.getItem()))) {
+                        activity.client.module.service.CooldownTrackerService.recordTridentUsed();
                     }
                 }
             } catch (Throwable ignored) {}
+
+            IModule[] modules = activeAttackModules;
+            if (modules == null || modules.length == 0) return ActionResult.PASS;
+
+            for (int i = 0; i < modules.length; i++) {
+                try {
+                    if (modules[i] != null) {
+                        ActionResult result = modules[i].onAttackEntity(player, world, hand, entity, hitResult);
+                        if (result != null && result != ActionResult.PASS) {
+                            return result;
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+        } catch (Throwable ignored) {
+            return ActionResult.PASS;
         }
         return ActionResult.PASS;
     }

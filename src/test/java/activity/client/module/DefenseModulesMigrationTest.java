@@ -311,6 +311,11 @@ public class DefenseModulesMigrationTest {
         assertFalse(config.autoCartLegitMode);
         assertEquals(40.0, config.autoCartMinDelayMs, 0.001);
         assertEquals(60.0, config.autoCartMaxDelayMs, 0.001);
+        assertEquals("packet", config.autoCartCameraMode);
+        assertEquals("packet", MorrowConfig.cameraMode);
+        assertFalse(config.autoCartAutoCamera);
+        assertFalse(MorrowConfig.autoCamera);
+        assertEquals(80.0, config.autoCartCameraSmoothness, 0.001);
 
         presetSetting.set("safe");
         assertEquals("safe", config.autoCartPreset);
@@ -318,6 +323,11 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoCartLegitMode);
         assertEquals(120.0, config.autoCartMinDelayMs, 0.001);
         assertEquals(180.0, config.autoCartMaxDelayMs, 0.001);
+        assertEquals("off", config.autoCartCameraMode);
+        assertEquals("off", MorrowConfig.cameraMode);
+        assertFalse(config.autoCartAutoCamera);
+        assertFalse(MorrowConfig.autoCamera);
+        assertEquals(180.0, config.autoCartCameraSmoothness, 0.001);
 
         presetSetting.set("medium");
         assertEquals("medium", config.autoCartPreset);
@@ -325,6 +335,11 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoCartLegitMode);
         assertEquals(70.0, config.autoCartMinDelayMs, 0.001);
         assertEquals(110.0, config.autoCartMaxDelayMs, 0.001);
+        assertEquals("auto", config.autoCartCameraMode);
+        assertEquals("auto", MorrowConfig.cameraMode);
+        assertTrue(config.autoCartAutoCamera);
+        assertTrue(MorrowConfig.autoCamera);
+        assertEquals(140.0, config.autoCartCameraSmoothness, 0.001);
 
         NumberSetting distSetting = (NumberSetting) mod.getSetting("max_distance");
         assertEquals(1.5, distSetting.getMin(), 0.001);
@@ -366,7 +381,75 @@ public class DefenseModulesMigrationTest {
         assertFalse(MorrowConfig.useMainhandCart);
         useMainhandSetting.set(true);
         assertTrue(config.autoCartUseMainHand);
-        assertTrue(MorrowConfig.useMainhandCart);
+        EnumSetting cameraModeSetting = (EnumSetting) mod.getSetting("camera_mode");
+        assertNotNull(cameraModeSetting);
+        assertEquals(List.of("off", "packet", "auto"), cameraModeSetting.getOptions());
+        assertNotNull(cameraModeSetting.getOptionTooltip("off"));
+        assertNotNull(cameraModeSetting.getOptionTooltip("packet"));
+        assertNotNull(cameraModeSetting.getOptionTooltip("auto"));
+        assertNotNull(presetSetting.getOptionTooltip("fast"));
+        assertNotNull(presetSetting.getOptionTooltip("medium"));
+        assertNotNull(presetSetting.getOptionTooltip("safe"));
+
+        cameraModeSetting.set("packet");
+        assertEquals("packet", config.autoCartCameraMode);
+        assertEquals("packet", MorrowConfig.cameraMode);
+        assertFalse(config.autoCartAutoCamera);
+        assertFalse(MorrowConfig.autoCamera);
+
+        cameraModeSetting.set("auto");
+        assertEquals("auto", config.autoCartCameraMode);
+        assertEquals("auto", MorrowConfig.cameraMode);
+        assertTrue(config.autoCartAutoCamera);
+        assertTrue(MorrowConfig.autoCamera);
+
+        cameraModeSetting.set("off");
+        assertEquals("off", config.autoCartCameraMode);
+        assertEquals("off", MorrowConfig.cameraMode);
+        assertFalse(config.autoCartAutoCamera);
+        assertFalse(MorrowConfig.autoCamera);
+
+        NumberSetting smoothSetting = (NumberSetting) mod.getSetting("camera_smoothness");
+        assertNotNull(smoothSetting);
+        smoothSetting.set(160.0);
+        assertEquals(160.0, config.autoCartCameraSmoothness, 0.001);
+        assertEquals(160, MorrowConfig.cameraSmoothnessMs);
+
+        BooleanSetting returnSetting = (BooleanSetting) mod.getSetting("camera_return");
+        assertNotNull(returnSetting);
+        returnSetting.set(false);
+        assertFalse(config.autoCartCameraReturn);
+        assertFalse(MorrowConfig.cameraReturn);
+        returnSetting.set(true);
+        assertTrue(config.autoCartCameraReturn);
+        assertTrue(MorrowConfig.cameraReturn);
+
+        NumberSetting returnSmoothSetting = (NumberSetting) mod.getSetting("camera_return_smoothness");
+        assertNotNull(returnSmoothSetting);
+        returnSmoothSetting.set(130.0);
+        assertEquals(130.0, config.autoCartCameraReturnSmoothness, 0.001);
+        assertEquals(130, MorrowConfig.cameraReturnSmoothnessMs);
+
+        NumberSetting curveSetting = (NumberSetting) mod.getSetting("camera_curve");
+        assertNotNull(curveSetting);
+        curveSetting.set(55.0);
+        assertEquals(55.0, config.autoCartCameraCurve, 0.001);
+        assertEquals(55, MorrowConfig.cameraCurve);
+
+        NumberSetting randSetting = (NumberSetting) mod.getSetting("camera_randomness");
+        assertNotNull(randSetting);
+        randSetting.set(45.0);
+        assertEquals(45.0, config.autoCartCameraRandomness, 0.001);
+        assertEquals(45, MorrowConfig.cameraRandomness);
+
+        BooleanSetting gcdSetting = (BooleanSetting) mod.getSetting("camera_mouse_gcd");
+        assertNotNull(gcdSetting);
+        gcdSetting.set(false);
+        assertFalse(config.autoCartCameraMouseGcd);
+        assertFalse(MorrowConfig.cameraMouseGcd);
+        gcdSetting.set(true);
+        assertTrue(config.autoCartCameraMouseGcd);
+        assertTrue(MorrowConfig.cameraMouseGcd);
 
         cartMod.setEnabled(false);
         assertFalse(cartMod.isEnabled());

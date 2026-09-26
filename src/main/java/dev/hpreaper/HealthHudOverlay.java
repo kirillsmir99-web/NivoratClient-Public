@@ -17,6 +17,8 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.Locale;
+
 public final class HealthHudOverlay {
     private static final int COLOR_ABSORPTION = 0xFFFFF014;
     private static final int COLOR_NORMAL = 0xFFFF2A2A;
@@ -56,7 +58,8 @@ public final class HealthHudOverlay {
     private HealthHudOverlay() {}
 
     public static boolean isValidTarget(LivingEntity player, LivingEntity entity) {
-        if (entity == null
+        if (player == null
+                || entity == null
                 || entity == player
                 || (entity instanceof ArmorStandEntity)
                 || !entity.isAlive()
@@ -78,43 +81,77 @@ public final class HealthHudOverlay {
         if (entity == null) {
             return 0.0F;
         }
-        float vanillaHealth = entity.getHealth();
-        float maxHealth = entity.getMaxHealth();
-        float absorption = entity.getAbsorptionAmount();
+        float vanillaHealth = 0.0F;
+        float maxHealth = 20.0F;
+        float absorption = 0.0F;
+        try {
+            vanillaHealth = entity.getHealth();
+            maxHealth = entity.getMaxHealth();
+            absorption = entity.getAbsorptionAmount();
+        } catch (Throwable ignored) {}
 
-        if (entity instanceof net.minecraft.entity.player.PlayerEntity player) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client != null && client.world != null) {
-                net.minecraft.scoreboard.Scoreboard scoreboard = client.world.getScoreboard();
-                if (scoreboard != null) {
-                    net.minecraft.scoreboard.ScoreboardObjective belowName = scoreboard.getObjectiveForSlot(net.minecraft.scoreboard.ScoreboardDisplaySlot.BELOW_NAME);
-                    if (belowName != null) {
-                        net.minecraft.scoreboard.ReadableScoreboardScore score = scoreboard.getScore(net.minecraft.scoreboard.ScoreHolder.fromName(player.getNameForScoreboard()), belowName);
-                        if (score != null && score.getScore() > 0) {
-                            return (float) score.getScore();
-                        }
-                    }
-                    net.minecraft.scoreboard.ScoreboardObjective listObj = scoreboard.getObjectiveForSlot(net.minecraft.scoreboard.ScoreboardDisplaySlot.LIST);
-                    if (listObj != null) {
-                        net.minecraft.scoreboard.ReadableScoreboardScore score = scoreboard.getScore(net.minecraft.scoreboard.ScoreHolder.fromName(player.getNameForScoreboard()), listObj);
-                        if (score != null && score.getScore() > 0) {
-                            return (float) score.getScore();
-                        }
-                    }
-                    for (net.minecraft.scoreboard.ScoreboardObjective obj : scoreboard.getObjectives()) {
-                        if (obj != null) {
-                            String name = obj.getName().toLowerCase();
-                            if (name.contains("health") || name.contains("hp") || obj.getCriterion().getName().contains("health")) {
-                                net.minecraft.scoreboard.ReadableScoreboardScore score = scoreboard.getScore(net.minecraft.scoreboard.ScoreHolder.fromName(player.getNameForScoreboard()), obj);
+        try {
+            if (entity instanceof net.minecraft.entity.player.PlayerEntity player) {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (client != null && client.world != null) {
+                    net.minecraft.scoreboard.Scoreboard scoreboard = client.world.getScoreboard();
+                    if (scoreboard != null) {
+                        try {
+                            net.minecraft.scoreboard.ScoreboardObjective belowName = scoreboard.getObjectiveForSlot(net.minecraft.scoreboard.ScoreboardDisplaySlot.BELOW_NAME);
+                            if (belowName != null) {
+                                net.minecraft.scoreboard.ReadableScoreboardScore score = scoreboard.getScore(player, belowName);
                                 if (score != null && score.getScore() > 0) {
                                     return (float) score.getScore();
                                 }
                             }
+                        } catch (Throwable ignored) {}
+
+                        try {
+                            net.minecraft.scoreboard.ScoreboardObjective listObj = scoreboard.getObjectiveForSlot(net.minecraft.scoreboard.ScoreboardDisplaySlot.LIST);
+                            if (listObj != null) {
+                                net.minecraft.scoreboard.ReadableScoreboardScore score = scoreboard.getScore(player, listObj);
+                                if (score != null && score.getScore() > 0) {
+                                    return (float) score.getScore();
+                                }
+                            }
+                        } catch (Throwable ignored) {}
+
+                        String holderName = null;
+                        try {
+                            holderName = player.getNameForScoreboard();
+                        } catch (Throwable ignored) {}
+                        if (holderName == null) {
+                            try {
+                                holderName = player.getName().getString();
+                            } catch (Throwable ignored) {}
+                        }
+                        if (holderName != null && !holderName.isBlank()) {
+                            try {
+                                net.minecraft.scoreboard.ScoreHolder holder = net.minecraft.scoreboard.ScoreHolder.fromName(holderName);
+                                net.minecraft.scoreboard.ScoreboardObjective belowName = scoreboard.getObjectiveForSlot(net.minecraft.scoreboard.ScoreboardDisplaySlot.BELOW_NAME);
+                                if (belowName != null) {
+                                    net.minecraft.scoreboard.ReadableScoreboardScore score = scoreboard.getScore(holder, belowName);
+                                    if (score != null && score.getScore() > 0) {
+                                        return (float) score.getScore();
+                                    }
+                                }
+                                net.minecraft.scoreboard.ScoreboardObjective listObj = scoreboard.getObjectiveForSlot(net.minecraft.scoreboard.ScoreboardDisplaySlot.LIST);
+                                if (listObj != null) {
+                                    net.minecraft.scoreboard.ReadableScoreboardScore score = scoreboard.getScore(holder, listObj);
+                                    if (score != null && score.getScore() > 0) {
+                                        return (float) score.getScore();
+                                    }
+                                }
+                            } catch (Throwable ignored) {}
                         }
                     }
                 }
             }
-        }
+        } catch (Throwable ignored) {}
+
+        if (Float.isNaN(vanillaHealth) || Float.isInfinite(vanillaHealth)) vanillaHealth = 0.0F;
+        if (Float.isNaN(maxHealth) || Float.isInfinite(maxHealth) || maxHealth <= 0.0F) maxHealth = 20.0F;
+        if (Float.isNaN(absorption) || Float.isInfinite(absorption) || absorption < 0.0F) absorption = 0.0F;
 
         float safeHp = Math.max(0.0F, Math.min(maxHealth, vanillaHealth));
         if (Math.abs(safeHp - maxHealth) < 0.05F) {
@@ -134,52 +171,61 @@ public final class HealthHudOverlay {
     }
 
     public static void updateTick(MinecraftClient client) {
-        if (client == null || client.world == null || client.player == null) {
-            cachedCrosshairTarget = null;
-            return;
-        }
-
-        LivingEntity found = null;
-        LivingEntity crosshairLiving = activity.client.module.service.TargetCacheService.getCrosshairLivingTarget(client);
-        if (crosshairLiving != null && isValidTarget(client.player, crosshairLiving)) {
-            found = crosshairLiving;
-        } else if (client.crosshairTarget instanceof EntityHitResult ehr) {
-            LivingEntity resolved = resolveLivingEntity(ehr.getEntity());
-            if (isValidTarget(client.player, resolved)) {
-                found = resolved;
-            }
-        }
-
-        if (found == null) {
-            Entity camera = client.getCameraEntity() != null ? client.getCameraEntity() : client.player;
-            Vec3d cameraPos = camera.getCameraPosVec(1.0F);
-            Vec3d rot = camera.getRotationVec(1.0F);
-            Vec3d end = cameraPos.add(rot.x * RAYCAST_MAX_DISTANCE, rot.y * RAYCAST_MAX_DISTANCE, rot.z * RAYCAST_MAX_DISTANCE);
-            HitResult blockHit = camera.raycast(RAYCAST_MAX_DISTANCE, 1.0F, false);
-            double maxDistSq = RAYCAST_MAX_DISTANCE * RAYCAST_MAX_DISTANCE;
-            if (blockHit != null && blockHit.getType() != HitResult.Type.MISS) {
-                maxDistSq = blockHit.getPos().squaredDistanceTo(cameraPos);
-                end = blockHit.getPos();
-            }
-            Box box = camera.getBoundingBox().stretch(rot.multiply(RAYCAST_MAX_DISTANCE)).expand(1.0);
-            EntityHitResult hit = ProjectileUtil.raycast(camera, cameraPos, end, box, e -> {
-                LivingEntity living = resolveLivingEntity(e);
-                return isValidTarget(client.player, living);
-            }, maxDistSq);
-
-            if (hit != null) {
-                found = resolveLivingEntity(hit.getEntity());
-            }
-        }
-
-        long now = System.nanoTime();
-        if (found != null) {
-            cachedCrosshairTarget = found;
-            lastCrosshairSeenNanos = now;
-        } else if (cachedCrosshairTarget != null) {
-            if (now - lastCrosshairSeenNanos > CROSSHAIR_RETENTION_NANOS || !isValidTarget(client.player, cachedCrosshairTarget)) {
+        try {
+            if (client == null || client.world == null || client.player == null) {
                 cachedCrosshairTarget = null;
+                return;
             }
+
+            LivingEntity found = null;
+            LivingEntity crosshairLiving = activity.client.module.service.TargetCacheService.getCrosshairLivingTarget(client);
+            if (crosshairLiving != null && isValidTarget(client.player, crosshairLiving)) {
+                found = crosshairLiving;
+            } else if (client.crosshairTarget instanceof EntityHitResult ehr) {
+                LivingEntity resolved = resolveLivingEntity(ehr.getEntity());
+                if (isValidTarget(client.player, resolved)) {
+                    found = resolved;
+                }
+            }
+
+            if (found == null) {
+                Entity camera = client.getCameraEntity() != null ? client.getCameraEntity() : client.player;
+                if (camera != null) {
+                    Vec3d cameraPos = camera.getCameraPosVec(1.0F);
+                    Vec3d rot = camera.getRotationVec(1.0F);
+                    Vec3d end = cameraPos.add(rot.x * RAYCAST_MAX_DISTANCE, rot.y * RAYCAST_MAX_DISTANCE, rot.z * RAYCAST_MAX_DISTANCE);
+                    HitResult blockHit = camera.raycast(RAYCAST_MAX_DISTANCE, 1.0F, false);
+                    double maxDistSq = RAYCAST_MAX_DISTANCE * RAYCAST_MAX_DISTANCE;
+                    if (blockHit != null && blockHit.getType() != HitResult.Type.MISS) {
+                        maxDistSq = blockHit.getPos().squaredDistanceTo(cameraPos);
+                        end = blockHit.getPos();
+                    }
+                    Box bb = camera.getBoundingBox();
+                    if (bb != null) {
+                        Box box = bb.stretch(rot.multiply(RAYCAST_MAX_DISTANCE)).expand(1.0);
+                        EntityHitResult hit = ProjectileUtil.raycast(camera, cameraPos, end, box, e -> {
+                            LivingEntity living = resolveLivingEntity(e);
+                            return isValidTarget(client.player, living);
+                        }, maxDistSq);
+
+                        if (hit != null) {
+                            found = resolveLivingEntity(hit.getEntity());
+                        }
+                    }
+                }
+            }
+
+            long now = System.nanoTime();
+            if (found != null) {
+                cachedCrosshairTarget = found;
+                lastCrosshairSeenNanos = now;
+            } else if (cachedCrosshairTarget != null) {
+                if (now - lastCrosshairSeenNanos > CROSSHAIR_RETENTION_NANOS || !isValidTarget(client.player, cachedCrosshairTarget)) {
+                    cachedCrosshairTarget = null;
+                }
+            }
+        } catch (Throwable ignored) {
+            cachedCrosshairTarget = null;
         }
     }
 
@@ -339,95 +385,105 @@ public final class HealthHudOverlay {
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (context == null || VitalityConfig.displayMode == DisplayMode.DISABLED) {
-            return;
-        }
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.options == null || client.options.hudHidden || client.world == null) {
-            return;
-        }
-        if (client.currentScreen instanceof HpHudEditorScreen || (client.currentScreen != null && client.currentScreen.getClass().getSimpleName().contains("EditorScreen"))) {
-            return;
-        }
-
-        ClientPlayerEntity player = client.player;
-        if (player == null || !player.isAlive() || player.isSpectator()) {
-            displayHp = -1.0F;
-            displayTargetHp = -1.0F;
-            lastTimeNanos = 0L;
-            return;
-        }
-
-        float maxHealth = player.getMaxHealth();
-        float health = Math.max(0.0F, Math.min(maxHealth, player.getHealth()));
-        float absorption = Math.max(0.0F, player.getAbsorptionAmount());
-        if (Math.abs(health - maxHealth) < 0.05F) {
-            health = maxHealth;
-        }
-        float targetOwnHp = health + absorption;
-
-        long now = System.nanoTime();
-        float animationFactor = 1.0F;
-        if (displayHp < 0.0F || lastTimeNanos == 0L) {
-            displayHp = targetOwnHp;
-        } else {
-            float dt = (now - lastTimeNanos) / 1_000_000_000.0F;
-            if (dt > 0.1F) {
-                dt = 0.1F;
+        try {
+            if (context == null || VitalityConfig.displayMode == DisplayMode.DISABLED) {
+                return;
             }
-            animationFactor = Math.min(1.0F, dt * 24.0F);
-            displayHp = animateHp(displayHp, targetOwnHp, animationFactor);
-        }
-        lastTimeNanos = now;
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null || client.options == null || client.options.hudHidden || client.world == null) {
+                return;
+            }
+            if (client.currentScreen instanceof HpHudEditorScreen || (client.currentScreen != null && client.currentScreen.getClass().getSimpleName().contains("EditorScreen"))) {
+                return;
+            }
 
-        String ownText = formatHp(displayHp);
-        int ownColor = absorption > 0.0F ? COLOR_ABSORPTION : COLOR_NORMAL;
+            ClientPlayerEntity player = client.player;
+            if (player == null || !player.isAlive() || player.isSpectator()) {
+                displayHp = -1.0F;
+                displayTargetHp = -1.0F;
+                lastTimeNanos = 0L;
+                return;
+            }
 
-        LivingEntity activeTarget = getActiveTarget(player, now);
-        if (activeTarget != lastActiveTarget) {
-            lastActiveTarget = activeTarget;
-            displayTargetHp = -1.0F;
-        }
+            float maxHealth = player.getMaxHealth();
+            float health = Math.max(0.0F, Math.min(maxHealth, player.getHealth()));
+            float absorption = Math.max(0.0F, player.getAbsorptionAmount());
+            if (Math.abs(health - maxHealth) < 0.05F) {
+                health = maxHealth;
+            }
+            float targetOwnHp = health + absorption;
 
-        String targetText = null;
-        String diffText = null;
-        int diffColor = COLOR_DIFFERENCE_AHEAD;
-
-        if (activeTarget != null) {
-            float actualTargetHp = extractEntityHealth(activeTarget);
-            if (displayTargetHp < 0.0F) {
-                displayTargetHp = actualTargetHp;
+            long now = System.nanoTime();
+            float animationFactor = 1.0F;
+            if (displayHp < 0.0F || lastTimeNanos == 0L) {
+                displayHp = targetOwnHp;
             } else {
-                displayTargetHp = animateHp(displayTargetHp, actualTargetHp, animationFactor);
+                float dt = (now - lastTimeNanos) / 1_000_000_000.0F;
+                if (dt > 0.1F) {
+                    dt = 0.1F;
+                }
+                animationFactor = Math.min(1.0F, dt * 24.0F);
+                displayHp = animateHp(displayHp, targetOwnHp, animationFactor);
             }
-            targetText = formatHp(displayTargetHp);
-            diffText = formatDifference(displayHp - displayTargetHp);
-            diffColor = displayHp >= displayTargetHp ? COLOR_DIFFERENCE_AHEAD : COLOR_DIFFERENCE_BEHIND;
-        } else {
-            displayTargetHp = -1.0F;
-        }
+            lastTimeNanos = now;
 
-        if (VitalityConfig.displayMode == DisplayMode.TARGET_HEALTH && targetText == null) {
-            return;
-        }
+            String ownText = formatHp(displayHp);
+            int ownColor = absorption > 0.0F ? COLOR_ABSORPTION : COLOR_NORMAL;
 
-        TextRenderer tr = client.textRenderer;
-        int elementWidth = getPreviewWidth(tr, VitalityConfig.displayMode);
-        int elementHeight = getPreviewHeight(VitalityConfig.displayMode);
+            LivingEntity activeTarget = getActiveTarget(player, now);
+            if (activeTarget != lastActiveTarget) {
+                lastActiveTarget = activeTarget;
+                displayTargetHp = -1.0F;
+            }
 
-        if (elementWidth <= 0 || VitalityConfig.displayMode == DisplayMode.DISABLED) {
-            return;
-        }
+            String targetText = null;
+            String diffText = null;
+            int diffColor = COLOR_DIFFERENCE_AHEAD;
 
-        int sw = context.getScaledWindowWidth();
-        int sh = context.getScaledWindowHeight();
-        int x = getEffectiveX(VitalityConfig.displayMode, sw, elementWidth);
-        int y = getEffectiveY(VitalityConfig.displayMode, sh, elementHeight);
+            if (activeTarget != null) {
+                try {
+                    float actualTargetHp = extractEntityHealth(activeTarget);
+                    if (displayTargetHp < 0.0F) {
+                        displayTargetHp = actualTargetHp;
+                    } else {
+                        displayTargetHp = animateHp(displayTargetHp, actualTargetHp, animationFactor);
+                    }
+                    targetText = formatHp(displayTargetHp);
+                    diffText = formatDifference(displayHp - displayTargetHp);
+                    diffColor = displayHp >= displayTargetHp ? COLOR_DIFFERENCE_AHEAD : COLOR_DIFFERENCE_BEHIND;
+                } catch (Throwable ignored) {
+                    targetText = null;
+                }
+            } else {
+                displayTargetHp = -1.0F;
+            }
 
-        renderElement(context, client, x, y, ownText, ownColor, targetText, COLOR_TARGET, diffText, diffColor, VitalityConfig.displayMode);
+            if (VitalityConfig.displayMode == DisplayMode.TARGET_HEALTH && targetText == null) {
+                return;
+            }
+
+            TextRenderer tr = client.textRenderer;
+            int elementWidth = getPreviewWidth(tr, VitalityConfig.displayMode);
+            int elementHeight = getPreviewHeight(VitalityConfig.displayMode);
+
+            if (elementWidth <= 0 || VitalityConfig.displayMode == DisplayMode.DISABLED) {
+                return;
+            }
+
+            int sw = context.getScaledWindowWidth();
+            int sh = context.getScaledWindowHeight();
+            int x = getEffectiveX(VitalityConfig.displayMode, sw, elementWidth);
+            int y = getEffectiveY(VitalityConfig.displayMode, sh, elementHeight);
+
+            try {
+                renderElement(context, client, x, y, ownText, ownColor, targetText, COLOR_TARGET, diffText, diffColor, VitalityConfig.displayMode);
+            } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {}
     }
 
     private static float animateHp(float displayedHp, float actualHp, float factor) {
+        if (Float.isNaN(displayedHp) || Float.isInfinite(displayedHp)) displayedHp = -1.0F;
+        if (Float.isNaN(actualHp) || Float.isInfinite(actualHp)) actualHp = 20.0F;
         if (displayedHp < 0.0F || Math.abs(actualHp - displayedHp) < 0.05F) {
             return actualHp;
         }
@@ -435,7 +491,7 @@ public final class HealthHudOverlay {
     }
 
     public static String formatHp(float hp) {
-        if (hp <= 0.0F) {
+        if (Float.isNaN(hp) || Float.isInfinite(hp) || hp <= 0.0F) {
             return "0.0";
         }
         int index = Math.round(hp * 10.0F);
@@ -448,7 +504,7 @@ public final class HealthHudOverlay {
     }
 
     public static String formatDifference(float difference) {
-        if (Math.abs(difference) < 0.05F) {
+        if (Float.isNaN(difference) || Float.isInfinite(difference) || Math.abs(difference) < 0.05F) {
             return "0.0";
         }
         int index = Math.round(Math.abs(difference) * 10.0F);
