@@ -527,6 +527,7 @@ public class SidebarTree {
             case "auto_spear" -> c.autoSpearEnabled;
             case "auto_shieldbreaker" -> c.autoShieldbreakerEnabled;
             case "auto_stun_slam", "auto_stun_slime" -> c.autoStunSlamEnabled;
+            case "auto_pearl_catch" -> c.autoPearlCatchEnabled;
             case "auto_totem" -> c.autoTotemEnabled;
             case "auto_cart" -> c.autoCartEnabled;
             case "auto_anchor" -> c.autoAnchorEnabled;

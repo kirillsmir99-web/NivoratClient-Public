@@ -223,4 +223,23 @@ public class SidebarTreeTest {
         sidebarTree.applySearchFilter("");
         assertFalse(utility.isExpanded());
     }
+
+    @Test
+    void testAutoPearlCatchActiveStateInSidebarTree() {
+        SidebarTree.CategoryNode combat = sidebarTree.getCategories().get(0);
+        SidebarTree.ModuleItem pearlCatch = combat.getChildren().stream()
+                .filter(item -> "auto_pearl_catch".equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(pearlCatch, "AutoPearlCatch must exist in combat category");
+        assertTrue(pearlCatch.isActive(), "AutoPearlCatch should be active by default");
+
+        activity.client.module.api.IModule mod = activity.client.module.api.ModuleRegistry.get("auto_pearl_catch");
+        assertNotNull(mod);
+        mod.setEnabled(false);
+        assertFalse(pearlCatch.isActive(), "AutoPearlCatch must NOT be active when disabled");
+
+        mod.setEnabled(true);
+        assertTrue(pearlCatch.isActive(), "AutoPearlCatch must be active when re-enabled");
+    }
 }

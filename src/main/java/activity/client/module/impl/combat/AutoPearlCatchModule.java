@@ -258,6 +258,10 @@ public class AutoPearlCatchModule extends NivoratModule {
         ActivityConfig c = ActivityConfigManager.getConfig();
         if (c != null) {
             c.autoPearlCatchEnabled = enabled;
+            ActivityConfig.ModuleConfigEntry entry = c.getModuleEntry(ID);
+            if (entry != null) {
+                entry.enabled = enabled;
+            }
             ActivityConfigManager.markDirty();
         }
         if (!enabled) {
@@ -289,5 +293,12 @@ public class AutoPearlCatchModule extends NivoratModule {
         if (config == null) return;
         config.autoPearlCatchEnabled = this.enabled;
         config.autoPearlCatchKeybind.copyFrom(this.keybind);
+        ActivityConfig.ModuleConfigEntry entry = config.getModuleEntry(ID);
+        if (entry != null) {
+            entry.enabled = this.enabled;
+            if (this.keybind != null) {
+                entry.keybind.copyFrom(this.keybind);
+            }
+        }
     }
 }
