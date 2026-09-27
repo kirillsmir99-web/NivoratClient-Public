@@ -59,6 +59,10 @@ public final class CartHudOverlay {
         return getDefaultY(screenHeight);
     }
 
+    public static void render(DrawContext context, float tickDelta) {
+        render(context, (RenderTickCounter) null);
+    }
+
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
         if (context == null || !CartHudConfig.enabled) {
             return;

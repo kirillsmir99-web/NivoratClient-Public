@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonPart;
 import net.minecraft.entity.decoration.ArmorStandEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -240,6 +241,20 @@ public final class HealthHudOverlay {
         lastCombatHitNanos = System.nanoTime();
     }
 
+    public static void trackTarget(PlayerEntity target) {
+        trackCombatTarget(target);
+    }
+
+    public static void trackTarget(LivingEntity target) {
+        trackCombatTarget(target);
+    }
+
+    public static void trackTarget(Entity target) {
+        if (target instanceof LivingEntity living) {
+            trackCombatTarget(living);
+        }
+    }
+
     public static LivingEntity getActiveTarget(ClientPlayerEntity player, long now) {
         if (isValidTarget(player, cachedCrosshairTarget)) {
             return cachedCrosshairTarget;
@@ -382,6 +397,10 @@ public final class HealthHudOverlay {
             }
             case DISABLED -> {}
         }
+    }
+
+    public static void render(DrawContext context, float tickDelta) {
+        render(context, (RenderTickCounter) null);
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {

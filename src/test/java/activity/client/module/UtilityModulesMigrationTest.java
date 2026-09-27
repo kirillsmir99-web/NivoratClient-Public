@@ -587,4 +587,21 @@ public class UtilityModulesMigrationTest {
             }
         });
     }
+
+    @Test
+    void testHealthHudOverlayCompatibilityMethods() {
+        assertDoesNotThrow(() -> {
+            assertNotNull(dev.hpreaper.HealthHudOverlay.class.getMethod("trackTarget", net.minecraft.entity.player.PlayerEntity.class));
+            assertNotNull(dev.hpreaper.HealthHudOverlay.class.getMethod("trackTarget", net.minecraft.entity.LivingEntity.class));
+            assertNotNull(dev.hpreaper.HealthHudOverlay.class.getMethod("trackTarget", net.minecraft.entity.Entity.class));
+            assertNotNull(dev.hpreaper.HealthHudOverlay.class.getMethod("render", net.minecraft.client.gui.DrawContext.class, float.class));
+            assertNotNull(dev.carthud.CartHudOverlay.class.getMethod("render", net.minecraft.client.gui.DrawContext.class, float.class));
+
+            dev.hpreaper.HealthHudOverlay.trackTarget((net.minecraft.entity.player.PlayerEntity) null);
+            dev.hpreaper.HealthHudOverlay.trackTarget((net.minecraft.entity.LivingEntity) null);
+            dev.hpreaper.HealthHudOverlay.trackTarget((net.minecraft.entity.Entity) null);
+            dev.hpreaper.HealthHudOverlay.render(null, 1.0f);
+            dev.carthud.CartHudOverlay.render(null, 1.0f);
+        });
+    }
 }
