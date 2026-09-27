@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class AutoGGClient implements ClientModInitializer {
     public static final AutoGGConfig CONFIG = AutoGGConfig.load();
     private static final long SEND_COOLDOWN_MS = 8_000L;
+    private static final long SERVER_TRANSFER_GRACE_MS = 4000L;
     private static final Map<Integer, Long> recentAttacks = new ConcurrentHashMap<>();
 
     public static double customDelayMs = 950.0;
@@ -19,6 +20,7 @@ public final class AutoGGClient implements ClientModInitializer {
     private static long lastSentAt;
     private static long scheduledSendTime = 0L;
     private static String pendingPhrase = null;
+    private static long lastServerTransferTime = 0L;
 
     private boolean localDiedThisRound;
 
@@ -53,6 +55,10 @@ public final class AutoGGClient implements ClientModInitializer {
 
     public void handleTick(MinecraftClient client) {
         if (client == null) return;
+        if (isInGracePeriod()) {
+            localDiedThisRound = false;
+            return;
+        }
         if (client.player != null) {
             boolean isDead = client.player.isDead() || client.player.getHealth() <= 0.0F
                     || (client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen);
@@ -107,6 +113,7 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     public static void markOwnDeath() {
+        if (isInGracePeriod()) return;
         ensureActive();
         if (active != null) {
             active.handleOwnDeath();
@@ -114,7 +121,22 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     public static void onPlayerRespawnPacket() {
+        onServerTransferOrRespawn();
+    }
 
+    public static void onServerTransferOrRespawn() {
+        lastServerTransferTime = System.currentTimeMillis();
+        pendingPhrase = null;
+        scheduledSendTime = 0L;
+        if (active != null) {
+            active.localDiedThisRound = false;
+        }
+        recentAttacks.clear();
+        activity.client.module.impl.utility.AutoGGKillTracker.reset();
+    }
+
+    public static boolean isInGracePeriod() {
+        return (System.currentTimeMillis() - lastServerTransferTime) < SERVER_TRANSFER_GRACE_MS;
     }
 
     public static void onPotentialFfaVictimDestroyed(Entity victim) {
@@ -130,6 +152,7 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     public void handleOwnDeath() {
+        if (isInGracePeriod()) return;
         localDiedThisRound = true;
         if (!CONFIG.enabled || !CONFIG.sendOnOwnDeath) return;
         long now = System.currentTimeMillis();
@@ -143,6 +166,7 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     public void onConfirmedKill(String victimName) {
+        if (isInGracePeriod()) return;
         if (!CONFIG.enabled || !CONFIG.sendOnKill) return;
         long now = System.currentTimeMillis();
         if (now - lastSentAt > SEND_COOLDOWN_MS && pendingPhrase == null) {
@@ -151,6 +175,14 @@ public final class AutoGGClient implements ClientModInitializer {
                 pendingPhrase = phrase;
                 scheduledSendTime = now + Math.max(50L, (long) customDelayMs);
             }
+        }
+    }
+
+    public static void triggerConfirmedKill(String victimName) {
+        if (isInGracePeriod()) return;
+        ensureActive();
+        if (active != null) {
+            active.onConfirmedKill(victimName);
         }
     }
 
@@ -168,7 +200,7 @@ public final class AutoGGClient implements ClientModInitializer {
     }
 
     private void handleRoundResult(MinecraftClient client, String message) {
-        if (client == null || client.player == null || message == null || !CONFIG.enabled) return;
+        if (client == null || client.player == null || message == null || !CONFIG.enabled || isInGracePeriod()) return;
 
         String lower = message.toLowerCase(java.util.Locale.ROOT);
         if (!lower.contains("побед") && !lower.contains("выигр") && !lower.contains("won") && !lower.contains("victor")
@@ -235,10 +267,12 @@ public final class AutoGGClient implements ClientModInitializer {
         pendingPhrase = null;
         scheduledSendTime = 0L;
         lastSentAt = 0L;
+        lastServerTransferTime = 0L;
         if (active != null) {
             active.localDiedThisRound = false;
         }
         recentAttacks.clear();
+        activity.client.module.impl.utility.AutoGGKillTracker.reset();
     }
 }
 

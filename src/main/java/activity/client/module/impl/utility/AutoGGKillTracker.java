@@ -324,6 +324,9 @@ public final class AutoGGKillTracker {
         }
 
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        if (isPlayerChatMessage(clean) || isLobbyOrWelcomeMessage(clean)) {
+            return null;
+        }
 
         for (Pattern pattern : DIRECT_YOU_KILLED_PATTERNS) {
             Matcher matcher = pattern.matcher(clean);
@@ -359,6 +362,51 @@ public final class AutoGGKillTracker {
         }
 
         return null;
+    }
+
+    public static boolean isLobbyOrWelcomeMessage(String text) {
+        if (text == null || text.isBlank()) return false;
+        String lower = text.toLowerCase(Locale.ROOT);
+        return lower.contains("добро пожаловать")
+                || lower.contains("welcome")
+                || lower.contains("онлайн:")
+                || lower.contains("online:")
+                || lower.contains("статистика")
+                || lower.contains("statistics")
+                || lower.contains("баланс")
+                || lower.contains("сезон ")
+                || lower.contains("сезона:")
+                || lower.contains("подключился")
+                || lower.contains("подключилась")
+                || lower.contains("joined the")
+                || lower.contains("left the")
+                || lower.contains("connecting")
+                || lower.contains("переход на")
+                || lower.contains("сервер:")
+                || lower.contains("сервер ")
+                || lower.contains("server:")
+                || lower.contains("режим:")
+                || lower.contains("сайт:")
+                || lower.contains("дискорд")
+                || lower.contains("discord")
+                || lower.contains("телеграм")
+                || lower.contains("telegram")
+                || lower.contains("vk.com")
+                || lower.contains("t.me")
+                || lower.contains("donate")
+                || lower.contains("донат")
+                || lower.contains("правила")
+                || lower.contains("побед:")
+                || lower.contains("победы:")
+                || lower.contains("поражений:")
+                || lower.contains("смертей:")
+                || lower.contains("убийств:")
+                || lower.contains("k/d:")
+                || lower.contains("к/д:")
+                || lower.contains("лобби")
+                || lower.contains("lobby")
+                || lower.contains("хаб")
+                || lower.contains("hub");
     }
 
     public static boolean isSystemDuelMessage(String clean) {
@@ -411,7 +459,7 @@ public final class AutoGGKillTracker {
         }
 
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
-        if (isPlayerChatMessage(clean)) {
+        if (isPlayerChatMessage(clean) || isLobbyOrWelcomeMessage(clean)) {
             return false;
         }
         String lower = clean.toLowerCase(Locale.ROOT);
@@ -465,7 +513,7 @@ public final class AutoGGKillTracker {
             return null;
         }
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
-        if (isPlayerChatMessage(clean)) {
+        if (isPlayerChatMessage(clean) || isLobbyOrWelcomeMessage(clean)) {
             return null;
         }
         for (Pattern pattern : DIRECT_YOU_KILLED_PATTERNS) {
@@ -485,7 +533,7 @@ public final class AutoGGKillTracker {
             return false;
         }
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
-        if (isPlayerChatMessage(clean)) {
+        if (isPlayerChatMessage(clean) || isLobbyOrWelcomeMessage(clean)) {
             return false;
         }
         String lower = clean.toLowerCase(Locale.ROOT);
@@ -595,7 +643,7 @@ public final class AutoGGKillTracker {
             return false;
         }
         String clean = rawMessage.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
-        if (isPlayerChatMessage(clean)) {
+        if (isPlayerChatMessage(clean) || isLobbyOrWelcomeMessage(clean)) {
             return false;
         }
         String lower = clean.toLowerCase(Locale.ROOT);
@@ -656,7 +704,13 @@ public final class AutoGGKillTracker {
 
         String winner = extractDuelWinner(clean);
         if (winner != null && !winner.equalsIgnoreCase(localPlayerName) && isSystemDuelMessage(clean)) {
-            return true;
+            if (loser != null && !loser.equalsIgnoreCase(localPlayerName)) {
+                return false;
+            }
+            if (namePattern.matcher(clean).find()) {
+                return true;
+            }
+            return false;
         }
 
         return false;

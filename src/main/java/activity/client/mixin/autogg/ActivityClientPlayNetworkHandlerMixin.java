@@ -36,6 +36,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onGameJoin", at = @At("TAIL"))
     private void activity$security$onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
+        AutoGGClient.onServerTransferOrRespawn();
         MinecraftClient client = MinecraftClient.getInstance();
         ServerInfo server = client == null ? null : client.getCurrentServerEntry();
         if (server != null) {
@@ -47,12 +48,14 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "clearWorld", at = @At("TAIL"))
     private void activity$security$clearWorld(CallbackInfo ci) {
+        AutoGGClient.onServerTransferOrRespawn();
         activity.client.security.RemoteLockService.unlock();
     }
 
     @Inject(method = "onEntityStatus", at = @At("TAIL"))
     private void activity$autogg$ownDeath(EntityStatusS2CPacket packet, CallbackInfo ci) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
+        if (AutoGGClient.isInGracePeriod()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
         Entity entity = packet.getEntity(client.world);
@@ -69,6 +72,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
     @Inject(method = "onHealthUpdate", at = @At("TAIL"))
     private void activity$autogg$healthUpdate(HealthUpdateS2CPacket packet, CallbackInfo ci) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (AutoGGClient.isInGracePeriod()) return;
         if (packet.getHealth() <= 0.0F) {
             AutoGGClient.markOwnDeath();
         }
@@ -82,7 +86,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onGameMessage", at = @At("TAIL"))
     private void activity$autogg$gameMessage(GameMessageS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled || AutoGGClient.isInGracePeriod()) return;
         if (packet.content() != null) {
             AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.content().getString());
         }
@@ -90,7 +94,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onChatMessage", at = @At("TAIL"))
     private void activity$autogg$chatMessage(ChatMessageS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled || AutoGGClient.isInGracePeriod()) return;
         String msg = packet.unsignedContent() != null ? packet.unsignedContent().getString() : (packet.body() != null ? packet.body().content() : null);
         if (msg != null) {
             AutoGGClient.onRoundResult(MinecraftClient.getInstance(), msg);
@@ -99,7 +103,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onProfilelessChatMessage", at = @At("TAIL"))
     private void activity$autogg$profilelessChatMessage(ProfilelessChatMessageS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled || AutoGGClient.isInGracePeriod()) return;
         if (packet.message() != null) {
             AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.message().getString());
         }
@@ -107,7 +111,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onOverlayMessage", at = @At("TAIL"))
     private void activity$autogg$overlayMessage(OverlayMessageS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled || AutoGGClient.isInGracePeriod()) return;
         if (packet.text() != null) {
             AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.text().getString());
         }
@@ -116,6 +120,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
     @Inject(method = "onDeathMessage", at = @At("TAIL"))
     private void activity$autogg$deathMessage(DeathMessageS2CPacket packet, CallbackInfo ci) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (AutoGGClient.isInGracePeriod()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null && packet.playerId() == client.player.getId()) {
             AutoGGClient.markOwnDeath();
@@ -127,7 +132,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onTitle", at = @At("TAIL"))
     private void activity$autogg$title(TitleS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled || AutoGGClient.isInGracePeriod()) return;
         if (packet.text() != null) {
             AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.text().getString());
         }
@@ -135,7 +140,7 @@ public final class ActivityClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onSubtitle", at = @At("TAIL"))
     private void activity$autogg$subtitle(SubtitleS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AutoGGClient.CONFIG.enabled || AutoGGClient.isInGracePeriod()) return;
         if (packet.text() != null) {
             AutoGGClient.onRoundResult(MinecraftClient.getInstance(), packet.text().getString());
         }

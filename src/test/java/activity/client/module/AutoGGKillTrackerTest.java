@@ -359,4 +359,61 @@ public class AutoGGKillTrackerTest {
         assertFalse(AutoGGKillTracker.isDuelWinMessage("<RandomPlayer> Дуэль завершена! Победитель: Nivorat", local));
         assertFalse(AutoGGKillTracker.isDuelLossMessage("<RandomPlayer> Дуэль окончена! Проигравший: Nivorat", local));
     }
+
+    @Test
+    @DisplayName("Lobby and Welcome Messages: Rejection to prevent false AutoGG triggers on server connect")
+    void testLobbyWelcomeMessagesRejection() {
+        String local = "Nivorat";
+
+        assertTrue(AutoGGKillTracker.isLobbyOrWelcomeMessage("Добро пожаловать на сервер Дуэлей!"));
+        assertTrue(AutoGGKillTracker.isLobbyOrWelcomeMessage("Welcome to the server, Nivorat!"));
+        assertTrue(AutoGGKillTracker.isLobbyOrWelcomeMessage("Ваша статистика: Побед: 125, Поражений: 30"));
+        assertTrue(AutoGGKillTracker.isLobbyOrWelcomeMessage("Игрок Nivorat подключился к серверу"));
+        assertTrue(AutoGGKillTracker.isLobbyOrWelcomeMessage("Онлайн: 45/100 | Сервер: Duels-1"));
+        assertTrue(AutoGGKillTracker.isLobbyOrWelcomeMessage("Наш Discord: discord.gg/example"));
+        assertTrue(AutoGGKillTracker.isLobbyOrWelcomeMessage("Переход в лобби..."));
+
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("[Дуэли] Добро пожаловать, Nivorat! Побед: 50, Поражений: 10", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Статистика игрока Nivorat: побед: 100", local));
+        assertFalse(AutoGGKillTracker.isDuelWinMessage("Игрок Nivorat подключился к серверу Duels", local));
+
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("[Дуэли] Добро пожаловать, Nivorat! Поражений: 20", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Сервер перезагружается, переход в лобби", local));
+
+        assertNull(AutoGGKillTracker.parseChatKill("Nivorat подключился к серверу", local));
+        assertFalse(AutoGGKillTracker.isOwnDeathMessage("Nivorat подключился к серверу", local));
+    }
+
+    @Test
+    @DisplayName("Third-party duels: Messages between other players never trigger loss for local player")
+    void testThirdPartyDuelRejection() {
+        String local = "Nivorat";
+
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Дуэль завершена! Победитель: Steve, Проиграл: Alex", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("[Дуэли] Steve победил игрока Alex", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Winner: Steve, Loser: Alex", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Steve одержал победу над игроком Alex", local));
+        assertFalse(AutoGGKillTracker.isDuelLossMessage("Дуэль окончена! Победитель: Steve", local));
+    }
+
+    @Test
+    @DisplayName("AutoGGClient: Server transfer resets pending state and enters grace period")
+    void testAutoGGServerTransferGracePeriod() {
+        ru.elarion.autogg.AutoGGClient.resetStateForTest();
+        assertFalse(ru.elarion.autogg.AutoGGClient.isInGracePeriod());
+        assertFalse(ru.elarion.autogg.AutoGGClient.hasPendingPhrase());
+
+        ru.elarion.autogg.AutoGGClient.onServerTransferOrRespawn();
+        assertTrue(ru.elarion.autogg.AutoGGClient.isInGracePeriod());
+        assertFalse(ru.elarion.autogg.AutoGGClient.hasPendingPhrase());
+
+        ru.elarion.autogg.AutoGGClient.markOwnDeath();
+        assertFalse(ru.elarion.autogg.AutoGGClient.hasPendingPhrase());
+
+        ru.elarion.autogg.AutoGGClient.triggerConfirmedKill("Enemy");
+        assertFalse(ru.elarion.autogg.AutoGGClient.hasPendingPhrase());
+
+        ru.elarion.autogg.AutoGGClient.resetStateForTest();
+        assertFalse(ru.elarion.autogg.AutoGGClient.isInGracePeriod());
+    }
 }
