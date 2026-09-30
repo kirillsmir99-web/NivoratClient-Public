@@ -302,4 +302,36 @@ public class AutoCartNeuralAimTest {
         float progress = (f * f + f * 2.0F) / 3.0F;
         assertTrue(progress >= 0.10F, "Pull progress at 3 ticks (0.1075) must exceed 0.10F minimum threshold");
     }
+
+    @Test
+    @DisplayName("Custom Preset: Apply custom preset preserves individually tuned timings")
+    void testCustomPresetPreservesTimings() {
+        MorrowConfig.minDelayMs = 42;
+        MorrowConfig.maxDelayMs = 73;
+        MorrowConfig.cameraSmoothnessMs = 125;
+        MorrowConfig.applyPreset(MorrowConfig.PRESET_CUSTOM);
+
+        assertEquals(MorrowConfig.PRESET_CUSTOM, MorrowConfig.preset);
+        assertEquals(42, MorrowConfig.minDelayMs);
+        assertEquals(73, MorrowConfig.maxDelayMs);
+        assertEquals(125, MorrowConfig.cameraSmoothnessMs);
+        assertTrue(MorrowConfig.autonomousPlacement);
+        assertEquals("Свой", MorrowConfig.CartPreset.CUSTOM.getTitle());
+    }
+
+    @Test
+    @DisplayName("Calibration Reset: Restores default motoric state and factory delays")
+    void testCalibrationReset() {
+        ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
+        profile.trainOnline(0.5f, 40.0f, 100.0f, 1.0f, 1.2f, 0.45f, 0.08f);
+        assertTrue(profile.getSampleCount() > 0);
+
+        profile.resetCalibration();
+        assertFalse(profile.isCalibrated());
+        assertFalse(profile.isCalibrating());
+        assertEquals(0, profile.getSampleCount());
+        assertEquals(50, profile.getLearnedMinDelayMs());
+        assertEquals(80, profile.getLearnedMaxDelayMs());
+        assertEquals(110, profile.getLearnedCameraSmoothness());
+    }
 }

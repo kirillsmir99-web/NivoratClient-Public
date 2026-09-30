@@ -37,15 +37,23 @@ public final class ArcCameraInterpolator {
         this.returning = false;
         this.useGcd = useMouseGcd;
         this.startPitch = MathHelper.clamp(fromPitch, -90.0f, 90.0f);
-        this.targetPitch = MathHelper.clamp(toPitch, -90.0f, 90.0f);
+        boolean isAssisted = "assisted".equalsIgnoreCase(MorrowConfig.cameraMode);
+        if (isAssisted) {
+            float deltaPitch = toPitch - fromPitch;
+            float deltaYaw = MathHelper.wrapDegrees(toYaw - fromYaw);
+            this.targetPitch = MathHelper.clamp(fromPitch + deltaPitch * 0.60f, -90.0f, 90.0f);
+            this.targetYaw = fromYaw + deltaYaw * 0.60f;
+        } else {
+            this.targetPitch = MathHelper.clamp(toPitch, -90.0f, 90.0f);
+            this.targetYaw = fromYaw + MathHelper.wrapDegrees(toYaw - fromYaw);
+        }
         this.startYaw = fromYaw;
-        this.targetYaw = fromYaw + MathHelper.wrapDegrees(toYaw - fromYaw);
         this.randomnessFactor = MathHelper.clamp(randomness, 0.0f, 1.0f);
         float safeCurve = MathHelper.clamp(curve, 0.0f, 1.0f);
 
         ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
         profile.resetTremor();
-        float speedMultiplier = profile.getSaccadeSpeedMultiplier();
+        float speedMultiplier = MorrowConfig.neuralAim ? profile.getSaccadeSpeedMultiplier() : 1.0f;
 
         long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 20.0 * randomnessFactor);
         long baseDuration = Math.max(35L, Math.round(durationMs / Math.max(0.5f, speedMultiplier)));
@@ -60,7 +68,7 @@ public final class ArcCameraInterpolator {
         this.twoPhaseAim = effectiveMs >= 75L;
 
         float lateralSign = MathHelper.wrapDegrees(toYaw - fromYaw) >= 0.0f ? 1.0f : -1.0f;
-        float curvatureBase = profile.getCurvatureBias() * safeCurve;
+        float curvatureBase = (MorrowConfig.neuralAim ? profile.getCurvatureBias() : 0.35f) * safeCurve;
         this.arcPitch = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 2.5 * curvatureBase);
         this.arcYaw = lateralSign * curvatureBase * 3.5f;
 
@@ -83,15 +91,23 @@ public final class ArcCameraInterpolator {
         this.returning = true;
         this.useGcd = useMouseGcd;
         this.startPitch = MathHelper.clamp(curPitch, -90.0f, 90.0f);
-        this.targetPitch = MathHelper.clamp(toPitch, -90.0f, 90.0f);
+        boolean isAssisted = "assisted".equalsIgnoreCase(MorrowConfig.cameraMode);
+        if (isAssisted) {
+            float deltaPitch = toPitch - curPitch;
+            float deltaYaw = MathHelper.wrapDegrees(toYaw - curYaw);
+            this.targetPitch = MathHelper.clamp(curPitch + deltaPitch * 0.60f, -90.0f, 90.0f);
+            this.targetYaw = curYaw + deltaYaw * 0.60f;
+        } else {
+            this.targetPitch = MathHelper.clamp(toPitch, -90.0f, 90.0f);
+            this.targetYaw = curYaw + MathHelper.wrapDegrees(toYaw - curYaw);
+        }
         this.startYaw = curYaw;
-        this.targetYaw = curYaw + MathHelper.wrapDegrees(toYaw - curYaw);
         this.randomnessFactor = MathHelper.clamp(randomness, 0.0f, 1.0f);
         float safeCurve = MathHelper.clamp(curve, 0.0f, 1.0f);
 
         ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
         profile.resetTremor();
-        float speedMultiplier = profile.getSaccadeSpeedMultiplier();
+        float speedMultiplier = MorrowConfig.neuralAim ? profile.getSaccadeSpeedMultiplier() : 1.0f;
 
         long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 15.0 * randomnessFactor);
         long baseDuration = Math.max(30L, Math.round(durationMs / Math.max(0.5f, speedMultiplier)));
@@ -106,7 +122,7 @@ public final class ArcCameraInterpolator {
         this.twoPhaseAim = effectiveMs >= 75L;
 
         float lateralSign = MathHelper.wrapDegrees(toYaw - curYaw) >= 0.0f ? 1.0f : -1.0f;
-        float curvatureBase = profile.getCurvatureBias() * safeCurve * 0.75f;
+        float curvatureBase = (MorrowConfig.neuralAim ? profile.getCurvatureBias() : 0.35f) * safeCurve * 0.75f;
         this.arcPitch = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 2.0 * curvatureBase);
         this.arcYaw = lateralSign * curvatureBase * 2.5f;
 
@@ -138,14 +154,19 @@ public final class ArcCameraInterpolator {
         float totalAngle = (float) Math.sqrt(totalYawDelta * totalYawDelta + totalPitchDelta * totalPitchDelta);
         float dirSign = MathHelper.wrapDegrees(targetYaw - startYaw) >= 0.0f ? 1.0f : -1.0f;
 
-        float[] neuralOutputs = profile.forward((float) t, totalAngle, 20.0f, dirSign);
-        float velMod = neuralOutputs[0];
-        float curveMod = neuralOutputs[1];
-        float tremorMod = neuralOutputs[2];
+        float velMod = 1.0f;
+        float curveMod = 1.0f;
+        float tremorMod = 1.0f;
+        if (MorrowConfig.neuralAim) {
+            float[] neuralOutputs = profile.forward((float) t, totalAngle, 20.0f, dirSign);
+            velMod = neuralOutputs[0];
+            curveMod = neuralOutputs[1];
+            tremorMod = neuralOutputs[2];
+        }
 
         float c = (velMod - 1.0f) * 0.5f;
         double smooth;
-        if (twoPhaseAim) {
+        if (twoPhaseAim && MorrowConfig.neuralAim) {
             double splitPoint = profile.getTwoPhaseRatio();
             double splitDist = 0.90;
             if (t < splitPoint) {
@@ -166,7 +187,7 @@ public final class ArcCameraInterpolator {
         float calculatedPitch = (float) (startPitch + (targetPitch - startPitch) * smooth + arcPitch * arcWeight);
         float calculatedYaw = (float) (startYaw + (targetYaw - startYaw) * smooth + arcYaw * arcWeight);
 
-        if (randomnessFactor > 0.03f) {
+        if (randomnessFactor > 0.03f && MorrowConfig.neuralAim) {
             float[] ouTremor = profile.getNextTremor(randomnessFactor * tremorMod);
             double envelope = Math.sin(t * Math.PI);
             calculatedPitch += (float) (ouTremor[0] * envelope);

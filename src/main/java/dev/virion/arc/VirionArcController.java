@@ -291,6 +291,50 @@ public final class VirionArcController {
             }
         }
 
+        if (MorrowConfig.autonomousPlacement) {
+            TargetResolution enemyTarget = findClosestEnemyGroundTarget(client, drawTicks);
+            if (enemyTarget != null) {
+                return enemyTarget;
+            }
+        }
+
+        return null;
+    }
+
+    private TargetResolution findClosestEnemyGroundTarget(MinecraftClient client, int drawTicks) {
+        if (client == null || client.player == null || client.world == null) return null;
+        Vec3d eyePos = client.player.getEyePos();
+        Vec3d lookVec = client.player.getRotationVec(1.0F);
+        Box searchBox = client.player.getBoundingBox().expand(MorrowConfig.maxDistance);
+        List<Entity> candidates = client.world.getOtherEntities(client.player, searchBox,
+            e -> e.isAlive() && !e.isSpectator() && (e instanceof LivingEntity));
+
+        Entity bestEntity = null;
+        double closestDistSq = Double.MAX_VALUE;
+        for (Entity e : candidates) {
+            Vec3d entityPos = new Vec3d(e.getX(), e.getY() + e.getStandingEyeHeight(), e.getZ());
+            Vec3d toEntity = entityPos.subtract(eyePos);
+            double distSq = toEntity.lengthSquared();
+            if (distSq > MorrowConfig.maxDistance * MorrowConfig.maxDistance) continue;
+            Vec3d dir = toEntity.normalize();
+            double dot = lookVec.x * dir.x + lookVec.z * dir.z;
+            if (dot >= 0.20D && distSq < closestDistSq) {
+                closestDistSq = distSq;
+                bestEntity = e;
+            }
+        }
+
+        if (bestEntity != null) {
+            BlockPos ground = findSolidGroundBelow(client.world, bestEntity.getBlockPos(), 3);
+            if (ground != null && canPlaceRail(client, ground)) {
+                double power = BowItem.getPullProgress(drawTicks);
+                double speed = power * 3.0D;
+                double dist = Math.sqrt(closestDistSq);
+                int estTicks = Math.max(2, (int) Math.round(dist / (speed > 0.1D ? speed : 0.6D)));
+                Vec3d cartUpper = new Vec3d(ground.getX() + 0.5D, ground.getY() + 0.62D, ground.getZ() + 0.5D);
+                return new TargetResolution(ground, cartUpper, estTicks);
+            }
+        }
         return null;
     }
 
@@ -485,7 +529,10 @@ public final class VirionArcController {
         }
 
         boolean isPacket = "packet".equalsIgnoreCase(MorrowConfig.cameraMode);
-        if (!isPacket && !isPlayerAimingAtTarget(client, activeJob.target)) {
+        boolean isOff = "off".equalsIgnoreCase(MorrowConfig.cameraMode);
+        boolean isAutonomous = MorrowConfig.autonomousPlacement;
+        boolean canBypassAim = isPacket || isOff || isAutonomous;
+        if (!canBypassAim && !isPlayerAimingAtTarget(client, activeJob.target)) {
             if (MorrowConfig.autoCamera) {
                 if (cameraInterpolator.isActive() || (now - activeJob.startTimeMs < 600L)) {
                     return;
@@ -854,7 +901,9 @@ public final class VirionArcController {
         float targetPitch = angles[0];
         float targetYaw = angles[1];
 
-        if ("packet".equalsIgnoreCase(MorrowConfig.cameraMode)) {
+        boolean isPacket = "packet".equalsIgnoreCase(MorrowConfig.cameraMode);
+        boolean needsPacketLook = isPacket || (MorrowConfig.autonomousPlacement && !"auto".equalsIgnoreCase(MorrowConfig.cameraMode));
+        if (needsPacketLook) {
             if (client.getNetworkHandler() != null) {
                 double gcd = ArcCameraInterpolator.calculateMouseGcd(client);
                 float curYaw = client.player.getYaw();
@@ -972,7 +1021,7 @@ public final class VirionArcController {
                 } else {
                     cameraInterpolator.reset();
                 }
-            } else if ("packet".equalsIgnoreCase(MorrowConfig.cameraMode)) {
+            } else if ("packet".equalsIgnoreCase(MorrowConfig.cameraMode) || (MorrowConfig.autonomousPlacement && !"auto".equalsIgnoreCase(MorrowConfig.cameraMode))) {
                 if (client.getNetworkHandler() != null) {
                     double gcd = ArcCameraInterpolator.calculateMouseGcd(client);
                     float curYaw = client.player.getYaw();

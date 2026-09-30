@@ -484,6 +484,41 @@ public final class ArcNeuralMotorProfile {
         save();
     }
 
+    public synchronized void resetCalibration() {
+        this.calibrated = false;
+        this.calibrating = false;
+        this.sampleCount = 0;
+        this.calibrationSamplesCollected = 0;
+        this.bowShotsCount = 0;
+        this.railsPlacedCount = 0;
+        this.cartsPlacedCount = 0;
+        this.explosionsCount = 0;
+        this.manualDetonationsCount = 0;
+        this.totalActionsCount = 0;
+        this.sumDeltaT1 = 0L;
+        this.countDeltaT1 = 0;
+        this.sumDeltaT2 = 0L;
+        this.countDeltaT2 = 0;
+        this.accumulatedVelMod = 0.0f;
+        this.accumulatedCurvMod = 0.0f;
+        this.accumulatedTremor = 0.0f;
+        this.totalFlicksMeasured = 0;
+        this.sumFlickDurationMs = 0L;
+        this.saccadeSpeedMultiplier = 1.0f;
+        this.curvatureBias = 0.35f;
+        this.tremorVolatility = 0.05f;
+        this.twoPhaseRatio = 0.88f;
+        this.microDamping = 0.85f;
+        this.learnedGcd = 0.0096;
+        this.learnedMinDelayMs = 50;
+        this.learnedMaxDelayMs = 80;
+        this.learnedCameraSmoothness = 110;
+        this.learnedPlacementDelayRailMs = 50;
+        this.learnedPlacementDelayCartMs = 60;
+        initDefaultWeights();
+        save();
+    }
+
     public synchronized boolean isCalibrating() {
         if (calibrating) {
             long elapsed = System.currentTimeMillis() - calibrationStartTimeMs;

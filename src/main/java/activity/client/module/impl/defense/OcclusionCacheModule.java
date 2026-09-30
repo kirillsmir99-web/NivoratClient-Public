@@ -19,6 +19,7 @@ import java.util.List;
 public class OcclusionCacheModule extends NivoratModule {
     public static final String ID = "auto_cart";
     private final VirionArcController controller = new VirionArcController();
+    private boolean resetCalibrationPending = false;
 
     public OcclusionCacheModule() {
         super(ID, Text.translatable("activity.module.auto_cart.name"), Text.translatable("activity.module.auto_cart.desc"), ModuleCategory.DEFENSE);
@@ -36,7 +37,7 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerEnum("preset", Text.translatable("activity.setting.defense.cart_preset"),
                 Text.translatable("activity.setting.defense.cart_preset.desc"), SettingGroup.GENERAL,
-                List.of("fast", "medium", "safe", "learned"), "medium",
+                List.of("fast", "medium", "safe", "learned", "custom"), "medium",
                 opt -> Text.translatable("activity.dropdown.cart_preset." + opt),
                 opt -> Text.translatable("activity.dropdown.cart_preset." + opt + ".desc"),
                 () -> {
@@ -47,6 +48,11 @@ public class OcclusionCacheModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoCartPreset = val;
+                        if ("custom".equalsIgnoreCase(val)) {
+                            syncControllerConfig(c);
+                            ActivityConfigManager.markDirty();
+                            return;
+                        }
                         double minD, maxD, chance, maxDist;
                         boolean pit, legit;
                         String camMode;
@@ -228,7 +234,7 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerEnum("camera_mode", Text.translatable("activity.setting.defense.cart_camera_mode"),
                 Text.translatable("activity.setting.defense.cart_camera_mode.desc"), SettingGroup.BEHAVIOR,
-                List.of("off", "packet", "auto"), "auto",
+                List.of("off", "packet", "auto", "assisted"), "auto",
                 opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt),
                 opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt + ".desc"),
                 () -> {
@@ -239,10 +245,10 @@ public class OcclusionCacheModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoCartCameraMode = val;
-                        c.autoCartAutoCamera = "auto".equalsIgnoreCase(val);
+                        c.autoCartAutoCamera = "auto".equalsIgnoreCase(val) || "assisted".equalsIgnoreCase(val);
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
-                        if ("packet".equalsIgnoreCase(val) || "auto".equalsIgnoreCase(val)) {
+                        if ("packet".equalsIgnoreCase(val) || "auto".equalsIgnoreCase(val) || "assisted".equalsIgnoreCase(val)) {
                             activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_camera_beta_warning"));
                         }
                     }
@@ -351,6 +357,23 @@ public class OcclusionCacheModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("autonomous_placement", Text.translatable("activity.setting.defense.autonomous_placement"),
+                Text.translatable("activity.setting.defense.autonomous_placement.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c == null || c.autoCartAutonomousPlacement;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartAutonomousPlacement = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerBoolean("allow_self_cart", Text.translatable("activity.setting.defense.allow_self_cart"),
                 Text.translatable("activity.setting.defense.allow_self_cart.desc"), SettingGroup.EXTRA,
                 false,
@@ -448,6 +471,19 @@ public class OcclusionCacheModule extends NivoratModule {
                     }
                 }
         );
+
+        registerBoolean("reset_calibration", Text.translatable("activity.setting.defense.reset_calibration"),
+                Text.translatable("activity.setting.defense.reset_calibration.desc"), SettingGroup.ADVANCED,
+                false,
+                () -> resetCalibrationPending,
+                val -> {
+                    resetCalibrationPending = val;
+                    if (val) {
+                        dev.virion.arc.ArcNeuralMotorProfile.getInstance().resetCalibration();
+                        activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.calibration_reset"));
+                    }
+                }
+        );
     }
 
     private void syncControllerConfig(ActivityConfig c) {
@@ -470,6 +506,7 @@ public class OcclusionCacheModule extends NivoratModule {
         MorrowConfig.cameraRandomness = (int) Math.round(c.autoCartCameraRandomness);
         MorrowConfig.cameraMouseGcd = c.autoCartCameraMouseGcd;
         MorrowConfig.neuralAim = c.autoCartNeuralAim;
+        MorrowConfig.autonomousPlacement = c.autoCartAutonomousPlacement;
 
         if ("safe".equals(c.autoCartPreset)) {
             MorrowConfig.preset = MorrowConfig.PRESET_SAFE;
@@ -477,6 +514,8 @@ public class OcclusionCacheModule extends NivoratModule {
             MorrowConfig.preset = MorrowConfig.PRESET_MEDIUM;
         } else if ("learned".equals(c.autoCartPreset)) {
             MorrowConfig.preset = MorrowConfig.PRESET_LEARNED;
+        } else if ("custom".equals(c.autoCartPreset)) {
+            MorrowConfig.preset = MorrowConfig.PRESET_CUSTOM;
         } else {
             MorrowConfig.preset = MorrowConfig.PRESET_FAST;
         }

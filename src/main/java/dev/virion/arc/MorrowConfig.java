@@ -35,18 +35,21 @@ public final class MorrowConfig {
     public static int cameraRandomness = 35;
     public static boolean cameraMouseGcd = true;
     public static boolean neuralAim = true;
+    public static boolean autonomousPlacement = true;
 
     public static final int PRESET_FAST = 0;
     public static final int PRESET_MEDIUM = 1;
     public static final int PRESET_SAFE = 2;
     public static final int PRESET_LEARNED = 3;
+    public static final int PRESET_CUSTOM = 4;
     public static int preset = PRESET_MEDIUM;
 
     public enum CartPreset {
         FAST("Быстрый"),
         MEDIUM("Баланс"),
         SAFE("Безопасный"),
-        LEARNED("Обученный");
+        LEARNED("Обученный"),
+        CUSTOM("Свой");
 
         private final String title;
         CartPreset(String title) { this.title = title; }
@@ -57,7 +60,7 @@ public final class MorrowConfig {
     private MorrowConfig() { }
 
     public static void applyPreset(int p) {
-        preset = clamp(p, 0, 3);
+        preset = clamp(p, 0, 4);
         switch (preset) {
             case PRESET_FAST -> {
                 placementChance = 100;
@@ -76,6 +79,7 @@ public final class MorrowConfig {
                 cameraRandomness = 20;
                 cameraMouseGcd = true;
                 neuralAim = true;
+                autonomousPlacement = true;
             }
             case PRESET_MEDIUM -> {
                 placementChance = 100;
@@ -94,6 +98,7 @@ public final class MorrowConfig {
                 cameraRandomness = 35;
                 cameraMouseGcd = true;
                 neuralAim = true;
+                autonomousPlacement = true;
             }
             case PRESET_SAFE -> {
                 placementChance = 100;
@@ -112,6 +117,7 @@ public final class MorrowConfig {
                 cameraRandomness = 40;
                 cameraMouseGcd = true;
                 neuralAim = true;
+                autonomousPlacement = true;
             }
             case PRESET_LEARNED -> {
                 ArcNeuralMotorProfile prof = ArcNeuralMotorProfile.getInstance();
@@ -131,6 +137,9 @@ public final class MorrowConfig {
                 cameraRandomness = Math.round(prof.getTremorVolatility() * 500.0f);
                 cameraMouseGcd = true;
                 neuralAim = true;
+                autonomousPlacement = true;
+            }
+            case PRESET_CUSTOM -> {
             }
         }
     }
@@ -157,7 +166,7 @@ public final class MorrowConfig {
             placementChance = clamp(Integer.parseInt(properties.getProperty("placementChance", "100")), 0, 100);
             legitMode = Boolean.parseBoolean(properties.getProperty("legitMode", "true"));
             randomDelay = Boolean.parseBoolean(properties.getProperty("randomDelay", "true"));
-            preset = clamp(Integer.parseInt(properties.getProperty("preset", "1")), 0, 3);
+            preset = clamp(Integer.parseInt(properties.getProperty("preset", "1")), 0, 4);
             allowPitPlacement = Boolean.parseBoolean(properties.getProperty("allowPitPlacement", "true"));
             maxDistance = clampDouble(Double.parseDouble(properties.getProperty("maxDistance", "4.4")), 1.5D, 4.5D);
             allowSelfCart = Boolean.parseBoolean(properties.getProperty("allowSelfCart", "false"));
@@ -173,6 +182,7 @@ public final class MorrowConfig {
             cameraRandomness = clamp(Integer.parseInt(properties.getProperty("cameraRandomness", "35")), 0, 100);
             cameraMouseGcd = Boolean.parseBoolean(properties.getProperty("cameraMouseGcd", "true"));
             neuralAim = Boolean.parseBoolean(properties.getProperty("neuralAim", "true"));
+            autonomousPlacement = Boolean.parseBoolean(properties.getProperty("autonomousPlacement", "true"));
             if (maxDelayMs < minDelayMs) maxDelayMs = minDelayMs;
         } catch (Exception ignored) {
             resetDefaults();
@@ -202,6 +212,7 @@ public final class MorrowConfig {
         cameraRandomness = 35;
         cameraMouseGcd = true;
         neuralAim = true;
+        autonomousPlacement = true;
     }
 
     private static int clamp(int value, int min, int max) {

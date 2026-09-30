@@ -160,6 +160,7 @@ public class ActivityConfig {
     public double autoCartCameraRandomness = 35.0;
     public boolean autoCartCameraMouseGcd = true;
     public boolean autoCartNeuralAim = true;
+    public boolean autoCartAutonomousPlacement = true;
 
     public boolean autoAnchorEnabled = true;
     public Keybind autoAnchorKeybind = new Keybind();
@@ -607,6 +608,7 @@ public class ActivityConfig {
         this.autoCartCameraRandomness = 35.0;
         this.autoCartCameraMouseGcd = true;
         this.autoCartNeuralAim = true;
+        this.autoCartAutonomousPlacement = true;
 
         this.autoAnchorEnabled = true;
         this.autoAnchorKeybind.clear();
@@ -1319,6 +1321,7 @@ public class ActivityConfig {
         entry.settings.put("camera_randomness", this.autoCartCameraRandomness);
         entry.settings.put("camera_mouse_gcd", this.autoCartCameraMouseGcd);
         entry.settings.put("neural_aim", this.autoCartNeuralAim);
+        entry.settings.put("autonomous_placement", this.autoCartAutonomousPlacement);
     }
 
     private void populateAnchorSettings(ModuleConfigEntry entry) {
@@ -1615,6 +1618,7 @@ public class ActivityConfig {
                 this.autoCartCameraRandomness = getSettingDouble(cart.settings, "camera_randomness", this.autoCartCameraRandomness);
                 this.autoCartCameraMouseGcd = getSettingBoolean(cart.settings, "camera_mouse_gcd", this.autoCartCameraMouseGcd);
                 this.autoCartNeuralAim = getSettingBoolean(cart.settings, "neural_aim", this.autoCartNeuralAim);
+                this.autoCartAutonomousPlacement = getSettingBoolean(cart.settings, "autonomous_placement", this.autoCartAutonomousPlacement);
             }
         }
         ModuleConfigEntry anchor = getModuleEntry("auto_anchor");
@@ -1846,6 +1850,7 @@ public class ActivityConfig {
         copy.autoCartCameraRandomness = this.autoCartCameraRandomness;
         copy.autoCartCameraMouseGcd = this.autoCartCameraMouseGcd;
         copy.autoCartNeuralAim = this.autoCartNeuralAim;
+        copy.autoCartAutonomousPlacement = this.autoCartAutonomousPlacement;
 
         copy.autoAnchorEnabled = this.autoAnchorEnabled;
         copy.autoAnchorKeybind.copyFrom(this.autoAnchorKeybind);
@@ -2102,6 +2107,7 @@ public class ActivityConfig {
                 Double.compare(this.autoCartCameraRandomness, that.autoCartCameraRandomness) == 0 &&
                 this.autoCartCameraMouseGcd == that.autoCartCameraMouseGcd &&
                 this.autoCartNeuralAim == that.autoCartNeuralAim &&
+                this.autoCartAutonomousPlacement == that.autoCartAutonomousPlacement &&
 
                 this.autoAnchorEnabled == that.autoAnchorEnabled &&
                 this.autoAnchorAutoExplode == that.autoAnchorAutoExplode &&
@@ -2266,7 +2272,7 @@ public class ActivityConfig {
             autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemCrystalTriggerHearts, autoTotemCrystalRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
             autoCartEnabled, autoCartKeybind, autoCartPreset, autoCartPlacementChance, autoCartMaxDistance, autoCartMinDelayMs, autoCartMaxDelayMs,
             autoCartAllowSelfCart, autoCartAllowPitPlacement, autoCartRandomDelay, autoCartRailDelay, autoCartCartDelay, autoCartRestoreDelay, autoCartLegitMode, autoCartUseMainHand,
-            autoCartCameraMode, autoCartAutoCamera, autoCartCameraSmoothness, autoCartCameraReturn, autoCartCameraReturnSmoothness, autoCartCameraCurve, autoCartCameraRandomness, autoCartCameraMouseGcd, autoCartNeuralAim,
+            autoCartCameraMode, autoCartAutoCamera, autoCartCameraSmoothness, autoCartCameraReturn, autoCartCameraReturnSmoothness, autoCartCameraCurve, autoCartCameraRandomness, autoCartCameraMouseGcd, autoCartNeuralAim, autoCartAutonomousPlacement,
             autoAnchorEnabled, autoAnchorKeybind, autoAnchorMode, autoAnchorPreset, autoAnchorPresetDouble, autoAnchorDoubleDelay, autoAnchorDoubleAutoExplode, autoAnchorDoubleChain, autoAnchorAutoExplode, autoAnchorAutoReturn, autoAnchorChargeDelay, autoAnchorExplodeDelay, autoAnchorChance, autoAnchorTargetCharges, autoAnchorLegitMode,
             cartRefillEnabled, cartRefillKeybind, cartRefillDelayTicks, cartRefillChance, cartRefillAutoClose, cartRefillRandomDelay, cartRefillRandomSpreadTicks, cartRefillLegitMode
         );
