@@ -35,6 +35,7 @@ NivoratClient_ImplementationPack_v2/
 # Runtime / legacy test configs
 config/autogg.json
 config/autotool.json
+config/autocart_neural.json
 config/*.properties
 server/dev-users.json
 
