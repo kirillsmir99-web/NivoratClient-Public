@@ -51,39 +51,39 @@ public class OcclusionCacheModule extends NivoratModule {
                         double camSmooth, camRetSmooth, camCurve, camRand;
                         boolean camRet = true, camGcd = true;
                         if ("fast".equalsIgnoreCase(val)) {
-                            minD = 40.0;
-                            maxD = 60.0;
+                            minD = 35.0;
+                            maxD = 50.0;
                             chance = 100.0;
                             maxDist = 4.5;
                             pit = true;
                             legit = false;
                             camMode = "packet";
-                            camSmooth = 80.0;
-                            camRetSmooth = 80.0;
+                            camSmooth = 55.0;
+                            camRetSmooth = 55.0;
                             camCurve = 20.0;
                             camRand = 20.0;
                         } else if ("safe".equalsIgnoreCase(val)) {
-                            minD = 120.0;
-                            maxD = 180.0;
+                            minD = 70.0;
+                            maxD = 100.0;
                             chance = 100.0;
                             maxDist = 4.2;
                             pit = true;
                             legit = true;
-                            camMode = "off";
-                            camSmooth = 180.0;
-                            camRetSmooth = 160.0;
-                            camCurve = 50.0;
-                            camRand = 50.0;
+                            camMode = "auto";
+                            camSmooth = 160.0;
+                            camRetSmooth = 150.0;
+                            camCurve = 45.0;
+                            camRand = 40.0;
                         } else {
-                            minD = 70.0;
-                            maxD = 110.0;
+                            minD = 50.0;
+                            maxD = 80.0;
                             chance = 100.0;
                             maxDist = 4.4;
                             pit = true;
                             legit = true;
                             camMode = "auto";
-                            camSmooth = 140.0;
-                            camRetSmooth = 120.0;
+                            camSmooth = 110.0;
+                            camRetSmooth = 100.0;
                             camCurve = 40.0;
                             camRand = 35.0;
                         }
@@ -162,10 +162,10 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerNumber("min_delay", Text.translatable("activity.setting.defense.min_delay"),
                 Text.translatable("activity.setting.defense.min_delay.desc"), SettingGroup.BEHAVIOR,
-                10.0, 200.0, 5.0, " ms", true, 70.0,
+                10.0, 200.0, 5.0, " ms", true, 50.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoCartMinDelayMs : 70.0;
+                    return c != null ? c.autoCartMinDelayMs : 50.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -179,10 +179,10 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerNumber("max_delay", Text.translatable("activity.setting.defense.max_delay"),
                 Text.translatable("activity.setting.defense.max_delay.desc"), SettingGroup.BEHAVIOR,
-                10.0, 300.0, 5.0, " ms", true, 110.0,
+                10.0, 300.0, 5.0, " ms", true, 80.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoCartMaxDelayMs : 110.0;
+                    return c != null ? c.autoCartMaxDelayMs : 80.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -213,12 +213,12 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerEnum("camera_mode", Text.translatable("activity.setting.defense.cart_camera_mode"),
                 Text.translatable("activity.setting.defense.cart_camera_mode.desc"), SettingGroup.BEHAVIOR,
-                List.of("off", "packet", "auto"), "off",
+                List.of("off", "packet", "auto"), "auto",
                 opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt),
                 opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt + ".desc"),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoCartCameraMode : "off";
+                    return c != null ? c.autoCartCameraMode : "auto";
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -236,10 +236,10 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerNumber("camera_smoothness", Text.translatable("activity.setting.defense.cart_camera_smoothness"),
                 Text.translatable("activity.setting.defense.cart_camera_smoothness.desc"), SettingGroup.BEHAVIOR,
-                50.0, 300.0, 5.0, " ms", true, 140.0,
+                35.0, 300.0, 5.0, " ms", true, 110.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoCartCameraSmoothness : 140.0;
+                    return c != null ? c.autoCartCameraSmoothness : 110.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -270,10 +270,10 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerNumber("camera_return_smoothness", Text.translatable("activity.setting.defense.cart_camera_return_smoothness"),
                 Text.translatable("activity.setting.defense.cart_camera_return_smoothness.desc"), SettingGroup.BEHAVIOR,
-                50.0, 300.0, 5.0, " ms", true, 120.0,
+                35.0, 300.0, 5.0, " ms", true, 100.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoCartCameraReturnSmoothness : 120.0;
+                    return c != null ? c.autoCartCameraReturnSmoothness : 100.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -403,6 +403,36 @@ public class OcclusionCacheModule extends NivoratModule {
                     }
                 }
         );
+
+        registerBoolean("neural_aim", Text.translatable("activity.setting.defense.neural_aim"),
+                Text.translatable("activity.setting.defense.neural_aim.desc"), SettingGroup.ADVANCED,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoCartNeuralAim;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartNeuralAim = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("motor_calibration", Text.translatable("activity.setting.defense.motor_calibration"),
+                Text.translatable("activity.setting.defense.motor_calibration.desc"), SettingGroup.ADVANCED,
+                false,
+                () -> dev.virion.arc.ArcMotorCalibrationService.isActive(),
+                val -> {
+                    if (val) {
+                        dev.virion.arc.ArcMotorCalibrationService.start();
+                    } else {
+                        dev.virion.arc.ArcMotorCalibrationService.stop();
+                    }
+                }
+        );
     }
 
     private void syncControllerConfig(ActivityConfig c) {
@@ -416,7 +446,7 @@ public class OcclusionCacheModule extends NivoratModule {
         MorrowConfig.useMainhandCart = c.autoCartUseMainHand;
         MorrowConfig.randomDelay = c.autoCartRandomDelay;
         MorrowConfig.legitMode = c.autoCartLegitMode;
-        MorrowConfig.cameraMode = c.autoCartCameraMode != null ? c.autoCartCameraMode : "off";
+        MorrowConfig.cameraMode = c.autoCartCameraMode != null ? c.autoCartCameraMode : "auto";
         MorrowConfig.autoCamera = c.autoCartAutoCamera;
         MorrowConfig.cameraSmoothnessMs = (int) Math.round(c.autoCartCameraSmoothness);
         MorrowConfig.cameraReturn = c.autoCartCameraReturn;
@@ -424,6 +454,7 @@ public class OcclusionCacheModule extends NivoratModule {
         MorrowConfig.cameraCurve = (int) Math.round(c.autoCartCameraCurve);
         MorrowConfig.cameraRandomness = (int) Math.round(c.autoCartCameraRandomness);
         MorrowConfig.cameraMouseGcd = c.autoCartCameraMouseGcd;
+        MorrowConfig.neuralAim = c.autoCartNeuralAim;
 
         if ("safe".equals(c.autoCartPreset)) {
             MorrowConfig.preset = MorrowConfig.PRESET_SAFE;

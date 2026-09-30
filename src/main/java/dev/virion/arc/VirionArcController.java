@@ -5,13 +5,10 @@ import net.minecraft.block.AbstractRailBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -24,13 +21,12 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class VirionArcController {
-    private static final int TRAJECTORY_TICKS = 45;
+    private static final int TRAJECTORY_TICKS = 80;
     private static final double ARROW_DRAG = 0.99D;
     private static final double ARROW_GRAVITY = 0.05D;
     private static final double HIT_FACE_INSET = 0.02D;
@@ -53,7 +49,6 @@ public final class VirionArcController {
     private final ArcCameraInterpolator cameraInterpolator = new ArcCameraInterpolator();
     private boolean enabled = true;
     private boolean wasUsingBow;
-    private boolean jobCreatedThisTick;
     private int bowDrawTicks;
     private int bowSlot = -1;
     private PlacementJob activeJob;
@@ -63,6 +58,8 @@ public final class VirionArcController {
     }
 
     public static void onRender(MinecraftClient client) {
+        ArcNeuralMotorProfile.trackNaturalMovement(client);
+        ArcMotorCalibrationService.checkCompletion();
         VirionArcController inst = activeInstance;
         if (inst != null && inst.isEnabled()) {
             inst.cameraInterpolator.onRender(client);
@@ -219,6 +216,7 @@ public final class VirionArcController {
 
         activeJob = new PlacementJob(
             target,
+            resolution.aimTarget,
             originalSlot,
             railSlot,
             minecartSlot,
@@ -231,12 +229,21 @@ public final class VirionArcController {
         );
 
         if (MorrowConfig.autoCamera) {
-            startAimTowards(client, target);
+            startAimTowards(client, resolution.aimTarget);
+        }
+
+        if (MorrowConfig.preset == MorrowConfig.PRESET_SAFE) {
+            int flightMs = Math.max(1, resolution.flightTicks) * 50;
+            int leadMs = 60;
+            int prepMs = MorrowConfig.minDelayMs * 2;
+            long targetStartMs = now + flightMs - leadMs - prepMs;
+            if (targetStartMs > now) {
+                activeJob.scheduledTimeMs = targetStartMs;
+            }
         }
     }
 
     private TargetResolution resolvePlacementTarget(MinecraftClient client, int drawTicks) {
-
         TargetResolution trajectoryResolution = predictReleasedArrow(client, drawTicks);
         if (trajectoryResolution != null && trajectoryResolution.target != null && canPlaceRail(client, trajectoryResolution.target)) {
             return trajectoryResolution;
@@ -252,7 +259,8 @@ public final class VirionArcController {
                         double speed = power * 3.0D;
                         double dist = Math.sqrt(client.player.squaredDistanceTo(entity));
                         int estTicks = Math.max(2, (int) Math.round(dist / (speed > 0.1D ? speed : 0.6D)));
-                        return new TargetResolution(groundPos, estTicks);
+                        Vec3d cartUpper = new Vec3d(groundPos.getX() + 0.5D, groundPos.getY() + 0.62D, groundPos.getZ() + 0.5D);
+                        return new TargetResolution(groundPos, cartUpper, estTicks);
                     }
                 }
             } else if (client.crosshairTarget instanceof BlockHitResult crossHit && crossHit.getType() == HitResult.Type.BLOCK) {
@@ -262,7 +270,8 @@ public final class VirionArcController {
                     double speed = power * 3.0D;
                     double dist = Math.sqrt(client.player.getEyePos().squaredDistanceTo(crossHit.getPos()));
                     int estTicks = Math.max(2, (int) Math.round(dist / (speed > 0.1D ? speed : 0.6D)));
-                    return new TargetResolution(crossTarget, estTicks);
+                    Vec3d cartUpper = new Vec3d(crossTarget.getX() + 0.5D, crossTarget.getY() + 0.62D, crossTarget.getZ() + 0.5D);
+                    return new TargetResolution(crossTarget, cartUpper, estTicks);
                 }
             }
         }
@@ -271,7 +280,8 @@ public final class VirionArcController {
         if (isSelfCartAim) {
             BlockPos feetGround = findSolidGroundBelow(client.world, client.player.getBlockPos(), 2);
             if (feetGround != null && canPlaceRail(client, feetGround)) {
-                return new TargetResolution(feetGround, 2);
+                Vec3d cartUpper = new Vec3d(feetGround.getX() + 0.5D, feetGround.getY() + 0.62D, feetGround.getZ() + 0.5D);
+                return new TargetResolution(feetGround, cartUpper, 2);
             }
         }
 
@@ -324,7 +334,8 @@ public final class VirionArcController {
             if (hitEntity != null) {
                 BlockPos groundCandidate = findSolidGroundBelow(client.world, hitEntity.getBlockPos(), 3);
                 if (groundCandidate != null && canPlaceRail(client, groundCandidate)) {
-                    return new TargetResolution(groundCandidate, tick + 1);
+                    Vec3d cartUpper = new Vec3d(groundCandidate.getX() + 0.5D, groundCandidate.getY() + 0.62D, groundCandidate.getZ() + 0.5D);
+                    return new TargetResolution(groundCandidate, cartUpper, tick + 1);
                 }
             }
 
@@ -332,9 +343,9 @@ public final class VirionArcController {
             if (hit.getType() == HitResult.Type.BLOCK) {
                 BlockPos target = resolveTargetFromHit(client, hit);
                 if (target != null && canPlaceRail(client, target)) {
-                    return new TargetResolution(target, tick + 1);
+                    Vec3d cartUpper = new Vec3d(target.getX() + 0.5D, target.getY() + 0.62D, target.getZ() + 0.5D);
+                    return new TargetResolution(target, cartUpper, tick + 1);
                 }
-
                 break;
             }
 
@@ -394,7 +405,6 @@ public final class VirionArcController {
                 return topCandidate.toImmutable();
             }
         } else if (side.getAxis().isHorizontal()) {
-
             if (hit.getPos().y >= hitBlock.getY() + 0.45D) {
                 BlockPos topCandidate = hitBlock.up();
                 if (canPlaceRail(client, topCandidate)) {
@@ -543,7 +553,7 @@ public final class VirionArcController {
                 if (!(state.getBlock() instanceof AbstractRailBlock)) {
                     if (activeJob.railRetries < 4) {
                         activeJob.railRetries++;
-                        activeJob.scheduledTimeMs = now + 50;
+                        activeJob.scheduledTimeMs = now + 45;
                         return;
                     }
                     cancelJob(client);
@@ -640,7 +650,7 @@ public final class VirionArcController {
         }
 
         Vec3d eyePos = client.player.getEyePos();
-        Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D);
+        Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.62D, target.getZ() + 0.5D);
         Vec3d toTarget = targetCenter.subtract(eyePos).normalize();
         Vec3d lookVec = client.player.getRotationVec(1.0F).normalize();
         double dot = lookVec.dotProduct(toTarget);
@@ -681,10 +691,8 @@ public final class VirionArcController {
 
         if (MorrowConfig.legitMode) {
             if (diff > 0) {
-
                 return diff <= 4;
             } else {
-
                 int minDiff = MorrowConfig.allowPitPlacement ? -6 : -4;
                 return diff >= minDiff;
             }
@@ -701,7 +709,7 @@ public final class VirionArcController {
         Vec3d eyePos = client.player.getEyePos();
         BlockPos supportPos = target.down();
 
-        Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D);
+        Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.62D, target.getZ() + 0.5D);
         BlockHitResult hitTarget = client.world.raycast(new RaycastContext(
             eyePos,
             targetCenter,
@@ -763,11 +771,11 @@ public final class VirionArcController {
 
     private int getMinSafeSlotHoldMs() {
         if (MorrowConfig.preset == MorrowConfig.PRESET_FAST) {
-            return 55;
+            return 45;
         } else if (MorrowConfig.preset == MorrowConfig.PRESET_SAFE) {
-            return 115;
+            return 90;
         }
-        return 75;
+        return 65;
     }
 
     private int getRandomDelay() {
@@ -775,8 +783,8 @@ public final class VirionArcController {
         int max = MorrowConfig.getMaxDelayMs();
         if (min >= max) return min;
         int base = ThreadLocalRandom.current().nextInt(min, max + 1);
-        int jitter = ThreadLocalRandom.current().nextInt(-5, 6);
-        return Math.max(35, base + jitter);
+        int jitter = ThreadLocalRandom.current().nextInt(-4, 5);
+        return Math.max(30, base + jitter);
     }
 
     private int getDynamicPlacementDelay(PlacementJob job) {
@@ -785,7 +793,7 @@ public final class VirionArcController {
         int flightTicks = Math.max(1, job.flightTicks);
         int flightTimeMs = flightTicks * 50;
 
-        if (power >= 0.7F || flightTimeMs <= 150) {
+        if (power >= 0.7F || flightTimeMs <= 140) {
             int allocated = Math.max(20, (flightTimeMs - 15) / 2);
             int baseDelay = Math.min(allocated, MorrowConfig.getMinDelayMs());
             return Math.max(15, baseDelay);
@@ -804,11 +812,10 @@ public final class VirionArcController {
         return new float[]{pitch, yaw};
     }
 
-    private void startAimTowards(MinecraftClient client, BlockPos target) {
-        if (client == null || client.player == null || target == null) return;
+    private void startAimTowards(MinecraftClient client, Vec3d aimTarget) {
+        if (client == null || client.player == null || aimTarget == null) return;
         Vec3d eyePos = client.player.getEyePos();
-        Vec3d hitPosition = nearestTopPoint(eyePos, target.down());
-        float[] angles = calculateLookAngles(eyePos, hitPosition);
+        float[] angles = calculateLookAngles(eyePos, aimTarget);
         cameraInterpolator.start(
             client.player.getPitch(), angles[0],
             client.player.getYaw(), angles[1],
@@ -822,13 +829,35 @@ public final class VirionArcController {
     private void syncLookForPlacement(MinecraftClient client, Vec3d hitPosition) {
         if (client == null || client.player == null) return;
         float[] angles = calculateLookAngles(client.player.getEyePos(), hitPosition);
-        float placePitch = angles[0];
-        float placeYaw = angles[1];
+        float targetPitch = angles[0];
+        float targetYaw = angles[1];
 
         if ("packet".equalsIgnoreCase(MorrowConfig.cameraMode)) {
             if (client.getNetworkHandler() != null) {
+                double gcd = ArcCameraInterpolator.calculateMouseGcd(client);
+                float curYaw = client.player.getYaw();
+                float curPitch = client.player.getPitch();
+                float deltaYaw = MathHelper.wrapDegrees(targetYaw - curYaw);
+                float deltaPitch = MathHelper.clamp(targetPitch, -90.0f, 90.0f) - curPitch;
+
+                long stepsYaw = Math.round(deltaYaw / gcd);
+                long stepsPitch = Math.round(deltaPitch / gcd);
+
+                float quantYaw = (float) (curYaw + stepsYaw * gcd);
+                float quantPitch = MathHelper.clamp((float) (curPitch + stepsPitch * gcd), -90.0f, 90.0f);
+
+                if (Math.abs(deltaYaw) > 20.0f || Math.abs(deltaPitch) > 15.0f) {
+                    long midStepsYaw = stepsYaw / 2;
+                    long midStepsPitch = stepsPitch / 2;
+                    float midYaw = (float) (curYaw + midStepsYaw * gcd);
+                    float midPitch = MathHelper.clamp((float) (curPitch + midStepsPitch * gcd), -90.0f, 90.0f);
+                    client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
+                        midYaw, midPitch, client.player.isOnGround(), client.player.horizontalCollision
+                    ));
+                }
+
                 client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
-                    placeYaw, placePitch, client.player.isOnGround(), client.player.horizontalCollision
+                    quantYaw, quantPitch, client.player.isOnGround(), client.player.horizontalCollision
                 ));
             }
         }
@@ -853,10 +882,8 @@ public final class VirionArcController {
     }
 
     private Vec3d nearestTopPoint(Vec3d origin, BlockPos support) {
-        double x = Math.max(support.getX() + HIT_FACE_INSET,
-            Math.min(origin.x, support.getX() + 1.0D - HIT_FACE_INSET));
-        double z = Math.max(support.getZ() + HIT_FACE_INSET,
-            Math.min(origin.z, support.getZ() + 1.0D - HIT_FACE_INSET));
+        double x = MathHelper.clamp(origin.x, support.getX() + HIT_FACE_INSET, support.getX() + 1.0D - HIT_FACE_INSET);
+        double z = MathHelper.clamp(origin.z, support.getZ() + HIT_FACE_INSET, support.getZ() + 1.0D - HIT_FACE_INSET);
         return new Vec3d(x, support.getY() + 1.0D, z);
     }
 
@@ -890,7 +917,7 @@ public final class VirionArcController {
             && client.player.getInventory().getSelectedSlot() != activeJob.originalSlot) {
             activeJob.stage = Stage.RESTORE_SLOT;
             activeJob.scheduledTimeMs = activeJob.lastSlotSwitchTimeMs + minSafeHold
-                + ThreadLocalRandom.current().nextInt(10, 30);
+                + ThreadLocalRandom.current().nextInt(8, 20);
             return;
         }
 
@@ -913,8 +940,20 @@ public final class VirionArcController {
                 }
             } else if ("packet".equalsIgnoreCase(MorrowConfig.cameraMode)) {
                 if (client.getNetworkHandler() != null) {
+                    double gcd = ArcCameraInterpolator.calculateMouseGcd(client);
+                    float curYaw = client.player.getYaw();
+                    float curPitch = client.player.getPitch();
+                    float deltaYaw = MathHelper.wrapDegrees(activeJob.originalYaw - curYaw);
+                    float deltaPitch = MathHelper.clamp(activeJob.originalPitch, -90.0f, 90.0f) - curPitch;
+
+                    long stepsYaw = Math.round(deltaYaw / gcd);
+                    long stepsPitch = Math.round(deltaPitch / gcd);
+
+                    float quantYaw = (float) (curYaw + stepsYaw * gcd);
+                    float quantPitch = MathHelper.clamp((float) (curPitch + stepsPitch * gcd), -90.0f, 90.0f);
+
                     client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
-                        activeJob.originalYaw, activeJob.originalPitch, client.player.isOnGround(), client.player.horizontalCollision
+                        quantYaw, quantPitch, client.player.isOnGround(), client.player.horizontalCollision
                     ));
                 }
             }
@@ -947,16 +986,19 @@ public final class VirionArcController {
 
     private static final class TargetResolution {
         private final BlockPos target;
+        private final Vec3d aimTarget;
         private final int flightTicks;
 
-        private TargetResolution(BlockPos target, int flightTicks) {
+        private TargetResolution(BlockPos target, Vec3d aimTarget, int flightTicks) {
             this.target = target;
+            this.aimTarget = aimTarget;
             this.flightTicks = flightTicks;
         }
     }
 
     private static final class PlacementJob {
         private final BlockPos target;
+        private final Vec3d aimTarget;
         private final int originalSlot;
         private final int railSlot;
         private final int minecartSlot;
@@ -971,8 +1013,9 @@ public final class VirionArcController {
         private final float pullProgress;
         private final int flightTicks;
 
-        private PlacementJob(BlockPos target, int originalSlot, int railSlot, int minecartSlot, boolean useMainHand, long startTimeMs, float originalPitch, float originalYaw, float pullProgress, int flightTicks) {
+        private PlacementJob(BlockPos target, Vec3d aimTarget, int originalSlot, int railSlot, int minecartSlot, boolean useMainHand, long startTimeMs, float originalPitch, float originalYaw, float pullProgress, int flightTicks) {
             this.target = target;
+            this.aimTarget = aimTarget;
             this.originalSlot = originalSlot;
             this.railSlot = railSlot;
             this.minecartSlot = minecartSlot;

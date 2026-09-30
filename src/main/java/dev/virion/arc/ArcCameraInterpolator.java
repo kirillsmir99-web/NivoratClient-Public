@@ -16,10 +16,13 @@ public final class ArcCameraInterpolator {
     private long durationNs;
     private float lastAppliedPitch;
     private float lastAppliedYaw;
+    private double remainderPitch;
+    private double remainderYaw;
     private float arcPitch;
     private float arcYaw;
     private float randomnessFactor = 0.35f;
     private boolean useGcd = true;
+    private boolean twoPhaseAim = true;
 
     public void start(float fromPitch, float toPitch, float fromYaw, float toYaw, long durationMs, float randomness) {
         start(fromPitch, toPitch, fromYaw, toYaw, durationMs, randomness, 0.40f, true);
@@ -35,15 +38,26 @@ public final class ArcCameraInterpolator {
         this.randomnessFactor = MathHelper.clamp(randomness, 0.0f, 1.0f);
         float safeCurve = MathHelper.clamp(curve, 0.0f, 1.0f);
 
-        long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 30.0 * randomnessFactor);
-        long effectiveMs = Math.max(40L, durationMs + varianceMs);
+        ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
+        float speedMultiplier = profile.getSaccadeSpeedMultiplier();
+
+        long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 20.0 * randomnessFactor);
+        long baseDuration = Math.max(35L, Math.round(durationMs / Math.max(0.5f, speedMultiplier)));
+        long effectiveMs = Math.max(35L, baseDuration + varianceMs);
+
         this.durationNs = effectiveMs * 1_000_000L;
         this.startTimeNs = System.nanoTime();
         this.lastAppliedPitch = this.startPitch;
         this.lastAppliedYaw = this.startYaw;
+        this.remainderPitch = 0.0;
+        this.remainderYaw = 0.0;
+        this.twoPhaseAim = effectiveMs >= 75L;
 
-        this.arcPitch = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 3.0 * safeCurve);
-        this.arcYaw = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 4.0 * safeCurve);
+        float lateralSign = MathHelper.wrapDegrees(toYaw - fromYaw) >= 0.0f ? 1.0f : -1.0f;
+        float curvatureBase = profile.getCurvatureBias() * safeCurve;
+        this.arcPitch = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 2.5 * curvatureBase);
+        this.arcYaw = lateralSign * curvatureBase * 3.5f;
+
         this.active = true;
     }
 
@@ -68,15 +82,26 @@ public final class ArcCameraInterpolator {
         this.randomnessFactor = MathHelper.clamp(randomness, 0.0f, 1.0f);
         float safeCurve = MathHelper.clamp(curve, 0.0f, 1.0f);
 
-        long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 20.0 * randomnessFactor);
-        long effectiveMs = Math.max(30L, durationMs + varianceMs);
+        ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
+        float speedMultiplier = profile.getSaccadeSpeedMultiplier();
+
+        long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 15.0 * randomnessFactor);
+        long baseDuration = Math.max(30L, Math.round(durationMs / Math.max(0.5f, speedMultiplier)));
+        long effectiveMs = Math.max(30L, baseDuration + varianceMs);
+
         this.durationNs = effectiveMs * 1_000_000L;
         this.startTimeNs = System.nanoTime();
         this.lastAppliedPitch = this.startPitch;
         this.lastAppliedYaw = this.startYaw;
+        this.remainderPitch = 0.0;
+        this.remainderYaw = 0.0;
+        this.twoPhaseAim = effectiveMs >= 75L;
 
-        this.arcPitch = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 2.0 * safeCurve);
-        this.arcYaw = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 3.0 * safeCurve);
+        float lateralSign = MathHelper.wrapDegrees(toYaw - curYaw) >= 0.0f ? 1.0f : -1.0f;
+        float curvatureBase = profile.getCurvatureBias() * safeCurve * 0.75f;
+        this.arcPitch = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 2.0 * curvatureBase);
+        this.arcYaw = lateralSign * curvatureBase * 2.5f;
+
         this.active = true;
     }
 
@@ -95,21 +120,50 @@ public final class ArcCameraInterpolator {
             return;
         }
 
-        double t = Math.max(0.0, Math.min(1.0, progress));
-        double smooth = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+        double t = MathHelper.clamp(progress, 0.0, 1.0);
+        ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
 
-        double arcWeight = Math.sin(t * Math.PI);
+        float totalYawDelta = Math.abs(MathHelper.wrapDegrees(targetYaw - startYaw));
+        float totalPitchDelta = Math.abs(targetPitch - startPitch);
+        float totalAngle = (float) Math.sqrt(totalYawDelta * totalYawDelta + totalPitchDelta * totalPitchDelta);
+        float dirSign = MathHelper.wrapDegrees(targetYaw - startYaw) >= 0.0f ? 1.0f : -1.0f;
+
+        float[] neuralOutputs = profile.forward((float) t, totalAngle, 20.0f, dirSign);
+        float velMod = neuralOutputs[0];
+        float curveMod = neuralOutputs[1];
+        float tremorMod = neuralOutputs[2];
+
+        double smooth;
+        if (twoPhaseAim) {
+            double splitPoint = profile.getTwoPhaseRatio();
+            if (t < splitPoint) {
+                double subT = t / splitPoint;
+                smooth = minimumJerk(subT) * 0.90 * velMod;
+            } else {
+                double subT = (t - splitPoint) / (1.0 - splitPoint);
+                smooth = 0.90 + minimumJerk(subT) * 0.10;
+            }
+        } else {
+            smooth = minimumJerk(t) * velMod;
+        }
+        smooth = MathHelper.clamp(smooth, 0.0, 1.0);
+
+        double arcWeight = Math.sin(t * Math.PI) * curveMod;
         float calculatedPitch = (float) (startPitch + (targetPitch - startPitch) * smooth + arcPitch * arcWeight);
         float calculatedYaw = (float) (startYaw + (targetYaw - startYaw) * smooth + arcYaw * arcWeight);
 
-        if (randomnessFactor > 0.05f && t > 0.1 && t < 0.9) {
-            float tremorPitch = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 0.08 * randomnessFactor);
-            float tremorYaw = (float) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 0.12 * randomnessFactor);
-            calculatedPitch += tremorPitch;
-            calculatedYaw += tremorYaw;
+        if (randomnessFactor > 0.03f && t > 0.08 && t < 0.92) {
+            float[] ouTremor = profile.getNextTremor(randomnessFactor * tremorMod);
+            calculatedPitch += ouTremor[0];
+            calculatedYaw += ouTremor[1];
         }
 
         applyRotation(client, calculatedPitch, calculatedYaw);
+    }
+
+    private static double minimumJerk(double t) {
+        double clamped = MathHelper.clamp(t, 0.0, 1.0);
+        return clamped * clamped * clamped * (clamped * (clamped * 6.0 - 15.0) + 10.0);
     }
 
     private void applyRotation(MinecraftClient client, float pitch, float yaw) {
@@ -117,19 +171,28 @@ public final class ArcCameraInterpolator {
 
         float finalPitch = MathHelper.clamp(pitch, -90.0f, 90.0f);
         float deltaYaw = MathHelper.wrapDegrees(yaw - lastAppliedYaw);
-        float finalYaw = lastAppliedYaw + deltaYaw;
+        float deltaPitch = finalPitch - lastAppliedPitch;
+        float finalYaw;
 
         if (this.useGcd && client.options != null) {
             double gcd = calculateMouseGcd(client);
             if (gcd > 1.0E-5) {
-                float deltaPitch = finalPitch - lastAppliedPitch;
-                long pitchSteps = Math.round(deltaPitch / gcd);
-                long yawSteps = Math.round(deltaYaw / gcd);
+                double accumYaw = deltaYaw + remainderYaw;
+                double accumPitch = deltaPitch + remainderPitch;
 
-                finalPitch = (float) (lastAppliedPitch + (pitchSteps * gcd));
+                long yawSteps = Math.round(accumYaw / gcd);
+                long pitchSteps = Math.round(accumPitch / gcd);
+
+                remainderYaw = accumYaw - (yawSteps * gcd);
+                remainderPitch = accumPitch - (pitchSteps * gcd);
+
                 finalYaw = (float) (lastAppliedYaw + (yawSteps * gcd));
-                finalPitch = MathHelper.clamp(finalPitch, -90.0f, 90.0f);
+                finalPitch = (float) MathHelper.clamp(lastAppliedPitch + (pitchSteps * gcd), -90.0f, 90.0f);
+            } else {
+                finalYaw = lastAppliedYaw + deltaYaw;
             }
+        } else {
+            finalYaw = lastAppliedYaw + deltaYaw;
         }
 
         client.player.setPitch(finalPitch);
@@ -159,5 +222,7 @@ public final class ArcCameraInterpolator {
     public void reset() {
         this.active = false;
         this.returning = false;
+        this.remainderPitch = 0.0;
+        this.remainderYaw = 0.0;
     }
 }

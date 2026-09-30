@@ -23,17 +23,18 @@ public final class MorrowConfig {
     public static double maxDistance = 4.4D;
     public static boolean allowSelfCart = false;
     public static boolean allowPitPlacement = true;
-    public static int minDelayMs = 70;
-    public static int maxDelayMs = 110;
+    public static int minDelayMs = 50;
+    public static int maxDelayMs = 80;
     public static boolean useMainhandCart = true;
-    public static String cameraMode = "off";
-    public static boolean autoCamera = false;
-    public static int cameraSmoothnessMs = 140;
+    public static String cameraMode = "auto";
+    public static boolean autoCamera = true;
+    public static int cameraSmoothnessMs = 110;
     public static boolean cameraReturn = true;
-    public static int cameraReturnSmoothnessMs = 120;
+    public static int cameraReturnSmoothnessMs = 100;
     public static int cameraCurve = 40;
     public static int cameraRandomness = 35;
     public static boolean cameraMouseGcd = true;
+    public static boolean neuralAim = true;
 
     public static final int PRESET_FAST = 0;
     public static final int PRESET_MEDIUM = 1;
@@ -62,16 +63,17 @@ public final class MorrowConfig {
                 maxDistance = 4.5D;
                 allowPitPlacement = true;
                 randomDelay = true;
-                minDelayMs = 40;
-                maxDelayMs = 60;
+                minDelayMs = 35;
+                maxDelayMs = 50;
                 cameraMode = "packet";
                 autoCamera = false;
-                cameraSmoothnessMs = 80;
+                cameraSmoothnessMs = 55;
                 cameraReturn = true;
-                cameraReturnSmoothnessMs = 80;
+                cameraReturnSmoothnessMs = 55;
                 cameraCurve = 20;
                 cameraRandomness = 20;
                 cameraMouseGcd = true;
+                neuralAim = true;
             }
             case PRESET_MEDIUM -> {
                 placementChance = 100;
@@ -79,16 +81,17 @@ public final class MorrowConfig {
                 maxDistance = 4.4D;
                 allowPitPlacement = true;
                 randomDelay = true;
-                minDelayMs = 70;
-                maxDelayMs = 110;
+                minDelayMs = 50;
+                maxDelayMs = 80;
                 cameraMode = "auto";
                 autoCamera = true;
-                cameraSmoothnessMs = 140;
+                cameraSmoothnessMs = 110;
                 cameraReturn = true;
-                cameraReturnSmoothnessMs = 120;
+                cameraReturnSmoothnessMs = 100;
                 cameraCurve = 40;
                 cameraRandomness = 35;
                 cameraMouseGcd = true;
+                neuralAim = true;
             }
             case PRESET_SAFE -> {
                 placementChance = 100;
@@ -96,16 +99,17 @@ public final class MorrowConfig {
                 maxDistance = 4.2D;
                 allowPitPlacement = true;
                 randomDelay = true;
-                minDelayMs = 120;
-                maxDelayMs = 180;
-                cameraMode = "off";
-                autoCamera = false;
-                cameraSmoothnessMs = 180;
+                minDelayMs = 70;
+                maxDelayMs = 100;
+                cameraMode = "auto";
+                autoCamera = true;
+                cameraSmoothnessMs = 160;
                 cameraReturn = true;
-                cameraReturnSmoothnessMs = 160;
-                cameraCurve = 50;
-                cameraRandomness = 50;
+                cameraReturnSmoothnessMs = 150;
+                cameraCurve = 45;
+                cameraRandomness = 40;
                 cameraMouseGcd = true;
+                neuralAim = true;
             }
         }
     }
@@ -136,17 +140,18 @@ public final class MorrowConfig {
             allowPitPlacement = Boolean.parseBoolean(properties.getProperty("allowPitPlacement", "true"));
             maxDistance = clampDouble(Double.parseDouble(properties.getProperty("maxDistance", "4.4")), 1.5D, 4.5D);
             allowSelfCart = Boolean.parseBoolean(properties.getProperty("allowSelfCart", "false"));
-            minDelayMs = clamp(Integer.parseInt(properties.getProperty("minDelayMs", "70")), 10, 200);
-            maxDelayMs = clamp(Integer.parseInt(properties.getProperty("maxDelayMs", "110")), 10, 300);
+            minDelayMs = clamp(Integer.parseInt(properties.getProperty("minDelayMs", "50")), 10, 200);
+            maxDelayMs = clamp(Integer.parseInt(properties.getProperty("maxDelayMs", "80")), 10, 300);
             useMainhandCart = Boolean.parseBoolean(properties.getProperty("useMainhandCart", "true"));
-            cameraMode = properties.getProperty("cameraMode", "off");
-            autoCamera = Boolean.parseBoolean(properties.getProperty("autoCamera", "false"));
-            cameraSmoothnessMs = clamp(Integer.parseInt(properties.getProperty("cameraSmoothnessMs", "140")), 50, 300);
+            cameraMode = properties.getProperty("cameraMode", "auto");
+            autoCamera = Boolean.parseBoolean(properties.getProperty("autoCamera", "true"));
+            cameraSmoothnessMs = clamp(Integer.parseInt(properties.getProperty("cameraSmoothnessMs", "110")), 35, 300);
             cameraReturn = Boolean.parseBoolean(properties.getProperty("cameraReturn", "true"));
-            cameraReturnSmoothnessMs = clamp(Integer.parseInt(properties.getProperty("cameraReturnSmoothnessMs", "120")), 50, 300);
+            cameraReturnSmoothnessMs = clamp(Integer.parseInt(properties.getProperty("cameraReturnSmoothnessMs", "100")), 35, 300);
             cameraCurve = clamp(Integer.parseInt(properties.getProperty("cameraCurve", "40")), 0, 100);
             cameraRandomness = clamp(Integer.parseInt(properties.getProperty("cameraRandomness", "35")), 0, 100);
             cameraMouseGcd = Boolean.parseBoolean(properties.getProperty("cameraMouseGcd", "true"));
+            neuralAim = Boolean.parseBoolean(properties.getProperty("neuralAim", "true"));
             if (maxDelayMs < minDelayMs) maxDelayMs = minDelayMs;
         } catch (Exception ignored) {
             resetDefaults();
@@ -164,17 +169,18 @@ public final class MorrowConfig {
         allowPitPlacement = true;
         maxDistance = 4.4D;
         allowSelfCart = false;
-        minDelayMs = 70;
-        maxDelayMs = 110;
+        minDelayMs = 50;
+        maxDelayMs = 80;
         useMainhandCart = true;
-        cameraMode = "off";
-        autoCamera = false;
-        cameraSmoothnessMs = 140;
+        cameraMode = "auto";
+        autoCamera = true;
+        cameraSmoothnessMs = 110;
         cameraReturn = true;
-        cameraReturnSmoothnessMs = 120;
+        cameraReturnSmoothnessMs = 100;
         cameraCurve = 40;
         cameraRandomness = 35;
         cameraMouseGcd = true;
+        neuralAim = true;
     }
 
     private static int clamp(int value, int min, int max) {
