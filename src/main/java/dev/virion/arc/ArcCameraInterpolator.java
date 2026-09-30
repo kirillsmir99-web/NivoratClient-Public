@@ -6,6 +6,7 @@ import net.minecraft.util.math.MathHelper;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class ArcCameraInterpolator {
+    private static volatile boolean anyActive = false;
     private boolean active = false;
     private boolean returning = false;
     private float startPitch;
@@ -24,6 +25,10 @@ public final class ArcCameraInterpolator {
     private boolean useGcd = true;
     private boolean twoPhaseAim = true;
 
+    public static boolean isAnyActive() {
+        return anyActive;
+    }
+
     public void start(float fromPitch, float toPitch, float fromYaw, float toYaw, long durationMs, float randomness) {
         start(fromPitch, toPitch, fromYaw, toYaw, durationMs, randomness, 0.40f, true);
     }
@@ -39,6 +44,7 @@ public final class ArcCameraInterpolator {
         float safeCurve = MathHelper.clamp(curve, 0.0f, 1.0f);
 
         ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
+        profile.resetTremor();
         float speedMultiplier = profile.getSaccadeSpeedMultiplier();
 
         long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 20.0 * randomnessFactor);
@@ -59,6 +65,7 @@ public final class ArcCameraInterpolator {
         this.arcYaw = lateralSign * curvatureBase * 3.5f;
 
         this.active = true;
+        anyActive = true;
     }
 
     public void startReturn(float toPitch, float toYaw, long durationMs, float randomness) {
@@ -83,6 +90,7 @@ public final class ArcCameraInterpolator {
         float safeCurve = MathHelper.clamp(curve, 0.0f, 1.0f);
 
         ArcNeuralMotorProfile profile = ArcNeuralMotorProfile.getInstance();
+        profile.resetTremor();
         float speedMultiplier = profile.getSaccadeSpeedMultiplier();
 
         long varianceMs = (long) ((ThreadLocalRandom.current().nextDouble() - 0.5) * 15.0 * randomnessFactor);
@@ -103,6 +111,7 @@ public final class ArcCameraInterpolator {
         this.arcYaw = lateralSign * curvatureBase * 2.5f;
 
         this.active = true;
+        anyActive = true;
     }
 
     public void onRender(MinecraftClient client) {
@@ -117,6 +126,7 @@ public final class ArcCameraInterpolator {
             applyRotation(client, targetPitch, targetYaw);
             active = false;
             returning = false;
+            anyActive = false;
             return;
         }
 
@@ -133,18 +143,22 @@ public final class ArcCameraInterpolator {
         float curveMod = neuralOutputs[1];
         float tremorMod = neuralOutputs[2];
 
+        float c = (velMod - 1.0f) * 0.5f;
         double smooth;
         if (twoPhaseAim) {
             double splitPoint = profile.getTwoPhaseRatio();
+            double splitDist = 0.90;
             if (t < splitPoint) {
                 double subT = t / splitPoint;
-                smooth = minimumJerk(subT) * 0.90 * velMod;
+                double warpedSubT = MathHelper.clamp(subT + c * subT * (1.0 - subT), 0.0, 1.0);
+                smooth = splitDist * minimumJerk(warpedSubT);
             } else {
                 double subT = (t - splitPoint) / (1.0 - splitPoint);
-                smooth = 0.90 + minimumJerk(subT) * 0.10;
+                smooth = splitDist + (1.0 - splitDist) * minimumJerk(subT);
             }
         } else {
-            smooth = minimumJerk(t) * velMod;
+            double warpedT = MathHelper.clamp(t + c * t * (1.0 - t), 0.0, 1.0);
+            smooth = minimumJerk(warpedT);
         }
         smooth = MathHelper.clamp(smooth, 0.0, 1.0);
 
@@ -152,10 +166,11 @@ public final class ArcCameraInterpolator {
         float calculatedPitch = (float) (startPitch + (targetPitch - startPitch) * smooth + arcPitch * arcWeight);
         float calculatedYaw = (float) (startYaw + (targetYaw - startYaw) * smooth + arcYaw * arcWeight);
 
-        if (randomnessFactor > 0.03f && t > 0.08 && t < 0.92) {
+        if (randomnessFactor > 0.03f) {
             float[] ouTremor = profile.getNextTremor(randomnessFactor * tremorMod);
-            calculatedPitch += ouTremor[0];
-            calculatedYaw += ouTremor[1];
+            double envelope = Math.sin(t * Math.PI);
+            calculatedPitch += (float) (ouTremor[0] * envelope);
+            calculatedYaw += (float) (ouTremor[1] * envelope);
         }
 
         applyRotation(client, calculatedPitch, calculatedYaw);
@@ -224,5 +239,6 @@ public final class ArcCameraInterpolator {
         this.returning = false;
         this.remainderPitch = 0.0;
         this.remainderYaw = 0.0;
+        anyActive = false;
     }
 }

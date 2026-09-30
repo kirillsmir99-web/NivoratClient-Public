@@ -37,7 +37,7 @@ public final class VirionArcController {
 
     private static final int MIN_BOW_DRAW_TICKS = 3;
     private static final int MAX_BOW_DRAW_TICKS = 72000;
-    private static final float MIN_PULL_PROGRESS = 0.12F;
+    private static final float MIN_PULL_PROGRESS = 0.10F;
     private static final float MAX_PULL_PROGRESS = 1.0F;
     private static final double MAX_ALLOWED_AIM_DEV_DOT = 0.50D;
 
@@ -229,17 +229,18 @@ public final class VirionArcController {
         );
 
         if (MorrowConfig.autoCamera) {
-            startAimTowards(client, resolution.aimTarget);
-        }
-
-        if (MorrowConfig.preset == MorrowConfig.PRESET_SAFE) {
-            int flightMs = Math.max(1, resolution.flightTicks) * 50;
-            int leadMs = 60;
-            int prepMs = MorrowConfig.minDelayMs * 2;
-            long targetStartMs = now + flightMs - leadMs - prepMs;
-            if (targetStartMs > now) {
-                activeJob.scheduledTimeMs = targetStartMs;
+            long cameraDuration = MorrowConfig.cameraSmoothnessMs;
+            if (MorrowConfig.preset == MorrowConfig.PRESET_SAFE) {
+                int flightMs = Math.max(1, resolution.flightTicks) * 50;
+                int prepMs = MorrowConfig.minDelayMs * 2;
+                long targetStartMs = now + flightMs - 60 - prepMs;
+                if (targetStartMs > now) {
+                    activeJob.scheduledTimeMs = targetStartMs;
+                    long adaptiveCamMs = MathHelper.clamp(flightMs - 60, 140, 180);
+                    cameraDuration = adaptiveCamMs;
+                }
             }
+            startAimTowards(client, resolution.aimTarget, cameraDuration);
         }
     }
 
@@ -620,10 +621,13 @@ public final class VirionArcController {
                     return false;
                 }
             }
+
+            if (!isTargetInFront(client, target)) {
+                return false;
+            }
         }
 
-        return isTargetInFront(client, target)
-            && checkHeightFilter(client, target)
+        return checkHeightFilter(client, target)
             && hasLineOfSight(client, target)
             && withinReach(client, target);
     }
@@ -650,28 +654,33 @@ public final class VirionArcController {
         }
 
         Vec3d eyePos = client.player.getEyePos();
-        Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.62D, target.getZ() + 0.5D);
-        Vec3d toTarget = targetCenter.subtract(eyePos).normalize();
         Vec3d lookVec = client.player.getRotationVec(1.0F).normalize();
-        double dot = lookVec.dotProduct(toTarget);
+        double reach = client.player.getBlockInteractionRange() + 0.25D;
+        Vec3d reachEnd = eyePos.add(lookVec.multiply(reach));
+        Box targetBox = new Box(target);
+        Box supportBox = new Box(target.down());
+
+        boolean hitsBoxes = targetBox.expand(0.25D).raycast(eyePos, reachEnd).isPresent()
+            || supportBox.expand(0.25D).raycast(eyePos, reachEnd).isPresent();
+
+        if (hitsBoxes) {
+            return true;
+        }
 
         if (MorrowConfig.autoCamera) {
-            return dot >= 0.65D;
+            Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.62D, target.getZ() + 0.5D);
+            Vec3d toTarget = targetCenter.subtract(eyePos).normalize();
+            double dot = lookVec.dotProduct(toTarget);
+            return dot >= 0.96D;
         }
 
         if (MorrowConfig.legitMode) {
-            if (dot < 0.75D) {
-                return false;
-            }
-            Box targetBox = new Box(target);
-            Box supportBox = new Box(target.down());
-            double reach = client.player.getBlockInteractionRange() + 0.25D;
-            Vec3d reachEnd = eyePos.add(lookVec.multiply(reach));
-            return targetBox.expand(0.2D).raycast(eyePos, reachEnd).isPresent()
-                || supportBox.expand(0.2D).raycast(eyePos, reachEnd).isPresent();
+            return false;
         }
 
-        return dot >= MAX_ALLOWED_AIM_DEV_DOT;
+        Vec3d targetCenter = new Vec3d(target.getX() + 0.5D, target.getY() + 0.62D, target.getZ() + 0.5D);
+        Vec3d toTarget = targetCenter.subtract(eyePos).normalize();
+        return lookVec.dotProduct(toTarget) >= MAX_ALLOWED_AIM_DEV_DOT;
     }
 
     private boolean isTargetInFront(MinecraftClient client, BlockPos target) {
@@ -812,14 +821,14 @@ public final class VirionArcController {
         return new float[]{pitch, yaw};
     }
 
-    private void startAimTowards(MinecraftClient client, Vec3d aimTarget) {
+    private void startAimTowards(MinecraftClient client, Vec3d aimTarget, long durationMs) {
         if (client == null || client.player == null || aimTarget == null) return;
         Vec3d eyePos = client.player.getEyePos();
         float[] angles = calculateLookAngles(eyePos, aimTarget);
         cameraInterpolator.start(
             client.player.getPitch(), angles[0],
             client.player.getYaw(), angles[1],
-            MorrowConfig.cameraSmoothnessMs,
+            durationMs,
             MorrowConfig.cameraRandomness / 100.0f,
             MorrowConfig.cameraCurve / 100.0f,
             MorrowConfig.cameraMouseGcd
@@ -846,16 +855,6 @@ public final class VirionArcController {
                 float quantYaw = (float) (curYaw + stepsYaw * gcd);
                 float quantPitch = MathHelper.clamp((float) (curPitch + stepsPitch * gcd), -90.0f, 90.0f);
 
-                if (Math.abs(deltaYaw) > 20.0f || Math.abs(deltaPitch) > 15.0f) {
-                    long midStepsYaw = stepsYaw / 2;
-                    long midStepsPitch = stepsPitch / 2;
-                    float midYaw = (float) (curYaw + midStepsYaw * gcd);
-                    float midPitch = MathHelper.clamp((float) (curPitch + midStepsPitch * gcd), -90.0f, 90.0f);
-                    client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
-                        midYaw, midPitch, client.player.isOnGround(), client.player.horizontalCollision
-                    ));
-                }
-
                 client.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
                     quantYaw, quantPitch, client.player.isOnGround(), client.player.horizontalCollision
                 ));
@@ -864,7 +863,8 @@ public final class VirionArcController {
     }
 
     private void interactAtTop(MinecraftClient client, BlockPos blockPos) {
-        Vec3d hitPosition = nearestTopPoint(client.player.getEyePos(), blockPos);
+        Vec3d lookVec = client.player.getRotationVec(1.0F);
+        Vec3d hitPosition = calculateExactFaceHit(client.player.getEyePos(), lookVec, blockPos);
         syncLookForPlacement(client, hitPosition);
         BlockHitResult result = new BlockHitResult(hitPosition, Direction.UP, blockPos, false);
         client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, result);
@@ -872,13 +872,34 @@ public final class VirionArcController {
     }
 
     private void interactOnRail(MinecraftClient client, BlockPos railPos, Hand hand) {
-        Vec3d topPoint = nearestTopPoint(client.player.getEyePos(), railPos.down());
+        Vec3d lookVec = client.player.getRotationVec(1.0F);
+        Vec3d topPoint = calculateExactFaceHit(client.player.getEyePos(), lookVec, railPos.down());
         Vec3d hitPosition = new Vec3d(topPoint.x, railPos.getY() + 0.1D, topPoint.z);
         syncLookForPlacement(client, hitPosition);
         BlockHitResult result = new BlockHitResult(hitPosition, Direction.UP, railPos, false);
         client.interactionManager.interactBlock(client.player, hand, result);
         client.player.swingHand(hand);
         activity.client.module.service.CartStateService.notifyCartPlaced(railPos);
+    }
+
+    private Vec3d calculateExactFaceHit(Vec3d eyePos, Vec3d lookVec, BlockPos supportPos) {
+        double targetY = supportPos.getY() + 1.0D;
+        double dy = lookVec.y;
+        if (Math.abs(dy) > 1.0E-5) {
+            double t = (targetY - eyePos.y) / dy;
+            if (t > 0.0D) {
+                double hitX = eyePos.x + lookVec.x * t;
+                double hitZ = eyePos.z + lookVec.z * t;
+                double minX = supportPos.getX() + HIT_FACE_INSET;
+                double maxX = supportPos.getX() + 1.0D - HIT_FACE_INSET;
+                double minZ = supportPos.getZ() + HIT_FACE_INSET;
+                double maxZ = supportPos.getZ() + 1.0D - HIT_FACE_INSET;
+                if (hitX >= minX && hitX <= maxX && hitZ >= minZ && hitZ <= maxZ) {
+                    return new Vec3d(hitX, targetY, hitZ);
+                }
+            }
+        }
+        return nearestTopPoint(eyePos, supportPos);
     }
 
     private Vec3d nearestTopPoint(Vec3d origin, BlockPos support) {

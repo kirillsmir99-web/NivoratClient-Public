@@ -202,6 +202,12 @@ public final class ArcNeuralMotorProfile {
         }
     }
 
+    public synchronized void resetTremor() {
+        ouStatePitch = 0.0f;
+        ouStateYaw = 0.0f;
+        ouLastTimeNs = 0L;
+    }
+
     public synchronized float[] getNextTremor(float randomnessScale) {
         long now = System.nanoTime();
         if (ouLastTimeNs == 0L) {
@@ -235,6 +241,13 @@ public final class ArcNeuralMotorProfile {
         long now = System.nanoTime();
         float currentPitch = client.player.getPitch();
         float currentYaw = client.player.getYaw();
+
+        if (ArcCameraInterpolator.isAnyActive()) {
+            lastPlayerPitch = currentPitch;
+            lastPlayerYaw = currentYaw;
+            lastTrackTimeNs = now;
+            return;
+        }
 
         if (!trackerInitialized) {
             lastPlayerPitch = currentPitch;
