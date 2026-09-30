@@ -537,6 +537,7 @@ public class SidebarTree {
             case "auto_gg" -> c.autoGGEnabled;
             case "cart_hud" -> c.cartHudEnabled;
             case "cooldown_hud" -> c.cooldownHudEnabled;
+            case "water_drop" -> c.waterDropEnabled;
             default -> null;
         };
         if (direct != null) {

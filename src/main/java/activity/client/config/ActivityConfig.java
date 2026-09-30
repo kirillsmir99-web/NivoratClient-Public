@@ -235,6 +235,28 @@ public class ActivityConfig {
     public boolean cooldownHudVertical = false;
     public double cooldownHudMinDuration = 2.5;
 
+    public boolean waterDropEnabled = true;
+    public Keybind waterDropKeybind = new Keybind();
+    public String waterDropMode = "hotbar";
+    public double waterDropFallThreshold = 4.0;
+    public boolean waterDropPickupWater = true;
+    public boolean waterDropSwitchBack = true;
+    public String waterDropCameraMode = "off";
+    public double waterDropPitchThreshold = 45.0;
+    public double waterDropPickupDelayMs = 85.0;
+    public double waterDropSwitchDelayMs = 130.0;
+    public boolean waterDropRandomDelay = true;
+    public String waterDropTargetSlot = "9";
+    public boolean waterDropCombatGuard = true;
+    public boolean waterDropPearlGuard = true;
+    public boolean waterDropNetherAdapter = true;
+    public boolean waterDropEnableWater = true;
+    public boolean waterDropEnableWindCharge = true;
+    public boolean waterDropEnableHayBlock = true;
+    public boolean waterDropEnableSlimeBlock = true;
+    public boolean waterDropEnableCobweb = true;
+    public boolean waterDropEnablePowderSnow = true;
+
     public boolean overlayEnabled = true;
     public boolean darkThemeEnabled = true;
     public String hudPosition = "top_right";
@@ -683,6 +705,28 @@ public class ActivityConfig {
         this.cooldownHudVertical = false;
         this.cooldownHudMinDuration = 2.5;
 
+        this.waterDropEnabled = true;
+        this.waterDropKeybind.clear();
+        this.waterDropMode = "hotbar";
+        this.waterDropFallThreshold = 4.0;
+        this.waterDropPickupWater = true;
+        this.waterDropSwitchBack = true;
+        this.waterDropCameraMode = "off";
+        this.waterDropPitchThreshold = 45.0;
+        this.waterDropPickupDelayMs = 85.0;
+        this.waterDropSwitchDelayMs = 130.0;
+        this.waterDropRandomDelay = true;
+        this.waterDropTargetSlot = "9";
+        this.waterDropCombatGuard = true;
+        this.waterDropPearlGuard = true;
+        this.waterDropNetherAdapter = true;
+        this.waterDropEnableWater = true;
+        this.waterDropEnableWindCharge = true;
+        this.waterDropEnableHayBlock = true;
+        this.waterDropEnableSlimeBlock = true;
+        this.waterDropEnableCobweb = true;
+        this.waterDropEnablePowderSnow = true;
+
         this.overlayEnabled = true;
         this.darkThemeEnabled = true;
         this.hudPosition = "top_right";
@@ -795,6 +839,8 @@ public class ActivityConfig {
         if (this.autoPearlCatchHorizontalKeybind == null) this.autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
         if (this.autoGGMenuKeybind == null) this.autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
         if (this.cartHudKeybind == null) this.cartHudKeybind = new Keybind();
+        if (this.cooldownHudKeybind == null) this.cooldownHudKeybind = new Keybind();
+        if (this.waterDropKeybind == null) this.waterDropKeybind = new Keybind();
         if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
         if (this.menuCommand == null || this.menuCommand.isBlank()) this.menuCommand = "nt";
 
@@ -915,6 +961,19 @@ public class ActivityConfig {
         this.autoToolDurabilityThreshold = clampSanitize(this.autoToolDurabilityThreshold, 1.0, 50.0, 5.0);
         this.autoToolSingleSlot = Math.max(0, Math.min(8, this.autoToolSingleSlot));
         this.autoGGDelayMs = clampSanitize(this.autoGGDelayMs, 100.0, 3000.0, 950.0);
+        this.waterDropFallThreshold = clampSanitize(this.waterDropFallThreshold, 3.0, 20.0, 4.0);
+        this.waterDropPitchThreshold = clampSanitize(this.waterDropPitchThreshold, 30.0, 90.0, 45.0);
+        this.waterDropPickupDelayMs = clampSanitize(this.waterDropPickupDelayMs, 30.0, 300.0, 85.0);
+        this.waterDropSwitchDelayMs = clampSanitize(this.waterDropSwitchDelayMs, 30.0, 300.0, 130.0);
+        if (!"hotbar".equals(this.waterDropMode) && !"inventory".equals(this.waterDropMode)) {
+            this.waterDropMode = "hotbar";
+        }
+        if (!"off".equals(this.waterDropCameraMode) && !"auto".equals(this.waterDropCameraMode) && !"packet".equals(this.waterDropCameraMode)) {
+            this.waterDropCameraMode = "off";
+        }
+        if (this.waterDropTargetSlot == null || !java.util.List.of("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(this.waterDropTargetSlot)) {
+            this.waterDropTargetSlot = "9";
+        }
 
         this.overlayOpacity = clampSanitize(this.overlayOpacity, 10.0, 100.0, 85.0);
         this.soundVolume = clampSanitize(this.soundVolume, 0.0, 100.0, 70.0);
@@ -1200,6 +1259,9 @@ public class ActivityConfig {
 
         syncModuleEntry("cooldown_hud", this.cooldownHudEnabled, this.cooldownHudKeybind);
         populateCooldownHudSettings(this.modules.get("cooldown_hud"));
+
+        syncModuleEntry("water_drop", this.waterDropEnabled, this.waterDropKeybind);
+        populateWaterDropSettings(this.modules.get("water_drop"));
     }
 
     private void syncModuleEntry(String id, boolean enabled, Keybind keybind) {
@@ -1403,6 +1465,29 @@ public class ActivityConfig {
         entry.settings.put("custom_y", this.cooldownHudCustomY);
         entry.settings.put("vertical", this.cooldownHudVertical);
         entry.settings.put("min_duration", this.cooldownHudMinDuration);
+    }
+
+    private void populateWaterDropSettings(ModuleConfigEntry entry) {
+        if (entry == null) return;
+        entry.settings.put("mode", this.waterDropMode);
+        entry.settings.put("fall_threshold", this.waterDropFallThreshold);
+        entry.settings.put("pickup_water", this.waterDropPickupWater);
+        entry.settings.put("switch_back", this.waterDropSwitchBack);
+        entry.settings.put("camera_mode", this.waterDropCameraMode);
+        entry.settings.put("pitch_threshold", this.waterDropPitchThreshold);
+        entry.settings.put("pickup_delay", this.waterDropPickupDelayMs);
+        entry.settings.put("switch_delay", this.waterDropSwitchDelayMs);
+        entry.settings.put("random_delay", this.waterDropRandomDelay);
+        entry.settings.put("target_slot", this.waterDropTargetSlot);
+        entry.settings.put("combat_guard", this.waterDropCombatGuard);
+        entry.settings.put("pearl_guard", this.waterDropPearlGuard);
+        entry.settings.put("nether_adapter", this.waterDropNetherAdapter);
+        entry.settings.put("enable_water", this.waterDropEnableWater);
+        entry.settings.put("enable_wind_charge", this.waterDropEnableWindCharge);
+        entry.settings.put("enable_hay_block", this.waterDropEnableHayBlock);
+        entry.settings.put("enable_slime_block", this.waterDropEnableSlimeBlock);
+        entry.settings.put("enable_cobweb", this.waterDropEnableCobweb);
+        entry.settings.put("enable_powder_snow", this.waterDropEnablePowderSnow);
     }
 
     private static String getSettingString(java.util.Map<String, Object> map, String key, String def) {
@@ -1723,6 +1808,33 @@ public class ActivityConfig {
                 this.cooldownHudMinDuration = getSettingDouble(cd.settings, "min_duration", this.cooldownHudMinDuration);
             }
         }
+
+        ModuleConfigEntry wd = getModuleEntry("water_drop");
+        if (wd != null) {
+            this.waterDropEnabled = wd.enabled;
+            if (wd.keybind != null) this.waterDropKeybind.copyFrom(wd.keybind);
+            if (wd.settings != null && !wd.settings.isEmpty()) {
+                this.waterDropMode = getSettingString(wd.settings, "mode", this.waterDropMode);
+                this.waterDropFallThreshold = getSettingDouble(wd.settings, "fall_threshold", this.waterDropFallThreshold);
+                this.waterDropPickupWater = getSettingBoolean(wd.settings, "pickup_water", this.waterDropPickupWater);
+                this.waterDropSwitchBack = getSettingBoolean(wd.settings, "switch_back", this.waterDropSwitchBack);
+                this.waterDropCameraMode = getSettingString(wd.settings, "camera_mode", this.waterDropCameraMode);
+                this.waterDropPitchThreshold = getSettingDouble(wd.settings, "pitch_threshold", this.waterDropPitchThreshold);
+                this.waterDropPickupDelayMs = getSettingDouble(wd.settings, "pickup_delay", this.waterDropPickupDelayMs);
+                this.waterDropSwitchDelayMs = getSettingDouble(wd.settings, "switch_delay", this.waterDropSwitchDelayMs);
+                this.waterDropRandomDelay = getSettingBoolean(wd.settings, "random_delay", this.waterDropRandomDelay);
+                this.waterDropTargetSlot = getSettingString(wd.settings, "target_slot", this.waterDropTargetSlot);
+                this.waterDropCombatGuard = getSettingBoolean(wd.settings, "combat_guard", this.waterDropCombatGuard);
+                this.waterDropPearlGuard = getSettingBoolean(wd.settings, "pearl_guard", this.waterDropPearlGuard);
+                this.waterDropNetherAdapter = getSettingBoolean(wd.settings, "nether_adapter", this.waterDropNetherAdapter);
+                this.waterDropEnableWater = getSettingBoolean(wd.settings, "enable_water", this.waterDropEnableWater);
+                this.waterDropEnableWindCharge = getSettingBoolean(wd.settings, "enable_wind_charge", this.waterDropEnableWindCharge);
+                this.waterDropEnableHayBlock = getSettingBoolean(wd.settings, "enable_hay_block", this.waterDropEnableHayBlock);
+                this.waterDropEnableSlimeBlock = getSettingBoolean(wd.settings, "enable_slime_block", this.waterDropEnableSlimeBlock);
+                this.waterDropEnableCobweb = getSettingBoolean(wd.settings, "enable_cobweb", this.waterDropEnableCobweb);
+                this.waterDropEnablePowderSnow = getSettingBoolean(wd.settings, "enable_powder_snow", this.waterDropEnablePowderSnow);
+            }
+        }
     }
 
     private static double clampSanitize(double val, double min, double max, double def) {
@@ -1923,6 +2035,28 @@ public class ActivityConfig {
         copy.cooldownHudCustomY = this.cooldownHudCustomY;
         copy.cooldownHudVertical = this.cooldownHudVertical;
         copy.cooldownHudMinDuration = this.cooldownHudMinDuration;
+
+        copy.waterDropEnabled = this.waterDropEnabled;
+        copy.waterDropKeybind.copyFrom(this.waterDropKeybind);
+        copy.waterDropMode = this.waterDropMode;
+        copy.waterDropFallThreshold = this.waterDropFallThreshold;
+        copy.waterDropPickupWater = this.waterDropPickupWater;
+        copy.waterDropSwitchBack = this.waterDropSwitchBack;
+        copy.waterDropCameraMode = this.waterDropCameraMode;
+        copy.waterDropPitchThreshold = this.waterDropPitchThreshold;
+        copy.waterDropPickupDelayMs = this.waterDropPickupDelayMs;
+        copy.waterDropSwitchDelayMs = this.waterDropSwitchDelayMs;
+        copy.waterDropRandomDelay = this.waterDropRandomDelay;
+        copy.waterDropTargetSlot = this.waterDropTargetSlot;
+        copy.waterDropCombatGuard = this.waterDropCombatGuard;
+        copy.waterDropPearlGuard = this.waterDropPearlGuard;
+        copy.waterDropNetherAdapter = this.waterDropNetherAdapter;
+        copy.waterDropEnableWater = this.waterDropEnableWater;
+        copy.waterDropEnableWindCharge = this.waterDropEnableWindCharge;
+        copy.waterDropEnableHayBlock = this.waterDropEnableHayBlock;
+        copy.waterDropEnableSlimeBlock = this.waterDropEnableSlimeBlock;
+        copy.waterDropEnableCobweb = this.waterDropEnableCobweb;
+        copy.waterDropEnablePowderSnow = this.waterDropEnablePowderSnow;
 
         copy.overlayEnabled = this.overlayEnabled;
         copy.darkThemeEnabled = this.darkThemeEnabled;
@@ -2181,6 +2315,28 @@ public class ActivityConfig {
                 Double.compare(this.cooldownHudMinDuration, that.cooldownHudMinDuration) == 0 &&
                 Objects.equals(this.cooldownHudKeybind, that.cooldownHudKeybind) &&
 
+                this.waterDropEnabled == that.waterDropEnabled &&
+                Objects.equals(this.waterDropKeybind, that.waterDropKeybind) &&
+                Objects.equals(this.waterDropMode, that.waterDropMode) &&
+                Double.compare(this.waterDropFallThreshold, that.waterDropFallThreshold) == 0 &&
+                this.waterDropPickupWater == that.waterDropPickupWater &&
+                this.waterDropSwitchBack == that.waterDropSwitchBack &&
+                Objects.equals(this.waterDropCameraMode, that.waterDropCameraMode) &&
+                Double.compare(this.waterDropPitchThreshold, that.waterDropPitchThreshold) == 0 &&
+                Double.compare(this.waterDropPickupDelayMs, that.waterDropPickupDelayMs) == 0 &&
+                Double.compare(this.waterDropSwitchDelayMs, that.waterDropSwitchDelayMs) == 0 &&
+                this.waterDropRandomDelay == that.waterDropRandomDelay &&
+                Objects.equals(this.waterDropTargetSlot, that.waterDropTargetSlot) &&
+                this.waterDropCombatGuard == that.waterDropCombatGuard &&
+                this.waterDropPearlGuard == that.waterDropPearlGuard &&
+                this.waterDropNetherAdapter == that.waterDropNetherAdapter &&
+                this.waterDropEnableWater == that.waterDropEnableWater &&
+                this.waterDropEnableWindCharge == that.waterDropEnableWindCharge &&
+                this.waterDropEnableHayBlock == that.waterDropEnableHayBlock &&
+                this.waterDropEnableSlimeBlock == that.waterDropEnableSlimeBlock &&
+                this.waterDropEnableCobweb == that.waterDropEnableCobweb &&
+                this.waterDropEnablePowderSnow == that.waterDropEnablePowderSnow &&
+
                this.overlayEnabled == that.overlayEnabled &&
                this.darkThemeEnabled == that.darkThemeEnabled &&
                this.autoHideOnChat == that.autoHideOnChat &&
@@ -2284,6 +2440,11 @@ public class ActivityConfig {
             autoGGEnabled, autoGGKeybind, autoGGMenuKeybind, autoGGPhrase, autoGGSendOnKill, autoGGSendOnOwnDeath, autoGGRandomOrder, autoGGDelayMs,
             cartHudEnabled, cartHudKeybind, cartHudCustomX, cartHudCustomY,
             cooldownHudEnabled, cooldownHudKeybind, cooldownHudCustomX, cooldownHudCustomY, cooldownHudVertical, cooldownHudMinDuration,
+            waterDropEnabled, waterDropKeybind, waterDropMode, waterDropFallThreshold, waterDropPickupWater,
+            waterDropSwitchBack, waterDropCameraMode, waterDropPitchThreshold, waterDropPickupDelayMs, waterDropSwitchDelayMs,
+            waterDropRandomDelay, waterDropTargetSlot, waterDropCombatGuard, waterDropPearlGuard, waterDropNetherAdapter,
+            waterDropEnableWater, waterDropEnableWindCharge, waterDropEnableHayBlock, waterDropEnableSlimeBlock,
+            waterDropEnableCobweb, waterDropEnablePowderSnow,
 
             overlayEnabled, darkThemeEnabled, hudPosition, overlayOpacity, autoHideOnChat, hideInF3, searchFilter, filterCategory, matchCase
         );

@@ -13,6 +13,7 @@ import activity.client.module.impl.utility.AudioWaveModule;
 import activity.client.module.impl.utility.ModelMeshModule;
 import activity.client.module.impl.utility.CartHudModule;
 import activity.client.module.impl.utility.HPReaperModule;
+import activity.client.module.impl.utility.SurfaceImpactModule;
 
 public final class BuiltinModules {
 
@@ -36,5 +37,6 @@ public final class BuiltinModules {
         ModuleRegistry.register(new AudioWaveModule());
         ModuleRegistry.register(new CartHudModule());
         ModuleRegistry.register(new activity.client.module.impl.utility.CooldownHudModule());
+        ModuleRegistry.register(new SurfaceImpactModule());
     }
 }

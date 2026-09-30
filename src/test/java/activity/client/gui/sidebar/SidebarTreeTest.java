@@ -42,13 +42,14 @@ public class SidebarTreeTest {
         assertEquals("utility", utility.getId());
         assertEquals(2, utility.getTabIndex());
         assertEquals(ActivityIcon.UTILITY, utility.getIcon());
-        assertEquals(6, utility.getChildren().size());
+        assertEquals(7, utility.getChildren().size());
         assertEquals("hp_reaper", utility.getChildren().get(0).getId());
         assertEquals("auto_tool", utility.getChildren().get(1).getId());
         assertEquals("auto_gg", utility.getChildren().get(2).getId());
         assertEquals("cart_hud", utility.getChildren().get(3).getId());
         assertEquals("cooldown_hud", utility.getChildren().get(4).getId());
-        assertEquals("hud_activity", utility.getChildren().get(5).getId());
+        assertEquals("water_drop", utility.getChildren().get(5).getId());
+        assertEquals("hud_activity", utility.getChildren().get(6).getId());
 
         SidebarTree.CategoryNode config = categories.get(3);
         assertEquals("config", config.getId());

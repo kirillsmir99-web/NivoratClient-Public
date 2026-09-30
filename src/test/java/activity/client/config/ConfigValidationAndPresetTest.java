@@ -599,7 +599,7 @@ public class ConfigValidationAndPresetTest {
 
         cfg.syncModuleConfigEntries();
 
-        assertEquals(14, cfg.modules.size());
+        assertEquals(15, cfg.modules.size());
         assertEquals("axe_only", cfg.modules.get("auto_mace").settings.get("source_mode"));
         assertEquals("rage", cfg.modules.get("auto_spear").settings.get("security_mode"));
         assertEquals(3.9, cfg.modules.get("auto_shieldbreaker").settings.get("distance"));
