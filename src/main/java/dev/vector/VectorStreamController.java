@@ -81,13 +81,16 @@ public final class VectorStreamController {
         if (cooldownTicks > 0) {
             return true;
         }
+        if (clientTickCount <= lastRestoreTick) {
+            return true;
+        }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
-            return (clientTickCount - lastRestoreTick < (ThreadLocalRandom.current().nextInt(100) < 15 ? 1L : 0L));
+            return false;
         }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            return (clientTickCount - lastRestoreTick < 1L);
+            return (clientTickCount - lastRestoreTick < (ThreadLocalRandom.current().nextInt(100) < 10 ? 1L : 0L));
         }
-        return (clientTickCount - lastRestoreTick < (ThreadLocalRandom.current().nextBoolean() ? 1L : 2L));
+        return (clientTickCount - lastRestoreTick < (ThreadLocalRandom.current().nextInt(100) < 20 ? 1L : 0L));
     }
 
     public void onTrigger(MinecraftClient client) {
@@ -243,67 +246,65 @@ public final class VectorStreamController {
         startSpearActive(client, player, targetSpearSlot, true);
     }
 
+    private int getRestoreDelayTicks() {
+        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
+            return 1;
+        }
+        if (VectorStreamConfig.maxDelayMs > 0 && VectorStreamConfig.maxDelayMs != 185) {
+            if (VectorStreamConfig.maxDelayMs <= 60) return 1;
+            if (VectorStreamConfig.maxDelayMs >= 200) {
+                return ThreadLocalRandom.current().nextInt(100) < 60 ? 3 : 2;
+            }
+        }
+        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
+            if (!VectorStreamConfig.randomDelay) return 1;
+            return ThreadLocalRandom.current().nextInt(100) < 75 ? 1 : 2;
+        }
+        if (!VectorStreamConfig.randomDelay) return 2;
+        int roll = ThreadLocalRandom.current().nextInt(100);
+        if (roll < 45) return 1;
+        if (roll < 95) return 2;
+        return 3;
+    }
+
     private int calculateDelay() {
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
             if (!VectorStreamConfig.randomDelay) {
-                return 50;
+                return 45;
             }
-            return (int) GaussianTimingEngine.getDelay(50.0D, 3.0D, 46, 56);
+            return (int) GaussianTimingEngine.getDelay(45.0D, 2.0D, 40, 48);
         }
-        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            int target = 82;
-            if (VectorStreamConfig.maxDelayMs > 0 && VectorStreamConfig.maxDelayMs < 185) {
-                target = Math.max(60, Math.min(105, VectorStreamConfig.maxDelayMs));
-            }
+        if (restoreDelayTicks == 1) {
             if (!VectorStreamConfig.randomDelay) {
-                return target;
+                return 46;
             }
-            return (int) GaussianTimingEngine.getDelay(target, 9.0D, target - 16, target + 16);
+            return (int) GaussianTimingEngine.getDelay(46.0D, 2.0D, 41, 48);
         }
-        int base = VectorStreamConfig.maxDelayMs > 0
-                ? (int) Math.round(VectorStreamConfig.maxDelayMs / 1.5D)
-                : 120;
-        int target = Math.max(90, Math.min(150, base));
+        if (restoreDelayTicks == 2) {
+            double mean = (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) ? 72.0D : 78.0D;
+            if (!VectorStreamConfig.randomDelay) {
+                return (int) mean;
+            }
+            return (int) GaussianTimingEngine.getDelay(mean, 5.5D, (int) (mean - 10), (int) (mean + 10));
+        }
         if (!VectorStreamConfig.randomDelay) {
-            return target;
+            return 120;
         }
-        return (int) GaussianTimingEngine.getDelay(target, 13.0D, target - 22, target + 22);
+        return (int) GaussianTimingEngine.getDelay(120.0D, 7.0D, 108, 132);
     }
 
     private int getSwitchDelayTicks() {
         return 1;
     }
 
-    private int getRestoreDelayTicks() {
-        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
-            return 1;
-        }
-        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            if (targetRestoreDelayMs <= 75) {
-                return 1;
-            } else if (targetRestoreDelayMs >= 95) {
-                return 2;
-            } else {
-                return ThreadLocalRandom.current().nextInt(100) < 65 ? 1 : 2;
-            }
-        }
-        if (targetRestoreDelayMs > 130) {
-            return ThreadLocalRandom.current().nextInt(100) < 30 ? 3 : 2;
-        }
-        return 2;
-    }
-
     private int getCooldownTicks() {
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
-            return ThreadLocalRandom.current().nextInt(100) < 20 ? 1 : 0;
+            return 0;
         }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            return ThreadLocalRandom.current().nextInt(100) < 30 ? 0 : 1;
+            return ThreadLocalRandom.current().nextInt(100) < 15 ? 1 : 0;
         }
-        if (VectorStreamConfig.randomDelay) {
-            return 1 + (ThreadLocalRandom.current().nextInt(100) < 35 ? 1 : 0);
-        }
-        return 1;
+        return ThreadLocalRandom.current().nextInt(100) < 25 ? 1 : 0;
     }
 
     private void startSpearActive(MinecraftClient client, ClientPlayerEntity player, int slot, boolean doSelect) {
@@ -329,8 +330,8 @@ public final class VectorStreamController {
 
         executeSpearStrike(client, player);
 
-        targetRestoreDelayMs = calculateDelay();
         restoreDelayTicks = getRestoreDelayTicks();
+        targetRestoreDelayMs = calculateDelay();
 
         if (targetRestoreDelayMs <= 0 && restoreDelayTicks <= 0) {
             restoreSlot(client);
@@ -431,7 +432,7 @@ public final class VectorStreamController {
         long elapsedTicks = clientTickCount - strikeTick;
         boolean differentTick = (clientTickCount > lastSlotChangeTick);
 
-        boolean timeExpired = elapsedMs >= targetRestoreDelayMs;
+        boolean timeExpired = elapsedMs >= targetRestoreDelayMs || (restoreDelayTicks == 1 && elapsedMs >= VectorStreamConfig.getMinFloor());
         boolean ticksExpired = elapsedTicks >= restoreDelayTicks;
 
         if ((timeExpired && ticksExpired && differentTick) || elapsedTicks > 20) {

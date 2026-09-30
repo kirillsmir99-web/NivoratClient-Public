@@ -25,9 +25,9 @@ public final class VectorStreamConfig {
     public static int getMinFloor() {
         if (maxSpeed || maxDelayMs <= 0) return 0;
         return switch (securityMode) {
-            case MODE_SEMI_LEGIT -> Math.min(45, maxDelayMs);
-            case MODE_RAGE -> 45;
-            default -> Math.min(60, maxDelayMs);
+            case MODE_SEMI_LEGIT -> Math.min(25, maxDelayMs);
+            case MODE_RAGE -> 25;
+            default -> Math.min(35, maxDelayMs);
         };
     }
 
