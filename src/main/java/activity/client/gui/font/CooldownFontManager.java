@@ -55,11 +55,11 @@ public final class CooldownFontManager {
                 if (client.getResourceManager().getResource(actId).isPresent()) {
                     return true;
                 }
-                ActivityClient.LOGGER.debug("[CooldownHUD] Font {} unavailable, using Minecraft fallback.", family.getId());
+                ActivityClient.LOGGER.debug("[PulseHUD] Font {} unavailable, using Minecraft fallback.", family.getId());
                 return false;
             }
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Font {} unavailable, using Minecraft fallback.", family.getId());
+            ActivityClient.LOGGER.debug("[PulseHUD] Font {} unavailable, using Minecraft fallback.", family.getId());
             return false;
         }
         return true;
@@ -126,7 +126,7 @@ public final class CooldownFontManager {
         TypographySize targetSize = size != null ? size : TypographySize.NORMAL;
 
         if (targetFamily != FontFamily.MINECRAFT && targetFamily != FontFamily.DEFAULT && !isFontAvailable(targetFamily)) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Font {} unavailable, using Minecraft fallback.", targetFamily.getId());
+            ActivityClient.LOGGER.debug("[PulseHUD] Font {} unavailable, using Minecraft fallback.", targetFamily.getId());
             targetFamily = FontFamily.MINECRAFT;
         }
 
@@ -169,7 +169,7 @@ public final class CooldownFontManager {
         try {
             return text.copy().fillStyle(Style.EMPTY.withFont(activeFontSource));
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to wrap text '{}' with font '{}': {}",
+            ActivityClient.LOGGER.debug("[PulseHUD] Failed to wrap text '{}' with font '{}': {}",
                 text.getString(), activeFontFamily.getId(), e.getMessage());
             return text;
         }
@@ -259,7 +259,7 @@ public final class CooldownFontManager {
             try {
                 listener.run();
             } catch (Exception e) {
-                ActivityClient.LOGGER.debug("[CooldownHUD] Error in font change listener: {}", e.getMessage());
+                ActivityClient.LOGGER.debug("[PulseHUD] Error in font change listener: {}", e.getMessage());
             }
         }
     }

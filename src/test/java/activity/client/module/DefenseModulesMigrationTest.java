@@ -7,20 +7,20 @@ import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleRegistry;
 import activity.client.module.api.NivoratModule;
-import activity.client.module.impl.defense.AutoAnchorModule;
-import activity.client.module.impl.defense.AutoCartModule;
-import activity.client.module.impl.defense.AutoTotemModule;
-import activity.client.module.impl.defense.CartRefillModule;
+import activity.client.module.impl.defense.LightmapFilterModule;
+import activity.client.module.impl.defense.OcclusionCacheModule;
+import activity.client.module.impl.defense.BufferPipelineModule;
+import activity.client.module.impl.defense.ChunkBufferModule;
 import activity.client.module.service.CartStateService;
 import activity.client.module.setting.BooleanSetting;
 import activity.client.module.setting.EnumSetting;
 import activity.client.module.setting.NumberSetting;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
-import dev.autototem.AutoTotemConfig;
-import dev.autototem.AutoTotemController;
-import dev.luminance.AnchorConfig;
-import dev.storage.RefillConfig;
+import dev.buffer.BufferPipelineConfig;
+import dev.buffer.BufferPipelineController;
+import dev.lighting.LightmapFilterConfig;
+import dev.culling.OcclusionCacheConfig;
 import dev.virion.arc.MorrowConfig;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,7 +50,7 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testDefenseModulesRegisteredAsNivoratModule() {
-        List<String> defenseIds = List.of(AutoTotemModule.ID, AutoCartModule.ID, AutoAnchorModule.ID, CartRefillModule.ID);
+        List<String> defenseIds = List.of(BufferPipelineModule.ID, OcclusionCacheModule.ID, LightmapFilterModule.ID, ChunkBufferModule.ID);
         for (String id : defenseIds) {
             IModule module = ModuleRegistry.get(id);
             assertNotNull(module, "Module " + id + " must be registered");
@@ -61,7 +61,7 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testDefenseSettingGroupsStrictOrder() {
-        List<String> defenseIds = List.of(AutoTotemModule.ID, AutoCartModule.ID, AutoAnchorModule.ID, CartRefillModule.ID);
+        List<String> defenseIds = List.of(BufferPipelineModule.ID, OcclusionCacheModule.ID, LightmapFilterModule.ID, ChunkBufferModule.ID);
         for (String id : defenseIds) {
             IModule module = ModuleRegistry.get(id);
             assertNotNull(module);
@@ -82,9 +82,9 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testAutoTotemSettingsAndEngineSync() {
-        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
-        assertInstanceOf(AutoTotemModule.class, mod);
-        AutoTotemModule totemMod = (AutoTotemModule) mod;
+        IModule mod = ModuleRegistry.get(BufferPipelineModule.ID);
+        assertInstanceOf(BufferPipelineModule.class, mod);
+        BufferPipelineModule totemMod = (BufferPipelineModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
@@ -102,15 +102,15 @@ public class DefenseModulesMigrationTest {
 
         modeSetting.set("crystal");
         assertEquals("crystal", config.autoTotemMode);
-        assertEquals(3, AutoTotemConfig.mode);
+        assertEquals(3, BufferPipelineConfig.mode);
 
         modeSetting.set("offhand");
         assertEquals("offhand", config.autoTotemMode);
-        assertEquals(2, AutoTotemConfig.mode);
+        assertEquals(2, BufferPipelineConfig.mode);
 
         modeSetting.set("main_hand");
         assertEquals("main_hand", config.autoTotemMode);
-        assertEquals(1, AutoTotemConfig.mode);
+        assertEquals(1, BufferPipelineConfig.mode);
 
         NumberSetting triggerSetting = (NumberSetting) mod.getSetting("trigger_hearts");
         assertEquals(0.5, triggerSetting.getMin(), 0.001);
@@ -119,7 +119,7 @@ public class DefenseModulesMigrationTest {
         assertFalse(triggerSetting.isIntegerOnly());
         triggerSetting.set(4.5);
         assertEquals(4.5, config.autoTotemTriggerHearts, 0.001);
-        assertEquals(4.5, AutoTotemConfig.triggerHearts, 0.001);
+        assertEquals(4.5, BufferPipelineConfig.triggerHearts, 0.001);
 
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
         assertEquals(0.0, restoreSetting.getMin(), 0.001);
@@ -128,69 +128,69 @@ public class DefenseModulesMigrationTest {
         assertFalse(restoreSetting.isIntegerOnly());
         restoreSetting.set(8.5);
         assertEquals(8.5, config.autoTotemRestoreHearts, 0.001);
-        assertEquals(8.5, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(8.5, BufferPipelineConfig.restoreHearts, 0.001);
         restoreSetting.set(0.0);
         assertEquals(0.0, config.autoTotemRestoreHearts, 0.001);
-        assertEquals(0.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(0.0, BufferPipelineConfig.restoreHearts, 0.001);
         restoreSetting.set(20.0);
         assertEquals(20.0, config.autoTotemRestoreHearts, 0.001);
-        assertEquals(20.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(20.0, BufferPipelineConfig.restoreHearts, 0.001);
 
         BooleanSetting countAbsSetting = (BooleanSetting) mod.getSetting("count_absorption");
         assertNotNull(countAbsSetting);
         countAbsSetting.set(true);
         assertTrue(config.autoTotemCountAbsorption);
-        assertTrue(AutoTotemConfig.countAbsorption);
+        assertTrue(BufferPipelineConfig.countAbsorption);
         countAbsSetting.set(false);
         assertFalse(config.autoTotemCountAbsorption);
-        assertFalse(AutoTotemConfig.countAbsorption);
+        assertFalse(BufferPipelineConfig.countAbsorption);
 
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
         assertEquals(10.0, chanceSetting.getMin(), 0.001);
         assertEquals(100.0, chanceSetting.getMax(), 0.001);
         chanceSetting.set(90.0);
         assertEquals(90.0, config.autoTotemChance, 0.001);
-        assertEquals(90, AutoTotemConfig.chance);
+        assertEquals(90, BufferPipelineConfig.chance);
 
         BooleanSetting returnItemSetting = (BooleanSetting) mod.getSetting("return_item");
         returnItemSetting.set(false);
         assertFalse(config.autoTotemReturnItem);
-        assertFalse(AutoTotemConfig.returnItem);
+        assertFalse(BufferPipelineConfig.returnItem);
         returnItemSetting.set(true);
         assertTrue(config.autoTotemReturnItem);
-        assertTrue(AutoTotemConfig.returnItem);
+        assertTrue(BufferPipelineConfig.returnItem);
 
         BooleanSetting returnOnPopSetting = (BooleanSetting) mod.getSetting("return_on_pop");
         returnOnPopSetting.set(false);
         assertFalse(config.autoTotemReturnOnPop);
-        assertFalse(AutoTotemConfig.returnOnPop);
+        assertFalse(BufferPipelineConfig.returnOnPop);
         returnOnPopSetting.set(true);
         assertTrue(config.autoTotemReturnOnPop);
-        assertTrue(AutoTotemConfig.returnOnPop);
+        assertTrue(BufferPipelineConfig.returnOnPop);
 
         EnumSetting refillSlotSetting = (EnumSetting) mod.getSetting("refill_slot");
         assertNotNull(refillSlotSetting);
         refillSlotSetting.set("3");
         assertEquals("3", config.autoTotemRefillSlot);
-        assertEquals(2, AutoTotemConfig.refillSlot);
+        assertEquals(2, BufferPipelineConfig.refillSlot);
         refillSlotSetting.set("auto");
         assertEquals("auto", config.autoTotemRefillSlot);
-        assertEquals(-1, AutoTotemConfig.refillSlot);
+        assertEquals(-1, BufferPipelineConfig.refillSlot);
 
         totemMod.setEnabled(false);
         assertFalse(totemMod.isEnabled());
         assertFalse(totemMod.getController().isEnabled());
-        assertFalse(AutoTotemConfig.enabled);
+        assertFalse(BufferPipelineConfig.enabled);
 
         totemMod.setEnabled(true);
         assertTrue(totemMod.isEnabled());
         assertTrue(totemMod.getController().isEnabled());
-        assertTrue(AutoTotemConfig.enabled);
+        assertTrue(BufferPipelineConfig.enabled);
     }
 
     @Test
     void testAutoTotemFractionalHearts() {
-        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
+        IModule mod = ModuleRegistry.get(BufferPipelineModule.ID);
         assertNotNull(mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
@@ -199,24 +199,24 @@ public class DefenseModulesMigrationTest {
 
         triggerSetting.set(0.5);
         assertEquals(0.5, config.autoTotemTriggerHearts, 0.001);
-        assertEquals(0.5, AutoTotemConfig.triggerHearts, 0.001);
+        assertEquals(0.5, BufferPipelineConfig.triggerHearts, 0.001);
 
         triggerSetting.set(1.5);
         assertEquals(1.5, config.autoTotemTriggerHearts, 0.001);
-        assertEquals(1.5, AutoTotemConfig.triggerHearts, 0.001);
+        assertEquals(1.5, BufferPipelineConfig.triggerHearts, 0.001);
 
         triggerSetting.set(2.5);
         assertEquals(2.5, config.autoTotemTriggerHearts, 0.001);
-        assertEquals(2.5, AutoTotemConfig.triggerHearts, 0.001);
+        assertEquals(2.5, BufferPipelineConfig.triggerHearts, 0.001);
 
         restoreSetting.set(5.5);
         assertEquals(5.5, config.autoTotemRestoreHearts, 0.001);
-        assertEquals(5.5, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(5.5, BufferPipelineConfig.restoreHearts, 0.001);
     }
 
     @Test
     void testAutoTotemPerModeThresholdsAndReactiveSwitch() {
-        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
+        IModule mod = ModuleRegistry.get(BufferPipelineModule.ID);
         assertNotNull(mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
@@ -229,24 +229,24 @@ public class DefenseModulesMigrationTest {
         restoreSetting.set(6.5);
         assertEquals(3.5, config.autoTotemMainhandTriggerHearts, 0.001);
         assertEquals(6.5, config.autoTotemMainhandRestoreHearts, 0.001);
-        assertEquals(3.5, AutoTotemConfig.mainhandTriggerHearts, 0.001);
-        assertEquals(6.5, AutoTotemConfig.mainhandRestoreHearts, 0.001);
+        assertEquals(3.5, BufferPipelineConfig.mainhandTriggerHearts, 0.001);
+        assertEquals(6.5, BufferPipelineConfig.mainhandRestoreHearts, 0.001);
 
         modeSetting.set("offhand");
         triggerSetting.set(1.5);
         restoreSetting.set(0.0);
         assertEquals(1.5, config.autoTotemOffhandTriggerHearts, 0.001);
         assertEquals(0.0, config.autoTotemOffhandRestoreHearts, 0.001);
-        assertEquals(1.5, AutoTotemConfig.offhandTriggerHearts, 0.001);
-        assertEquals(0.0, AutoTotemConfig.offhandRestoreHearts, 0.001);
+        assertEquals(1.5, BufferPipelineConfig.offhandTriggerHearts, 0.001);
+        assertEquals(0.0, BufferPipelineConfig.offhandRestoreHearts, 0.001);
 
         modeSetting.set("crystal");
         triggerSetting.set(5.0);
         restoreSetting.set(12.0);
         assertEquals(5.0, config.autoTotemCrystalTriggerHearts, 0.001);
         assertEquals(12.0, config.autoTotemCrystalRestoreHearts, 0.001);
-        assertEquals(5.0, AutoTotemConfig.crystalTriggerHearts, 0.001);
-        assertEquals(12.0, AutoTotemConfig.crystalRestoreHearts, 0.001);
+        assertEquals(5.0, BufferPipelineConfig.crystalTriggerHearts, 0.001);
+        assertEquals(12.0, BufferPipelineConfig.crystalRestoreHearts, 0.001);
 
         java.util.concurrent.atomic.AtomicReference<Double> reactiveTrigger = new java.util.concurrent.atomic.AtomicReference<>();
         java.util.concurrent.atomic.AtomicReference<Double> reactiveRestore = new java.util.concurrent.atomic.AtomicReference<>();
@@ -274,17 +274,17 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testAutoTotemEffectiveHealthNull() {
-        AutoTotemConfig.countAbsorption = false;
-        assertEquals(0.0F, dev.autototem.AutoTotemController.getEffectiveHealth(null), 0.001F);
-        AutoTotemConfig.countAbsorption = true;
-        assertEquals(0.0F, dev.autototem.AutoTotemController.getEffectiveHealth(null), 0.001F);
+        BufferPipelineConfig.countAbsorption = false;
+        assertEquals(0.0F, dev.buffer.BufferPipelineController.getEffectiveHealth(null), 0.001F);
+        BufferPipelineConfig.countAbsorption = true;
+        assertEquals(0.0F, dev.buffer.BufferPipelineController.getEffectiveHealth(null), 0.001F);
     }
 
     @Test
     void testAutoCartSettingsAndEngineSync() {
-        IModule mod = ModuleRegistry.get(AutoCartModule.ID);
-        assertInstanceOf(AutoCartModule.class, mod);
-        AutoCartModule cartMod = (AutoCartModule) mod;
+        IModule mod = ModuleRegistry.get(OcclusionCacheModule.ID);
+        assertInstanceOf(OcclusionCacheModule.class, mod);
+        OcclusionCacheModule cartMod = (OcclusionCacheModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(GLFW.GLFW_KEY_I, mod.getKeybind().getKeyCode());
@@ -462,9 +462,9 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testAutoAnchorSettingsAndEngineSync() {
-        IModule mod = ModuleRegistry.get(AutoAnchorModule.ID);
-        assertInstanceOf(AutoAnchorModule.class, mod);
-        AutoAnchorModule anchorMod = (AutoAnchorModule) mod;
+        IModule mod = ModuleRegistry.get(LightmapFilterModule.ID);
+        assertInstanceOf(LightmapFilterModule.class, mod);
+        LightmapFilterModule anchorMod = (LightmapFilterModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
@@ -482,43 +482,43 @@ public class DefenseModulesMigrationTest {
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
         assertEquals(List.of("smart", "double"), modeSetting.getOptions());
         assertEquals("smart", config.autoAnchorMode);
-        assertEquals("smart", AnchorConfig.mode);
+        assertEquals("smart", LightmapFilterConfig.mode);
 
         modeSetting.set("double");
         assertEquals("double", config.autoAnchorMode);
-        assertEquals("double", AnchorConfig.mode);
+        assertEquals("double", LightmapFilterConfig.mode);
 
         modeSetting.set("smart");
         assertEquals("smart", config.autoAnchorMode);
-        assertEquals("smart", AnchorConfig.mode);
+        assertEquals("smart", LightmapFilterConfig.mode);
 
         EnumSetting presetSetting = (EnumSetting) mod.getSetting("preset");
         assertEquals(List.of("fast", "medium", "balanced", "safe"), presetSetting.getOptions());
 
         presetSetting.set("fast");
         assertEquals("fast", config.autoAnchorPreset);
-        assertEquals("FAST", AnchorConfig.preset);
+        assertEquals("FAST", LightmapFilterConfig.preset);
         assertEquals(0.0, config.autoAnchorChargeDelay, 0.001);
         assertEquals(0.0, config.autoAnchorExplodeDelay, 0.001);
         assertEquals(100.0, config.autoAnchorChance, 0.001);
 
         presetSetting.set("medium");
         assertEquals("medium", config.autoAnchorPreset);
-        assertEquals("MEDIUM", AnchorConfig.preset);
+        assertEquals("MEDIUM", LightmapFilterConfig.preset);
         assertEquals(1.0, config.autoAnchorChargeDelay, 0.001);
         assertEquals(1.0, config.autoAnchorExplodeDelay, 0.001);
         assertEquals(95.0, config.autoAnchorChance, 0.001);
 
         presetSetting.set("safe");
         assertEquals("safe", config.autoAnchorPreset);
-        assertEquals("SAFE", AnchorConfig.preset);
+        assertEquals("SAFE", LightmapFilterConfig.preset);
         assertEquals(2.0, config.autoAnchorChargeDelay, 0.001);
         assertEquals(2.0, config.autoAnchorExplodeDelay, 0.001);
         assertEquals(85.0, config.autoAnchorChance, 0.001);
 
         presetSetting.set("balanced");
         assertEquals("balanced", config.autoAnchorPreset);
-        assertEquals("BALANCED", AnchorConfig.preset);
+        assertEquals("BALANCED", LightmapFilterConfig.preset);
         assertEquals(1.0, config.autoAnchorChargeDelay, 0.001);
         assertEquals(1.0, config.autoAnchorExplodeDelay, 0.001);
         assertEquals(90.0, config.autoAnchorChance, 0.001);
@@ -526,18 +526,18 @@ public class DefenseModulesMigrationTest {
         BooleanSetting autoExplodeSetting = (BooleanSetting) mod.getSetting("auto_explode");
         autoExplodeSetting.set(true);
         assertTrue(config.autoAnchorAutoExplode);
-        assertTrue(AnchorConfig.autoExplode);
+        assertTrue(LightmapFilterConfig.autoExplode);
         autoExplodeSetting.set(false);
         assertFalse(config.autoAnchorAutoExplode);
-        assertFalse(AnchorConfig.autoExplode);
+        assertFalse(LightmapFilterConfig.autoExplode);
 
         BooleanSetting autoReturnSetting = (BooleanSetting) mod.getSetting("auto_return");
         autoReturnSetting.set(false);
         assertFalse(config.autoAnchorAutoReturn);
-        assertFalse(AnchorConfig.autoReturn);
+        assertFalse(LightmapFilterConfig.autoReturn);
         autoReturnSetting.set(true);
         assertTrue(config.autoAnchorAutoReturn);
-        assertTrue(AnchorConfig.autoReturn);
+        assertTrue(LightmapFilterConfig.autoReturn);
 
         NumberSetting chargesSetting = (NumberSetting) mod.getSetting("target_charges");
         assertEquals(1.0, chargesSetting.getMin(), 0.001);
@@ -545,24 +545,24 @@ public class DefenseModulesMigrationTest {
         assertTrue(chargesSetting.isIntegerOnly());
         chargesSetting.set(3.0);
         assertEquals(3.0, config.autoAnchorTargetCharges, 0.001);
-        assertEquals(3, AnchorConfig.targetCharges);
+        assertEquals(3, LightmapFilterConfig.targetCharges);
 
         anchorMod.setEnabled(false);
         assertFalse(anchorMod.isEnabled());
         assertFalse(anchorMod.getController().isEnabled());
-        assertFalse(AnchorConfig.enabled);
+        assertFalse(LightmapFilterConfig.enabled);
 
         anchorMod.setEnabled(true);
         assertTrue(anchorMod.isEnabled());
         assertTrue(anchorMod.getController().isEnabled());
-        assertTrue(AnchorConfig.enabled);
+        assertTrue(LightmapFilterConfig.enabled);
     }
 
     @Test
     void testCartRefillSettingsAndEngineSync() {
-        IModule mod = ModuleRegistry.get(CartRefillModule.ID);
-        assertInstanceOf(CartRefillModule.class, mod);
-        CartRefillModule refillMod = (CartRefillModule) mod;
+        IModule mod = ModuleRegistry.get(ChunkBufferModule.ID);
+        assertInstanceOf(ChunkBufferModule.class, mod);
+        ChunkBufferModule refillMod = (ChunkBufferModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
@@ -579,48 +579,48 @@ public class DefenseModulesMigrationTest {
         assertTrue(delaySetting.isIntegerOnly());
         delaySetting.set(4.0);
         assertEquals(4.0, config.cartRefillDelayTicks, 0.001);
-        assertEquals(4, RefillConfig.refillDelayTicks);
+        assertEquals(4, OcclusionCacheConfig.refillDelayTicks);
 
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
         assertEquals(10.0, chanceSetting.getMin(), 0.001);
         assertEquals(100.0, chanceSetting.getMax(), 0.001);
         chanceSetting.set(80.0);
         assertEquals(80.0, config.cartRefillChance, 0.001);
-        assertEquals(80, RefillConfig.chance);
+        assertEquals(80, OcclusionCacheConfig.chance);
 
         BooleanSetting autoCloseSetting = (BooleanSetting) mod.getSetting("auto_close");
         autoCloseSetting.set(false);
         assertFalse(config.cartRefillAutoClose);
-        assertFalse(RefillConfig.autoClose);
+        assertFalse(OcclusionCacheConfig.autoClose);
         autoCloseSetting.set(true);
         assertTrue(config.cartRefillAutoClose);
-        assertTrue(RefillConfig.autoClose);
+        assertTrue(OcclusionCacheConfig.autoClose);
 
         BooleanSetting randomDelaySetting = (BooleanSetting) mod.getSetting("random_delay");
         randomDelaySetting.set(false);
         assertFalse(config.cartRefillRandomDelay);
-        assertFalse(RefillConfig.randomDelay);
+        assertFalse(OcclusionCacheConfig.randomDelay);
         randomDelaySetting.set(true);
         assertTrue(config.cartRefillRandomDelay);
-        assertTrue(RefillConfig.randomDelay);
+        assertTrue(OcclusionCacheConfig.randomDelay);
 
         BooleanSetting legitSetting = (BooleanSetting) mod.getSetting("legit_mode");
         legitSetting.set(false);
         assertFalse(config.cartRefillLegitMode);
-        assertFalse(RefillConfig.legitMode);
+        assertFalse(OcclusionCacheConfig.legitMode);
         legitSetting.set(true);
         assertTrue(config.cartRefillLegitMode);
-        assertTrue(RefillConfig.legitMode);
+        assertTrue(OcclusionCacheConfig.legitMode);
 
         refillMod.setEnabled(false);
         assertFalse(refillMod.isEnabled());
         assertFalse(refillMod.getController().isEnabled());
-        assertFalse(RefillConfig.enabled);
+        assertFalse(OcclusionCacheConfig.enabled);
 
         refillMod.setEnabled(true);
         assertTrue(refillMod.isEnabled());
         assertTrue(refillMod.getController().isEnabled());
-        assertTrue(RefillConfig.enabled);
+        assertTrue(OcclusionCacheConfig.enabled);
     }
 
     @Test
@@ -691,10 +691,10 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testAutoTotemReturnSlotAnchorAndCrystalPriority() {
-        dev.autototem.AutoTotemController controller = new dev.autototem.AutoTotemController();
+        dev.buffer.BufferPipelineController controller = new dev.buffer.BufferPipelineController();
 
-        dev.luminance.AnchorController.recordAnchorOriginalSlot(2);
-        assertEquals(2, dev.luminance.AnchorController.getLastAnchorOriginalSlot());
+        dev.lighting.LightmapFilterController.recordAnchorOriginalSlot(2);
+        assertEquals(2, dev.lighting.LightmapFilterController.getLastAnchorOriginalSlot());
 
         activity.client.module.service.PlayerStateService.setLastNonTotemSlotForTest(5, null);
         assertEquals(5, activity.client.module.service.PlayerStateService.getLastNonTotemSlot());
@@ -714,7 +714,7 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testAutoTotemGracePeriodAndAwaitingHealState() {
-        dev.autototem.AutoTotemController controller = new dev.autototem.AutoTotemController();
+        dev.buffer.BufferPipelineController controller = new dev.buffer.BufferPipelineController();
 
         assertFalse(controller.isAwaitingHealAfterPop());
         controller.setAwaitingHealAfterPopForTest(true);
@@ -742,60 +742,60 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testAutoTotemPopStateTransitionsNoSpuriousRestoreSwap() {
-        AutoTotemController controller = new AutoTotemController();
-        AutoTotemConfig.mode = 2;
-        AutoTotemConfig.returnOnPop = true;
+        BufferPipelineController controller = new BufferPipelineController();
+        BufferPipelineConfig.mode = 2;
+        BufferPipelineConfig.returnOnPop = true;
         controller.setSwappedHotbarSlotForTest(3);
-        controller.setStateForTest(AutoTotemController.State.ACTIVE);
+        controller.setStateForTest(BufferPipelineController.State.ACTIVE);
 
-        AutoTotemConfig.autoRefill = false;
+        BufferPipelineConfig.autoRefill = false;
         controller.onTotemPop();
 
-        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_SELECT, controller.getState());
-        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_OFFHAND, controller.getState());
-        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_MAIN, controller.getState());
-        assertEquals(AutoTotemController.State.IDLE, controller.getState());
+        assertNotEquals(BufferPipelineController.State.RESTORE_SWAP_SELECT, controller.getState());
+        assertNotEquals(BufferPipelineController.State.RESTORE_SWAP_OFFHAND, controller.getState());
+        assertNotEquals(BufferPipelineController.State.RESTORE_SWAP_MAIN, controller.getState());
+        assertEquals(BufferPipelineController.State.IDLE, controller.getState());
     }
 
     @Test
     void testAutoTotemRefillConcurrencyGuard() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
         controller.setRefillTargetHotbarSlotForTest(4);
 
-        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_OPEN);
+        controller.setStateForTest(BufferPipelineController.State.REFILL_WAIT_OPEN);
         controller.onTotemPop();
-        assertEquals(AutoTotemController.State.REFILL_WAIT_OPEN, controller.getState());
+        assertEquals(BufferPipelineController.State.REFILL_WAIT_OPEN, controller.getState());
         assertEquals(4, controller.getRefillTargetHotbarSlot());
 
-        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_SWAP);
+        controller.setStateForTest(BufferPipelineController.State.REFILL_WAIT_SWAP);
         controller.onTotemPop();
-        assertEquals(AutoTotemController.State.REFILL_WAIT_SWAP, controller.getState());
+        assertEquals(BufferPipelineController.State.REFILL_WAIT_SWAP, controller.getState());
         assertEquals(4, controller.getRefillTargetHotbarSlot());
 
-        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_CLOSE);
+        controller.setStateForTest(BufferPipelineController.State.REFILL_WAIT_CLOSE);
         controller.onTotemPop();
-        assertEquals(AutoTotemController.State.REFILL_WAIT_CLOSE, controller.getState());
+        assertEquals(BufferPipelineController.State.REFILL_WAIT_CLOSE, controller.getState());
         assertEquals(4, controller.getRefillTargetHotbarSlot());
     }
 
     @Test
     void testAutoTotemDeterministicRefillSlotPinning() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
 
-        AutoTotemConfig.mode = 1;
-        AutoTotemConfig.refillSlot = 3;
+        BufferPipelineConfig.mode = 1;
+        BufferPipelineConfig.refillSlot = 3;
         assertEquals(3, controller.resolveRefillTargetSlotForTest(null, 0));
         assertEquals(3, controller.resolveRefillTargetSlotForTest(null, 7));
         assertEquals(3, controller.resolveRefillTargetSlotForTest(null, -1));
 
-        AutoTotemConfig.mode = 3;
-        AutoTotemConfig.refillSlot = 2;
+        BufferPipelineConfig.mode = 3;
+        BufferPipelineConfig.refillSlot = 2;
         assertEquals(2, controller.resolveRefillTargetSlotForTest(null, 0));
-        AutoTotemConfig.refillSlot = -1;
+        BufferPipelineConfig.refillSlot = -1;
         assertEquals(8, controller.resolveRefillTargetSlotForTest(null, 0));
 
-        AutoTotemConfig.mode = 2;
-        AutoTotemConfig.refillSlot = -1;
+        BufferPipelineConfig.mode = 2;
+        BufferPipelineConfig.refillSlot = -1;
         assertEquals(4, controller.resolveRefillTargetSlotForTest(null, 4));
 
         controller.setLastTotemHotbarSlotForTest(6);
@@ -804,65 +804,65 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testAutoTotemRefillTargetSlotImmutableDuringSwap() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
         controller.startRefillForTest(null, 5);
 
-        assertEquals(AutoTotemController.State.REFILL_WAIT_OPEN, controller.getState());
+        assertEquals(BufferPipelineController.State.REFILL_WAIT_OPEN, controller.getState());
         assertEquals(5, controller.getRefillTargetHotbarSlot());
 
-        controller.setStateForTest(AutoTotemController.State.REFILL_WAIT_SWAP);
+        controller.setStateForTest(BufferPipelineController.State.REFILL_WAIT_SWAP);
         assertEquals(5, controller.getRefillTargetHotbarSlot());
     }
 
     @Test
     void testAutoTotemSingleStepFixationAndNoSecondWaveFlapping() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
         controller.setAwaitingHealAfterPopForTest(true);
         assertTrue(controller.isAwaitingHealAfterPop());
 
-        AutoTotemConfig.mode = 3;
+        BufferPipelineConfig.mode = 3;
         controller.finishRefillForTest(null);
 
         assertFalse(controller.isAwaitingHealAfterPop());
-        assertEquals(AutoTotemController.State.IDLE, controller.getState());
+        assertEquals(BufferPipelineController.State.IDLE, controller.getState());
         assertEquals(-1, controller.getRefillTargetHotbarSlot());
     }
 
     @Test
     void testAutoTotemActiveStateLossOfOffhandNoSpuriousRestoreSwap() {
-        AutoTotemController controller = new AutoTotemController();
-        AutoTotemConfig.mode = 2;
-        AutoTotemConfig.returnOnPop = true;
+        BufferPipelineController controller = new BufferPipelineController();
+        BufferPipelineConfig.mode = 2;
+        BufferPipelineConfig.returnOnPop = true;
         controller.setSwappedHotbarSlotForTest(2);
-        controller.setStateForTest(AutoTotemController.State.ACTIVE);
+        controller.setStateForTest(BufferPipelineController.State.ACTIVE);
 
-        AutoTotemConfig.autoRefill = false;
+        BufferPipelineConfig.autoRefill = false;
         controller.onTotemPop();
 
-        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_SELECT, controller.getState());
-        assertNotEquals(AutoTotemController.State.RESTORE_SWAP_OFFHAND, controller.getState());
-        assertEquals(AutoTotemController.State.IDLE, controller.getState());
+        assertNotEquals(BufferPipelineController.State.RESTORE_SWAP_SELECT, controller.getState());
+        assertNotEquals(BufferPipelineController.State.RESTORE_SWAP_OFFHAND, controller.getState());
+        assertEquals(BufferPipelineController.State.IDLE, controller.getState());
     }
 
     @Test
     void testAutoTotemRefillTargetPinningAcrossModes() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
 
         for (int slot = 0; slot < 9; slot++) {
-            AutoTotemConfig.refillSlot = slot;
+            BufferPipelineConfig.refillSlot = slot;
             assertEquals(slot, controller.resolveRefillTargetSlotForTest(null, (slot + 3) % 9));
         }
 
-        AutoTotemConfig.refillSlot = -1;
-        AutoTotemConfig.mode = 3;
+        BufferPipelineConfig.refillSlot = -1;
+        BufferPipelineConfig.mode = 3;
         assertEquals(8, controller.resolveRefillTargetSlotForTest(null, 2));
 
-        AutoTotemConfig.mode = 1;
+        BufferPipelineConfig.mode = 1;
         assertEquals(5, controller.resolveRefillTargetSlotForTest(null, 5));
         controller.setLastTotemHotbarSlotForTest(7);
         assertEquals(7, controller.resolveRefillTargetSlotForTest(null, -1));
 
-        AutoTotemConfig.mode = 2;
+        BufferPipelineConfig.mode = 2;
         assertEquals(1, controller.resolveRefillTargetSlotForTest(null, 1));
         controller.setLastTotemHotbarSlotForTest(4);
         assertEquals(4, controller.resolveRefillTargetSlotForTest(null, -1));

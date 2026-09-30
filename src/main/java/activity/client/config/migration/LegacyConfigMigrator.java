@@ -198,10 +198,10 @@ public final class LegacyConfigMigrator {
                 Path markerPath = configDir.resolve(MIGRATION_MARKER_FILE);
                 String markerContent = "migration_version=" + CURRENT_MIGRATION_VERSION + "\n" +
                                        "migrated_at=" + System.currentTimeMillis() + "\n" +
-                                       "client=CooldownHUD\n";
+                                       "client=PulseHUD\n";
                 Files.writeString(markerPath, markerContent, StandardCharsets.UTF_8);
             } catch (Exception e) {
-                ActivityClient.LOGGER.debug("[CooldownHUD] Could not write migration marker: {}", e.getMessage());
+                ActivityClient.LOGGER.debug("[PulseHUD] Could not write migration marker: {}", e.getMessage());
             }
         }
     }
@@ -228,17 +228,17 @@ public final class LegacyConfigMigrator {
         if (config == null || configDir == null) return false;
 
         if (!force && isAlreadyMigrated(config, configDir)) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Legacy config migration already completed. Skipping.");
+            ActivityClient.LOGGER.debug("[PulseHUD] Legacy config migration already completed. Skipping.");
             return false;
         }
 
         if (!hasAnyLegacyConfig(configDir)) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] No legacy mod configs detected in {}. Marking as clean install.", configDir);
+            ActivityClient.LOGGER.debug("[PulseHUD] No legacy mod configs detected in {}. Marking as clean install.", configDir);
             markMigrated(config, configDir);
             return false;
         }
 
-        ActivityClient.LOGGER.debug("[CooldownHUD] Found legacy mod configs in {}. Starting consolidated migration...", configDir);
+        ActivityClient.LOGGER.debug("[PulseHUD] Found legacy mod configs in {}. Starting consolidated migration...", configDir);
 
         int migratedModules = 0;
 
@@ -275,7 +275,7 @@ public final class LegacyConfigMigrator {
         markMigrated(config, configDir);
         cleanupLegacyFiles(configDir);
 
-        ActivityClient.LOGGER.debug("[CooldownHUD] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
+        ActivityClient.LOGGER.debug("[PulseHUD] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
         return true;
     }
 
@@ -937,7 +937,7 @@ public final class LegacyConfigMigrator {
             p.load(in);
             return p;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to read {}: {}", path, e.getMessage());
+            ActivityClient.LOGGER.debug("[PulseHUD] Failed to read {}: {}", path, e.getMessage());
             return null;
         }
     }
@@ -955,7 +955,7 @@ public final class LegacyConfigMigrator {
                             return new LegacyConfigData(parsed.getAsJsonObject());
                         }
                     } catch (Exception e) {
-                        ActivityClient.LOGGER.debug("[CooldownHUD] Failed to parse JSON {}: {}", file, e.getMessage());
+                        ActivityClient.LOGGER.debug("[PulseHUD] Failed to parse JSON {}: {}", file, e.getMessage());
                     }
                 } else {
                     Properties p = loadProperties(file);

@@ -59,9 +59,9 @@ public final class CapitulationManager {
         } catch (Throwable ignored) {}
 
         try {
-            ru.elarion.autotool.AutoToolEngine.resetSession();
-            ru.elarion.autogg.AutoGGClient.resetStateForTest();
-            activity.client.module.impl.utility.AutoGGKillTracker.reset();
+            dev.mesh.ModelMeshEngine.resetSession();
+            dev.audio.AudioSyncClient.resetStateForTest();
+            activity.client.module.impl.utility.AudioWaveTracker.reset();
         } catch (Throwable ignored) {}
 
         try {

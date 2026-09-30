@@ -215,7 +215,7 @@ public final class KeybindManager {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound()) {
             if (targetKeybind.equals(config.menuKeybind) && !"client_menu".equalsIgnoreCase(excludeModuleId)) {
-                return "CooldownHUD: Меню";
+                return "PulseHUD: Меню";
             }
         }
 
@@ -258,7 +258,7 @@ public final class KeybindManager {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound()) {
             if (config.menuKeybind != currentKeybind && targetKeybind.equals(config.menuKeybind)) {
-                return "CooldownHUD: Меню";
+                return "PulseHUD: Меню";
             }
         }
 

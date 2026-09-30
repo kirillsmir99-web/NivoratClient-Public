@@ -5,10 +5,10 @@ import activity.client.config.ActivityConfigManager;
 import activity.client.module.api.BuiltinModules;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleRegistry;
-import activity.client.module.impl.combat.AutoShieldbreakerModule;
-import activity.client.module.impl.combat.AutoStunSlamModule;
-import dev.nivora.ShieldBreakerConfig;
-import dev.sunder.SunderConfig;
+import activity.client.module.impl.combat.ShaderPassModule;
+import activity.client.module.impl.combat.MatrixTransformModule;
+import dev.shader.ShaderPassConfig;
+import dev.particle.ParticlePhysicsConfig;
 import net.fabricmc.pack.api.CombatLockManager;
 import net.redstone.optimizer.config.RedstoneOptimizerConfig;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,12 +42,12 @@ public class AutoStunSlamIntegrationTest {
         assertEquals(0.0, config.autoStunSlamMaceDelayMs, 0.001, "Default mace delay must be 0ms");
         assertEquals(50.0, config.autoStunSlamRestoreDelayMs, 0.001, "Default restore delay must be 50ms");
 
-        assertEquals(100, SunderConfig.chance);
-        assertEquals(2.85, SunderConfig.triggerDistance, 0.001);
-        assertEquals(0.1, SunderConfig.airTimeSec, 0.001);
-        assertEquals(0, SunderConfig.axeDelayMs);
-        assertEquals(0, SunderConfig.maceDelayMs);
-        assertEquals(50, SunderConfig.restoreDelayMs);
+        assertEquals(100, ParticlePhysicsConfig.chance);
+        assertEquals(2.85, ParticlePhysicsConfig.triggerDistance, 0.001);
+        assertEquals(0.1, ParticlePhysicsConfig.airTimeSec, 0.001);
+        assertEquals(0, ParticlePhysicsConfig.axeDelayMs);
+        assertEquals(0, ParticlePhysicsConfig.maceDelayMs);
+        assertEquals(50, ParticlePhysicsConfig.restoreDelayMs);
     }
 
     @Test
@@ -74,18 +74,18 @@ public class AutoStunSlamIntegrationTest {
 
     @Test
     void testModuleEnableDisableLifecycle() {
-        IModule stunSlam = ModuleRegistry.get(AutoStunSlamModule.ID);
-        IModule shieldBreaker = ModuleRegistry.get(AutoShieldbreakerModule.ID);
+        IModule stunSlam = ModuleRegistry.get(MatrixTransformModule.ID);
+        IModule shieldBreaker = ModuleRegistry.get(ShaderPassModule.ID);
         assertNotNull(stunSlam);
         assertNotNull(shieldBreaker);
 
         stunSlam.setEnabled(false);
         assertFalse(stunSlam.isEnabled());
-        assertFalse(SunderConfig.enabled);
+        assertFalse(ParticlePhysicsConfig.enabled);
 
         stunSlam.setEnabled(true);
         assertTrue(stunSlam.isEnabled());
-        assertTrue(SunderConfig.enabled);
+        assertTrue(ParticlePhysicsConfig.enabled);
 
         stunSlam.setEnabled(false);
         assertFalse(CombatLockManager.isLocked(CombatLockManager.SUNDER));
@@ -95,11 +95,11 @@ public class AutoStunSlamIntegrationTest {
 
     @Test
     void testSunderSuppressionWhenShieldBreakerActiveOrAutoMaceDisabled() {
-        ShieldBreakerConfig.enabled = true;
+        ShaderPassConfig.enabled = true;
         RedstoneOptimizerConfig.enabled = true;
-        assertTrue(ShieldBreakerConfig.enabled);
+        assertTrue(ShaderPassConfig.enabled);
 
-        ShieldBreakerConfig.enabled = false;
+        ShaderPassConfig.enabled = false;
         RedstoneOptimizerConfig.enabled = false;
         assertFalse(RedstoneOptimizerConfig.enabled);
 

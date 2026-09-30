@@ -125,7 +125,7 @@ public class ReleaseVerificationTest {
         JsonObject root = JsonParser.parseReader(new InputStreamReader(is, StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals("activity", root.get("id").getAsString(), "Mod ID must be activity");
         String modName = root.get("name").getAsString();
-        assertTrue("CooldownHUD".equals(modName) || "NivoratClient".equals(modName), "Mod Name must be CooldownHUD or NivoratClient");
+        assertTrue("PulseHUD".equals(modName) || "CooldownHUD".equals(modName) || "NivoratClient".equals(modName), "Mod Name must be PulseHUD, CooldownHUD or NivoratClient");
 
         JsonObject depends = root.getAsJsonObject("depends");
         assertNotNull(depends, "depends section must exist");
@@ -158,8 +158,8 @@ public class ReleaseVerificationTest {
         for (var m : mixinArray) {
             declaredMixins.add(m.getAsString());
         }
-        assertTrue(declaredMixins.contains("activity.autotool.mixins.json"), "Must declare activity.autotool.mixins.json");
-        assertTrue(declaredMixins.contains("activity.autogg.mixins.json"), "Must declare activity.autogg.mixins.json");
+        assertTrue(declaredMixins.contains("activity.pipeline.mixins.json") || declaredMixins.contains("activity.autotool.mixins.json"), "Must declare activity.pipeline.mixins.json");
+        assertTrue(declaredMixins.contains("activity.audio.mixins.json") || declaredMixins.contains("activity.autogg.mixins.json"), "Must declare activity.audio.mixins.json");
         assertTrue(declaredMixins.contains("activity.dev.mixins.json"), "Must declare activity.dev.mixins.json");
         assertTrue(declaredMixins.contains("activity.cooldown.mixins.json"), "Must declare activity.cooldown.mixins.json");
         for (String mixin : declaredMixins) {
@@ -219,11 +219,14 @@ public class ReleaseVerificationTest {
     @Test
     @DisplayName("Clean Install: Monolithic JAR contains 0 nested JARs and all 12 compiled module classes")
     void testCleanInstallMonolithicJarStructure() throws Exception {
-        Path jarPath = Path.of("build", "libs", "CooldownHUD.jar");
+        Path jarPath = Path.of("build", "libs", "PulseHUD.jar");
+        if (!Files.exists(jarPath)) {
+            jarPath = Path.of("build", "libs", "CooldownHUD.jar");
+        }
         if (!Files.exists(jarPath)) {
             jarPath = Path.of("build", "libs", "NivoratClient.jar");
         }
-        Assumptions.assumeTrue(Files.exists(jarPath), "CooldownHUD.jar or NivoratClient.jar must exist in build/libs/ to verify structure");
+        Assumptions.assumeTrue(Files.exists(jarPath), "PulseHUD.jar, CooldownHUD.jar or NivoratClient.jar must exist in build/libs/ to verify structure");
 
         try (ZipFile zip = new ZipFile(jarPath.toFile())) {
             long nestedJars = zip.stream().filter(e -> e.getName().endsWith(".jar")).count();
@@ -232,14 +235,14 @@ public class ReleaseVerificationTest {
             assertNotNull(zip.getEntry("fabric.mod.json"), "JAR must contain fabric.mod.json");
             assertTrue(zip.getEntry("activity/client/CooldownHudClient.class") != null || zip.getEntry("activity/client/NivoratClient.class") != null, "JAR must contain CooldownHudClient.class or NivoratClient.class");
 
-            assertNotNull(zip.getEntry("activity.autotool.mixins.json"), "JAR must contain activity.autotool.mixins.json");
-            assertNotNull(zip.getEntry("activity.autogg.mixins.json"), "JAR must contain activity.autogg.mixins.json");
+            assertTrue(zip.getEntry("activity.pipeline.mixins.json") != null || zip.getEntry("activity.autotool.mixins.json") != null, "JAR must contain activity.pipeline.mixins.json or activity.autotool.mixins.json");
+            assertTrue(zip.getEntry("activity.audio.mixins.json") != null || zip.getEntry("activity.autogg.mixins.json") != null, "JAR must contain activity.audio.mixins.json or activity.autogg.mixins.json");
             assertNull(zip.getEntry("autotool.mixins.json"), "JAR must NOT contain un-namespaced autotool.mixins.json");
             assertNull(zip.getEntry("autogg.mixins.json"), "JAR must NOT contain un-namespaced autogg.mixins.json");
 
-            assertNotNull(zip.getEntry("activity/client/mixin/autogg/ActivityClientPlayNetworkHandlerMixin.class"), "JAR must contain ActivityClientPlayNetworkHandlerMixin.class");
-            assertNotNull(zip.getEntry("activity/client/mixin/autotool/ActivityClientPlayerInteractionManagerMixin.class"), "JAR must contain ActivityClientPlayerInteractionManagerMixin.class");
-            assertNotNull(zip.getEntry("activity/client/mixin/autotool/ActivityClientPlayerInteractionManagerAccessor.class"), "JAR must contain ActivityClientPlayerInteractionManagerAccessor.class");
+            assertTrue(zip.getEntry("activity/client/mixin/audio/AudioNetworkHandlerMixin.class") != null || zip.getEntry("activity/client/mixin/autogg/ActivityClientPlayNetworkHandlerMixin.class") != null, "JAR must contain AudioNetworkHandlerMixin.class");
+            assertTrue(zip.getEntry("activity/client/mixin/pipeline/PipelineInteractionManagerMixin.class") != null || zip.getEntry("activity/client/mixin/autotool/ActivityClientPlayerInteractionManagerMixin.class") != null, "JAR must contain PipelineInteractionManagerMixin.class");
+            assertTrue(zip.getEntry("activity/client/mixin/pipeline/PipelineInteractionManagerAccessor.class") != null || zip.getEntry("activity/client/mixin/autotool/ActivityClientPlayerInteractionManagerAccessor.class") != null, "JAR must contain PipelineInteractionManagerAccessor.class");
 
             assertNull(zip.getEntry("ru/elarion/autogg/mixin/ClientPlayNetworkHandlerMixin.class"), "JAR must NOT contain legacy ClientPlayNetworkHandlerMixin.class");
             assertNull(zip.getEntry("ru/elarion/autotool/mixin/ClientPlayerInteractionManagerMixin.class"), "JAR must NOT contain legacy ClientPlayerInteractionManagerMixin.class");

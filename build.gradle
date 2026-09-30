@@ -53,9 +53,9 @@ java {
 jar {
 	manifest {
 		attributes(
-			"Specification-Title": "CooldownHUD",
+			"Specification-Title": "PulseHUD",
 			"Specification-Version": project.version,
-			"Implementation-Title": "CooldownHUD",
+			"Implementation-Title": "PulseHUD",
 			"Implementation-Version": project.version
 		)
 	}

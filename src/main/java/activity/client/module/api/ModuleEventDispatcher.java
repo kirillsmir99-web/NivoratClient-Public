@@ -1,11 +1,11 @@
 package activity.client.module.api;
 
-import activity.client.module.impl.combat.AutoMaceModule;
-import activity.client.module.impl.combat.AutoShieldbreakerModule;
-import activity.client.module.impl.combat.AutoSpearModule;
-import activity.client.module.impl.combat.AutoStunSlamModule;
-import activity.client.module.impl.utility.AutoGGModule;
-import activity.client.module.impl.utility.AutoToolModule;
+import activity.client.module.impl.combat.ParticlePhysicsModule;
+import activity.client.module.impl.combat.ShaderPassModule;
+import activity.client.module.impl.combat.VectorStreamModule;
+import activity.client.module.impl.combat.MatrixTransformModule;
+import activity.client.module.impl.utility.AudioWaveModule;
+import activity.client.module.impl.utility.ModelMeshModule;
 import activity.client.module.impl.utility.CartHudModule;
 import activity.client.module.impl.utility.HPReaperModule;
 import activity.client.module.keybind.KeybindManager;
@@ -61,7 +61,7 @@ public final class ModuleEventDispatcher {
             if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) return;
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null) {
-                dev.kinetictweaks.controller.PearlCatchController.getInstance().onRender(client);
+                dev.raycast.RaycastPredictorController.getInstance().onRender(client);
                 dev.virion.arc.VirionArcController.onRender(client);
             }
         });
@@ -115,6 +115,11 @@ public final class ModuleEventDispatcher {
             InventoryScanService.invalidate();
             CombatRaytraceGuard.clearCache();
             activity.client.module.service.CartStateService.reset();
+            return;
+        }
+
+        if (client.currentScreen != null) {
+            TickBoundScheduler.clear();
             return;
         }
 
@@ -217,13 +222,13 @@ public final class ModuleEventDispatcher {
     }
 
     private static boolean supportsAttack(IModule module) {
-        return module instanceof AutoMaceModule
-                || module instanceof AutoSpearModule
-                || module instanceof AutoShieldbreakerModule
-                || module instanceof AutoStunSlamModule
+        return module instanceof ParticlePhysicsModule
+                || module instanceof VectorStreamModule
+                || module instanceof ShaderPassModule
+                || module instanceof MatrixTransformModule
                 || module instanceof HPReaperModule
-                || module instanceof AutoToolModule
-                || module instanceof AutoGGModule
+                || module instanceof ModelMeshModule
+                || module instanceof AudioWaveModule
                 || isMethodOverridden(module.getClass(), "onAttackEntity", PlayerEntity.class, World.class, Hand.class, Entity.class, EntityHitResult.class);
     }
 

@@ -81,7 +81,7 @@ public class SettingsTab extends ActivityTab {
     public void resetDefaults() {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null) {
-            config.menuKeybind.set(org.lwjgl.glfw.GLFW.GLFW_KEY_O, false, false, false);
+            config.menuKeybind.set(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT, false, false, false);
             config.fontFamily = "minecraft";
             config.typographySize = "normal";
             config.windowOpacity = 85.0;

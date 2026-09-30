@@ -351,9 +351,9 @@ public class ModuleSdkFoundationTest {
     }
 
     @Test
-    @DisplayName("CartRefillController never hijacks or closes screens and respects GUI non-interference")
+    @DisplayName("OcclusionCacheController never hijacks or closes screens and respects GUI non-interference")
     void testCartRefillScreenNonInterferenceAndSafety() {
-        dev.storage.CartRefillController controller = new dev.storage.CartRefillController();
+        dev.culling.OcclusionCacheController controller = new dev.culling.OcclusionCacheController();
         controller.reset();
 
         boolean initial = controller.isEnabled();
@@ -366,7 +366,7 @@ public class ModuleSdkFoundationTest {
         assertNotNull(cfg);
         if (cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound()) {
             String menuConflict = KeybindManager.findConflict(cfg.menuKeybind, "some_random_module");
-            assertEquals("CooldownHUD: Меню", menuConflict, "Keybind matching client menu must be detected as conflict");
+            assertEquals("PulseHUD: Меню", menuConflict, "Keybind matching client menu must be detected as conflict");
         }
     }
 }

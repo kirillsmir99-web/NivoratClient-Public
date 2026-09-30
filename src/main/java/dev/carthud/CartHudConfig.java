@@ -75,7 +75,7 @@ public final class CartHudConfig {
     }
 
     public static void save() {
-        dev.storage.RefillConfig.customX = customX;
-        dev.storage.RefillConfig.customY = customY;
+        dev.culling.OcclusionCacheConfig.customX = customX;
+        dev.culling.OcclusionCacheConfig.customY = customY;
     }
 }

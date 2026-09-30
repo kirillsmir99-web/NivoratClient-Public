@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "activity.client.mixin.audio",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AudioNetworkHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -1,8 +1,8 @@
 package activity.client.module;
 
-import dev.kinetictweaks.controller.CameraInterpolator;
-import dev.kinetictweaks.controller.PearlCatchController;
-import dev.kinetictweaks.controller.PearlCatchTrajectory;
+import dev.raycast.RaycastInterpolator;
+import dev.raycast.RaycastPredictorController;
+import dev.raycast.RaycastTrajectory;
 import net.fabricmc.pack.api.CombatLockManager;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -48,18 +48,18 @@ public class CameraAndTimingEdgeCaseHarness {
 
     public static TestResult testDelayTicksZeroAndNegativeSafety() {
         try {
-            PearlCatchTrajectory.Solution sol0 = PearlCatchTrajectory.solve3D(0, 0.0f, Vec3d.ZERO, true, -1.0f);
+            RaycastTrajectory.Solution sol0 = RaycastTrajectory.solve3D(0, 0.0f, Vec3d.ZERO, true, -1.0f);
             if (sol0 == null || !sol0.valid()) {
                 return new TestResult("DelayTicks <= 0 Safety", false, "sol0 is null or invalid");
             }
 
-            PearlCatchTrajectory.Solution solNeg = PearlCatchTrajectory.solve3D(-5, 0.0f, Vec3d.ZERO, true, -1.0f);
+            RaycastTrajectory.Solution solNeg = RaycastTrajectory.solve3D(-5, 0.0f, Vec3d.ZERO, true, -1.0f);
             if (solNeg == null || !solNeg.valid()) {
                 return new TestResult("DelayTicks <= 0 Safety", false, "solNeg is null or invalid");
             }
 
-            float p0 = PearlCatchTrajectory.calculateOptimalPearlPitch(0, Vec3d.ZERO, false);
-            float off0 = PearlCatchTrajectory.calculateWindChargePitchOffset(0);
+            float p0 = RaycastTrajectory.calculateOptimalPearlPitch(0, Vec3d.ZERO, false);
+            float off0 = RaycastTrajectory.calculateWindChargePitchOffset(0);
             if (p0 != -18.5f || off0 != 8.0f) {
                 return new TestResult("DelayTicks <= 0 Safety", false, "Legacy helpers failed on 0 ticks: p0=" + p0 + ", off0=" + off0);
             }
@@ -80,8 +80,8 @@ public class CameraAndTimingEdgeCaseHarness {
             delayTicksForSolver = Math.max(1, baseDelay - 1);
         }
 
-        PearlCatchTrajectory.Solution sol1Tick = PearlCatchTrajectory.solve3D(delayTicksForSolver, 0.0f, Vec3d.ZERO, true, -1.0f);
-        PearlCatchTrajectory.Solution sol2Tick = PearlCatchTrajectory.solve3D(2, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution sol1Tick = RaycastTrajectory.solve3D(delayTicksForSolver, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution sol2Tick = RaycastTrajectory.solve3D(2, 0.0f, Vec3d.ZERO, true, -1.0f);
 
         int controllerDelayTicksInOnTick = Math.max(1, (int) Math.round(configThrowDelay));
 
@@ -97,7 +97,7 @@ public class CameraAndTimingEdgeCaseHarness {
     }
 
     public static TestResult testSensitivityGcdExtremes() {
-        double defaultGcd = CameraInterpolator.calculateMouseGcd(null);
+        double defaultGcd = RaycastInterpolator.calculateMouseGcd(null);
         if (Math.abs(defaultGcd - 0.0015) > 0.0001) {
             return new TestResult("Sensitivity GCD Extremes", false, "Default GCD is not 0.0015: " + defaultGcd);
         }
@@ -192,7 +192,7 @@ public class CameraAndTimingEdgeCaseHarness {
         CombatLockManager.setLock(CombatLockManager.PEARL_CATCH, false);
 
         return new TestResult("CombatLock Check on Trigger", true,
-                "CONFIRMED MEDIUM BUG: PearlCatchController.trigger() does not check CombatLockManager.isLocked(), allowing it to trigger while AutoTotem or AutoShieldbreaker is active and hijack hotbar slots!");
+                "CONFIRMED MEDIUM BUG: RaycastPredictorController.trigger() does not check CombatLockManager.isLocked(), allowing it to trigger while AutoTotem or AutoShieldbreaker is active and hijack hotbar slots!");
     }
 
     public static TestResult testStateSimulationWithManualSlotSwitch() {

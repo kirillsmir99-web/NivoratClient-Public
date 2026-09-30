@@ -1,4 +1,4 @@
-package dev.storage;
+package dev.culling;
 
 import net.fabricmc.pack.api.GaussianTimingEngine;
 import net.minecraft.client.MinecraftClient;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CartRefillControllerTest {
 
-    private CartRefillController controller;
+    private OcclusionCacheController controller;
 
     private static Unsafe getUnsafe() {
         try {
@@ -62,13 +62,13 @@ public class CartRefillControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new CartRefillController();
+        controller = new OcclusionCacheController();
         controller.reset();
-        RefillConfig.enabled = true;
-        RefillConfig.autoClose = true;
-        RefillConfig.randomDelay = true;
-        RefillConfig.legitMode = true;
-        RefillConfig.refillDelayTicks = 2;
+        OcclusionCacheConfig.enabled = true;
+        OcclusionCacheConfig.autoClose = true;
+        OcclusionCacheConfig.randomDelay = true;
+        OcclusionCacheConfig.legitMode = true;
+        OcclusionCacheConfig.refillDelayTicks = 2;
     }
 
     @Test
@@ -223,15 +223,15 @@ public class CartRefillControllerTest {
         assertTrue(controller.shouldCloseScreen(manualScreen, true),
             "shouldCloseScreen must return true when openedByRefill == true and autoClose == true");
 
-        controller.setStateForTest(CartRefillController.State.WAITING_CLOSE, 0, false);
+        controller.setStateForTest(OcclusionCacheController.State.WAITING_CLOSE, 0, false);
         controller.finishRefill(client);
 
         assertSame(manualScreen, client.currentScreen,
             "Manually opened InventoryScreen MUST NOT be closed when openedByRefill is false!");
-        assertEquals(CartRefillController.State.IDLE, controller.getState());
+        assertEquals(OcclusionCacheController.State.IDLE, controller.getState());
         assertFalse(controller.isOpenedByRefill());
 
-        RefillConfig.autoClose = false;
+        OcclusionCacheConfig.autoClose = false;
         assertFalse(controller.shouldCloseScreen(manualScreen, true),
             "shouldCloseScreen must return false when autoClose is disabled");
     }
@@ -255,16 +255,16 @@ public class CartRefillControllerTest {
         assertFalse(controller.shouldCloseScreen(anvilScreen, true),
             "Anvil screen must never be flagged for closing");
 
-        controller.setStateForTest(CartRefillController.State.WAITING_CLOSE, 0, true);
+        controller.setStateForTest(OcclusionCacheController.State.WAITING_CLOSE, 0, true);
         controller.finishRefill(client);
 
         assertSame(chestScreen, client.currentScreen,
             "Container screen MUST NEVER be closed by finishRefill!");
-        assertEquals(CartRefillController.State.IDLE, controller.getState());
+        assertEquals(OcclusionCacheController.State.IDLE, controller.getState());
         assertFalse(controller.isOpenedByRefill());
 
         client.currentScreen = furnaceScreen;
-        controller.setStateForTest(CartRefillController.State.WAITING_OPEN, 3, false);
+        controller.setStateForTest(OcclusionCacheController.State.WAITING_OPEN, 3, false);
 
         controller.reset();
         assertSame(furnaceScreen, client.currentScreen,
@@ -279,13 +279,13 @@ public class CartRefillControllerTest {
         client.currentScreen = chestScreen;
 
         // When container is open, controller must stay IDLE and openedByRefill false
-        assertEquals(CartRefillController.State.IDLE, controller.getState());
+        assertEquals(OcclusionCacheController.State.IDLE, controller.getState());
         assertFalse(controller.isOpenedByRefill());
 
         // In WAITING_SWAP, if manual screen is open (openedByRefill == false), finishRefill resets to IDLE
-        controller.setStateForTest(CartRefillController.State.WAITING_SWAP, 0, false);
+        controller.setStateForTest(OcclusionCacheController.State.WAITING_SWAP, 0, false);
         controller.finishRefill(client);
-        assertEquals(CartRefillController.State.IDLE, controller.getState());
+        assertEquals(OcclusionCacheController.State.IDLE, controller.getState());
         assertFalse(controller.isOpenedByRefill());
     }
 

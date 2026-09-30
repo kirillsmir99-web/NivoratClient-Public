@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public class ActivityClient implements ClientModInitializer {
     public static final String MOD_ID = "activity";
-    public static final Logger LOGGER = LoggerFactory.getLogger("CooldownHUD");
+    public static final Logger LOGGER = LoggerFactory.getLogger("PulseHUD");
 
     public static KeyBinding openCooldownHudKey;
     public static KeyBinding openMenuKey;
@@ -72,7 +72,7 @@ public class ActivityClient implements ClientModInitializer {
             ActivityConfig config = ActivityConfigManager.getConfig();
             int menuKeyCode = (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound())
                     ? config.menuKeybind.getKeyCode()
-                    : GLFW.GLFW_KEY_O;
+                    : GLFW.GLFW_KEY_RIGHT_SHIFT;
 
             boolean ctrl = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL)
                     || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_CONTROL);

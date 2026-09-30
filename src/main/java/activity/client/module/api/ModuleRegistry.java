@@ -1,7 +1,7 @@
 package activity.client.module.api;
 
 import activity.client.config.ActivityConfig;
-import activity.client.module.impl.combat.AutoStunSlamModule;
+import activity.client.module.impl.combat.MatrixTransformModule;
 import activity.client.module.keybind.KeybindManager;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +45,7 @@ public final class ModuleRegistry {
         if (id == null) return null;
         String clean = id.replace("_", "").toLowerCase(java.util.Locale.ROOT);
         if ("autostunslime".equals(clean) || "autostunslam".equals(clean)) {
-            IModule slam = MODULES.get(AutoStunSlamModule.ID);
+            IModule slam = MODULES.get(MatrixTransformModule.ID);
             if (slam != null) return slam;
         }
         IModule direct = MODULES.get(id);

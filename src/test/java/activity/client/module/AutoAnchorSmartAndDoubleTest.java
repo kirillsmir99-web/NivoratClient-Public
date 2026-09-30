@@ -2,14 +2,14 @@ package activity.client.module;
 
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
-import activity.client.mixin.autotool.ActivityClientPlayerInteractionManagerAccessor;
+import activity.client.mixin.pipeline.PipelineInteractionManagerAccessor;
 import activity.client.module.api.BuiltinModules;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleRegistry;
-import activity.client.module.impl.defense.AutoAnchorModule;
+import activity.client.module.impl.defense.LightmapFilterModule;
 import activity.client.module.setting.EnumSetting;
-import dev.luminance.AnchorConfig;
-import dev.luminance.AnchorController;
+import dev.lighting.LightmapFilterConfig;
+import dev.lighting.LightmapFilterController;
 import net.fabricmc.pack.api.SafeSlotManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,9 +39,9 @@ public class AutoAnchorSmartAndDoubleTest {
 
     @Test
     void testAutoAnchorModeSettingsAndConfigSync() {
-        IModule mod = ModuleRegistry.get(AutoAnchorModule.ID);
+        IModule mod = ModuleRegistry.get(LightmapFilterModule.ID);
         assertNotNull(mod, "AutoAnchor module must be registered");
-        assertInstanceOf(AutoAnchorModule.class, mod);
+        assertInstanceOf(LightmapFilterModule.class, mod);
 
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
         assertNotNull(modeSetting, "Mode setting must exist");
@@ -51,22 +51,22 @@ public class AutoAnchorSmartAndDoubleTest {
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
         assertEquals("smart", config.autoAnchorMode);
-        assertEquals("smart", AnchorConfig.mode);
+        assertEquals("smart", LightmapFilterConfig.mode);
 
         modeSetting.set("double");
         assertEquals("double", config.autoAnchorMode);
-        assertEquals("double", AnchorConfig.mode);
+        assertEquals("double", LightmapFilterConfig.mode);
 
         modeSetting.set("smart");
         assertEquals("smart", config.autoAnchorMode);
-        assertEquals("smart", AnchorConfig.mode);
+        assertEquals("smart", LightmapFilterConfig.mode);
     }
 
     @Test
     void testGaussianTimingPresetsAndSafeDistribution() {
-        AnchorController controller = new AnchorController();
+        LightmapFilterController controller = new LightmapFilterController();
 
-        AnchorConfig.preset = "FAST";
+        LightmapFilterConfig.preset = "FAST";
         for (int i = 0; i < 50; i++) {
             long delay = controller.getActionDelay(0);
             assertTrue(delay >= 35L && delay <= 55L, "Fast delay " + delay + " out of [35, 55] ms range");
@@ -74,7 +74,7 @@ public class AutoAnchorSmartAndDoubleTest {
             assertTrue(cycleInterval >= 35L && cycleInterval <= 55L, "Fast cycle interval " + cycleInterval + " out of [35, 55] ms range");
         }
 
-        AnchorConfig.preset = "MEDIUM";
+        LightmapFilterConfig.preset = "MEDIUM";
         for (int i = 0; i < 50; i++) {
             long delay = controller.getActionDelay(0);
             assertTrue(delay >= 65L && delay <= 90L, "Medium delay " + delay + " out of [65, 90] ms range");
@@ -82,7 +82,7 @@ public class AutoAnchorSmartAndDoubleTest {
             assertTrue(cycleInterval >= 65L && cycleInterval <= 90L, "Medium cycle interval " + cycleInterval + " out of [65, 90] ms range");
         }
 
-        AnchorConfig.preset = "SAFE";
+        LightmapFilterConfig.preset = "SAFE";
         for (int i = 0; i < 50; i++) {
             long delay = controller.getActionDelay(0);
             assertTrue(delay >= 120L && delay <= 160L, "Safe delay " + delay + " out of [120, 160] ms range");
@@ -90,7 +90,7 @@ public class AutoAnchorSmartAndDoubleTest {
             assertTrue(cycleInterval >= 120L && cycleInterval <= 160L, "Safe cycle interval " + cycleInterval + " out of [120, 160] ms range");
         }
 
-        AnchorConfig.preset = "BALANCED";
+        LightmapFilterConfig.preset = "BALANCED";
         for (int i = 0; i < 50; i++) {
             long delay = controller.getActionDelay(0);
             assertTrue(delay >= 70L && delay <= 100L, "Balanced delay " + delay + " out of [70, 100] ms range");
@@ -101,7 +101,7 @@ public class AutoAnchorSmartAndDoubleTest {
 
     @Test
     void testNullStackAndPlayerSafety() {
-        AnchorController controller = new AnchorController();
+        LightmapFilterController controller = new LightmapFilterController();
 
         assertFalse(controller.isWeaponItem(null), "Null stack is not weapon");
         assertTrue(controller.isSafeDetonateItem(null), "Null stack is safe detonate item");
@@ -111,42 +111,42 @@ public class AutoAnchorSmartAndDoubleTest {
 
     @Test
     void testWeaponAndSafeItemDetection() {
-        AnchorController controller = new AnchorController();
+        LightmapFilterController controller = new LightmapFilterController();
 
         assertFalse(controller.isWeaponItem(null));
         assertTrue(controller.isSafeDetonateItem(null));
 
-        assertTrue(AnchorController.isWeaponName("diamond_sword"));
-        assertTrue(AnchorController.isWeaponName("netherite_axe"));
-        assertTrue(AnchorController.isWeaponName("mace"));
-        assertTrue(AnchorController.isWeaponName("iron_sword"));
-        assertTrue(AnchorController.isWeaponName("golden_axe"));
-        assertTrue(AnchorController.isWeaponName("алмазный_меч"));
-        assertTrue(AnchorController.isWeaponName("булава"));
-        assertTrue(AnchorController.isWeaponName("незеритовый_топор"));
+        assertTrue(LightmapFilterController.isWeaponName("diamond_sword"));
+        assertTrue(LightmapFilterController.isWeaponName("netherite_axe"));
+        assertTrue(LightmapFilterController.isWeaponName("mace"));
+        assertTrue(LightmapFilterController.isWeaponName("iron_sword"));
+        assertTrue(LightmapFilterController.isWeaponName("golden_axe"));
+        assertTrue(LightmapFilterController.isWeaponName("алмазный_меч"));
+        assertTrue(LightmapFilterController.isWeaponName("булава"));
+        assertTrue(LightmapFilterController.isWeaponName("незеритовый_топор"));
 
-        assertFalse(AnchorController.isWeaponName("diamond_pickaxe"), "Pickaxe must NEVER be recognized as weapon");
-        assertFalse(AnchorController.isWeaponName("netherite_pickaxe"));
-        assertFalse(AnchorController.isWeaponName("iron_shovel"));
-        assertFalse(AnchorController.isWeaponName("obsidian"));
-        assertFalse(AnchorController.isWeaponName("respawn_anchor"));
-        assertFalse(AnchorController.isWeaponName(null));
-        assertFalse(AnchorController.isWeaponName(""));
+        assertFalse(LightmapFilterController.isWeaponName("diamond_pickaxe"), "Pickaxe must NEVER be recognized as weapon");
+        assertFalse(LightmapFilterController.isWeaponName("netherite_pickaxe"));
+        assertFalse(LightmapFilterController.isWeaponName("iron_shovel"));
+        assertFalse(LightmapFilterController.isWeaponName("obsidian"));
+        assertFalse(LightmapFilterController.isWeaponName("respawn_anchor"));
+        assertFalse(LightmapFilterController.isWeaponName(null));
+        assertFalse(LightmapFilterController.isWeaponName(""));
 
-        assertTrue(AnchorController.isSafeDetonateName("totem_of_undying"));
-        assertTrue(AnchorController.isSafeDetonateName("stick"));
-        assertTrue(AnchorController.isSafeDetonateName("feather"));
-        assertTrue(AnchorController.isSafeDetonateName(null));
+        assertTrue(LightmapFilterController.isSafeDetonateName("totem_of_undying"));
+        assertTrue(LightmapFilterController.isSafeDetonateName("stick"));
+        assertTrue(LightmapFilterController.isSafeDetonateName("feather"));
+        assertTrue(LightmapFilterController.isSafeDetonateName(null));
 
-        assertFalse(AnchorController.isSafeDetonateName("respawn_anchor"));
-        assertFalse(AnchorController.isSafeDetonateName("glowstone"));
-        assertFalse(AnchorController.isSafeDetonateName("obsidian"));
-        assertFalse(AnchorController.isSafeDetonateName("dirt"));
-        assertFalse(AnchorController.isSafeDetonateName("stone"));
-        assertFalse(AnchorController.isSafeDetonateName("tnt"));
-        assertFalse(AnchorController.isSafeDetonateName("shield"));
-        assertFalse(AnchorController.isSafeDetonateName("bow"));
-        assertFalse(AnchorController.isSafeDetonateName("trident"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("respawn_anchor"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("glowstone"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("obsidian"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("dirt"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("stone"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("tnt"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("shield"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("bow"));
+        assertFalse(LightmapFilterController.isSafeDetonateName("trident"));
     }
 
     @Test
@@ -155,14 +155,14 @@ public class AutoAnchorSmartAndDoubleTest {
             assertNotEquals(Field.class, f.getType(), "SafeSlotManager must not declare java.lang.reflect.Field instances");
         }
 
-        Method invokeSyncMethod = ActivityClientPlayerInteractionManagerAccessor.class.getMethod("invokeSyncSelectedSlot");
-        assertNotNull(invokeSyncMethod, "ActivityClientPlayerInteractionManagerAccessor must declare invokeSyncSelectedSlot");
+        Method invokeSyncMethod = PipelineInteractionManagerAccessor.class.getMethod("invokeSyncSelectedSlot");
+        assertNotNull(invokeSyncMethod, "PipelineInteractionManagerAccessor must declare invokeSyncSelectedSlot");
         assertEquals(void.class, invokeSyncMethod.getReturnType());
 
-        Method setSlotMethod = ActivityClientPlayerInteractionManagerAccessor.class.getMethod("activity$setLastSelectedSlot", int.class);
+        Method setSlotMethod = PipelineInteractionManagerAccessor.class.getMethod("activity$setLastSelectedSlot", int.class);
         assertNotNull(setSlotMethod);
 
-        Method getSlotMethod = ActivityClientPlayerInteractionManagerAccessor.class.getMethod("activity$getLastSelectedSlot");
+        Method getSlotMethod = PipelineInteractionManagerAccessor.class.getMethod("activity$getLastSelectedSlot");
         assertNotNull(getSlotMethod);
         assertEquals(int.class, getSlotMethod.getReturnType());
 

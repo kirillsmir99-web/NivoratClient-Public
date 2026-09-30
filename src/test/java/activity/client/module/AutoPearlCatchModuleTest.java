@@ -6,7 +6,7 @@ import activity.client.module.api.BuiltinModules;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleRegistry;
-import activity.client.module.impl.combat.AutoPearlCatchModule;
+import activity.client.module.impl.combat.RaycastPredictorModule;
 import activity.client.module.keybind.Keybind;
 import activity.client.module.setting.BooleanSetting;
 import activity.client.module.setting.EnumSetting;
@@ -14,9 +14,9 @@ import activity.client.module.setting.KeybindSetting;
 import activity.client.module.setting.NumberSetting;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
-import dev.kinetictweaks.controller.CameraInterpolator;
-import dev.kinetictweaks.controller.PearlCatchController;
-import dev.kinetictweaks.controller.PearlCatchTrajectory;
+import dev.raycast.RaycastInterpolator;
+import dev.raycast.RaycastPredictorController;
+import dev.raycast.RaycastTrajectory;
 import net.fabricmc.pack.api.CombatLockManager;
 import net.minecraft.util.math.Vec3d;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,26 +45,26 @@ public class AutoPearlCatchModuleTest {
     @Test
     @DisplayName("AutoPearlCatch is registered with correct metadata and COMBAT category")
     void testModuleRegistrationAndMetadata() {
-        IModule module = ModuleRegistry.get(AutoPearlCatchModule.ID);
+        IModule module = ModuleRegistry.get(RaycastPredictorModule.ID);
         assertNotNull(module, "AutoPearlCatch must be registered in ModuleRegistry");
-        assertEquals(AutoPearlCatchModule.ID, module.getId());
+        assertEquals(RaycastPredictorModule.ID, module.getId());
         assertEquals(ModuleCategory.COMBAT, module.getCategory());
         assertNotNull(module.getName());
         assertNotNull(module.getDescription());
 
         IModule alias1 = ModuleRegistry.get("pearl_catch");
         assertNotNull(alias1);
-        assertEquals(AutoPearlCatchModule.ID, alias1.getId());
+        assertEquals(RaycastPredictorModule.ID, alias1.getId());
 
         IModule alias2 = ModuleRegistry.get("pearlcatch");
         assertNotNull(alias2);
-        assertEquals(AutoPearlCatchModule.ID, alias2.getId());
+        assertEquals(RaycastPredictorModule.ID, alias2.getId());
     }
 
     @Test
     @DisplayName("AutoPearlCatch settings respect 5-tier SettingGroup ordering")
     void testSettingGroupsOrdering() {
-        IModule module = ModuleRegistry.get(AutoPearlCatchModule.ID);
+        IModule module = ModuleRegistry.get(RaycastPredictorModule.ID);
         assertNotNull(module);
         List<Setting<?>> settings = module.getSettings();
         assertFalse(settings.isEmpty(), "AutoPearlCatch must have settings registered");
@@ -82,7 +82,7 @@ public class AutoPearlCatchModuleTest {
     @Test
     @DisplayName("AutoPearlCatch settings register and match expected defaults")
     void testSettingsRegistrationAndDefaults() {
-        IModule module = ModuleRegistry.get(AutoPearlCatchModule.ID);
+        IModule module = ModuleRegistry.get(RaycastPredictorModule.ID);
         assertNotNull(module);
 
         EnumSetting modeSetting = (EnumSetting) module.getSetting("mode");
@@ -189,10 +189,10 @@ public class AutoPearlCatchModuleTest {
     }
 
     @Test
-    @DisplayName("PearlCatchTrajectory kinematic 3D solver finds valid intercept solutions")
+    @DisplayName("RaycastTrajectory kinematic 3D solver finds valid intercept solutions")
     void testKinematic3DSolver() {
 
-        PearlCatchTrajectory.Solution solStill = PearlCatchTrajectory.solve3D(2, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution solStill = RaycastTrajectory.solve3D(2, 0.0f, Vec3d.ZERO, true, -1.0f);
         assertNotNull(solStill);
         assertTrue(solStill.valid(), "3D solver must find valid solution when stationary");
         assertTrue(solStill.residualError() <= 0.5, "Stationary residual error must be <= 0.5: " + solStill.residualError());
@@ -201,68 +201,68 @@ public class AutoPearlCatchModuleTest {
         assertTrue(solStill.interceptTick() >= 3 && solStill.interceptTick() <= 20, "Intercept tick must be within reasonable range");
 
         Vec3d sprintVel = new Vec3d(0.0, 0.0, 0.28);
-        PearlCatchTrajectory.Solution solSprint = PearlCatchTrajectory.solve3D(2, 0.0f, sprintVel, true, -1.0f);
+        RaycastTrajectory.Solution solSprint = RaycastTrajectory.solve3D(2, 0.0f, sprintVel, true, -1.0f);
         assertNotNull(solSprint);
         assertTrue(solSprint.valid(), "Sprint solution must be valid");
         assertTrue(solSprint.residualError() <= 0.5, "Sprint residual error must be <= 0.5: " + solSprint.residualError());
 
         Vec3d fallVel = new Vec3d(0.0, -0.4, 0.1);
-        PearlCatchTrajectory.Solution solFall = PearlCatchTrajectory.solve3D(2, 0.0f, fallVel, false, -1.0f);
+        RaycastTrajectory.Solution solFall = RaycastTrajectory.solve3D(2, 0.0f, fallVel, false, -1.0f);
         assertNotNull(solFall);
         assertTrue(solFall.valid(), "Fall solution must be valid");
         assertTrue(solFall.residualError() <= 0.5, "Fall residual error must be <= 0.5: " + solFall.residualError());
 
         Vec3d windJumpVel = new Vec3d(0.0, 0.9, 0.0);
-        PearlCatchTrajectory.Solution solWindJump = PearlCatchTrajectory.solve3D(2, 0.0f, windJumpVel, false, -1.0f);
+        RaycastTrajectory.Solution solWindJump = RaycastTrajectory.solve3D(2, 0.0f, windJumpVel, false, -1.0f);
         assertNotNull(solWindJump);
         assertTrue(solWindJump.valid(), "Wind jump solution must be valid");
         assertTrue(solWindJump.residualError() <= 0.5, "Wind jump residual error must be <= 0.5: " + solWindJump.residualError());
 
         Vec3d extremeWindJumpVel = new Vec3d(0.0, 1.45, 0.15);
-        PearlCatchTrajectory.Solution solExtreme = PearlCatchTrajectory.solve3D(2, 0.0f, extremeWindJumpVel, false, -1.0f);
+        RaycastTrajectory.Solution solExtreme = RaycastTrajectory.solve3D(2, 0.0f, extremeWindJumpVel, false, -1.0f);
         assertNotNull(solExtreme);
         assertTrue(solExtreme.valid(), "Extreme wind jump solution must be valid");
         assertTrue(solExtreme.residualError() <= 0.5, "Extreme wind jump residual error must be <= 0.5: " + solExtreme.residualError());
 
         Vec3d sprintVelX = new Vec3d(0.28, 0.0, 0.0);
-        PearlCatchTrajectory.Solution solSprintX = PearlCatchTrajectory.solve3D(2, -90.0f, sprintVelX, true, -1.0f);
+        RaycastTrajectory.Solution solSprintX = RaycastTrajectory.solve3D(2, -90.0f, sprintVelX, true, -1.0f);
         assertNotNull(solSprintX);
         assertTrue(solSprintX.valid());
         assertTrue(solSprintX.residualError() <= 0.5);
 
-        Vec3d dir = PearlCatchTrajectory.getDirectionVector(-25.0f, 45.0f);
+        Vec3d dir = RaycastTrajectory.getDirectionVector(-25.0f, 45.0f);
         assertEquals(1.0, dir.length(), 0.001);
     }
 
     @Test
-    @DisplayName("PearlCatchTrajectory legacy helpers remain backward-compatible")
+    @DisplayName("RaycastTrajectory legacy helpers remain backward-compatible")
     void testPearlCatchTrajectoryBallistics() {
-        float normalPitch = PearlCatchTrajectory.calculateOptimalPearlPitch(2, null, false);
+        float normalPitch = RaycastTrajectory.calculateOptimalPearlPitch(2, null, false);
         assertEquals(-28.0f, normalPitch, 0.001f);
 
-        float sprintPitch = PearlCatchTrajectory.calculateOptimalPearlPitch(2, null, true);
+        float sprintPitch = RaycastTrajectory.calculateOptimalPearlPitch(2, null, true);
         assertEquals(-27.0f, sprintPitch, 0.001f);
 
-        float delay1Pitch = PearlCatchTrajectory.calculateOptimalPearlPitch(1, null, false);
+        float delay1Pitch = RaycastTrajectory.calculateOptimalPearlPitch(1, null, false);
         assertEquals(-26.5f, delay1Pitch, 0.001f);
 
-        float offsetDelay2 = PearlCatchTrajectory.calculateWindChargePitchOffset(2);
+        float offsetDelay2 = RaycastTrajectory.calculateWindChargePitchOffset(2);
         assertEquals(8.0f, offsetDelay2, 0.001f);
 
-        float offsetDelay1 = PearlCatchTrajectory.calculateWindChargePitchOffset(1);
+        float offsetDelay1 = RaycastTrajectory.calculateWindChargePitchOffset(1);
         assertEquals(5.5f, offsetDelay1, 0.001f);
     }
 
     @Test
-    @DisplayName("CameraInterpolator lifecycle, GCD calculation, and state transitions")
+    @DisplayName("RaycastInterpolator lifecycle, GCD calculation, and state transitions")
     void testCameraInterpolatorMath() {
-        CameraInterpolator interpolator = new CameraInterpolator();
+        RaycastInterpolator interpolator = new RaycastInterpolator();
         assertFalse(interpolator.isActive());
 
         interpolator.start(0.0f, -45.0f, 0.0f, 90.0f, 150L, true);
         assertTrue(interpolator.isActive());
 
-        double gcd = CameraInterpolator.calculateMouseGcd(null);
+        double gcd = RaycastInterpolator.calculateMouseGcd(null);
         assertTrue(gcd > 0.0001, "Mouse GCD must be positive and non-zero");
 
         interpolator.reset();
@@ -272,9 +272,9 @@ public class AutoPearlCatchModuleTest {
     @Test
     @DisplayName("Safety raycasts and latency helpers are robust against null client")
     void testSafetyRaycastsNullSafety() {
-        assertFalse(PearlCatchController.isCeilingBlocked(null, 10.0));
-        assertFalse(PearlCatchController.isForwardBlocked(null, 0.0f, 0.0f, 2.0));
-        assertEquals(0, PearlCatchController.getPlayerLatency(null));
+        assertFalse(RaycastPredictorController.isCeilingBlocked(null, 10.0));
+        assertFalse(RaycastPredictorController.isForwardBlocked(null, 0.0f, 0.0f, 2.0));
+        assertEquals(0, RaycastPredictorController.getPlayerLatency(null));
     }
 
     @Test
@@ -290,41 +290,41 @@ public class AutoPearlCatchModuleTest {
     }
 
     @Test
-    @DisplayName("PearlCatchTrajectory converges at throwDelay = 5 across all movement profiles")
+    @DisplayName("RaycastTrajectory converges at throwDelay = 5 across all movement profiles")
     void testThrowDelayFiveKinematicConvergence() {
 
-        PearlCatchTrajectory.Solution solStill = PearlCatchTrajectory.solve3D(5, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution solStill = RaycastTrajectory.solve3D(5, 0.0f, Vec3d.ZERO, true, -1.0f);
         assertNotNull(solStill);
         assertTrue(solStill.valid(), "Delay=5 still solution must be valid");
         assertTrue(solStill.residualError() <= 0.5, "Delay=5 still residual error <= 0.5: " + solStill.residualError());
         assertEquals(solStill.computedOffset(), solStill.pitchOffset(), 0.0001f, "computedOffset must equal pitchOffset");
 
         Vec3d sprintVel = new Vec3d(0.0, 0.0, 0.28);
-        PearlCatchTrajectory.Solution solSprint = PearlCatchTrajectory.solve3D(5, 0.0f, sprintVel, true, -1.0f);
+        RaycastTrajectory.Solution solSprint = RaycastTrajectory.solve3D(5, 0.0f, sprintVel, true, -1.0f);
         assertNotNull(solSprint);
         assertTrue(solSprint.valid(), "Delay=5 sprint solution must be valid");
         assertTrue(solSprint.residualError() <= 0.5, "Delay=5 sprint residual error <= 0.5: " + solSprint.residualError());
 
         Vec3d fallVel = new Vec3d(0.0, -0.4, 0.1);
-        PearlCatchTrajectory.Solution solFall = PearlCatchTrajectory.solve3D(5, 0.0f, fallVel, false, -1.0f);
+        RaycastTrajectory.Solution solFall = RaycastTrajectory.solve3D(5, 0.0f, fallVel, false, -1.0f);
         assertNotNull(solFall);
         assertTrue(solFall.valid(), "Delay=5 fall solution must be valid");
         assertTrue(solFall.residualError() <= 0.5, "Delay=5 fall residual error <= 0.5: " + solFall.residualError());
 
         Vec3d windJumpVel = new Vec3d(0.0, 0.9, 0.0);
-        PearlCatchTrajectory.Solution solWindJump = PearlCatchTrajectory.solve3D(5, 0.0f, windJumpVel, false, -1.0f);
+        RaycastTrajectory.Solution solWindJump = RaycastTrajectory.solve3D(5, 0.0f, windJumpVel, false, -1.0f);
         assertNotNull(solWindJump);
         assertTrue(solWindJump.valid(), "Delay=5 wind jump solution must be valid");
         assertTrue(solWindJump.residualError() <= 0.5, "Delay=5 wind jump residual error <= 0.5: " + solWindJump.residualError());
 
         Vec3d extremeWindJumpVel = new Vec3d(0.0, 1.45, 0.15);
-        PearlCatchTrajectory.Solution solExtreme = PearlCatchTrajectory.solve3D(5, 0.0f, extremeWindJumpVel, false, -1.0f);
+        RaycastTrajectory.Solution solExtreme = RaycastTrajectory.solve3D(5, 0.0f, extremeWindJumpVel, false, -1.0f);
         assertNotNull(solExtreme);
         assertTrue(solExtreme.valid(), "Delay=5 extreme wind jump solution must be valid");
         assertTrue(solExtreme.residualError() <= 0.5, "Delay=5 extreme wind jump residual error <= 0.5: " + solExtreme.residualError());
 
         Vec3d sprintVelX = new Vec3d(0.28, 0.0, 0.0);
-        PearlCatchTrajectory.Solution solSprintX = PearlCatchTrajectory.solve3D(5, -90.0f, sprintVelX, true, -1.0f);
+        RaycastTrajectory.Solution solSprintX = RaycastTrajectory.solve3D(5, -90.0f, sprintVelX, true, -1.0f);
         assertNotNull(solSprintX);
         assertTrue(solSprintX.valid(), "Delay=5 lateral sprint solution must be valid");
         assertTrue(solSprintX.residualError() <= 0.5, "Delay=5 lateral sprint residual error <= 0.5: " + solSprintX.residualError());
@@ -349,16 +349,16 @@ public class AutoPearlCatchModuleTest {
         float extremeDelta = net.minecraft.util.math.MathHelper.wrapDegrees(targetNormalizedYaw - extremeYaw);
         assertEquals(0.0f, extremeDelta, 0.001f, "Extreme cumulative yaw must wrap to 0 delta");
 
-        double gcd = CameraInterpolator.calculateMouseGcd(null);
+        double gcd = RaycastInterpolator.calculateMouseGcd(null);
         float subThresholdDelta = 0.00005f;
         long steps = Math.round(subThresholdDelta / gcd);
         assertEquals(0, steps, "Sub-threshold delta must round to 0 steps on GCD grid");
     }
 
     @Test
-    @DisplayName("PearlCatchController latency synchronization and combat lock safeguards")
+    @DisplayName("RaycastPredictorController latency synchronization and combat lock safeguards")
     void testControllerLatencyAndCombatLockSafeguards() {
-        PearlCatchController controller = PearlCatchController.getInstance();
+        RaycastPredictorController controller = RaycastPredictorController.getInstance();
         controller.reset();
 
         assertEquals(2, controller.calculateEffectiveDelay(null, 2.0));
@@ -367,7 +367,7 @@ public class AutoPearlCatchModuleTest {
 
         CombatLockManager.setLock(CombatLockManager.TOTEM, true);
         controller.trigger(null);
-        assertEquals(PearlCatchController.State.IDLE, controller.getState(),
+        assertEquals(RaycastPredictorController.State.IDLE, controller.getState(),
                 "Trigger must immediately abort when CombatLockManager.TOTEM is locked");
         assertFalse(CombatLockManager.isLocked(CombatLockManager.PEARL_CATCH),
                 "PEARL_CATCH lock must not be set when TOTEM lock is active");

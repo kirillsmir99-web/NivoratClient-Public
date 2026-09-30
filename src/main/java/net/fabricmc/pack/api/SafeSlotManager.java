@@ -1,6 +1,6 @@
 package net.fabricmc.pack.api;
 
-import activity.client.mixin.autotool.ActivityClientPlayerInteractionManagerAccessor;
+import activity.client.mixin.pipeline.PipelineInteractionManagerAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -12,7 +12,7 @@ public final class SafeSlotManager {
     private SafeSlotManager() {}
 
     public static boolean setLastSelectedSlot(ClientPlayerInteractionManager manager, int slot) {
-        if (manager instanceof ActivityClientPlayerInteractionManagerAccessor accessor && slot >= 0 && slot < 9) {
+        if (manager instanceof PipelineInteractionManagerAccessor accessor && slot >= 0 && slot < 9) {
             accessor.activity$setLastSelectedSlot(slot);
             return true;
         }
@@ -20,7 +20,7 @@ public final class SafeSlotManager {
     }
 
     public static int getLastSelectedSlot(ClientPlayerInteractionManager manager) {
-        if (manager instanceof ActivityClientPlayerInteractionManagerAccessor accessor) {
+        if (manager instanceof PipelineInteractionManagerAccessor accessor) {
             return accessor.activity$getLastSelectedSlot();
         }
         return -1;
@@ -28,7 +28,7 @@ public final class SafeSlotManager {
 
     public static boolean selectSlot(MinecraftClient client, int slot, long currentTick) {
         try {
-            if (client == null || client.player == null || client.interactionManager == null || slot < 0 || slot >= 9) {
+            if (client == null || client.player == null || client.interactionManager == null || client.currentScreen != null || slot < 0 || slot >= 9) {
                 return false;
             }
             if (currentTick < 0) {
@@ -47,7 +47,7 @@ public final class SafeSlotManager {
                 return false;
             }
             client.player.getInventory().setSelectedSlot(slot);
-            if (client.interactionManager instanceof ActivityClientPlayerInteractionManagerAccessor accessor) {
+            if (client.interactionManager instanceof PipelineInteractionManagerAccessor accessor) {
                 accessor.invokeSyncSelectedSlot();
             } else {
                 setLastSelectedSlot(client.interactionManager, slot);

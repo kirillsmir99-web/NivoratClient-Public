@@ -2,9 +2,9 @@ package activity.client.module;
 
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
-import dev.kinetictweaks.controller.CameraInterpolator;
-import dev.kinetictweaks.controller.PearlCatchController;
-import dev.kinetictweaks.controller.PearlCatchTrajectory;
+import dev.raycast.RaycastInterpolator;
+import dev.raycast.RaycastPredictorController;
+import dev.raycast.RaycastTrajectory;
 import net.fabricmc.pack.api.CombatLockManager;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -20,30 +20,30 @@ public class CameraAndTimingEdgeCaseTest {
     void setUp() {
         ActivityConfigManager.resetDefaults();
         CombatLockManager.reset();
-        PearlCatchController.getInstance().reset();
+        RaycastPredictorController.getInstance().reset();
     }
 
     @Test
     @DisplayName("Edge Case 1: Delay ticks <= 0 safety in trajectory solver")
     void testDelayTicksZeroAndNegativeSafety() {
 
-        PearlCatchTrajectory.Solution sol0 = PearlCatchTrajectory.solve3D(0, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution sol0 = RaycastTrajectory.solve3D(0, 0.0f, Vec3d.ZERO, true, -1.0f);
         assertNotNull(sol0);
 
         assertTrue(sol0.interceptTick() >= 1, "Intercept tick must be >= 1 even if delayTicks = 0");
 
-        PearlCatchTrajectory.Solution solNeg = PearlCatchTrajectory.solve3D(-5, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution solNeg = RaycastTrajectory.solve3D(-5, 0.0f, Vec3d.ZERO, true, -1.0f);
         assertNotNull(solNeg);
         assertTrue(solNeg.interceptTick() >= 1, "Intercept tick must be >= 1 even if delayTicks is negative");
 
-        float p0 = PearlCatchTrajectory.calculateOptimalPearlPitch(0, Vec3d.ZERO, false);
+        float p0 = RaycastTrajectory.calculateOptimalPearlPitch(0, Vec3d.ZERO, false);
         assertEquals(-28.0f, p0, 0.001f);
-        float pNeg = PearlCatchTrajectory.calculateOptimalPearlPitch(-3, Vec3d.ZERO, false);
+        float pNeg = RaycastTrajectory.calculateOptimalPearlPitch(-3, Vec3d.ZERO, false);
         assertEquals(-28.0f, pNeg, 0.001f);
 
-        float off0 = PearlCatchTrajectory.calculateWindChargePitchOffset(0);
+        float off0 = RaycastTrajectory.calculateWindChargePitchOffset(0);
         assertEquals(8.0f, off0, 0.001f);
-        float offNeg = PearlCatchTrajectory.calculateWindChargePitchOffset(-1);
+        float offNeg = RaycastTrajectory.calculateWindChargePitchOffset(-1);
         assertEquals(8.0f, offNeg, 0.001f);
     }
 
@@ -63,8 +63,8 @@ public class CameraAndTimingEdgeCaseTest {
         }
         assertEquals(1, delayTicksForSolver, "Ping compensation reduces solver delay to 1 tick");
 
-        PearlCatchTrajectory.Solution sol1Tick = PearlCatchTrajectory.solve3D(delayTicksForSolver, 0.0f, Vec3d.ZERO, true, -1.0f);
-        PearlCatchTrajectory.Solution sol2Tick = PearlCatchTrajectory.solve3D(2, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution sol1Tick = RaycastTrajectory.solve3D(delayTicksForSolver, 0.0f, Vec3d.ZERO, true, -1.0f);
+        RaycastTrajectory.Solution sol2Tick = RaycastTrajectory.solve3D(2, 0.0f, Vec3d.ZERO, true, -1.0f);
 
         assertNotEquals(sol1Tick.windPitch(), sol2Tick.windPitch(), 0.1f,
                 "1-tick and 2-tick delays require different wind pitch angles!");
@@ -81,7 +81,7 @@ public class CameraAndTimingEdgeCaseTest {
     @DisplayName("Edge Case 3: calculateMouseGcd sensitivity extremes")
     void testSensitivityGcdExtremes() {
 
-        double defaultGcd = CameraInterpolator.calculateMouseGcd(null);
+        double defaultGcd = RaycastInterpolator.calculateMouseGcd(null);
         assertEquals(0.0015, defaultGcd, 0.0001);
 
         double sensNormal = 0.5;
@@ -115,7 +115,7 @@ public class CameraAndTimingEdgeCaseTest {
 
         float wrappedTargetYaw = startYaw + MathHelper.wrapDegrees(targetWindYaw - startYaw);
 
-        assertEquals(181.0f, wrappedTargetYaw, 0.001f, "CameraInterpolator.start correctly wraps to 181.0 degrees");
+        assertEquals(181.0f, wrappedTargetYaw, 0.001f, "RaycastInterpolator.start correctly wraps to 181.0 degrees");
 
         float lastAppliedYaw = 180.5f;
 

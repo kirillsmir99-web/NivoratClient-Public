@@ -16,8 +16,8 @@ import activity.client.module.api.NivoratModule;
 import activity.client.module.keybind.Keybind;
 import activity.client.module.setting.BooleanSetting;
 import activity.client.module.setting.SettingGroup;
-import activity.client.module.stub.AutoStunSlamStub;
-import activity.client.module.stub.AutoStunSlimeStub;
+import activity.client.module.stub.MatrixTransformStub;
+import activity.client.module.stub.MatrixSlimeStub;
 import net.minecraft.text.Text;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,8 +37,8 @@ public class ModuleUXStage6Test {
 
     @Test
     void testAutoStunSlamStubDefaults() {
-        IModule module = ModuleRegistry.get(AutoStunSlamStub.ID);
-        assertNotNull(module, "AutoStunSlamStub must be registered in ModuleRegistry");
+        IModule module = ModuleRegistry.get(MatrixTransformStub.ID);
+        assertNotNull(module, "MatrixTransformStub must be registered in ModuleRegistry");
         assertEquals("auto_stun_slam", module.getId());
         assertEquals(ModuleCategory.COMBAT, module.getCategory());
         assertNotNull(module.getName());

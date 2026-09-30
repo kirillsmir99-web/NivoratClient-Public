@@ -3,19 +3,19 @@ package activity.client.module;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.elarion.autotool.AutoToolConfig;
-import ru.elarion.autotool.AutoToolEngine;
+import dev.mesh.ModelMeshConfig;
+import dev.mesh.ModelMeshEngine;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AutoToolEngineTest {
 
-    private AutoToolConfig config;
+    private ModelMeshConfig config;
 
     @BeforeEach
     void setUp() {
-        AutoToolEngine.resetSession();
-        config = new AutoToolConfig();
+        ModelMeshEngine.resetSession();
+        config = new ModelMeshConfig();
         config.enabled = true;
         config.weaponSwitch = true;
         config.combatGuard = true;
@@ -27,66 +27,66 @@ public class AutoToolEngineTest {
     @Test
     @DisplayName("Weapon detection: Null stack is not a weapon")
     void testWeaponDetectionNull() {
-        assertFalse(AutoToolEngine.isWeapon(null), "Null stack must not be recognized as weapon");
+        assertFalse(ModelMeshEngine.isWeapon(null), "Null stack must not be recognized as weapon");
     }
 
     @Test
     @DisplayName("Weapon base damage: Returns 0 for null stack")
     void testWeaponBaseDamageNull() {
-        assertEquals(0.0f, AutoToolEngine.getWeaponBaseDamage(null), 0.001f);
+        assertEquals(0.0f, ModelMeshEngine.getWeaponBaseDamage(null), 0.001f);
     }
 
     @Test
     @DisplayName("Weapon scoring: Null stack returns -100.0f")
     void testEvaluateWeaponScoreNull() {
-        assertEquals(-100.0f, AutoToolEngine.evaluateWeaponScore(null, null, config), 0.001f);
+        assertEquals(-100.0f, ModelMeshEngine.evaluateWeaponScore(null, null, config), 0.001f);
     }
 
     @Test
     @DisplayName("Tool scoring: Null stack returns 0.0f")
     void testEvaluateToolScoreNull() {
-        assertEquals(0.0f, AutoToolEngine.evaluateToolScore(null, null, config), 0.001f);
+        assertEquals(0.0f, ModelMeshEngine.evaluateToolScore(null, null, config), 0.001f);
     }
 
     @Test
     @DisplayName("Combat session lifecycle: State tracking, test fixtures and resetSession")
     void testCombatSessionLifecycle() {
-        assertFalse(AutoToolEngine.isCombatSessionActive(), "Combat session must initially be inactive");
-        assertEquals(-1, AutoToolEngine.getOriginalHotbarSlot(), "Original hotbar slot must initially be -1");
-        assertEquals(-1, AutoToolEngine.getExpectedToolSlot(), "Expected tool slot must initially be -1");
+        assertFalse(ModelMeshEngine.isCombatSessionActive(), "Combat session must initially be inactive");
+        assertEquals(-1, ModelMeshEngine.getOriginalHotbarSlot(), "Original hotbar slot must initially be -1");
+        assertEquals(-1, ModelMeshEngine.getExpectedToolSlot(), "Expected tool slot must initially be -1");
 
-        AutoToolEngine.setCombatSessionActiveForTest(true, 2, 5);
-        assertTrue(AutoToolEngine.isCombatSessionActive(), "Combat session must be active after test fixture");
-        assertEquals(2, AutoToolEngine.getOriginalHotbarSlot(), "Original hotbar slot must match fixture");
-        assertEquals(5, AutoToolEngine.getExpectedToolSlot(), "Expected tool slot must match fixture");
+        ModelMeshEngine.setCombatSessionActiveForTest(true, 2, 5);
+        assertTrue(ModelMeshEngine.isCombatSessionActive(), "Combat session must be active after test fixture");
+        assertEquals(2, ModelMeshEngine.getOriginalHotbarSlot(), "Original hotbar slot must match fixture");
+        assertEquals(5, ModelMeshEngine.getExpectedToolSlot(), "Expected tool slot must match fixture");
 
-        AutoToolEngine.resetSession();
-        assertFalse(AutoToolEngine.isCombatSessionActive(), "Combat session must be inactive after reset");
-        assertEquals(-1, AutoToolEngine.getOriginalHotbarSlot(), "Original slot must reset to -1");
-        assertEquals(-1, AutoToolEngine.getExpectedToolSlot(), "Expected slot must reset to -1");
+        ModelMeshEngine.resetSession();
+        assertFalse(ModelMeshEngine.isCombatSessionActive(), "Combat session must be inactive after reset");
+        assertEquals(-1, ModelMeshEngine.getOriginalHotbarSlot(), "Original slot must reset to -1");
+        assertEquals(-1, ModelMeshEngine.getExpectedToolSlot(), "Expected slot must reset to -1");
     }
 
     @Test
     @DisplayName("Mining session lifecycle: State tracking, test fixtures and resetSession")
     void testMiningSessionLifecycle() {
-        assertFalse(AutoToolEngine.isMiningSessionActive(), "Mining session must initially be inactive");
-        assertEquals(-1, AutoToolEngine.getOriginalHotbarSlot(), "Original slot must initially be -1");
+        assertFalse(ModelMeshEngine.isMiningSessionActive(), "Mining session must initially be inactive");
+        assertEquals(-1, ModelMeshEngine.getOriginalHotbarSlot(), "Original slot must initially be -1");
 
-        AutoToolEngine.setMiningSessionActiveForTest(true, 0, 3);
-        assertTrue(AutoToolEngine.isMiningSessionActive(), "Mining session must be active after test fixture");
-        assertEquals(0, AutoToolEngine.getOriginalHotbarSlot(), "Original slot must match fixture");
-        assertEquals(3, AutoToolEngine.getExpectedToolSlot(), "Expected slot must match fixture");
+        ModelMeshEngine.setMiningSessionActiveForTest(true, 0, 3);
+        assertTrue(ModelMeshEngine.isMiningSessionActive(), "Mining session must be active after test fixture");
+        assertEquals(0, ModelMeshEngine.getOriginalHotbarSlot(), "Original slot must match fixture");
+        assertEquals(3, ModelMeshEngine.getExpectedToolSlot(), "Expected slot must match fixture");
 
-        AutoToolEngine.resetSession();
-        assertFalse(AutoToolEngine.isMiningSessionActive(), "Mining session must be inactive after reset");
-        assertEquals(-1, AutoToolEngine.getOriginalHotbarSlot(), "Original slot must reset to -1");
-        assertEquals(-1, AutoToolEngine.getExpectedToolSlot(), "Expected slot must reset to -1");
+        ModelMeshEngine.resetSession();
+        assertFalse(ModelMeshEngine.isMiningSessionActive(), "Mining session must be inactive after reset");
+        assertEquals(-1, ModelMeshEngine.getOriginalHotbarSlot(), "Original slot must reset to -1");
+        assertEquals(-1, ModelMeshEngine.getExpectedToolSlot(), "Expected slot must reset to -1");
     }
 
     @Test
-    @DisplayName("AutoToolConfig: Defaults reflect anti-cheat safety and combat weapon switching")
+    @DisplayName("ModelMeshConfig: Defaults reflect anti-cheat safety and combat weapon switching")
     void testConfigDefaults() {
-        AutoToolConfig cfg = new AutoToolConfig();
+        ModelMeshConfig cfg = new ModelMeshConfig();
         assertTrue(cfg.enabled, "AutoTool must be enabled by default");
         assertTrue(cfg.weaponSwitch, "Weapon switching must be enabled by default");
         assertTrue(cfg.combatGuard, "Combat guard must be enabled by default");
@@ -103,11 +103,11 @@ public class AutoToolEngineTest {
     @Test
     @DisplayName("Single slot swappedFromContainerSlot lifecycle and reset")
     void testSingleSlotLifecycle() {
-        assertEquals(-1, AutoToolEngine.getSwappedFromContainerSlot());
-        AutoToolEngine.setSwappedFromContainerSlotForTest(24);
-        assertEquals(24, AutoToolEngine.getSwappedFromContainerSlot());
-        AutoToolEngine.resetSession();
-        assertEquals(-1, AutoToolEngine.getSwappedFromContainerSlot());
+        assertEquals(-1, ModelMeshEngine.getSwappedFromContainerSlot());
+        ModelMeshEngine.setSwappedFromContainerSlotForTest(24);
+        assertEquals(24, ModelMeshEngine.getSwappedFromContainerSlot());
+        ModelMeshEngine.resetSession();
+        assertEquals(-1, ModelMeshEngine.getSwappedFromContainerSlot());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class AutoToolEngineTest {
         config.durabilitySaver = true;
         config.durabilityThreshold = 5;
 
-        assertEquals(-100.0f, AutoToolEngine.evaluateWeaponScore(null, null, config));
-        assertEquals(0.0f, AutoToolEngine.evaluateToolScore(null, null, config));
+        assertEquals(-100.0f, ModelMeshEngine.evaluateWeaponScore(null, null, config));
+        assertEquals(0.0f, ModelMeshEngine.evaluateToolScore(null, null, config));
     }
 }

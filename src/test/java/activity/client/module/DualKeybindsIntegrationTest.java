@@ -4,8 +4,8 @@ import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 import activity.client.module.api.BuiltinModules;
 import activity.client.module.api.ModuleRegistry;
-import activity.client.module.impl.combat.AutoSpearModule;
-import activity.client.module.impl.utility.AutoGGModule;
+import activity.client.module.impl.combat.VectorStreamModule;
+import activity.client.module.impl.utility.AudioWaveModule;
 import activity.client.module.keybind.Keybind;
 import activity.client.module.setting.KeybindSetting;
 import activity.client.module.setting.Setting;
@@ -36,13 +36,13 @@ public class DualKeybindsIntegrationTest {
     @Test
     @DisplayName("AutoSpear: Toggle keybind is unbound by default and trigger keybind is TAB")
     void testAutoSpearKeybindDefaults() {
-        AutoSpearModule module = (AutoSpearModule) ModuleRegistry.get(AutoSpearModule.ID);
-        assertNotNull(module, "AutoSpearModule must be registered");
+        VectorStreamModule module = (VectorStreamModule) ModuleRegistry.get(VectorStreamModule.ID);
+        assertNotNull(module, "VectorStreamModule must be registered");
 
         assertTrue(module.getKeybind().isUnbound(), "AutoSpear primary toggle keybind must be unbound by default");
 
         Setting<?> triggerSetting = module.getSetting("trigger_keybind");
-        assertNotNull(triggerSetting, "trigger_keybind setting must exist on AutoSpearModule");
+        assertNotNull(triggerSetting, "trigger_keybind setting must exist on VectorStreamModule");
         assertTrue(triggerSetting instanceof KeybindSetting, "trigger_keybind must be a KeybindSetting");
 
         Keybind triggerKeybind = ((KeybindSetting) triggerSetting).get();
@@ -56,11 +56,11 @@ public class DualKeybindsIntegrationTest {
     @Test
     @DisplayName("AutoGG: Menu keybind setting exists and defaults to GLFW_KEY_G")
     void testAutoGGMenuKeybindDefaults() {
-        AutoGGModule module = (AutoGGModule) ModuleRegistry.get(AutoGGModule.ID);
-        assertNotNull(module, "AutoGGModule must be registered");
+        AudioWaveModule module = (AudioWaveModule) ModuleRegistry.get(AudioWaveModule.ID);
+        assertNotNull(module, "AudioWaveModule must be registered");
 
         Setting<?> menuSetting = module.getSetting("menu_keybind");
-        assertNotNull(menuSetting, "menu_keybind setting must exist on AutoGGModule");
+        assertNotNull(menuSetting, "menu_keybind setting must exist on AudioWaveModule");
         assertTrue(menuSetting instanceof KeybindSetting, "menu_keybind must be a KeybindSetting");
 
         Keybind menuKeybind = ((KeybindSetting) menuSetting).get();
@@ -130,7 +130,7 @@ public class DualKeybindsIntegrationTest {
     @Test
     @DisplayName("KeybindManager: findConflict and unbindConflict behavior")
     void testKeybindConflictAndUnbind() {
-        AutoSpearModule spear = (AutoSpearModule) ModuleRegistry.get(AutoSpearModule.ID);
+        VectorStreamModule spear = (VectorStreamModule) ModuleRegistry.get(VectorStreamModule.ID);
         assertNotNull(spear);
         KeybindSetting triggerSetting = (KeybindSetting) spear.getSetting("trigger_keybind");
         assertNotNull(triggerSetting);

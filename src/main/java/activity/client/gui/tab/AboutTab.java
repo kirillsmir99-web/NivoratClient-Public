@@ -28,7 +28,7 @@ public class AboutTab extends ActivityTab {
     public static final String URL_TIKTOK = "https://www.tiktok.com/@nivorat";
     public static final String URL_DISCORD = "https://discord.gg/qkezDA7tFX";
     public static final String WATERMARK = "@virionDEV";
-    public static final String CLIENT_NAME = "CooldownHUD";
+    public static final String CLIENT_NAME = "PulseHUD";
     public static final String CLIENT_VERSION = "v1.0.0";
     public static final String DEVELOPER = "kt1xW";
 

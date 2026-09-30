@@ -7,14 +7,14 @@ import activity.client.gui.ActivityScreen;
 import activity.client.module.api.BuiltinModules;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleRegistry;
-import activity.client.module.impl.defense.AutoTotemModule;
+import activity.client.module.impl.defense.BufferPipelineModule;
 import activity.client.module.setting.BooleanSetting;
 import activity.client.module.setting.EnumSetting;
 import activity.client.module.setting.NumberSetting;
 import com.google.gson.JsonObject;
-import dev.autototem.AutoTotemConfig;
-import dev.autototem.AutoTotemController;
-import dev.autototem.AutoTotemController.State;
+import dev.buffer.BufferPipelineConfig;
+import dev.buffer.BufferPipelineController;
+import dev.buffer.BufferPipelineController.State;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -190,78 +190,78 @@ public class AutoTotemComprehensiveTest {
         ActivityConfigManager.resetDefaults();
         SafeSlotManager.reset();
         ActivityScreen.clearSession();
-        AutoTotemConfig.enabled = true;
-        AutoTotemConfig.mode = 1;
-        AutoTotemConfig.triggerHearts = 3.0;
-        AutoTotemConfig.restoreHearts = 6.0;
-        AutoTotemConfig.mainhandTriggerHearts = 3.0;
-        AutoTotemConfig.mainhandRestoreHearts = 6.0;
-        AutoTotemConfig.offhandTriggerHearts = 2.0;
-        AutoTotemConfig.offhandRestoreHearts = 5.0;
-        AutoTotemConfig.crystalTriggerHearts = 3.0;
-        AutoTotemConfig.crystalRestoreHearts = 6.0;
-        AutoTotemConfig.countAbsorption = false;
-        AutoTotemConfig.chance = 100;
-        AutoTotemConfig.returnItem = true;
-        AutoTotemConfig.returnOnPop = true;
-        AutoTotemConfig.autoRefill = true;
-        AutoTotemConfig.refillSlot = -1;
+        BufferPipelineConfig.enabled = true;
+        BufferPipelineConfig.mode = 1;
+        BufferPipelineConfig.triggerHearts = 3.0;
+        BufferPipelineConfig.restoreHearts = 6.0;
+        BufferPipelineConfig.mainhandTriggerHearts = 3.0;
+        BufferPipelineConfig.mainhandRestoreHearts = 6.0;
+        BufferPipelineConfig.offhandTriggerHearts = 2.0;
+        BufferPipelineConfig.offhandRestoreHearts = 5.0;
+        BufferPipelineConfig.crystalTriggerHearts = 3.0;
+        BufferPipelineConfig.crystalRestoreHearts = 6.0;
+        BufferPipelineConfig.countAbsorption = false;
+        BufferPipelineConfig.chance = 100;
+        BufferPipelineConfig.returnItem = true;
+        BufferPipelineConfig.returnOnPop = true;
+        BufferPipelineConfig.autoRefill = true;
+        BufferPipelineConfig.refillSlot = -1;
     }
 
     @Test
     @DisplayName("R1: count_absorption false only counts red health, ignoring absorption")
     void testEffectiveHealthWhenCountAbsorptionFalse() {
-        AutoTotemConfig.countAbsorption = false;
+        BufferPipelineConfig.countAbsorption = false;
         MockPlayer player = createMockPlayer();
 
         player.health = 8.0f;
         player.absorption = 0.0f;
-        assertEquals(8.0f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(8.0f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
 
         player.health = 8.0f;
         player.absorption = 10.0f;
-        assertEquals(8.0f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(8.0f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
 
         player.health = 1.0f;
         player.absorption = 20.0f;
-        assertEquals(1.0f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(1.0f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
 
         player.health = 0.5f;
         player.absorption = 4.0f;
-        assertEquals(0.5f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(0.5f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
     }
 
     @Test
     @DisplayName("R1: count_absorption true sums red health + absorption amount")
     void testEffectiveHealthWhenCountAbsorptionTrue() {
-        AutoTotemConfig.countAbsorption = true;
+        BufferPipelineConfig.countAbsorption = true;
         MockPlayer player = createMockPlayer();
 
         player.health = 8.0f;
         player.absorption = 0.0f;
-        assertEquals(8.0f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(8.0f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
 
         player.health = 8.0f;
         player.absorption = 6.0f;
-        assertEquals(14.0f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(14.0f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
 
         player.health = 2.5f;
         player.absorption = 4.5f;
-        assertEquals(7.0f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(7.0f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
 
         player.health = 1.0f;
         player.absorption = 16.0f;
-        assertEquals(17.0f, AutoTotemController.getEffectiveHealth(player), 0.001f);
+        assertEquals(17.0f, BufferPipelineController.getEffectiveHealth(player), 0.001f);
     }
 
     @Test
     @DisplayName("R1: Effective health calculation returns 0.0 for null player")
     void testEffectiveHealthNullPlayerSafety() {
-        AutoTotemConfig.countAbsorption = false;
-        assertEquals(0.0f, AutoTotemController.getEffectiveHealth(null), 0.001f);
+        BufferPipelineConfig.countAbsorption = false;
+        assertEquals(0.0f, BufferPipelineController.getEffectiveHealth(null), 0.001f);
 
-        AutoTotemConfig.countAbsorption = true;
-        assertEquals(0.0f, AutoTotemController.getEffectiveHealth(null), 0.001f);
+        BufferPipelineConfig.countAbsorption = true;
+        assertEquals(0.0f, BufferPipelineController.getEffectiveHealth(null), 0.001f);
     }
 
     @Test
@@ -269,25 +269,25 @@ public class AutoTotemComprehensiveTest {
     void testGainingAbsorptionAboveRestoreHeartsTriggersRestorationCondition() {
         MockPlayer player = createMockPlayer();
 
-        AutoTotemConfig.mode = 2;
-        AutoTotemConfig.triggerHearts = 3.0;
-        AutoTotemConfig.restoreHearts = 6.0;
-        float restoreHp = (float) (AutoTotemConfig.restoreHearts * 2.0);
+        BufferPipelineConfig.mode = 2;
+        BufferPipelineConfig.triggerHearts = 3.0;
+        BufferPipelineConfig.restoreHearts = 6.0;
+        float restoreHp = (float) (BufferPipelineConfig.restoreHearts * 2.0);
 
         player.health = 5.0f;
         player.absorption = 0.0f;
 
-        AutoTotemConfig.countAbsorption = false;
+        BufferPipelineConfig.countAbsorption = false;
         player.absorption = 8.0f;
-        float effectiveHpFalse = AutoTotemController.getEffectiveHealth(player);
+        float effectiveHpFalse = BufferPipelineController.getEffectiveHealth(player);
         assertEquals(5.0f, effectiveHpFalse, 0.001f);
-        boolean canRestoreFalse = AutoTotemConfig.restoreHearts > 0.0 && effectiveHpFalse >= restoreHp;
+        boolean canRestoreFalse = BufferPipelineConfig.restoreHearts > 0.0 && effectiveHpFalse >= restoreHp;
         assertFalse(canRestoreFalse, "When count_absorption is false, gaining absorption must NOT trigger restoration");
 
-        AutoTotemConfig.countAbsorption = true;
-        float effectiveHpTrue = AutoTotemController.getEffectiveHealth(player);
+        BufferPipelineConfig.countAbsorption = true;
+        float effectiveHpTrue = BufferPipelineController.getEffectiveHealth(player);
         assertEquals(13.0f, effectiveHpTrue, 0.001f);
-        boolean canRestoreTrue = AutoTotemConfig.restoreHearts > 0.0 && effectiveHpTrue >= restoreHp;
+        boolean canRestoreTrue = BufferPipelineConfig.restoreHearts > 0.0 && effectiveHpTrue >= restoreHp;
         assertTrue(canRestoreTrue, "When count_absorption is true, gaining absorption (5+8=13 >= 12) MUST trigger item restoration");
     }
 
@@ -296,31 +296,31 @@ public class AutoTotemComprehensiveTest {
     void testGainingAbsorptionInMainhandModeRestorationCondition() {
         MockPlayer player = createMockPlayer();
 
-        AutoTotemConfig.mode = 1;
-        AutoTotemConfig.triggerHearts = 3.0;
-        AutoTotemConfig.restoreHearts = 6.0;
-        float restoreHp = (float) (AutoTotemConfig.restoreHearts * 2.0);
+        BufferPipelineConfig.mode = 1;
+        BufferPipelineConfig.triggerHearts = 3.0;
+        BufferPipelineConfig.restoreHearts = 6.0;
+        float restoreHp = (float) (BufferPipelineConfig.restoreHearts * 2.0);
 
         player.health = 4.0f;
         player.absorption = 10.0f;
 
-        AutoTotemConfig.countAbsorption = false;
-        float effFalse = AutoTotemController.getEffectiveHealth(player);
+        BufferPipelineConfig.countAbsorption = false;
+        float effFalse = BufferPipelineController.getEffectiveHealth(player);
         assertEquals(4.0f, effFalse, 0.001f);
-        boolean restoreFalse = AutoTotemConfig.restoreHearts > 0.0 && effFalse >= restoreHp;
+        boolean restoreFalse = BufferPipelineConfig.restoreHearts > 0.0 && effFalse >= restoreHp;
         assertFalse(restoreFalse, "Without absorption accounting, player remains below restoration threshold");
 
-        AutoTotemConfig.countAbsorption = true;
-        float effTrue = AutoTotemController.getEffectiveHealth(player);
+        BufferPipelineConfig.countAbsorption = true;
+        float effTrue = BufferPipelineController.getEffectiveHealth(player);
         assertEquals(14.0f, effTrue, 0.001f);
-        boolean restoreTrue = AutoTotemConfig.restoreHearts > 0.0 && effTrue >= restoreHp;
+        boolean restoreTrue = BufferPipelineConfig.restoreHearts > 0.0 && effTrue >= restoreHp;
         assertTrue(restoreTrue, "With absorption accounting, player (4+10=14 >= 12) reaches restoration threshold");
     }
 
     @Test
     @DisplayName("R2: trigger_hearts setting bounds strictly match [0.5, 10.0] with step 0.5")
     void testTriggerHeartsSettingRangeBounds() {
-        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
+        IModule mod = ModuleRegistry.get(BufferPipelineModule.ID);
         assertNotNull(mod);
         NumberSetting triggerSetting = (NumberSetting) mod.getSetting("trigger_hearts");
         assertNotNull(triggerSetting);
@@ -332,21 +332,21 @@ public class AutoTotemComprehensiveTest {
 
         triggerSetting.set(0.5);
         assertEquals(0.5, triggerSetting.get(), 0.001);
-        assertEquals(0.5, AutoTotemConfig.triggerHearts, 0.001);
+        assertEquals(0.5, BufferPipelineConfig.triggerHearts, 0.001);
 
         triggerSetting.set(10.0);
         assertEquals(10.0, triggerSetting.get(), 0.001);
-        assertEquals(10.0, AutoTotemConfig.triggerHearts, 0.001);
+        assertEquals(10.0, BufferPipelineConfig.triggerHearts, 0.001);
 
         triggerSetting.set(5.5);
         assertEquals(5.5, triggerSetting.get(), 0.001);
-        assertEquals(5.5, AutoTotemConfig.triggerHearts, 0.001);
+        assertEquals(5.5, BufferPipelineConfig.triggerHearts, 0.001);
     }
 
     @Test
     @DisplayName("R2: restore_hearts setting bounds strictly match [0.0, 20.0] with step 0.5")
     void testRestoreHeartsSettingRangeBounds() {
-        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
+        IModule mod = ModuleRegistry.get(BufferPipelineModule.ID);
         assertNotNull(mod);
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_hearts");
         assertNotNull(restoreSetting);
@@ -358,15 +358,15 @@ public class AutoTotemComprehensiveTest {
 
         restoreSetting.set(0.0);
         assertEquals(0.0, restoreSetting.get(), 0.001);
-        assertEquals(0.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(0.0, BufferPipelineConfig.restoreHearts, 0.001);
 
         restoreSetting.set(20.0);
         assertEquals(20.0, restoreSetting.get(), 0.001);
-        assertEquals(20.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(20.0, BufferPipelineConfig.restoreHearts, 0.001);
 
         restoreSetting.set(12.5);
         assertEquals(12.5, restoreSetting.get(), 0.001);
-        assertEquals(12.5, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(12.5, BufferPipelineConfig.restoreHearts, 0.001);
     }
 
     @Test
@@ -374,29 +374,29 @@ public class AutoTotemComprehensiveTest {
     void testZeroRestoreHeartsDisablesRestorationCondition() {
         MockPlayer player = createMockPlayer();
 
-        AutoTotemConfig.triggerHearts = 3.0;
-        AutoTotemConfig.restoreHearts = 0.0;
-        AutoTotemConfig.returnItem = true;
+        BufferPipelineConfig.triggerHearts = 3.0;
+        BufferPipelineConfig.restoreHearts = 0.0;
+        BufferPipelineConfig.returnItem = true;
 
         player.health = 20.0f;
         player.absorption = 10.0f;
-        AutoTotemConfig.countAbsorption = true;
+        BufferPipelineConfig.countAbsorption = true;
 
-        float effectiveHp = AutoTotemController.getEffectiveHealth(player);
+        float effectiveHp = BufferPipelineController.getEffectiveHealth(player);
         assertEquals(30.0f, effectiveHp, 0.001f);
 
-        boolean canRestore = AutoTotemConfig.restoreHearts > 0.0 && effectiveHp >= (float) (AutoTotemConfig.restoreHearts * 2.0);
+        boolean canRestore = BufferPipelineConfig.restoreHearts > 0.0 && effectiveHp >= (float) (BufferPipelineConfig.restoreHearts * 2.0);
         assertFalse(canRestore, "When restore_hearts is 0.0, canRestore must be FALSE regardless of player HP (restoration completely disabled)");
 
-        AutoTotemConfig.restoreHearts = 5.0;
-        boolean canRestoreEnabled = AutoTotemConfig.restoreHearts > 0.0 && effectiveHp >= (float) (AutoTotemConfig.restoreHearts * 2.0);
+        BufferPipelineConfig.restoreHearts = 5.0;
+        boolean canRestoreEnabled = BufferPipelineConfig.restoreHearts > 0.0 && effectiveHp >= (float) (BufferPipelineConfig.restoreHearts * 2.0);
         assertTrue(canRestoreEnabled, "When restore_hearts > 0.0, canRestore evaluates to true when health is sufficient");
     }
 
     @Test
     @DisplayName("R2: offhand, main_hand, and crystal modes maintain independent threshold values")
     void testIndependentPerModeThresholdsAndReactiveSwitching() {
-        IModule mod = ModuleRegistry.get(AutoTotemModule.ID);
+        IModule mod = ModuleRegistry.get(BufferPipelineModule.ID);
         assertNotNull(mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
@@ -411,10 +411,10 @@ public class AutoTotemComprehensiveTest {
 
         assertEquals(4.0, config.autoTotemMainhandTriggerHearts, 0.001);
         assertEquals(7.5, config.autoTotemMainhandRestoreHearts, 0.001);
-        assertEquals(4.0, AutoTotemConfig.mainhandTriggerHearts, 0.001);
-        assertEquals(7.5, AutoTotemConfig.mainhandRestoreHearts, 0.001);
-        assertEquals(4.0, AutoTotemConfig.triggerHearts, 0.001);
-        assertEquals(7.5, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(4.0, BufferPipelineConfig.mainhandTriggerHearts, 0.001);
+        assertEquals(7.5, BufferPipelineConfig.mainhandRestoreHearts, 0.001);
+        assertEquals(4.0, BufferPipelineConfig.triggerHearts, 0.001);
+        assertEquals(7.5, BufferPipelineConfig.restoreHearts, 0.001);
 
         modeSetting.set("offhand");
         triggerSetting.set(1.5);
@@ -422,10 +422,10 @@ public class AutoTotemComprehensiveTest {
 
         assertEquals(1.5, config.autoTotemOffhandTriggerHearts, 0.001);
         assertEquals(0.0, config.autoTotemOffhandRestoreHearts, 0.001);
-        assertEquals(1.5, AutoTotemConfig.offhandTriggerHearts, 0.001);
-        assertEquals(0.0, AutoTotemConfig.offhandRestoreHearts, 0.001);
-        assertEquals(1.5, AutoTotemConfig.triggerHearts, 0.001);
-        assertEquals(0.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(1.5, BufferPipelineConfig.offhandTriggerHearts, 0.001);
+        assertEquals(0.0, BufferPipelineConfig.offhandRestoreHearts, 0.001);
+        assertEquals(1.5, BufferPipelineConfig.triggerHearts, 0.001);
+        assertEquals(0.0, BufferPipelineConfig.restoreHearts, 0.001);
 
         modeSetting.set("crystal");
         triggerSetting.set(5.5);
@@ -433,28 +433,28 @@ public class AutoTotemComprehensiveTest {
 
         assertEquals(5.5, config.autoTotemCrystalTriggerHearts, 0.001);
         assertEquals(14.0, config.autoTotemCrystalRestoreHearts, 0.001);
-        assertEquals(5.5, AutoTotemConfig.crystalTriggerHearts, 0.001);
-        assertEquals(14.0, AutoTotemConfig.crystalRestoreHearts, 0.001);
-        assertEquals(5.5, AutoTotemConfig.triggerHearts, 0.001);
-        assertEquals(14.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(5.5, BufferPipelineConfig.crystalTriggerHearts, 0.001);
+        assertEquals(14.0, BufferPipelineConfig.crystalRestoreHearts, 0.001);
+        assertEquals(5.5, BufferPipelineConfig.triggerHearts, 0.001);
+        assertEquals(14.0, BufferPipelineConfig.restoreHearts, 0.001);
 
         modeSetting.set("main_hand");
         assertEquals(4.0, triggerSetting.get(), 0.001);
         assertEquals(7.5, restoreSetting.get(), 0.001);
-        assertEquals(4.0, AutoTotemConfig.triggerHearts, 0.001);
-        assertEquals(7.5, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(4.0, BufferPipelineConfig.triggerHearts, 0.001);
+        assertEquals(7.5, BufferPipelineConfig.restoreHearts, 0.001);
 
         modeSetting.set("offhand");
         assertEquals(1.5, triggerSetting.get(), 0.001);
         assertEquals(0.0, restoreSetting.get(), 0.001);
-        assertEquals(1.5, AutoTotemConfig.triggerHearts, 0.001);
-        assertEquals(0.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(1.5, BufferPipelineConfig.triggerHearts, 0.001);
+        assertEquals(0.0, BufferPipelineConfig.restoreHearts, 0.001);
 
         modeSetting.set("crystal");
         assertEquals(5.5, triggerSetting.get(), 0.001);
         assertEquals(14.0, restoreSetting.get(), 0.001);
-        assertEquals(5.5, AutoTotemConfig.triggerHearts, 0.001);
-        assertEquals(14.0, AutoTotemConfig.restoreHearts, 0.001);
+        assertEquals(5.5, BufferPipelineConfig.triggerHearts, 0.001);
+        assertEquals(14.0, BufferPipelineConfig.restoreHearts, 0.001);
     }
 
     @Test
@@ -506,9 +506,9 @@ public class AutoTotemComprehensiveTest {
     @Test
     @DisplayName("R3: onTotemPop() does not trigger RESTORE_SWAP_SELECT in any mode")
     void testOnTotemPopDoesNotTriggerRestoreSwapSelect() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
 
-        AutoTotemConfig.mode = 2;
+        BufferPipelineConfig.mode = 2;
         controller.setStateForTest(State.ACTIVE);
         controller.setSwappedHotbarSlotForTest(1);
         controller.setSavedMainSlotForTest(0);
@@ -517,7 +517,7 @@ public class AutoTotemComprehensiveTest {
         assertNotEquals(State.RESTORE_SWAP_SELECT, controller.getState(), "onTotemPop in offhand mode must NOT enter RESTORE_SWAP_SELECT");
         assertEquals(State.IDLE, controller.getState());
 
-        AutoTotemConfig.mode = 1;
+        BufferPipelineConfig.mode = 1;
         controller.setStateForTest(State.HOLD_IN_HAND);
         controller.setHeldTotemHotbarSlotForTest(2);
         controller.setSavedMainSlotForTest(0);
@@ -526,7 +526,7 @@ public class AutoTotemComprehensiveTest {
         assertNotEquals(State.RESTORE_SWAP_SELECT, controller.getState(), "onTotemPop in main_hand mode must NOT enter RESTORE_SWAP_SELECT");
         assertEquals(State.IDLE, controller.getState());
 
-        AutoTotemConfig.mode = 3;
+        BufferPipelineConfig.mode = 3;
         controller.setStateForTest(State.HOLD_IN_HAND);
         controller.setHeldTotemHotbarSlotForTest(8);
         controller.setSavedMainSlotForTest(0);
@@ -539,7 +539,7 @@ public class AutoTotemComprehensiveTest {
     @Test
     @DisplayName("R3: Refill target slot pinning without drifting to empty slots")
     void testRefillTargetSlotPinningWithoutDriftingToEmptySlots() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
         MockPlayer player = createMockPlayer();
 
         ItemStack dummyWeapon = createDummyStack();
@@ -549,8 +549,8 @@ public class AutoTotemComprehensiveTest {
         player.inventory.slots[3] = ItemStack.EMPTY;
         player.inventory.slots[4] = ItemStack.EMPTY;
 
-        AutoTotemConfig.mode = 1;
-        AutoTotemConfig.refillSlot = -1;
+        BufferPipelineConfig.mode = 1;
+        BufferPipelineConfig.refillSlot = -1;
 
         int pinnedSlot = controller.resolveRefillTargetSlotForTest(player, 2);
         assertEquals(2, pinnedSlot, "Preferred slot 2 must be strictly pinned even though slot 1 is empty");
@@ -559,12 +559,12 @@ public class AutoTotemComprehensiveTest {
         int pinnedFromLast = controller.resolveRefillTargetSlotForTest(player, -1);
         assertEquals(3, pinnedFromLast, "Last totem slot 3 must be strictly pinned even though slots 1 and 2 are empty");
 
-        AutoTotemConfig.refillSlot = 4;
+        BufferPipelineConfig.refillSlot = 4;
         int explicitConfigSlot = controller.resolveRefillTargetSlotForTest(player, 1);
         assertEquals(4, explicitConfigSlot, "Explicit refillSlot setting must take precedence");
 
-        AutoTotemConfig.refillSlot = -1;
-        AutoTotemConfig.mode = 3;
+        BufferPipelineConfig.refillSlot = -1;
+        BufferPipelineConfig.mode = 3;
         int crystalPinnedSlot = controller.resolveRefillTargetSlotForTest((ClientPlayerEntity) null, 1);
         assertEquals(8, crystalPinnedSlot, "Crystal mode must strictly pin to designated crystal slot 8");
     }
@@ -572,7 +572,7 @@ public class AutoTotemComprehensiveTest {
     @Test
     @DisplayName("R3: Concurrency guard: onTotemPop() is ignored during active refill states")
     void testConcurrencyGuardDuringRefillStates() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
 
         controller.setStateForTest(State.REFILL_WAIT_OPEN);
         controller.onTotemPop((MinecraftClient) null);
@@ -590,7 +590,7 @@ public class AutoTotemComprehensiveTest {
     @Test
     @DisplayName("R3: Zero selectedSlot disruption during inventory refill setup and finish")
     void testZeroSelectedSlotDisruptionDuringRefill() {
-        AutoTotemController controller = new AutoTotemController();
+        BufferPipelineController controller = new BufferPipelineController();
         MockPlayer player = createMockPlayer();
 
         player.inventory.selected = 0;

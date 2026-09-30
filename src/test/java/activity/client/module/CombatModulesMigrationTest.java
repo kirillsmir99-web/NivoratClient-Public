@@ -7,10 +7,10 @@ import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleRegistry;
 import activity.client.module.api.NivoratModule;
-import activity.client.module.impl.combat.AutoMaceModule;
-import activity.client.module.impl.combat.AutoShieldbreakerModule;
-import activity.client.module.impl.combat.AutoSpearModule;
-import activity.client.module.impl.combat.AutoStunSlamModule;
+import activity.client.module.impl.combat.ParticlePhysicsModule;
+import activity.client.module.impl.combat.ShaderPassModule;
+import activity.client.module.impl.combat.VectorStreamModule;
+import activity.client.module.impl.combat.MatrixTransformModule;
 import activity.client.module.setting.BooleanSetting;
 import activity.client.module.setting.DoubleSetting;
 import activity.client.module.setting.EnumSetting;
@@ -19,9 +19,9 @@ import activity.client.module.setting.KeybindSetting;
 import activity.client.module.setting.NumberSetting;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
-import dev.momentum.SpearConfig;
-import dev.nivora.ShieldBreakerConfig;
-import dev.sunder.SunderConfig;
+import dev.vector.VectorStreamConfig;
+import dev.shader.ShaderPassConfig;
+import dev.particle.ParticlePhysicsConfig;
 import net.redstone.optimizer.config.RedstoneOptimizerConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +46,7 @@ public class CombatModulesMigrationTest {
 
     @Test
     void testCombatModulesRegisteredAsNivoratModule() {
-        List<String> combatIds = List.of(AutoMaceModule.ID, AutoSpearModule.ID, AutoShieldbreakerModule.ID, AutoStunSlamModule.ID);
+        List<String> combatIds = List.of(ParticlePhysicsModule.ID, VectorStreamModule.ID, ShaderPassModule.ID, MatrixTransformModule.ID);
         for (String id : combatIds) {
             IModule module = ModuleRegistry.get(id);
             assertNotNull(module, "Module " + id + " must be registered");
@@ -57,7 +57,7 @@ public class CombatModulesMigrationTest {
 
     @Test
     void testCombatSettingGroupsStrictOrder() {
-        List<String> combatIds = List.of(AutoMaceModule.ID, AutoSpearModule.ID, AutoShieldbreakerModule.ID, AutoStunSlamModule.ID);
+        List<String> combatIds = List.of(ParticlePhysicsModule.ID, VectorStreamModule.ID, ShaderPassModule.ID, MatrixTransformModule.ID);
         for (String id : combatIds) {
             IModule module = ModuleRegistry.get(id);
             assertNotNull(module);
@@ -78,8 +78,8 @@ public class CombatModulesMigrationTest {
 
     @Test
     void testAutoMaceSettingsAndEngineSync() {
-        IModule mod = ModuleRegistry.get(AutoMaceModule.ID);
-        assertInstanceOf(AutoMaceModule.class, mod);
+        IModule mod = ModuleRegistry.get(ParticlePhysicsModule.ID);
+        assertInstanceOf(ParticlePhysicsModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
@@ -137,8 +137,8 @@ public class CombatModulesMigrationTest {
 
     @Test
     void testAutoSpearSettingsAndControllerSync() {
-        IModule mod = ModuleRegistry.get(AutoSpearModule.ID);
-        assertInstanceOf(AutoSpearModule.class, mod);
+        IModule mod = ModuleRegistry.get(VectorStreamModule.ID);
+        assertInstanceOf(VectorStreamModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertTrue(mod.getKeybind().isUnbound(), "AutoSpear primary toggle keybind is unbound by default to avoid collision with trigger keybind");
@@ -157,58 +157,58 @@ public class CombatModulesMigrationTest {
 
         NumberSetting initDelaySetting = (NumberSetting) mod.getSetting("restore_delay");
         assertEquals(185.0, initDelaySetting.get(), 0.001);
-        assertEquals(185, SpearConfig.maxDelayMs);
+        assertEquals(185, VectorStreamConfig.maxDelayMs);
 
         EnumSetting secSetting = (EnumSetting) mod.getSetting("security_mode");
         assertEquals(List.of("legit", "semi_legit", "rage"), secSetting.getOptions());
 
         secSetting.set("semi_legit");
         assertEquals("semi_legit", config.autoSpearSecurityMode);
-        assertEquals(SpearConfig.MODE_SEMI_LEGIT, SpearConfig.securityMode);
+        assertEquals(VectorStreamConfig.MODE_SEMI_LEGIT, VectorStreamConfig.securityMode);
 
         secSetting.set("rage");
         assertEquals("rage", config.autoSpearSecurityMode);
-        assertEquals(SpearConfig.MODE_RAGE, SpearConfig.securityMode);
+        assertEquals(VectorStreamConfig.MODE_RAGE, VectorStreamConfig.securityMode);
 
         secSetting.set("legit");
         assertEquals("legit", config.autoSpearSecurityMode);
-        assertEquals(SpearConfig.MODE_LEGIT, SpearConfig.securityMode);
+        assertEquals(VectorStreamConfig.MODE_LEGIT, VectorStreamConfig.securityMode);
 
         EnumSetting prioSetting = (EnumSetting) mod.getSetting("priority_mode");
         prioSetting.set("lunge_1");
-        assertEquals(SpearConfig.PRIORITY_LUNGE_1, SpearConfig.priorityMode);
+        assertEquals(VectorStreamConfig.PRIORITY_LUNGE_1, VectorStreamConfig.priorityMode);
 
         prioSetting.set("lunge_2");
-        assertEquals(SpearConfig.PRIORITY_LUNGE_2, SpearConfig.priorityMode);
+        assertEquals(VectorStreamConfig.PRIORITY_LUNGE_2, VectorStreamConfig.priorityMode);
 
         prioSetting.set("lunge_3");
-        assertEquals(SpearConfig.PRIORITY_LUNGE_3, SpearConfig.priorityMode);
+        assertEquals(VectorStreamConfig.PRIORITY_LUNGE_3, VectorStreamConfig.priorityMode);
 
         prioSetting.set("random");
-        assertEquals(SpearConfig.PRIORITY_RANDOM, SpearConfig.priorityMode);
+        assertEquals(VectorStreamConfig.PRIORITY_RANDOM, VectorStreamConfig.priorityMode);
 
         prioSetting.set("auto");
-        assertEquals(SpearConfig.PRIORITY_AUTO, SpearConfig.priorityMode);
+        assertEquals(VectorStreamConfig.PRIORITY_AUTO, VectorStreamConfig.priorityMode);
 
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("restore_delay");
         delaySetting.set(85.0);
-        assertEquals(85, SpearConfig.maxDelayMs);
+        assertEquals(85, VectorStreamConfig.maxDelayMs);
 
         NumberSetting missSetting = (NumberSetting) mod.getSetting("miss_chance");
         missSetting.set(5.0);
-        assertEquals(5, SpearConfig.missChance);
+        assertEquals(5, VectorStreamConfig.missChance);
 
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         randSetting.set(false);
-        assertFalse(SpearConfig.randomDelay);
+        assertFalse(VectorStreamConfig.randomDelay);
         randSetting.set(true);
-        assertTrue(SpearConfig.randomDelay);
+        assertTrue(VectorStreamConfig.randomDelay);
     }
 
     @Test
     void testAutoShieldbreakerSettingsAndControllerSync() {
-        IModule mod = ModuleRegistry.get(AutoShieldbreakerModule.ID);
-        assertInstanceOf(AutoShieldbreakerModule.class, mod);
+        IModule mod = ModuleRegistry.get(ShaderPassModule.ID);
+        assertInstanceOf(ShaderPassModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(GLFW.GLFW_KEY_J, mod.getKeybind().getKeyCode());
@@ -226,57 +226,57 @@ public class CombatModulesMigrationTest {
 
         EnumSetting modeSetting = (EnumSetting) mod.getSetting("mode");
         modeSetting.set("semi_auto");
-        assertEquals(ShieldBreakerConfig.MODE_SEMI_AUTO, ShieldBreakerConfig.mode);
+        assertEquals(ShaderPassConfig.MODE_SEMI_AUTO, ShaderPassConfig.mode);
         modeSetting.set("full_auto");
-        assertEquals(ShieldBreakerConfig.MODE_FULL_AUTO, ShieldBreakerConfig.mode);
+        assertEquals(ShaderPassConfig.MODE_FULL_AUTO, ShaderPassConfig.mode);
 
         NumberSetting distSetting = (NumberSetting) mod.getSetting("distance");
         distSetting.set(3.2);
-        assertEquals(3.2, ShieldBreakerConfig.triggerDistance, 0.001);
+        assertEquals(3.2, ShaderPassConfig.triggerDistance, 0.001);
 
         NumberSetting chanceSetting = (NumberSetting) mod.getSetting("chance");
         chanceSetting.set(80.0);
-        assertEquals(80, ShieldBreakerConfig.chance);
+        assertEquals(80, ShaderPassConfig.chance);
 
         NumberSetting switchSetting = (NumberSetting) mod.getSetting("switch_delay");
         switchSetting.set(40.0);
-        assertEquals(40, ShieldBreakerConfig.switchDelayMs);
+        assertEquals(40, ShaderPassConfig.switchDelayMs);
 
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_delay");
         restoreSetting.set(60.0);
-        assertEquals(60, ShieldBreakerConfig.restoreDelayMs);
+        assertEquals(60, ShaderPassConfig.restoreDelayMs);
 
         assertNotNull(mod.getSetting("reaction_delay"));
         NumberSetting reactSetting = (NumberSetting) mod.getSetting("reaction_delay");
         reactSetting.set(0.35);
-        assertEquals(0.35, ShieldBreakerConfig.reactionDelaySec, 0.001);
+        assertEquals(0.35, ShaderPassConfig.reactionDelaySec, 0.001);
         assertEquals(0.35, config.autoShieldbreakerReactionDelaySec, 0.001);
 
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         randSetting.set(false);
-        assertFalse(ShieldBreakerConfig.randomDelay);
+        assertFalse(ShaderPassConfig.randomDelay);
         randSetting.set(true);
-        assertTrue(ShieldBreakerConfig.randomDelay);
+        assertTrue(ShaderPassConfig.randomDelay);
 
         BooleanSetting abortSetting = (BooleanSetting) mod.getSetting("abort_on_manual_switch");
         abortSetting.set(false);
         assertFalse(config.autoShieldbreakerAbortOnManualSwitch);
-        assertFalse(ShieldBreakerConfig.abortOnManualSwitch);
+        assertFalse(ShaderPassConfig.abortOnManualSwitch);
         abortSetting.set(true);
         assertTrue(config.autoShieldbreakerAbortOnManualSwitch);
-        assertTrue(ShieldBreakerConfig.abortOnManualSwitch);
+        assertTrue(ShaderPassConfig.abortOnManualSwitch);
 
         BooleanSetting legitSetting = (BooleanSetting) mod.getSetting("legit_mode");
         legitSetting.set(false);
-        assertFalse(ShieldBreakerConfig.legitMode);
+        assertFalse(ShaderPassConfig.legitMode);
         legitSetting.set(true);
-        assertTrue(ShieldBreakerConfig.legitMode);
+        assertTrue(ShaderPassConfig.legitMode);
     }
 
     @Test
     void testAutoStunSlamSettingsAndControllerSync() {
-        IModule mod = ModuleRegistry.get(AutoStunSlamModule.ID);
-        assertInstanceOf(AutoStunSlamModule.class, mod);
+        IModule mod = ModuleRegistry.get(MatrixTransformModule.ID);
+        assertInstanceOf(MatrixTransformModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(GLFW.GLFW_KEY_M, mod.getKeybind().getKeyCode());
@@ -298,27 +298,27 @@ public class CombatModulesMigrationTest {
         NumberSetting airSetting = (NumberSetting) mod.getSetting("air_time");
         airSetting.set(1.5);
         assertEquals(1.5, config.autoStunSlamAirTimeSec, 0.001);
-        assertEquals(1.5, SunderConfig.airTimeSec, 0.001);
+        assertEquals(1.5, ParticlePhysicsConfig.airTimeSec, 0.001);
 
         BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
         randSetting.set(false);
         assertFalse(config.autoStunSlamRandomDelay);
-        assertFalse(SunderConfig.randomDelay);
+        assertFalse(ParticlePhysicsConfig.randomDelay);
         randSetting.set(true);
         assertTrue(config.autoStunSlamRandomDelay);
-        assertTrue(SunderConfig.randomDelay);
+        assertTrue(ParticlePhysicsConfig.randomDelay);
 
         NumberSetting axeSetting = (NumberSetting) mod.getSetting("axe_delay");
         axeSetting.set(50.0);
-        assertEquals(50, SunderConfig.axeDelayMs);
+        assertEquals(50, ParticlePhysicsConfig.axeDelayMs);
 
         NumberSetting maceSetting = (NumberSetting) mod.getSetting("mace_delay");
         maceSetting.set(55.0);
-        assertEquals(55, SunderConfig.maceDelayMs);
+        assertEquals(55, ParticlePhysicsConfig.maceDelayMs);
 
         NumberSetting restoreSetting = (NumberSetting) mod.getSetting("restore_delay");
         restoreSetting.set(65.0);
-        assertEquals(65, SunderConfig.restoreDelayMs);
+        assertEquals(65, ParticlePhysicsConfig.restoreDelayMs);
     }
 
     @Test

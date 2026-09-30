@@ -45,7 +45,11 @@ public final class ActivityConfigManager {
     }
 
     private static Path resolveConfigPath() {
-        return resolveConfigDir().resolve("cooldownhud.json");
+        Path pulsePath = resolveConfigDir().resolve("pulsehud.json");
+        if (Files.exists(pulsePath)) return pulsePath;
+        Path cooldownPath = resolveConfigDir().resolve("cooldownhud.json");
+        if (Files.exists(cooldownPath)) return cooldownPath;
+        return pulsePath;
     }
 
     private static Path resolveLegacyConfigPath() {
@@ -162,7 +166,7 @@ public final class ActivityConfigManager {
             save();
             return true;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to parse imported preset: {}", e.getMessage());
+            ActivityClient.LOGGER.debug("[PulseHUD] Failed to parse imported preset: {}", e.getMessage());
             return false;
         }
     }
@@ -260,7 +264,7 @@ public final class ActivityConfigManager {
             cleanLegacyFiles();
             return currentConfig;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to parse configuration at {}: {}", configPath, e.getMessage());
+            ActivityClient.LOGGER.debug("[PulseHUD] Failed to parse configuration at {}: {}", configPath, e.getMessage());
             handleCorruptedConfig(e);
             cleanLegacyFiles();
             return currentConfig;
@@ -315,7 +319,7 @@ public final class ActivityConfigManager {
                 Files.createDirectories(parentDir);
             }
 
-            Path tempPath = configPath.resolveSibling("cooldownhud.json.tmp");
+            Path tempPath = configPath.resolveSibling(configPath.getFileName().toString() + ".tmp");
             Files.writeString(tempPath, outputJson, StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 
@@ -331,7 +335,7 @@ public final class ActivityConfigManager {
             manualDirty = false;
             return true;
         } catch (IOException e) {
-            ActivityClient.LOGGER.debug("[CooldownHUD] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[PulseHUD] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
             return false;
         }
     }
@@ -360,7 +364,7 @@ public final class ActivityConfigManager {
         try {
             Path configPath = resolveConfigPath();
             long timestamp = System.currentTimeMillis();
-            Path backupPath = configPath.resolveSibling("cooldownhud.json.corrupted_" + timestamp + ".bak");
+            Path backupPath = configPath.resolveSibling(configPath.getFileName().toString() + ".corrupted_" + timestamp + ".bak");
             Files.copy(configPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ignored) {
         }

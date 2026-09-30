@@ -277,7 +277,7 @@ public class ActivityConfig {
     public String filterRegex = ".*";
     public String gcPolicy = "Консервативный";
 
-    public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
+    public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
     public String menuCommand = "nt";
     public String fontFamily = "minecraft";
     public String typographySize = "normal";
@@ -360,7 +360,7 @@ public class ActivityConfig {
         public int hudCustomX = -1;
         public int hudCustomY = -1;
         public boolean hudShowActiveModules = false;
-        public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
+        public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
         public String menuCommand = "nt";
         public String language = "auto";
         @Override
@@ -736,7 +736,7 @@ public class ActivityConfig {
         this.sliderSoundEnabled = true;
         this.animationsEnabled = true;
         this.spatialOpenAnimation = true;
-        this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
+        this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
         this.menuCommand = "nt";
         this.client = new ClientSection();
         syncClientSection();
@@ -783,7 +783,7 @@ public class ActivityConfig {
         if (this.autoPearlCatchHorizontalKeybind == null) this.autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
         if (this.autoGGMenuKeybind == null) this.autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
         if (this.cartHudKeybind == null) this.cartHudKeybind = new Keybind();
-        if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_O);
+        if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
         if (this.menuCommand == null || this.menuCommand.isBlank()) this.menuCommand = "nt";
 
         if (this.autoStunSlimeEnabled != null) {

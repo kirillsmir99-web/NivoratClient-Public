@@ -1,4 +1,4 @@
-# CooldownHUD
+# PulseHUD
 
 > Высокопроизводительный клиентский мод для Minecraft **Fabric 1.21.11** (тестовая сборка test3) с кастомным интерфейсом нового поколения, звуковым движком и боевыми модулями.
 
@@ -75,7 +75,7 @@ cd NivoratClient
 ./gradlew clean build
 
 # Скомпилированный артефакт появится в:
-# build/libs/CooldownHUD.jar
+# build/libs/PulseHUD.jar
 ```
 
 ---

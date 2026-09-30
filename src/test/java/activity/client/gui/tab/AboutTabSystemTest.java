@@ -39,7 +39,7 @@ public class AboutTabSystemTest {
 
     @Test
     void testAboutTabHeaderConstantsAndMetadata() {
-        assertEquals("CooldownHUD", AboutTab.CLIENT_NAME);
+        assertEquals("PulseHUD", AboutTab.CLIENT_NAME);
         assertEquals("v1.0.0", AboutTab.CLIENT_VERSION);
         assertEquals("kt1xW", AboutTab.DEVELOPER);
         assertEquals("@virionDEV", AboutTab.WATERMARK);

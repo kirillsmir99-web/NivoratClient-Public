@@ -1453,4 +1453,9 @@ public class ActivityScreen extends Screen {
         }
         super.removed();
     }
+
+    @Override
+    public boolean shouldPause() {
+        return false;
+    }
 }

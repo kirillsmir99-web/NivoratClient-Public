@@ -9,9 +9,9 @@ import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleRegistry;
 import activity.client.module.api.NivoratModule;
-import activity.client.module.impl.defense.CartRefillModule;
-import activity.client.module.impl.utility.AutoGGModule;
-import activity.client.module.impl.utility.AutoToolModule;
+import activity.client.module.impl.defense.ChunkBufferModule;
+import activity.client.module.impl.utility.AudioWaveModule;
+import activity.client.module.impl.utility.ModelMeshModule;
 import activity.client.module.impl.utility.CartHudModule;
 import activity.client.module.impl.utility.HPReaperModule;
 import activity.client.module.service.CartStateService;
@@ -29,8 +29,8 @@ import dev.hpreaper.VitalityConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.elarion.autogg.AutoGGClient;
-import ru.elarion.autotool.AutoToolClient;
+import dev.audio.AudioSyncClient;
+import dev.mesh.ModelMeshClient;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -52,7 +52,7 @@ public class UtilityModulesMigrationTest {
 
     @Test
     void testUtilityModulesRegisteredAsNivoratModule() {
-        List<String> utilityIds = List.of(HPReaperModule.ID, AutoToolModule.ID, AutoGGModule.ID, CartHudModule.ID);
+        List<String> utilityIds = List.of(HPReaperModule.ID, ModelMeshModule.ID, AudioWaveModule.ID, CartHudModule.ID);
         for (String id : utilityIds) {
             IModule module = ModuleRegistry.get(id);
             assertNotNull(module, "Module " + id + " must be registered in ModuleRegistry");
@@ -63,7 +63,7 @@ public class UtilityModulesMigrationTest {
 
     @Test
     void testUtilitySettingGroupsStrictOrder() {
-        List<String> utilityIds = List.of(HPReaperModule.ID, AutoToolModule.ID, AutoGGModule.ID, CartHudModule.ID);
+        List<String> utilityIds = List.of(HPReaperModule.ID, ModelMeshModule.ID, AudioWaveModule.ID, CartHudModule.ID);
         for (String id : utilityIds) {
             IModule module = ModuleRegistry.get(id);
             assertNotNull(module);
@@ -155,9 +155,9 @@ public class UtilityModulesMigrationTest {
 
     @Test
     void testAutoToolSettingsAndEngineSync() {
-        IModule mod = ModuleRegistry.get(AutoToolModule.ID);
-        assertInstanceOf(AutoToolModule.class, mod);
-        AutoToolModule toolMod = (AutoToolModule) mod;
+        IModule mod = ModuleRegistry.get(ModelMeshModule.ID);
+        assertInstanceOf(ModelMeshModule.class, mod);
+        ModelMeshModule toolMod = (ModelMeshModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
@@ -179,26 +179,26 @@ public class UtilityModulesMigrationTest {
         BooleanSetting silkSetting = (BooleanSetting) mod.getSetting("prefer_silk");
         silkSetting.set(true);
         assertTrue(config.autoToolPreferSilkTouch);
-        assertTrue(AutoToolClient.CONFIG.preferSilkTouch);
+        assertTrue(ModelMeshClient.CONFIG.preferSilkTouch);
         silkSetting.set(false);
         assertFalse(config.autoToolPreferSilkTouch);
-        assertFalse(AutoToolClient.CONFIG.preferSilkTouch);
+        assertFalse(ModelMeshClient.CONFIG.preferSilkTouch);
 
         BooleanSetting weaponSetting = (BooleanSetting) mod.getSetting("weapon_switch");
         weaponSetting.set(false);
         assertFalse(config.autoToolWeaponSwitch);
-        assertFalse(AutoToolClient.CONFIG.weaponSwitch);
+        assertFalse(ModelMeshClient.CONFIG.weaponSwitch);
         weaponSetting.set(true);
         assertTrue(config.autoToolWeaponSwitch);
-        assertTrue(AutoToolClient.CONFIG.weaponSwitch);
+        assertTrue(ModelMeshClient.CONFIG.weaponSwitch);
 
         BooleanSetting restoreSetting = (BooleanSetting) mod.getSetting("restore_previous");
         restoreSetting.set(false);
         assertFalse(config.autoToolRestorePrevious);
-        assertFalse(AutoToolClient.CONFIG.restorePreviousItem);
+        assertFalse(ModelMeshClient.CONFIG.restorePreviousItem);
         restoreSetting.set(true);
         assertTrue(config.autoToolRestorePrevious);
-        assertTrue(AutoToolClient.CONFIG.restorePreviousItem);
+        assertTrue(ModelMeshClient.CONFIG.restorePreviousItem);
 
         NumberSetting duraSetting = (NumberSetting) mod.getSetting("durability_threshold");
         assertEquals(1.0, duraSetting.getMin(), 0.001);
@@ -207,47 +207,47 @@ public class UtilityModulesMigrationTest {
         assertTrue(duraSetting.isIntegerOnly());
         duraSetting.set(12.0);
         assertEquals(12.0, config.autoToolDurabilityThreshold, 0.001);
-        assertEquals(12, AutoToolClient.CONFIG.durabilityThreshold);
+        assertEquals(12, ModelMeshClient.CONFIG.durabilityThreshold);
 
         BooleanSetting combatGuard = (BooleanSetting) mod.getSetting("combat_guard");
         combatGuard.set(false);
         assertFalse(config.autoToolCombatGuard);
-        assertFalse(AutoToolClient.CONFIG.combatGuard);
+        assertFalse(ModelMeshClient.CONFIG.combatGuard);
         combatGuard.set(true);
         assertTrue(config.autoToolCombatGuard);
-        assertTrue(AutoToolClient.CONFIG.combatGuard);
+        assertTrue(ModelMeshClient.CONFIG.combatGuard);
 
         BooleanSetting duraSaver = (BooleanSetting) mod.getSetting("durability_saver");
         duraSaver.set(false);
         assertFalse(config.autoToolDurabilitySaver);
-        assertFalse(AutoToolClient.CONFIG.durabilitySaver);
+        assertFalse(ModelMeshClient.CONFIG.durabilitySaver);
         duraSaver.set(true);
         assertTrue(config.autoToolDurabilitySaver);
-        assertTrue(AutoToolClient.CONFIG.durabilitySaver);
+        assertTrue(ModelMeshClient.CONFIG.durabilitySaver);
 
         BooleanSetting ignoreInstant = (BooleanSetting) mod.getSetting("ignore_instant_break");
         ignoreInstant.set(false);
         assertFalse(config.autoToolIgnoreInstantBreak);
-        assertFalse(AutoToolClient.CONFIG.ignoreInstantBreak);
+        assertFalse(ModelMeshClient.CONFIG.ignoreInstantBreak);
         ignoreInstant.set(true);
         assertTrue(config.autoToolIgnoreInstantBreak);
-        assertTrue(AutoToolClient.CONFIG.ignoreInstantBreak);
+        assertTrue(ModelMeshClient.CONFIG.ignoreInstantBreak);
 
         BooleanSetting lockMining = (BooleanSetting) mod.getSetting("lock_while_mining");
         lockMining.set(false);
         assertFalse(config.autoToolLockWhileMining);
-        assertFalse(AutoToolClient.CONFIG.lockWhileMining);
+        assertFalse(ModelMeshClient.CONFIG.lockWhileMining);
         lockMining.set(true);
         assertTrue(config.autoToolLockWhileMining);
-        assertTrue(AutoToolClient.CONFIG.lockWhileMining);
+        assertTrue(ModelMeshClient.CONFIG.lockWhileMining);
 
         BooleanSetting legitMode = (BooleanSetting) mod.getSetting("legit_mode");
         legitMode.set(false);
         assertFalse(config.autoToolLegitMode);
-        assertFalse(AutoToolClient.CONFIG.legitMode);
+        assertFalse(ModelMeshClient.CONFIG.legitMode);
         legitMode.set(true);
         assertTrue(config.autoToolLegitMode);
-        assertTrue(AutoToolClient.CONFIG.legitMode);
+        assertTrue(ModelMeshClient.CONFIG.legitMode);
 
         BooleanSetting singleSlot = (BooleanSetting) mod.getSetting("single_slot_mode");
         EnumSetting singleSlotSelector = (EnumSetting) mod.getSetting("single_slot");
@@ -256,36 +256,36 @@ public class UtilityModulesMigrationTest {
 
         singleSlot.set(false);
         assertFalse(config.autoToolSingleSlotMode);
-        assertFalse(AutoToolClient.CONFIG.singleSlotMode);
+        assertFalse(ModelMeshClient.CONFIG.singleSlotMode);
         assertFalse(singleSlotSelector.isVisible());
 
         singleSlot.set(true);
         assertTrue(config.autoToolSingleSlotMode);
-        assertTrue(AutoToolClient.CONFIG.singleSlotMode);
+        assertTrue(ModelMeshClient.CONFIG.singleSlotMode);
         assertTrue(singleSlotSelector.isVisible());
 
         singleSlotSelector.set("4");
         assertEquals(3, config.autoToolSingleSlot);
-        assertEquals(3, AutoToolClient.CONFIG.singleSlot);
+        assertEquals(3, ModelMeshClient.CONFIG.singleSlot);
 
         singleSlot.set(false);
         assertFalse(config.autoToolSingleSlotMode);
-        assertFalse(AutoToolClient.CONFIG.singleSlotMode);
+        assertFalse(ModelMeshClient.CONFIG.singleSlotMode);
 
         mod.setEnabled(false);
         assertFalse(config.autoToolEnabled);
-        assertFalse(AutoToolClient.CONFIG.enabled);
+        assertFalse(ModelMeshClient.CONFIG.enabled);
 
         mod.setEnabled(true);
         assertTrue(config.autoToolEnabled);
-        assertTrue(AutoToolClient.CONFIG.enabled);
+        assertTrue(ModelMeshClient.CONFIG.enabled);
     }
 
     @Test
     void testAutoGGSettingsAndEngineSync() {
-        IModule mod = ModuleRegistry.get(AutoGGModule.ID);
-        assertInstanceOf(AutoGGModule.class, mod);
-        AutoGGModule ggMod = (AutoGGModule) mod;
+        IModule mod = ModuleRegistry.get(AudioWaveModule.ID);
+        assertInstanceOf(AudioWaveModule.class, mod);
+        AudioWaveModule ggMod = (AudioWaveModule) mod;
         ActivityConfig config = ActivityConfigManager.getConfig();
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
@@ -300,15 +300,15 @@ public class UtilityModulesMigrationTest {
         StringSetting phraseSetting = (StringSetting) mod.getSetting("phrase");
         phraseSetting.set("Well Played!");
         assertEquals("Well Played!", config.autoGGPhrase);
-        assertTrue(AutoGGClient.CONFIG.phrases.contains("Well Played!"));
+        assertTrue(AudioSyncClient.CONFIG.phrases.contains("Well Played!"));
 
         BooleanSetting randomOrder = (BooleanSetting) mod.getSetting("random_order");
         randomOrder.set(true);
         assertTrue(config.autoGGRandomOrder);
-        assertTrue(AutoGGClient.CONFIG.randomOrder);
+        assertTrue(AudioSyncClient.CONFIG.randomOrder);
         randomOrder.set(false);
         assertFalse(config.autoGGRandomOrder);
-        assertFalse(AutoGGClient.CONFIG.randomOrder);
+        assertFalse(AudioSyncClient.CONFIG.randomOrder);
 
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("delay_ms");
         assertEquals(100.0, delaySetting.getMin(), 0.001);
@@ -317,33 +317,33 @@ public class UtilityModulesMigrationTest {
         assertTrue(delaySetting.isIntegerOnly());
         delaySetting.set(1200.0);
         assertEquals(1200.0, config.autoGGDelayMs, 0.001);
-        assertEquals(1200.0, AutoGGClient.customDelayMs, 0.001);
+        assertEquals(1200.0, AudioSyncClient.customDelayMs, 0.001);
 
         BooleanSetting sendKill = (BooleanSetting) mod.getSetting("send_on_kill");
         sendKill.set(false);
         assertFalse(config.autoGGSendOnKill);
-        assertFalse(AutoGGClient.CONFIG.sendOnKill);
+        assertFalse(AudioSyncClient.CONFIG.sendOnKill);
         sendKill.set(true);
         assertTrue(config.autoGGSendOnKill);
-        assertTrue(AutoGGClient.CONFIG.sendOnKill);
+        assertTrue(AudioSyncClient.CONFIG.sendOnKill);
 
         BooleanSetting sendDeath = (BooleanSetting) mod.getSetting("send_on_death");
         sendDeath.set(true);
         assertTrue(config.autoGGSendOnOwnDeath);
-        assertTrue(AutoGGClient.CONFIG.sendOnOwnDeath);
+        assertTrue(AudioSyncClient.CONFIG.sendOnOwnDeath);
         sendDeath.set(false);
         assertFalse(config.autoGGSendOnOwnDeath);
-        assertFalse(AutoGGClient.CONFIG.sendOnOwnDeath);
+        assertFalse(AudioSyncClient.CONFIG.sendOnOwnDeath);
 
         mod.setEnabled(false);
         assertFalse(config.autoGGEnabled);
-        assertFalse(AutoGGClient.CONFIG.enabled);
+        assertFalse(AudioSyncClient.CONFIG.enabled);
 
         mod.setEnabled(true);
         assertTrue(config.autoGGEnabled);
-        assertTrue(AutoGGClient.CONFIG.enabled);
+        assertTrue(AudioSyncClient.CONFIG.enabled);
 
-        assertDoesNotThrow(() -> AutoGGClient.recordAttack(42));
+        assertDoesNotThrow(() -> AudioSyncClient.recordAttack(42));
     }
 
     @Test
@@ -379,7 +379,7 @@ public class UtilityModulesMigrationTest {
         assertTrue(config.cartHudEnabled);
         assertTrue(CartHudConfig.enabled);
 
-        IModule refillMod = ModuleRegistry.get(CartRefillModule.ID);
+        IModule refillMod = ModuleRegistry.get(ChunkBufferModule.ID);
         assertNotNull(refillMod);
         assertNull(refillMod.getSetting("open_editor"), "CartRefill must NOT have open_editor setting");
         assertNull(refillMod.getSetting("reset_position"), "CartRefill must NOT have reset_position setting");
@@ -548,20 +548,20 @@ public class UtilityModulesMigrationTest {
 
     @Test
     void testAutoGGSelectedPhraseSync() {
-        IModule mod = ModuleRegistry.get(AutoGGModule.ID);
+        IModule mod = ModuleRegistry.get(AudioWaveModule.ID);
         assertNotNull(mod);
-        AutoGGModule ggMod = (AutoGGModule) mod;
+        AudioWaveModule ggMod = (AudioWaveModule) mod;
 
         StringSetting phraseSetting = (StringSetting) ggMod.getSetting("phrase");
         assertNotNull(phraseSetting);
 
         phraseSetting.set("EZ");
-        assertEquals("EZ", AutoGGClient.CONFIG.phrases.get(AutoGGClient.CONFIG.selected));
+        assertEquals("EZ", AudioSyncClient.CONFIG.phrases.get(AudioSyncClient.CONFIG.selected));
 
         phraseSetting.set("Great Fight!");
-        assertEquals("Great Fight!", AutoGGClient.CONFIG.phrases.get(AutoGGClient.CONFIG.selected));
-        assertFalse(AutoGGClient.CONFIG.randomOrder);
-        assertEquals("Great Fight!", AutoGGClient.CONFIG.phrase());
+        assertEquals("Great Fight!", AudioSyncClient.CONFIG.phrases.get(AudioSyncClient.CONFIG.selected));
+        assertFalse(AudioSyncClient.CONFIG.randomOrder);
+        assertEquals("Great Fight!", AudioSyncClient.CONFIG.phrase());
     }
 
     @Test

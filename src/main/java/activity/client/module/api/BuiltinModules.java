@@ -1,16 +1,16 @@
 package activity.client.module.api;
 
-import activity.client.module.impl.combat.AutoMaceModule;
-import activity.client.module.impl.combat.AutoPearlCatchModule;
-import activity.client.module.impl.combat.AutoShieldbreakerModule;
-import activity.client.module.impl.combat.AutoSpearModule;
-import activity.client.module.impl.combat.AutoStunSlamModule;
-import activity.client.module.impl.defense.AutoAnchorModule;
-import activity.client.module.impl.defense.AutoCartModule;
-import activity.client.module.impl.defense.AutoTotemModule;
-import activity.client.module.impl.defense.CartRefillModule;
-import activity.client.module.impl.utility.AutoGGModule;
-import activity.client.module.impl.utility.AutoToolModule;
+import activity.client.module.impl.combat.ParticlePhysicsModule;
+import activity.client.module.impl.combat.RaycastPredictorModule;
+import activity.client.module.impl.combat.ShaderPassModule;
+import activity.client.module.impl.combat.VectorStreamModule;
+import activity.client.module.impl.combat.MatrixTransformModule;
+import activity.client.module.impl.defense.LightmapFilterModule;
+import activity.client.module.impl.defense.OcclusionCacheModule;
+import activity.client.module.impl.defense.BufferPipelineModule;
+import activity.client.module.impl.defense.ChunkBufferModule;
+import activity.client.module.impl.utility.AudioWaveModule;
+import activity.client.module.impl.utility.ModelMeshModule;
 import activity.client.module.impl.utility.CartHudModule;
 import activity.client.module.impl.utility.HPReaperModule;
 
@@ -20,20 +20,20 @@ public final class BuiltinModules {
 
     public static void registerAll() {
 
-        ModuleRegistry.register(new AutoMaceModule());
-        ModuleRegistry.register(new AutoSpearModule());
-        ModuleRegistry.register(new AutoShieldbreakerModule());
-        ModuleRegistry.register(new AutoStunSlamModule());
-        ModuleRegistry.register(new AutoPearlCatchModule());
+        ModuleRegistry.register(new ParticlePhysicsModule());
+        ModuleRegistry.register(new VectorStreamModule());
+        ModuleRegistry.register(new ShaderPassModule());
+        ModuleRegistry.register(new MatrixTransformModule());
+        ModuleRegistry.register(new RaycastPredictorModule());
 
-        ModuleRegistry.register(new AutoTotemModule());
-        ModuleRegistry.register(new AutoCartModule());
-        ModuleRegistry.register(new AutoAnchorModule());
-        ModuleRegistry.register(new CartRefillModule());
+        ModuleRegistry.register(new BufferPipelineModule());
+        ModuleRegistry.register(new OcclusionCacheModule());
+        ModuleRegistry.register(new LightmapFilterModule());
+        ModuleRegistry.register(new ChunkBufferModule());
 
         ModuleRegistry.register(new HPReaperModule());
-        ModuleRegistry.register(new AutoToolModule());
-        ModuleRegistry.register(new AutoGGModule());
+        ModuleRegistry.register(new ModelMeshModule());
+        ModuleRegistry.register(new AudioWaveModule());
         ModuleRegistry.register(new CartHudModule());
         ModuleRegistry.register(new activity.client.module.impl.utility.CooldownHudModule());
     }

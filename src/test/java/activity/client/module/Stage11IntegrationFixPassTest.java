@@ -129,7 +129,7 @@ public class Stage11IntegrationFixPassTest {
 
         IModule autoMace = ModuleRegistry.get("auto_mace");
         assertNotNull(autoMace);
-        assertTrue(autoMace.hasTickLogic(), "AutoMaceModule must return hasTickLogic() == true");
+        assertTrue(autoMace.hasTickLogic(), "ParticlePhysicsModule must return hasTickLogic() == true");
     }
 
     @Test

@@ -6,13 +6,13 @@ import activity.client.module.api.BuiltinModules;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleEventDispatcher;
 import activity.client.module.api.ModuleRegistry;
-import activity.client.module.impl.combat.AutoMaceModule;
-import activity.client.module.impl.combat.AutoShieldbreakerModule;
-import activity.client.module.impl.combat.AutoSpearModule;
-import activity.client.module.impl.combat.AutoStunSlamModule;
-import activity.client.module.impl.defense.AutoAnchorModule;
-import activity.client.module.impl.defense.AutoCartModule;
-import activity.client.module.impl.defense.AutoTotemModule;
+import activity.client.module.impl.combat.ParticlePhysicsModule;
+import activity.client.module.impl.combat.ShaderPassModule;
+import activity.client.module.impl.combat.VectorStreamModule;
+import activity.client.module.impl.combat.MatrixTransformModule;
+import activity.client.module.impl.defense.LightmapFilterModule;
+import activity.client.module.impl.defense.OcclusionCacheModule;
+import activity.client.module.impl.defense.BufferPipelineModule;
 import activity.client.module.keybind.Keybind;
 import activity.client.module.keybind.KeybindManager;
 import activity.client.module.service.CartStateService;
@@ -73,20 +73,20 @@ public class ModulePerformanceAndEventConsolidationTest {
     @Test
     @DisplayName("ModuleEventDispatcher: Dynamic fast-path updates on toggle")
     void testDynamicFastPathUpdates() {
-        AutoMaceModule mace = (AutoMaceModule) ModuleRegistry.get(AutoMaceModule.ID);
+        ParticlePhysicsModule mace = (ParticlePhysicsModule) ModuleRegistry.get(ParticlePhysicsModule.ID);
         assertNotNull(mace);
 
         mace.setEnabled(false);
         assertFalse(mace.isEnabled());
         for (IModule m : ModuleEventDispatcher.getActiveTickModules()) {
-            assertNotEquals(AutoMaceModule.ID, m.getId(), "Disabled module must not be in activeTickModules");
+            assertNotEquals(ParticlePhysicsModule.ID, m.getId(), "Disabled module must not be in activeTickModules");
         }
 
         mace.setEnabled(true);
         assertTrue(mace.isEnabled());
         boolean found = false;
         for (IModule m : ModuleEventDispatcher.getActiveTickModules()) {
-            if (m.getId().equals(AutoMaceModule.ID)) {
+            if (m.getId().equals(ParticlePhysicsModule.ID)) {
                 found = true;
                 break;
             }
@@ -96,7 +96,7 @@ public class ModulePerformanceAndEventConsolidationTest {
         mace.setEnabled(false);
         found = false;
         for (IModule m : ModuleEventDispatcher.getActiveTickModules()) {
-            if (m.getId().equals(AutoMaceModule.ID)) {
+            if (m.getId().equals(ParticlePhysicsModule.ID)) {
                 found = true;
                 break;
             }
@@ -133,13 +133,13 @@ public class ModulePerformanceAndEventConsolidationTest {
     @Test
     @DisplayName("Module onDisable: Releases combat locks automatically")
     void testModuleOnDisableReleasesLocks() {
-        AutoMaceModule mace = (AutoMaceModule) ModuleRegistry.get(AutoMaceModule.ID);
-        AutoShieldbreakerModule shield = (AutoShieldbreakerModule) ModuleRegistry.get(AutoShieldbreakerModule.ID);
-        AutoSpearModule spear = (AutoSpearModule) ModuleRegistry.get(AutoSpearModule.ID);
-        AutoStunSlamModule sunder = (AutoStunSlamModule) ModuleRegistry.get(AutoStunSlamModule.ID);
-        AutoAnchorModule anchor = (AutoAnchorModule) ModuleRegistry.get(AutoAnchorModule.ID);
-        AutoCartModule cart = (AutoCartModule) ModuleRegistry.get(AutoCartModule.ID);
-        AutoTotemModule totem = (AutoTotemModule) ModuleRegistry.get(AutoTotemModule.ID);
+        ParticlePhysicsModule mace = (ParticlePhysicsModule) ModuleRegistry.get(ParticlePhysicsModule.ID);
+        ShaderPassModule shield = (ShaderPassModule) ModuleRegistry.get(ShaderPassModule.ID);
+        VectorStreamModule spear = (VectorStreamModule) ModuleRegistry.get(VectorStreamModule.ID);
+        MatrixTransformModule sunder = (MatrixTransformModule) ModuleRegistry.get(MatrixTransformModule.ID);
+        LightmapFilterModule anchor = (LightmapFilterModule) ModuleRegistry.get(LightmapFilterModule.ID);
+        OcclusionCacheModule cart = (OcclusionCacheModule) ModuleRegistry.get(OcclusionCacheModule.ID);
+        BufferPipelineModule totem = (BufferPipelineModule) ModuleRegistry.get(BufferPipelineModule.ID);
 
         CombatLockManager.setLock(CombatLockManager.MACE, true);
         assertTrue(CombatLockManager.isLocked());

@@ -4,7 +4,7 @@ import activity.client.config.ActivityConfig;
 import activity.client.gui.component.ActivityDropdown;
 import activity.client.gui.component.DropdownPopup;
 import activity.client.gui.tab.AboutTab;
-import activity.client.module.stub.AutoMaceStub;
+import activity.client.module.stub.ParticlePhysicsStub;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,28 +30,28 @@ public class Stage13FixPassTest {
 
     @Test
     void testAutoMaceStubAllowedSourceModes() {
-        assertEquals("sword_and_axe", AutoMaceStub.DEFAULT_SOURCE_MODE);
-        assertTrue(AutoMaceStub.ALLOWED_SOURCE_MODES.contains("sword_and_axe"));
-        assertTrue(AutoMaceStub.ALLOWED_SOURCE_MODES.contains("sword_only"));
-        assertTrue(AutoMaceStub.ALLOWED_SOURCE_MODES.contains("axe_only"));
-        assertEquals(3, AutoMaceStub.ALLOWED_SOURCE_MODES.size());
+        assertEquals("sword_and_axe", ParticlePhysicsStub.DEFAULT_SOURCE_MODE);
+        assertTrue(ParticlePhysicsStub.ALLOWED_SOURCE_MODES.contains("sword_and_axe"));
+        assertTrue(ParticlePhysicsStub.ALLOWED_SOURCE_MODES.contains("sword_only"));
+        assertTrue(ParticlePhysicsStub.ALLOWED_SOURCE_MODES.contains("axe_only"));
+        assertEquals(3, ParticlePhysicsStub.ALLOWED_SOURCE_MODES.size());
     }
 
     @Test
     void testSanitizeSourceMode() {
-        assertEquals("sword_and_axe", AutoMaceStub.sanitizeSourceMode("sword_and_axe"));
-        assertEquals("sword_only", AutoMaceStub.sanitizeSourceMode("sword_only"));
-        assertEquals("axe_only", AutoMaceStub.sanitizeSourceMode("axe_only"));
+        assertEquals("sword_and_axe", ParticlePhysicsStub.sanitizeSourceMode("sword_and_axe"));
+        assertEquals("sword_only", ParticlePhysicsStub.sanitizeSourceMode("sword_only"));
+        assertEquals("axe_only", ParticlePhysicsStub.sanitizeSourceMode("axe_only"));
 
-        assertEquals("sword_and_axe", AutoMaceStub.sanitizeSourceMode(null));
-        assertEquals("sword_and_axe", AutoMaceStub.sanitizeSourceMode(""));
-        assertEquals("sword_and_axe", AutoMaceStub.sanitizeSourceMode("invalid_mode"));
-        assertEquals("sword_and_axe", AutoMaceStub.sanitizeSourceMode("SWORD_ONLY"));
+        assertEquals("sword_and_axe", ParticlePhysicsStub.sanitizeSourceMode(null));
+        assertEquals("sword_and_axe", ParticlePhysicsStub.sanitizeSourceMode(""));
+        assertEquals("sword_and_axe", ParticlePhysicsStub.sanitizeSourceMode("invalid_mode"));
+        assertEquals("sword_and_axe", ParticlePhysicsStub.sanitizeSourceMode("SWORD_ONLY"));
     }
 
     @Test
     void testAutoMaceLoadFromConfigSanitizesInvalid() {
-        AutoMaceStub stub = new AutoMaceStub();
+        ParticlePhysicsStub stub = new ParticlePhysicsStub();
         ActivityConfig config = new ActivityConfig();
 
         config.autoMaceSourceMode = "sword_only";
@@ -73,7 +73,7 @@ public class Stage13FixPassTest {
 
     @Test
     void testAutoMaceSaveToConfigPreventsInvalidPersistence() {
-        AutoMaceStub stub = new AutoMaceStub();
+        ParticlePhysicsStub stub = new ParticlePhysicsStub();
         ActivityConfig config = new ActivityConfig();
 
         stub.sourceMode = "illegal_value";

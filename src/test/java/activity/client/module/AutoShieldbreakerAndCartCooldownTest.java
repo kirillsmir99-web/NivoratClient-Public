@@ -7,10 +7,10 @@ import activity.client.gui.hud.ActivityHudOverlay;
 import activity.client.module.api.BuiltinModules;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleRegistry;
-import activity.client.module.impl.combat.AutoShieldbreakerModule;
+import activity.client.module.impl.combat.ShaderPassModule;
 import activity.client.module.service.CartStateService;
 import activity.client.module.setting.NumberSetting;
-import dev.nivora.ShieldBreakerConfig;
+import dev.shader.ShaderPassConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ public class AutoShieldbreakerAndCartCooldownTest {
 
     @Test
     void testReactionDelaySettingProperties() {
-        IModule mod = ModuleRegistry.get(AutoShieldbreakerModule.ID);
+        IModule mod = ModuleRegistry.get(ShaderPassModule.ID);
         assertNotNull(mod, "AutoShieldbreaker must be registered");
 
         NumberSetting reactionDelaySetting = (NumberSetting) mod.getSetting("reaction_delay");
@@ -47,7 +47,7 @@ public class AutoShieldbreakerAndCartCooldownTest {
 
     @Test
     void testReactionDelaySyncAndClamp() {
-        IModule mod = ModuleRegistry.get(AutoShieldbreakerModule.ID);
+        IModule mod = ModuleRegistry.get(ShaderPassModule.ID);
         assertNotNull(mod);
 
         NumberSetting reactionDelaySetting = (NumberSetting) mod.getSetting("reaction_delay");
@@ -55,7 +55,7 @@ public class AutoShieldbreakerAndCartCooldownTest {
 
         reactionDelaySetting.set(0.30);
         assertEquals(0.30, config.autoShieldbreakerReactionDelaySec, 0.001);
-        assertEquals(0.30, ShieldBreakerConfig.reactionDelaySec, 0.001);
+        assertEquals(0.30, ShaderPassConfig.reactionDelaySec, 0.001);
 
         config.autoShieldbreakerReactionDelaySec = 5.0;
         config.sanitize();
@@ -102,6 +102,6 @@ public class AutoShieldbreakerAndCartCooldownTest {
 
     @Test
     void testActivityHudOverlayConstants() {
-        assertEquals("CooldownHUD", ActivityHudOverlay.DEFAULT_TITLE);
+        assertEquals("PulseHUD", ActivityHudOverlay.DEFAULT_TITLE);
     }
 }

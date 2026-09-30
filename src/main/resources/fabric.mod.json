@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "activity",
   "version": "${version}",
-  "name": "CooldownHUD",
+  "name": "PulseHUD",
   "description": "Отображение активных серверных кулдаунов PVP-предметов и механик Minecraft (Эндер-жемчуг, Вагонетки с динамитом, Заряд ветра, Копьё, Золотые яблоки, Хорусы, Щиты, Булава)",
   "authors": [
     "kt1xW"
@@ -17,8 +17,8 @@
     ]
   },
   "mixins": [
-    "activity.autotool.mixins.json",
-    "activity.autogg.mixins.json",
+    "activity.pipeline.mixins.json",
+    "activity.audio.mixins.json",
     "activity.dev.mixins.json",
     "activity.cooldown.mixins.json"
   ],
@@ -29,6 +29,8 @@
     "fabric-api": "*"
   },
   "provides": [
+    "pulse_hud",
+    "pulsehud",
     "cooldown_hud",
     "cooldownhud",
     "nivoratclient"

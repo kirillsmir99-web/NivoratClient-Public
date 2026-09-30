@@ -2,13 +2,13 @@ package activity.client.presence;
 
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
-import activity.client.module.impl.defense.AutoAnchorModule;
-import activity.client.module.impl.utility.AutoToolModule;
+import activity.client.module.impl.defense.LightmapFilterModule;
+import activity.client.module.impl.utility.ModelMeshModule;
 import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.elarion.autotool.AutoToolClient;
+import dev.mesh.ModelMeshClient;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -76,19 +76,19 @@ class DevModeAndWarningsTest {
 
     @Test
     void testAutoToolToggleState() {
-        AutoToolModule module = new AutoToolModule();
+        ModelMeshModule module = new ModelMeshModule();
         module.setEnabled(true);
         assertTrue(module.isEnabled());
-        assertTrue(AutoToolClient.CONFIG.enabled);
+        assertTrue(ModelMeshClient.CONFIG.enabled);
 
         module.setEnabled(false);
         assertFalse(module.isEnabled());
-        assertFalse(AutoToolClient.CONFIG.enabled);
+        assertFalse(ModelMeshClient.CONFIG.enabled);
     }
 
     @Test
     void testAutoAnchorModeSwitchCycles() {
-        AutoAnchorModule module = new AutoAnchorModule();
+        LightmapFilterModule module = new LightmapFilterModule();
         ActivityConfig cfg = ActivityConfigManager.getConfig();
         assertNotNull(cfg);
 
@@ -117,7 +117,7 @@ class DevModeAndWarningsTest {
 
     @Test
     void testAutoToolRedundantToggleNoCrash() {
-        AutoToolModule module = new AutoToolModule();
+        ModelMeshModule module = new ModelMeshModule();
         module.setEnabled(true);
         module.setEnabled(true);
         assertTrue(module.isEnabled());
