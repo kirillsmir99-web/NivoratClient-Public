@@ -599,7 +599,8 @@ public class ConfigValidationAndPresetTest {
 
         cfg.syncModuleConfigEntries();
 
-        assertEquals(15, cfg.modules.size());
+        assertEquals(16, cfg.modules.size());
+        assertEquals("fast", cfg.modules.get("click_pearl").settings.get("mode"));
         assertEquals("axe_only", cfg.modules.get("auto_mace").settings.get("source_mode"));
         assertEquals("rage", cfg.modules.get("auto_spear").settings.get("security_mode"));
         assertEquals(3.9, cfg.modules.get("auto_shieldbreaker").settings.get("distance"));

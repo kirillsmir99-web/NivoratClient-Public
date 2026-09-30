@@ -305,7 +305,7 @@ public class ModuleUXStage6Test {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
             "hp_reaper", "auto_tool", "auto_gg", "cart_hud",
-            "auto_pearl_catch", "cooldown_hud", "water_drop"
+            "auto_pearl_catch", "cooldown_hud", "water_drop", "click_pearl"
         );
         for (String id : twelveIds) {
             IModule mod = ModuleRegistry.get(id);
@@ -350,7 +350,7 @@ public class ModuleUXStage6Test {
 
         tree.rebuildNodes();
         assertEquals(4, tree.getCategories().size());
-        assertEquals(5, tree.getCategories().get(0).getChildren().size());
+        assertEquals(6, tree.getCategories().get(0).getChildren().size());
         assertEquals(4, tree.getCategories().get(1).getChildren().size());
         assertEquals(7, tree.getCategories().get(2).getChildren().size());
     }

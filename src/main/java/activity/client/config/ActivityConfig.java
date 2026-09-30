@@ -257,6 +257,20 @@ public class ActivityConfig {
     public boolean waterDropEnableCobweb = true;
     public boolean waterDropEnablePowderSnow = true;
 
+    public boolean clickPearlEnabled = true;
+    public Keybind clickPearlKeybind = new Keybind();
+    public Keybind clickPearlTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+    public String clickPearlMode = "fast";
+    public String clickPearlSearchMode = "hotbar";
+    public boolean clickPearlSwitchBack = true;
+    public double clickPearlSwitchDelayMs = 50.0;
+    public boolean clickPearlCheckCooldown = true;
+    public boolean clickPearlPreferOffhand = true;
+    public boolean clickPearlRandomDelay = true;
+    public boolean clickPearlSwingHand = true;
+    public String clickPearlTargetSlot = "9";
+    public boolean clickPearlCombatGuard = true;
+
     public boolean overlayEnabled = true;
     public boolean darkThemeEnabled = true;
     public String hudPosition = "top_right";
@@ -727,6 +741,20 @@ public class ActivityConfig {
         this.waterDropEnableCobweb = true;
         this.waterDropEnablePowderSnow = true;
 
+        this.clickPearlEnabled = true;
+        this.clickPearlKeybind.clear();
+        this.clickPearlTriggerKeybind.set(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+        this.clickPearlMode = "fast";
+        this.clickPearlSearchMode = "hotbar";
+        this.clickPearlSwitchBack = true;
+        this.clickPearlSwitchDelayMs = 50.0;
+        this.clickPearlCheckCooldown = true;
+        this.clickPearlPreferOffhand = true;
+        this.clickPearlRandomDelay = true;
+        this.clickPearlSwingHand = true;
+        this.clickPearlTargetSlot = "9";
+        this.clickPearlCombatGuard = true;
+
         this.overlayEnabled = true;
         this.darkThemeEnabled = true;
         this.hudPosition = "top_right";
@@ -841,6 +869,8 @@ public class ActivityConfig {
         if (this.cartHudKeybind == null) this.cartHudKeybind = new Keybind();
         if (this.cooldownHudKeybind == null) this.cooldownHudKeybind = new Keybind();
         if (this.waterDropKeybind == null) this.waterDropKeybind = new Keybind();
+        if (this.clickPearlKeybind == null) this.clickPearlKeybind = new Keybind();
+        if (this.clickPearlTriggerKeybind == null) this.clickPearlTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
         if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
         if (this.menuCommand == null || this.menuCommand.isBlank()) this.menuCommand = "nt";
 
@@ -973,6 +1003,17 @@ public class ActivityConfig {
         }
         if (this.waterDropTargetSlot == null || !java.util.List.of("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(this.waterDropTargetSlot)) {
             this.waterDropTargetSlot = "9";
+        }
+
+        this.clickPearlSwitchDelayMs = clampSanitize(this.clickPearlSwitchDelayMs, 0.0, 300.0, 50.0);
+        if (!"fast".equals(this.clickPearlMode) && !"legit".equals(this.clickPearlMode) && !"safe".equals(this.clickPearlMode)) {
+            this.clickPearlMode = "fast";
+        }
+        if (!"hotbar".equals(this.clickPearlSearchMode) && !"inventory".equals(this.clickPearlSearchMode)) {
+            this.clickPearlSearchMode = "hotbar";
+        }
+        if (this.clickPearlTargetSlot == null || !java.util.List.of("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(this.clickPearlTargetSlot)) {
+            this.clickPearlTargetSlot = "9";
         }
 
         this.overlayOpacity = clampSanitize(this.overlayOpacity, 10.0, 100.0, 85.0);
@@ -1262,6 +1303,9 @@ public class ActivityConfig {
 
         syncModuleEntry("water_drop", this.waterDropEnabled, this.waterDropKeybind);
         populateWaterDropSettings(this.modules.get("water_drop"));
+
+        syncModuleEntry("click_pearl", this.clickPearlEnabled, this.clickPearlKeybind);
+        populateClickPearlSettings(this.modules.get("click_pearl"));
     }
 
     private void syncModuleEntry(String id, boolean enabled, Keybind keybind) {
@@ -1488,6 +1532,21 @@ public class ActivityConfig {
         entry.settings.put("enable_slime_block", this.waterDropEnableSlimeBlock);
         entry.settings.put("enable_cobweb", this.waterDropEnableCobweb);
         entry.settings.put("enable_powder_snow", this.waterDropEnablePowderSnow);
+    }
+
+    private void populateClickPearlSettings(ModuleConfigEntry entry) {
+        if (entry == null) return;
+        entry.settings.put("trigger_keybind", this.clickPearlTriggerKeybind);
+        entry.settings.put("mode", this.clickPearlMode);
+        entry.settings.put("search_mode", this.clickPearlSearchMode);
+        entry.settings.put("switch_back", this.clickPearlSwitchBack);
+        entry.settings.put("switch_delay", this.clickPearlSwitchDelayMs);
+        entry.settings.put("check_cooldown", this.clickPearlCheckCooldown);
+        entry.settings.put("prefer_offhand", this.clickPearlPreferOffhand);
+        entry.settings.put("random_delay", this.clickPearlRandomDelay);
+        entry.settings.put("swing_hand", this.clickPearlSwingHand);
+        entry.settings.put("target_slot", this.clickPearlTargetSlot);
+        entry.settings.put("combat_guard", this.clickPearlCombatGuard);
     }
 
     private static String getSettingString(java.util.Map<String, Object> map, String key, String def) {
@@ -1835,6 +1894,26 @@ public class ActivityConfig {
                 this.waterDropEnablePowderSnow = getSettingBoolean(wd.settings, "enable_powder_snow", this.waterDropEnablePowderSnow);
             }
         }
+
+        ModuleConfigEntry cp = getModuleEntry("click_pearl");
+        if (cp != null) {
+            this.clickPearlEnabled = cp.enabled;
+            if (cp.keybind != null) this.clickPearlKeybind.copyFrom(cp.keybind);
+            if (cp.settings != null && !cp.settings.isEmpty()) {
+                Keybind tkb = getSettingKeybind(cp.settings, "trigger_keybind", null);
+                if (tkb != null) this.clickPearlTriggerKeybind.copyFrom(tkb);
+                this.clickPearlMode = getSettingString(cp.settings, "mode", this.clickPearlMode);
+                this.clickPearlSearchMode = getSettingString(cp.settings, "search_mode", this.clickPearlSearchMode);
+                this.clickPearlSwitchBack = getSettingBoolean(cp.settings, "switch_back", this.clickPearlSwitchBack);
+                this.clickPearlSwitchDelayMs = getSettingDouble(cp.settings, "switch_delay", this.clickPearlSwitchDelayMs);
+                this.clickPearlCheckCooldown = getSettingBoolean(cp.settings, "check_cooldown", this.clickPearlCheckCooldown);
+                this.clickPearlPreferOffhand = getSettingBoolean(cp.settings, "prefer_offhand", this.clickPearlPreferOffhand);
+                this.clickPearlRandomDelay = getSettingBoolean(cp.settings, "random_delay", this.clickPearlRandomDelay);
+                this.clickPearlSwingHand = getSettingBoolean(cp.settings, "swing_hand", this.clickPearlSwingHand);
+                this.clickPearlTargetSlot = getSettingString(cp.settings, "target_slot", this.clickPearlTargetSlot);
+                this.clickPearlCombatGuard = getSettingBoolean(cp.settings, "combat_guard", this.clickPearlCombatGuard);
+            }
+        }
     }
 
     private static double clampSanitize(double val, double min, double max, double def) {
@@ -2057,6 +2136,20 @@ public class ActivityConfig {
         copy.waterDropEnableSlimeBlock = this.waterDropEnableSlimeBlock;
         copy.waterDropEnableCobweb = this.waterDropEnableCobweb;
         copy.waterDropEnablePowderSnow = this.waterDropEnablePowderSnow;
+
+        copy.clickPearlEnabled = this.clickPearlEnabled;
+        copy.clickPearlKeybind.copyFrom(this.clickPearlKeybind);
+        copy.clickPearlTriggerKeybind.copyFrom(this.clickPearlTriggerKeybind);
+        copy.clickPearlMode = this.clickPearlMode;
+        copy.clickPearlSearchMode = this.clickPearlSearchMode;
+        copy.clickPearlSwitchBack = this.clickPearlSwitchBack;
+        copy.clickPearlSwitchDelayMs = this.clickPearlSwitchDelayMs;
+        copy.clickPearlCheckCooldown = this.clickPearlCheckCooldown;
+        copy.clickPearlPreferOffhand = this.clickPearlPreferOffhand;
+        copy.clickPearlRandomDelay = this.clickPearlRandomDelay;
+        copy.clickPearlSwingHand = this.clickPearlSwingHand;
+        copy.clickPearlTargetSlot = this.clickPearlTargetSlot;
+        copy.clickPearlCombatGuard = this.clickPearlCombatGuard;
 
         copy.overlayEnabled = this.overlayEnabled;
         copy.darkThemeEnabled = this.darkThemeEnabled;
@@ -2337,6 +2430,20 @@ public class ActivityConfig {
                 this.waterDropEnableCobweb == that.waterDropEnableCobweb &&
                 this.waterDropEnablePowderSnow == that.waterDropEnablePowderSnow &&
 
+                this.clickPearlEnabled == that.clickPearlEnabled &&
+                Objects.equals(this.clickPearlKeybind, that.clickPearlKeybind) &&
+                Objects.equals(this.clickPearlTriggerKeybind, that.clickPearlTriggerKeybind) &&
+                Objects.equals(this.clickPearlMode, that.clickPearlMode) &&
+                Objects.equals(this.clickPearlSearchMode, that.clickPearlSearchMode) &&
+                this.clickPearlSwitchBack == that.clickPearlSwitchBack &&
+                Double.compare(this.clickPearlSwitchDelayMs, that.clickPearlSwitchDelayMs) == 0 &&
+                this.clickPearlCheckCooldown == that.clickPearlCheckCooldown &&
+                this.clickPearlPreferOffhand == that.clickPearlPreferOffhand &&
+                this.clickPearlRandomDelay == that.clickPearlRandomDelay &&
+                this.clickPearlSwingHand == that.clickPearlSwingHand &&
+                Objects.equals(this.clickPearlTargetSlot, that.clickPearlTargetSlot) &&
+                this.clickPearlCombatGuard == that.clickPearlCombatGuard &&
+
                this.overlayEnabled == that.overlayEnabled &&
                this.darkThemeEnabled == that.darkThemeEnabled &&
                this.autoHideOnChat == that.autoHideOnChat &&
@@ -2445,6 +2552,10 @@ public class ActivityConfig {
             waterDropRandomDelay, waterDropTargetSlot, waterDropCombatGuard, waterDropPearlGuard, waterDropNetherAdapter,
             waterDropEnableWater, waterDropEnableWindCharge, waterDropEnableHayBlock, waterDropEnableSlimeBlock,
             waterDropEnableCobweb, waterDropEnablePowderSnow,
+
+            clickPearlEnabled, clickPearlKeybind, clickPearlTriggerKeybind, clickPearlMode, clickPearlSearchMode,
+            clickPearlSwitchBack, clickPearlSwitchDelayMs, clickPearlCheckCooldown, clickPearlPreferOffhand,
+            clickPearlRandomDelay, clickPearlSwingHand, clickPearlTargetSlot, clickPearlCombatGuard,
 
             overlayEnabled, darkThemeEnabled, hudPosition, overlayOpacity, autoHideOnChat, hideInF3, searchFilter, filterCategory, matchCase
         );

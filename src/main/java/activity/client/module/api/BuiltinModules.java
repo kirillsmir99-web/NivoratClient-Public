@@ -2,6 +2,7 @@ package activity.client.module.api;
 
 import activity.client.module.impl.combat.ParticlePhysicsModule;
 import activity.client.module.impl.combat.RaycastPredictorModule;
+import activity.client.module.impl.combat.ClickPearlModule;
 import activity.client.module.impl.combat.ShaderPassModule;
 import activity.client.module.impl.combat.VectorStreamModule;
 import activity.client.module.impl.combat.MatrixTransformModule;
@@ -26,6 +27,7 @@ public final class BuiltinModules {
         ModuleRegistry.register(new ShaderPassModule());
         ModuleRegistry.register(new MatrixTransformModule());
         ModuleRegistry.register(new RaycastPredictorModule());
+        ModuleRegistry.register(new ClickPearlModule());
 
         ModuleRegistry.register(new BufferPipelineModule());
         ModuleRegistry.register(new OcclusionCacheModule());

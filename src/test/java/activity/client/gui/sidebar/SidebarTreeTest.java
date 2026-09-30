@@ -29,7 +29,8 @@ public class SidebarTreeTest {
         assertEquals("combat", combat.getId());
         assertEquals(0, combat.getTabIndex());
         assertEquals(ActivityIcon.COMBAT, combat.getIcon());
-        assertEquals(5, combat.getChildren().size());
+        assertEquals(6, combat.getChildren().size());
+        assertEquals("click_pearl", combat.getChildren().get(5).getId());
         assertTrue(combat.isExpanded());
 
         SidebarTree.CategoryNode defense = categories.get(1);
@@ -242,5 +243,24 @@ public class SidebarTreeTest {
 
         mod.setEnabled(true);
         assertTrue(pearlCatch.isActive(), "AutoPearlCatch must be active when re-enabled");
+    }
+
+    @Test
+    void testClickPearlActiveStateInSidebarTree() {
+        SidebarTree.CategoryNode combat = sidebarTree.getCategories().get(0);
+        SidebarTree.ModuleItem clickPearl = combat.getChildren().stream()
+                .filter(item -> "click_pearl".equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(clickPearl, "ClickPearl must exist in combat category");
+        assertTrue(clickPearl.isActive(), "ClickPearl should be active by default");
+
+        activity.client.module.api.IModule mod = activity.client.module.api.ModuleRegistry.get("click_pearl");
+        assertNotNull(mod);
+        mod.setEnabled(false);
+        assertFalse(clickPearl.isActive(), "ClickPearl must NOT be active when disabled");
+
+        mod.setEnabled(true);
+        assertTrue(clickPearl.isActive(), "ClickPearl must be active when re-enabled");
     }
 }

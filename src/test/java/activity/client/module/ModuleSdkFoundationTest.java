@@ -44,9 +44,9 @@ public class ModuleSdkFoundationTest {
     }
 
     @Test
-    @DisplayName("BuiltinModules registers all 15 canonical modules")
+    @DisplayName("BuiltinModules registers all 16 canonical modules")
     void testBuiltinModulesRegistration() {
-        assertEquals(15, ModuleRegistry.getAll().size(), "Must register all 15 modules");
+        assertEquals(16, ModuleRegistry.getAll().size(), "Must register all 16 modules");
 
         assertNotNull(ModuleRegistry.get("auto_mace"));
         assertNotNull(ModuleRegistry.get("auto_spear"));
@@ -54,6 +54,7 @@ public class ModuleSdkFoundationTest {
         assertNotNull(ModuleRegistry.get("auto_stun_slam"));
         assertNotNull(ModuleRegistry.get("auto_stun_slime"), "auto_stun_slime alias must resolve to auto_stun_slam");
         assertNotNull(ModuleRegistry.get("auto_pearl_catch"));
+        assertNotNull(ModuleRegistry.get("click_pearl"));
 
         assertNotNull(ModuleRegistry.get("auto_totem"));
         assertNotNull(ModuleRegistry.get("auto_cart"));
@@ -67,7 +68,7 @@ public class ModuleSdkFoundationTest {
         assertNotNull(ModuleRegistry.get("cooldown_hud"));
         assertNotNull(ModuleRegistry.get("water_drop"));
 
-        assertEquals(5, ModuleRegistry.getByCategory(ModuleCategory.COMBAT).size());
+        assertEquals(6, ModuleRegistry.getByCategory(ModuleCategory.COMBAT).size());
         assertEquals(4, ModuleRegistry.getByCategory(ModuleCategory.DEFENSE).size());
         assertEquals(6, ModuleRegistry.getByCategory(ModuleCategory.UTILITY).size());
     }
