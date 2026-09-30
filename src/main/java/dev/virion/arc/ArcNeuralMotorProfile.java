@@ -42,8 +42,37 @@ public final class ArcNeuralMotorProfile {
     private boolean calibrating = false;
     private long calibrationStartTimeMs = 0L;
     private int calibrationSamplesCollected = 0;
-    private static final int CALIBRATION_REQUIRED_SAMPLES = 80;
-    private static final long CALIBRATION_DURATION_MS = 6000L;
+    public static final long CALIBRATION_DURATION_MS = 300000L;
+
+    private int learnedMinDelayMs = 50;
+    private int learnedMaxDelayMs = 80;
+    private int learnedCameraSmoothness = 110;
+    private int learnedPlacementDelayRailMs = 50;
+    private int learnedPlacementDelayCartMs = 60;
+
+    private int bowShotsCount = 0;
+    private int railsPlacedCount = 0;
+    private int cartsPlacedCount = 0;
+    private int explosionsCount = 0;
+    private int manualDetonationsCount = 0;
+    private int totalActionsCount = 0;
+
+    private long lastBowReleaseTimeMs = 0L;
+    private long lastRailPlacementTimeMs = 0L;
+    private long lastCartPlacementTimeMs = 0L;
+    private net.minecraft.util.math.BlockPos lastPlacedCartPos = null;
+
+    private long sumDeltaT1 = 0L;
+    private int countDeltaT1 = 0;
+    private long sumDeltaT2 = 0L;
+    private int countDeltaT2 = 0;
+
+    private float accumulatedVelMod = 0.0f;
+    private float accumulatedCurvMod = 0.0f;
+    private float accumulatedTremor = 0.0f;
+    private long flickDurationMs = 0L;
+    private long sumFlickDurationMs = 0L;
+    private int totalFlicksMeasured = 0;
 
     private float ouStatePitch = 0.0f;
     private float ouStateYaw = 0.0f;
@@ -290,9 +319,87 @@ public final class ArcNeuralMotorProfile {
 
         if (calibrating) {
             calibrationSamplesCollected++;
+            accumulatedVelMod += observedVelMod;
+            accumulatedCurvMod += observedCurvMod;
+            accumulatedTremor += observedTremor;
+
+            if (mag > 2.0f) {
+                flickDurationMs += (long) (dt * 1000.0);
+            } else if (flickDurationMs > 0L) {
+                if (flickDurationMs >= 30L && flickDurationMs <= 500L) {
+                    sumFlickDurationMs += flickDurationMs;
+                    totalFlicksMeasured++;
+                }
+                flickDurationMs = 0L;
+            }
+
             long elapsed = System.currentTimeMillis() - calibrationStartTimeMs;
-            if (calibrationSamplesCollected >= CALIBRATION_REQUIRED_SAMPLES || elapsed >= CALIBRATION_DURATION_MS) {
+            if (elapsed >= CALIBRATION_DURATION_MS) {
                 finishCalibration();
+            }
+        }
+    }
+
+    public synchronized void recordBowRelease(int drawTicks) {
+        if (!calibrating) return;
+        long now = System.currentTimeMillis();
+        lastBowReleaseTimeMs = now;
+        bowShotsCount++;
+        totalActionsCount++;
+    }
+
+    public synchronized void recordRailPlacement(net.minecraft.util.math.BlockPos pos) {
+        if (!calibrating) return;
+        long now = System.currentTimeMillis();
+        railsPlacedCount++;
+        totalActionsCount++;
+        if (lastBowReleaseTimeMs > 0L) {
+            long dt1 = now - lastBowReleaseTimeMs;
+            if (dt1 >= 30L && dt1 <= 3000L) {
+                sumDeltaT1 += dt1;
+                countDeltaT1++;
+            }
+        }
+        lastRailPlacementTimeMs = now;
+    }
+
+    public synchronized void recordCartPlacement(net.minecraft.util.math.BlockPos pos) {
+        if (!calibrating) return;
+        long now = System.currentTimeMillis();
+        cartsPlacedCount++;
+        totalActionsCount++;
+        lastPlacedCartPos = pos != null ? pos.toImmutable() : null;
+        if (lastRailPlacementTimeMs > 0L) {
+            long dt2 = now - lastRailPlacementTimeMs;
+            if (dt2 >= 20L && dt2 <= 3000L) {
+                sumDeltaT2 += dt2;
+                countDeltaT2++;
+            }
+        }
+        lastCartPlacementTimeMs = now;
+    }
+
+    public synchronized void recordExplosion(double x, double y, double z) {
+        if (!calibrating) return;
+        long now = System.currentTimeMillis();
+        explosionsCount++;
+        if (lastCartPlacementTimeMs > 0L) {
+            long dtExp = now - lastCartPlacementTimeMs;
+            if (dtExp >= 0L && dtExp <= 4000L) {
+                boolean matched = true;
+                if (lastPlacedCartPos != null) {
+                    double dx = x - (lastPlacedCartPos.getX() + 0.5D);
+                    double dy = y - (lastPlacedCartPos.getY() + 0.5D);
+                    double dz = z - (lastPlacedCartPos.getZ() + 0.5D);
+                    double distSq = dx * dx + dy * dy + dz * dz;
+                    matched = distSq <= 144.0D;
+                }
+                if (matched) {
+                    manualDetonationsCount++;
+                    totalActionsCount++;
+                    lastCartPlacementTimeMs = 0L;
+                    lastPlacedCartPos = null;
+                }
             }
         }
     }
@@ -301,24 +408,90 @@ public final class ArcNeuralMotorProfile {
         calibrating = true;
         calibrationStartTimeMs = System.currentTimeMillis();
         calibrationSamplesCollected = 0;
+        accumulatedVelMod = 0.0f;
+        accumulatedCurvMod = 0.0f;
+        accumulatedTremor = 0.0f;
+        flickDurationMs = 0L;
+        sumFlickDurationMs = 0L;
+        totalFlicksMeasured = 0;
+        bowShotsCount = 0;
+        railsPlacedCount = 0;
+        cartsPlacedCount = 0;
+        explosionsCount = 0;
+        manualDetonationsCount = 0;
+        totalActionsCount = 0;
+        lastBowReleaseTimeMs = 0L;
+        lastRailPlacementTimeMs = 0L;
+        lastCartPlacementTimeMs = 0L;
+        lastPlacedCartPos = null;
+        sumDeltaT1 = 0L;
+        countDeltaT1 = 0;
+        sumDeltaT2 = 0L;
+        countDeltaT2 = 0;
     }
 
     public synchronized void cancelCalibration() {
         calibrating = false;
         calibrationStartTimeMs = 0L;
-        calibrationSamplesCollected = 0;
     }
 
-    private synchronized void finishCalibration() {
+    public synchronized void finishCalibration() {
         calibrating = false;
         calibrated = true;
-        saccadeSpeedMultiplier = MathHelper.clamp(saccadeSpeedMultiplier, 0.85f, 1.25f);
-        curvatureBias = MathHelper.clamp(curvatureBias, 0.20f, 0.50f);
-        tremorVolatility = MathHelper.clamp(tremorVolatility, 0.03f, 0.08f);
+
+        if (calibrationSamplesCollected > 0) {
+            float avgVel = accumulatedVelMod / calibrationSamplesCollected;
+            float avgCurv = accumulatedCurvMod / calibrationSamplesCollected;
+            float avgTremor = accumulatedTremor / calibrationSamplesCollected;
+
+            saccadeSpeedMultiplier = MathHelper.clamp(avgVel, 0.80f, 1.35f);
+            curvatureBias = MathHelper.clamp(avgCurv, 0.20f, 0.50f);
+            tremorVolatility = MathHelper.clamp(avgTremor, 0.03f, 0.08f);
+        } else {
+            saccadeSpeedMultiplier = MathHelper.clamp(saccadeSpeedMultiplier, 0.85f, 1.25f);
+            curvatureBias = MathHelper.clamp(curvatureBias, 0.20f, 0.50f);
+            tremorVolatility = MathHelper.clamp(tremorVolatility, 0.03f, 0.08f);
+        }
+
+        if (totalFlicksMeasured > 5) {
+            learnedCameraSmoothness = MathHelper.clamp((int) Math.round((double) sumFlickDurationMs / totalFlicksMeasured), 40, 180);
+        } else {
+            learnedCameraSmoothness = MathHelper.clamp(Math.round(110.0f / saccadeSpeedMultiplier), 45, 180);
+        }
+
+        if (countDeltaT1 > 0 && countDeltaT2 > 0) {
+            int avgT1 = (int) Math.round((double) sumDeltaT1 / countDeltaT1);
+            int avgT2 = (int) Math.round((double) sumDeltaT2 / countDeltaT2);
+            int minObserved = Math.min(avgT1, avgT2);
+            int maxObserved = Math.max(avgT1, avgT2);
+            learnedMinDelayMs = MathHelper.clamp((int) Math.round(minObserved * 0.85), 25, 120);
+            learnedMaxDelayMs = MathHelper.clamp((int) Math.round(maxObserved * 1.15), learnedMinDelayMs + 10, 180);
+            learnedPlacementDelayRailMs = MathHelper.clamp(avgT1, 20, 200);
+            learnedPlacementDelayCartMs = MathHelper.clamp(avgT2, 20, 200);
+        } else if (countDeltaT2 > 0) {
+            int avgT2 = (int) Math.round((double) sumDeltaT2 / countDeltaT2);
+            learnedMinDelayMs = MathHelper.clamp((int) Math.round(avgT2 * 0.85), 25, 120);
+            learnedMaxDelayMs = MathHelper.clamp((int) Math.round(avgT2 * 1.15), learnedMinDelayMs + 10, 180);
+            learnedPlacementDelayRailMs = learnedMinDelayMs;
+            learnedPlacementDelayCartMs = MathHelper.clamp(avgT2, 20, 200);
+        } else {
+            learnedMinDelayMs = MathHelper.clamp(Math.round(50.0f / saccadeSpeedMultiplier), 30, 90);
+            learnedMaxDelayMs = MathHelper.clamp(Math.round(80.0f / saccadeSpeedMultiplier), learnedMinDelayMs + 15, 140);
+            learnedPlacementDelayRailMs = learnedMinDelayMs;
+            learnedPlacementDelayCartMs = (learnedMinDelayMs + learnedMaxDelayMs) / 2;
+        }
+
         save();
     }
 
     public synchronized boolean isCalibrating() {
+        if (calibrating) {
+            long elapsed = System.currentTimeMillis() - calibrationStartTimeMs;
+            if (elapsed >= CALIBRATION_DURATION_MS) {
+                finishCalibration();
+                return false;
+            }
+        }
         return calibrating;
     }
 
@@ -326,10 +499,17 @@ public final class ArcNeuralMotorProfile {
         if (!calibrating) {
             return calibrated ? 100 : 0;
         }
-        int bySamples = (calibrationSamplesCollected * 100) / CALIBRATION_REQUIRED_SAMPLES;
         long elapsed = System.currentTimeMillis() - calibrationStartTimeMs;
-        int byTime = (int) ((elapsed * 100) / CALIBRATION_DURATION_MS);
-        return MathHelper.clamp(Math.max(bySamples, byTime), 0, 99);
+        int byTime = (int) ((elapsed * 100L) / CALIBRATION_DURATION_MS);
+        return MathHelper.clamp(byTime, 0, 99);
+    }
+
+    public synchronized long getCalibrationRemainingTimeMs() {
+        if (!calibrating) {
+            return 0L;
+        }
+        long elapsed = System.currentTimeMillis() - calibrationStartTimeMs;
+        return Math.max(0L, CALIBRATION_DURATION_MS - elapsed);
     }
 
     public synchronized boolean isCalibrated() {
@@ -364,6 +544,50 @@ public final class ArcNeuralMotorProfile {
         return sampleCount;
     }
 
+    public synchronized int getLearnedMinDelayMs() {
+        return learnedMinDelayMs;
+    }
+
+    public synchronized int getLearnedMaxDelayMs() {
+        return learnedMaxDelayMs;
+    }
+
+    public synchronized int getLearnedCameraSmoothness() {
+        return learnedCameraSmoothness;
+    }
+
+    public synchronized int getLearnedPlacementDelayRailMs() {
+        return learnedPlacementDelayRailMs;
+    }
+
+    public synchronized int getLearnedPlacementDelayCartMs() {
+        return learnedPlacementDelayCartMs;
+    }
+
+    public synchronized int getBowShotsCount() {
+        return bowShotsCount;
+    }
+
+    public synchronized int getRailsPlacedCount() {
+        return railsPlacedCount;
+    }
+
+    public synchronized int getCartsPlacedCount() {
+        return cartsPlacedCount;
+    }
+
+    public synchronized int getExplosionsCount() {
+        return explosionsCount;
+    }
+
+    public synchronized int getManualDetonationsCount() {
+        return manualDetonationsCount;
+    }
+
+    public synchronized int getTotalActionsCount() {
+        return totalActionsCount;
+    }
+
     private static Path getConfigPath() {
         try {
             var loader = net.fabricmc.loader.api.FabricLoader.getInstance();
@@ -382,7 +606,7 @@ public final class ArcNeuralMotorProfile {
                 Files.createDirectories(parent);
             }
             JsonObject root = new JsonObject();
-            root.addProperty("version", 1);
+            root.addProperty("version", 2);
             root.addProperty("calibrated", calibrated);
             root.addProperty("sampleCount", sampleCount);
             root.addProperty("saccadeSpeedMultiplier", saccadeSpeedMultiplier);
@@ -391,6 +615,17 @@ public final class ArcNeuralMotorProfile {
             root.addProperty("twoPhaseRatio", twoPhaseRatio);
             root.addProperty("microDamping", microDamping);
             root.addProperty("learnedGcd", learnedGcd);
+            root.addProperty("learnedMinDelayMs", learnedMinDelayMs);
+            root.addProperty("learnedMaxDelayMs", learnedMaxDelayMs);
+            root.addProperty("learnedCameraSmoothness", learnedCameraSmoothness);
+            root.addProperty("learnedPlacementDelayRailMs", learnedPlacementDelayRailMs);
+            root.addProperty("learnedPlacementDelayCartMs", learnedPlacementDelayCartMs);
+            root.addProperty("bowShotsCount", bowShotsCount);
+            root.addProperty("railsPlacedCount", railsPlacedCount);
+            root.addProperty("cartsPlacedCount", cartsPlacedCount);
+            root.addProperty("explosionsCount", explosionsCount);
+            root.addProperty("manualDetonationsCount", manualDetonationsCount);
+            root.addProperty("totalActionsCount", totalActionsCount);
 
             JsonObject weightsObj = new JsonObject();
             for (int i = 0; i < INPUT_SIZE; i++) {
@@ -441,6 +676,39 @@ public final class ArcNeuralMotorProfile {
             }
             if (root.has("learnedGcd")) {
                 learnedGcd = root.get("learnedGcd").getAsDouble();
+            }
+            if (root.has("learnedMinDelayMs")) {
+                learnedMinDelayMs = root.get("learnedMinDelayMs").getAsInt();
+            }
+            if (root.has("learnedMaxDelayMs")) {
+                learnedMaxDelayMs = root.get("learnedMaxDelayMs").getAsInt();
+            }
+            if (root.has("learnedCameraSmoothness")) {
+                learnedCameraSmoothness = root.get("learnedCameraSmoothness").getAsInt();
+            }
+            if (root.has("learnedPlacementDelayRailMs")) {
+                learnedPlacementDelayRailMs = root.get("learnedPlacementDelayRailMs").getAsInt();
+            }
+            if (root.has("learnedPlacementDelayCartMs")) {
+                learnedPlacementDelayCartMs = root.get("learnedPlacementDelayCartMs").getAsInt();
+            }
+            if (root.has("bowShotsCount")) {
+                bowShotsCount = root.get("bowShotsCount").getAsInt();
+            }
+            if (root.has("railsPlacedCount")) {
+                railsPlacedCount = root.get("railsPlacedCount").getAsInt();
+            }
+            if (root.has("cartsPlacedCount")) {
+                cartsPlacedCount = root.get("cartsPlacedCount").getAsInt();
+            }
+            if (root.has("explosionsCount")) {
+                explosionsCount = root.get("explosionsCount").getAsInt();
+            }
+            if (root.has("manualDetonationsCount")) {
+                manualDetonationsCount = root.get("manualDetonationsCount").getAsInt();
+            }
+            if (root.has("totalActionsCount")) {
+                totalActionsCount = root.get("totalActionsCount").getAsInt();
             }
 
             if (root.has("weights")) {

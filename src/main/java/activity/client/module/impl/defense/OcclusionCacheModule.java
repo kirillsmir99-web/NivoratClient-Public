@@ -10,6 +10,8 @@ import activity.client.module.setting.SettingGroup;
 import dev.virion.arc.MorrowConfig;
 import dev.virion.arc.VirionArcController;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 
 import java.util.List;
@@ -34,7 +36,7 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerEnum("preset", Text.translatable("activity.setting.defense.cart_preset"),
                 Text.translatable("activity.setting.defense.cart_preset.desc"), SettingGroup.GENERAL,
-                List.of("fast", "medium", "safe"), "medium",
+                List.of("fast", "medium", "safe", "learned"), "medium",
                 opt -> Text.translatable("activity.dropdown.cart_preset." + opt),
                 opt -> Text.translatable("activity.dropdown.cart_preset." + opt + ".desc"),
                 () -> {
@@ -74,6 +76,19 @@ public class OcclusionCacheModule extends NivoratModule {
                             camRetSmooth = 150.0;
                             camCurve = 45.0;
                             camRand = 40.0;
+                        } else if ("learned".equalsIgnoreCase(val)) {
+                            dev.virion.arc.ArcNeuralMotorProfile prof = dev.virion.arc.ArcNeuralMotorProfile.getInstance();
+                            minD = prof.getLearnedMinDelayMs();
+                            maxD = prof.getLearnedMaxDelayMs();
+                            chance = 100.0;
+                            maxDist = 4.4;
+                            pit = true;
+                            legit = true;
+                            camMode = "auto";
+                            camSmooth = prof.getLearnedCameraSmoothness();
+                            camRetSmooth = Math.max(35.0, prof.getLearnedCameraSmoothness() - 10.0);
+                            camCurve = Math.round(prof.getCurvatureBias() * 100.0f);
+                            camRand = Math.round(prof.getTremorVolatility() * 500.0f);
                         } else {
                             minD = 50.0;
                             maxD = 80.0;
@@ -460,6 +475,8 @@ public class OcclusionCacheModule extends NivoratModule {
             MorrowConfig.preset = MorrowConfig.PRESET_SAFE;
         } else if ("medium".equals(c.autoCartPreset)) {
             MorrowConfig.preset = MorrowConfig.PRESET_MEDIUM;
+        } else if ("learned".equals(c.autoCartPreset)) {
+            MorrowConfig.preset = MorrowConfig.PRESET_LEARNED;
         } else {
             MorrowConfig.preset = MorrowConfig.PRESET_FAST;
         }
@@ -492,8 +509,107 @@ public class OcclusionCacheModule extends NivoratModule {
 
     @Override
     public void onTick(MinecraftClient client) {
-        if (isEnabled()) {
+        if (isEnabled() || dev.virion.arc.ArcMotorCalibrationService.isActive()) {
             controller.tick(client);
+        }
+    }
+
+    @Override
+    public void onRenderHud(DrawContext context, RenderTickCounter tickCounter) {
+        if (!dev.virion.arc.ArcMotorCalibrationService.isActive() || context == null) {
+            return;
+        }
+        renderCalibrationHud(context);
+    }
+
+    private void renderCalibrationHud(DrawContext context) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || client.textRenderer == null) return;
+
+        long remainingMs = dev.virion.arc.ArcMotorCalibrationService.getRemainingTimeMs();
+        long totalSec = (remainingMs + 999L) / 1000L;
+        long min = totalSec / 60L;
+        long sec = totalSec % 60L;
+        String timeStr = String.format("%02d:%02d", min, sec);
+
+        int detonated = dev.virion.arc.ArcMotorCalibrationService.getManualDetonationsCount();
+        int progress = dev.virion.arc.ArcMotorCalibrationService.getProgress();
+
+        String hudText = String.format("[КАЛИБРОВКА AUTOCART]  %s  |  Подрывов: %d  |  Моторика: %d%%", timeStr, detonated, progress);
+
+        int textW = client.textRenderer.getWidth(hudText);
+        int padX = 8;
+        int padY = 4;
+        int boxW = textW + padX * 2;
+        int boxH = client.textRenderer.fontHeight + padY * 2;
+        int boxX = (context.getScaledWindowWidth() - boxW) / 2;
+        int boxY = 6;
+
+        context.fill(boxX, boxY, boxX + boxW, boxY + boxH, 0xD00A0D14);
+        context.fill(boxX, boxY, boxX + boxW, boxY + 1, 0x503EA4E8);
+        context.fill(boxX, boxY + boxH - 1, boxX + boxW, boxY + boxH, 0x503EA4E8);
+        context.fill(boxX, boxY + 1, boxX + 1, boxY + boxH - 1, 0x503EA4E8);
+        context.fill(boxX + boxW - 1, boxY + 1, boxX + boxW, boxY + boxH - 1, 0x503EA4E8);
+
+        int barW = (int) Math.round((boxW - 2) * (progress / 100.0));
+        if (barW > 0) {
+            context.fill(boxX + 1, boxY + boxH - 2, boxX + 1 + barW, boxY + boxH - 1, 0xFF3EA4E8);
+        }
+
+        context.drawTextWithShadow(client.textRenderer, Text.literal(hudText), boxX + padX, boxY + padY, 0xFFFFFFFF);
+    }
+
+    public void activateLearnedPreset() {
+        ActivityConfig c = ActivityConfigManager.getConfig();
+        if (c != null) {
+            c.autoCartPreset = "learned";
+            dev.virion.arc.ArcNeuralMotorProfile prof = dev.virion.arc.ArcNeuralMotorProfile.getInstance();
+            double minD = prof.getLearnedMinDelayMs();
+            double maxD = prof.getLearnedMaxDelayMs();
+            double chance = 100.0;
+            double maxDist = 4.4;
+            boolean pit = true;
+            boolean legit = true;
+            String camMode = "auto";
+            double camSmooth = prof.getLearnedCameraSmoothness();
+            double camRetSmooth = Math.max(35.0, prof.getLearnedCameraSmoothness() - 10.0);
+            double camCurve = Math.round(prof.getCurvatureBias() * 100.0f);
+            double camRand = Math.round(prof.getTremorVolatility() * 500.0f);
+            boolean camRet = true, camGcd = true;
+
+            c.autoCartMinDelayMs = minD;
+            c.autoCartMaxDelayMs = maxD;
+            c.autoCartPlacementChance = chance;
+            c.autoCartMaxDistance = maxDist;
+            c.autoCartAllowPitPlacement = pit;
+            c.autoCartRandomDelay = true;
+            c.autoCartLegitMode = legit;
+            c.autoCartCameraMode = camMode;
+            c.autoCartAutoCamera = true;
+            c.autoCartCameraSmoothness = camSmooth;
+            c.autoCartCameraReturn = camRet;
+            c.autoCartCameraReturnSmoothness = camRetSmooth;
+            c.autoCartCameraCurve = camCurve;
+            c.autoCartCameraRandomness = camRand;
+            c.autoCartCameraMouseGcd = camGcd;
+
+            updateEnumSetting("preset", "learned");
+            updateNumberSetting("min_delay", minD);
+            updateNumberSetting("max_delay", maxD);
+            updateNumberSetting("placement_chance", chance);
+            updateNumberSetting("max_distance", maxDist);
+            updateBooleanSetting("allow_pit_placement", pit);
+            updateBooleanSetting("legit_mode", legit);
+            updateEnumSetting("camera_mode", camMode);
+            updateNumberSetting("camera_smoothness", camSmooth);
+            updateBooleanSetting("camera_return", camRet);
+            updateNumberSetting("camera_return_smoothness", camRetSmooth);
+            updateNumberSetting("camera_curve", camCurve);
+            updateNumberSetting("camera_randomness", camRand);
+            updateBooleanSetting("camera_mouse_gcd", camGcd);
+
+            syncControllerConfig(c);
+            ActivityConfigManager.markDirty();
         }
     }
 

@@ -398,6 +398,8 @@
   "activity.dropdown.cart_preset.medium.desc": "Medium: reliable speed for most servers.",
   "activity.dropdown.cart_preset.safe": "Safe",
   "activity.dropdown.cart_preset.safe.desc": "Safe: increased delays to stay undetected.",
+  "activity.dropdown.cart_preset.learned": "Learned",
+  "activity.dropdown.cart_preset.learned.desc": "Learned: individual timings and kinematics adapted to your style.",
   "activity.dropdown.cart_camera_mode.off": "Off",
   "activity.dropdown.cart_camera_mode.off.desc": "Crosshair does not move. You aim manually.",
   "activity.dropdown.cart_camera_mode.packet": "Instant",

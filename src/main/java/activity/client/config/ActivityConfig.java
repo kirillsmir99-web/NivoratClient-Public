@@ -969,6 +969,7 @@ public class ActivityConfig {
         if ("Быстрый".equals(this.autoCartPreset) || "fast".equals(this.autoCartPreset)) this.autoCartPreset = "fast";
         else if ("Средний".equals(this.autoCartPreset) || "medium".equals(this.autoCartPreset)) this.autoCartPreset = "medium";
         else if ("Безопасный".equals(this.autoCartPreset) || "safe".equals(this.autoCartPreset)) this.autoCartPreset = "safe";
+        else if ("Обученный".equals(this.autoCartPreset) || "learned".equals(this.autoCartPreset)) this.autoCartPreset = "learned";
         else this.autoCartPreset = "fast";
 
         if ("Быстрый".equals(this.autoAnchorPreset) || "fast".equals(this.autoAnchorPreset)) this.autoAnchorPreset = "fast";

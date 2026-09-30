@@ -51,6 +51,16 @@ public class AutoCartNeuralAimTest {
         assertEquals("auto", MorrowConfig.cameraMode);
         assertTrue(MorrowConfig.autoCamera);
         assertTrue(MorrowConfig.cameraMouseGcd);
+
+        MorrowConfig.applyPreset(MorrowConfig.PRESET_LEARNED);
+        assertEquals(MorrowConfig.PRESET_LEARNED, MorrowConfig.preset);
+        assertEquals(ArcNeuralMotorProfile.getInstance().getLearnedMinDelayMs(), MorrowConfig.minDelayMs);
+        assertEquals(ArcNeuralMotorProfile.getInstance().getLearnedMaxDelayMs(), MorrowConfig.maxDelayMs);
+        assertEquals(ArcNeuralMotorProfile.getInstance().getLearnedCameraSmoothness(), MorrowConfig.cameraSmoothnessMs);
+        assertEquals("auto", MorrowConfig.cameraMode);
+        assertTrue(MorrowConfig.autoCamera);
+        assertTrue(MorrowConfig.cameraMouseGcd);
+        assertEquals("Обученный", MorrowConfig.CartPreset.LEARNED.getTitle());
     }
 
     @Test
@@ -114,14 +124,56 @@ public class AutoCartNeuralAimTest {
     @Test
     @DisplayName("Calibration Service: Start, progress and completion life cycle")
     void testCalibrationServiceLifecycle() {
+        assertEquals(300000L, ArcNeuralMotorProfile.CALIBRATION_DURATION_MS);
+
         ArcMotorCalibrationService.start();
         assertTrue(ArcMotorCalibrationService.isActive());
+
+        long remaining = ArcMotorCalibrationService.getRemainingTimeMs();
+        assertTrue(remaining > 0L && remaining <= 300000L);
 
         int progress = ArcMotorCalibrationService.getProgress();
         assertTrue(progress >= 0 && progress <= 100);
 
         ArcMotorCalibrationService.stop();
         assertFalse(ArcMotorCalibrationService.isActive());
+    }
+
+    @Test
+    @DisplayName("Calibration Service: Manual action recording tracks cart detonation sequences")
+    void testManualActionRecording() {
+        ArcMotorCalibrationService.start();
+        assertTrue(ArcMotorCalibrationService.isActive());
+        assertEquals(0, ArcMotorCalibrationService.getManualDetonationsCount());
+
+        BlockPos railPos = new BlockPos(12, 64, 15);
+        BlockPos cartPos = new BlockPos(12, 65, 15);
+
+        ArcMotorCalibrationService.onBowReleased(6);
+        ArcMotorCalibrationService.onRailPlaced(railPos);
+        ArcMotorCalibrationService.onCartPlaced(cartPos);
+        ArcMotorCalibrationService.onExplosion(12.5, 65.5, 15.5);
+
+        assertEquals(1, ArcMotorCalibrationService.getManualDetonationsCount());
+
+        ArcMotorCalibrationService.stop();
+        assertFalse(ArcMotorCalibrationService.isActive());
+    }
+
+    @Test
+    @DisplayName("Calibration Service: Auto activation of learned preset upon calibration completion")
+    void testCalibrationCompletionActivatesLearnedPreset() {
+        ArcMotorCalibrationService.start();
+        assertTrue(ArcMotorCalibrationService.isActive());
+
+        ArcNeuralMotorProfile.getInstance().finishCalibration();
+        assertFalse(ArcNeuralMotorProfile.getInstance().isCalibrating());
+        assertTrue(ArcNeuralMotorProfile.getInstance().isCalibrated());
+
+        ArcMotorCalibrationService.checkCompletion();
+        assertFalse(ArcMotorCalibrationService.isActive());
+        assertEquals(MorrowConfig.PRESET_LEARNED, MorrowConfig.preset);
+        assertEquals("learned", ActivityConfigManager.getConfig().autoCartPreset);
     }
 
     @Test

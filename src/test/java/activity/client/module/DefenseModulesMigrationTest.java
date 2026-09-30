@@ -21,6 +21,7 @@ import dev.buffer.BufferPipelineConfig;
 import dev.buffer.BufferPipelineController;
 import dev.lighting.LightmapFilterConfig;
 import dev.culling.OcclusionCacheConfig;
+import dev.virion.arc.ArcNeuralMotorProfile;
 import dev.virion.arc.MorrowConfig;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.BeforeAll;
@@ -303,7 +304,7 @@ public class DefenseModulesMigrationTest {
         assertNotNull(mod.getSetting("use_mainhand_cart"));
 
         EnumSetting presetSetting = (EnumSetting) mod.getSetting("preset");
-        assertEquals(List.of("fast", "medium", "safe"), presetSetting.getOptions());
+        assertEquals(List.of("fast", "medium", "safe", "learned"), presetSetting.getOptions());
 
         presetSetting.set("fast");
         assertEquals("fast", config.autoCartPreset);
@@ -340,6 +341,18 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoCartAutoCamera);
         assertTrue(MorrowConfig.autoCamera);
         assertEquals(110.0, config.autoCartCameraSmoothness, 0.001);
+
+        presetSetting.set("learned");
+        assertEquals("learned", config.autoCartPreset);
+        assertEquals(MorrowConfig.PRESET_LEARNED, MorrowConfig.preset);
+        assertTrue(config.autoCartLegitMode);
+        assertEquals(ArcNeuralMotorProfile.getInstance().getLearnedMinDelayMs(), config.autoCartMinDelayMs, 0.001);
+        assertEquals(ArcNeuralMotorProfile.getInstance().getLearnedMaxDelayMs(), config.autoCartMaxDelayMs, 0.001);
+        assertEquals("auto", config.autoCartCameraMode);
+        assertEquals("auto", MorrowConfig.cameraMode);
+        assertTrue(config.autoCartAutoCamera);
+        assertTrue(MorrowConfig.autoCamera);
+        assertEquals(ArcNeuralMotorProfile.getInstance().getLearnedCameraSmoothness(), config.autoCartCameraSmoothness, 0.001);
 
         NumberSetting distSetting = (NumberSetting) mod.getSetting("max_distance");
         assertEquals(1.5, distSetting.getMin(), 0.001);

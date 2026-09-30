@@ -398,6 +398,8 @@
   "activity.dropdown.cart_preset.medium.desc": "Баланс: надежная скорость для большинства серверов.",
   "activity.dropdown.cart_preset.safe": "Безопасный",
   "activity.dropdown.cart_preset.safe.desc": "Безопасный: увеличенные задержки для защиты от проверок.",
+  "activity.dropdown.cart_preset.learned": "Обученный",
+  "activity.dropdown.cart_preset.learned.desc": "Обученный: персональные тайминги и моторика под ваш стиль игры.",
   "activity.dropdown.cart_camera_mode.off": "Выключено",
   "activity.dropdown.cart_camera_mode.off.desc": "Прицел не двигается. Куда смотришь сам, туда и ставится.",
   "activity.dropdown.cart_camera_mode.packet": "Мгновенная",

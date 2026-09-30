@@ -145,6 +145,11 @@ public final class VirionArcController {
             return;
         }
 
+        if (ArcMotorCalibrationService.isActive()) {
+            ArcMotorCalibrationService.onBowReleased(releasedDrawTicks);
+            return;
+        }
+
         beginPlacementSequence(client, releasedDrawTicks);
     }
 
@@ -798,6 +803,14 @@ public final class VirionArcController {
 
     private int getDynamicPlacementDelay(PlacementJob job) {
         if (job == null) return getRandomDelay();
+        if (MorrowConfig.preset == MorrowConfig.PRESET_LEARNED) {
+            ArcNeuralMotorProfile prof = ArcNeuralMotorProfile.getInstance();
+            if (job.stage == Stage.SELECT_RAIL) {
+                return prof.getLearnedPlacementDelayRailMs();
+            } else if (job.stage == Stage.PLACE_RAIL) {
+                return prof.getLearnedPlacementDelayCartMs();
+            }
+        }
         float power = job.pullProgress;
         int flightTicks = Math.max(1, job.flightTicks);
         int flightTimeMs = flightTicks * 50;

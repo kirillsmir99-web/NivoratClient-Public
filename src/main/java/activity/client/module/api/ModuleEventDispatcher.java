@@ -84,12 +84,14 @@ public final class ModuleEventDispatcher {
         List<IModule> hudList = new ArrayList<>();
 
         for (IModule module : all) {
-            if (module == null || !module.isEnabled()) continue;
+            if (module == null) continue;
+            boolean isCartCalibrating = (module instanceof activity.client.module.impl.defense.OcclusionCacheModule && dev.virion.arc.ArcMotorCalibrationService.isActive());
+            if (!module.isEnabled() && !isCartCalibrating) continue;
 
             if (supportsTick(module)) {
                 tickList.add(module);
             }
-            if (supportsAttack(module)) {
+            if (supportsAttack(module) && module.isEnabled()) {
                 attackList.add(module);
             }
             if (supportsHud(module)) {

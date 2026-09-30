@@ -39,12 +39,14 @@ public final class MorrowConfig {
     public static final int PRESET_FAST = 0;
     public static final int PRESET_MEDIUM = 1;
     public static final int PRESET_SAFE = 2;
+    public static final int PRESET_LEARNED = 3;
     public static int preset = PRESET_MEDIUM;
 
     public enum CartPreset {
         FAST("Быстрый"),
         MEDIUM("Баланс"),
-        SAFE("Безопасный");
+        SAFE("Безопасный"),
+        LEARNED("Обученный");
 
         private final String title;
         CartPreset(String title) { this.title = title; }
@@ -55,7 +57,7 @@ public final class MorrowConfig {
     private MorrowConfig() { }
 
     public static void applyPreset(int p) {
-        preset = clamp(p, 0, 2);
+        preset = clamp(p, 0, 3);
         switch (preset) {
             case PRESET_FAST -> {
                 placementChance = 100;
@@ -111,6 +113,25 @@ public final class MorrowConfig {
                 cameraMouseGcd = true;
                 neuralAim = true;
             }
+            case PRESET_LEARNED -> {
+                ArcNeuralMotorProfile prof = ArcNeuralMotorProfile.getInstance();
+                placementChance = 100;
+                legitMode = true;
+                maxDistance = 4.4D;
+                allowPitPlacement = true;
+                randomDelay = true;
+                minDelayMs = prof.getLearnedMinDelayMs();
+                maxDelayMs = prof.getLearnedMaxDelayMs();
+                cameraMode = "auto";
+                autoCamera = true;
+                cameraSmoothnessMs = prof.getLearnedCameraSmoothness();
+                cameraReturn = true;
+                cameraReturnSmoothnessMs = Math.max(35, prof.getLearnedCameraSmoothness() - 10);
+                cameraCurve = Math.round(prof.getCurvatureBias() * 100.0f);
+                cameraRandomness = Math.round(prof.getTremorVolatility() * 500.0f);
+                cameraMouseGcd = true;
+                neuralAim = true;
+            }
         }
     }
 
@@ -136,7 +157,7 @@ public final class MorrowConfig {
             placementChance = clamp(Integer.parseInt(properties.getProperty("placementChance", "100")), 0, 100);
             legitMode = Boolean.parseBoolean(properties.getProperty("legitMode", "true"));
             randomDelay = Boolean.parseBoolean(properties.getProperty("randomDelay", "true"));
-            preset = clamp(Integer.parseInt(properties.getProperty("preset", "1")), 0, 2);
+            preset = clamp(Integer.parseInt(properties.getProperty("preset", "1")), 0, 3);
             allowPitPlacement = Boolean.parseBoolean(properties.getProperty("allowPitPlacement", "true"));
             maxDistance = clampDouble(Double.parseDouble(properties.getProperty("maxDistance", "4.4")), 1.5D, 4.5D);
             allowSelfCart = Boolean.parseBoolean(properties.getProperty("allowSelfCart", "false"));

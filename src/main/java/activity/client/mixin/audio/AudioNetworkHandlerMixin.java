@@ -8,6 +8,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.DeathMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
+import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
@@ -82,6 +83,19 @@ public final class AudioNetworkHandlerMixin {
     private void activity$autogg$playerRespawn(PlayerRespawnS2CPacket packet, CallbackInfo ci) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AudioSyncClient.CONFIG.enabled) return;
         AudioSyncClient.onPlayerRespawnPacket();
+    }
+
+    @Inject(method = "onExplosion", at = @At("TAIL"))
+    private void activity$calibration$onExplosion(ExplosionS2CPacket packet, CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
+        if (packet != null) {
+            try {
+                activity.client.module.impl.utility.AudioWaveTracker.recordExplosion(packet.center().x, packet.center().y, packet.center().z);
+                if (dev.virion.arc.ArcMotorCalibrationService.isActive()) {
+                    dev.virion.arc.ArcMotorCalibrationService.onExplosion(packet.center().x, packet.center().y, packet.center().z);
+                }
+            } catch (Throwable ignored) {}
+        }
     }
 
     @Inject(method = "onGameMessage", at = @At("TAIL"))
