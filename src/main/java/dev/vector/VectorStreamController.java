@@ -49,6 +49,7 @@ public final class VectorStreamController {
     private int restoreDelayTicks = 2;
     private int targetRestoreDelayMs = 185;
     private int cooldownTicks = 0;
+    private boolean keyHeld = false;
 
     private long swapStartTick = 0L;
     private long strikeTick = 0L;
@@ -81,19 +82,11 @@ public final class VectorStreamController {
         if (cooldownTicks > 0) {
             return true;
         }
-        if (clientTickCount <= lastRestoreTick) {
-            return true;
-        }
-        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
-            return false;
-        }
-        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            return (clientTickCount - lastRestoreTick < (ThreadLocalRandom.current().nextInt(100) < 10 ? 1L : 0L));
-        }
-        return (clientTickCount - lastRestoreTick < (ThreadLocalRandom.current().nextInt(100) < 20 ? 1L : 0L));
+        return clientTickCount <= lastRestoreTick;
     }
 
     public void onTrigger(MinecraftClient client) {
+        keyHeld = true;
         try {
             if (!VectorStreamConfig.enabled) return;
             if (client == null || client.player == null || client.world == null || client.interactionManager == null) return;
@@ -125,6 +118,11 @@ public final class VectorStreamController {
     }
 
     public void onKeyRelease(MinecraftClient client) {
+        keyHeld = false;
+    }
+
+    public boolean isKeyHeld() {
+        return keyHeld;
     }
 
     public void tick(MinecraftClient client) {
@@ -150,6 +148,7 @@ public final class VectorStreamController {
             }
 
             if (!player.isAlive() || client.currentScreen != null) {
+                keyHeld = false;
                 if (state != State.IDLE) {
                     restoreSlot(client);
                 }
@@ -158,6 +157,21 @@ public final class VectorStreamController {
             }
 
             if (state == State.IDLE) {
+                if (keyHeld && VectorStreamConfig.autoRepeat) {
+                    long now = System.currentTimeMillis();
+                    if (!isCooldownActive(now) && !isPlayerBusy(client, player) && !CombatLockManager.isLocked()) {
+                        suppressInputs(client);
+                        int cur = player.getInventory().getSelectedSlot();
+                        if (cur >= 0 && cur < 9) {
+                            originalSlot = cur;
+                            ItemStack stack = player.getInventory().getStack(cur);
+                            if (!isSpear(stack)) {
+                                lastNonSpearSlot = cur;
+                            }
+                        }
+                        handleTriggerStart(client, player);
+                    }
+                }
                 return;
             }
 
@@ -257,13 +271,13 @@ public final class VectorStreamController {
             }
         }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            if (!VectorStreamConfig.randomDelay) return 1;
-            return ThreadLocalRandom.current().nextInt(100) < 75 ? 1 : 2;
+            if (!VectorStreamConfig.randomDelay) return 2;
+            return ThreadLocalRandom.current().nextInt(100) < 40 ? 1 : 2;
         }
         if (!VectorStreamConfig.randomDelay) return 2;
         int roll = ThreadLocalRandom.current().nextInt(100);
-        if (roll < 45) return 1;
-        if (roll < 95) return 2;
+        if (roll < 15) return 1;
+        if (roll < 90) return 2;
         return 3;
     }
 
@@ -281,16 +295,16 @@ public final class VectorStreamController {
             return (int) GaussianTimingEngine.getDelay(46.0D, 2.0D, 41, 48);
         }
         if (restoreDelayTicks == 2) {
-            double mean = (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) ? 72.0D : 78.0D;
+            double mean = (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) ? 76.0D : 85.0D;
             if (!VectorStreamConfig.randomDelay) {
                 return (int) mean;
             }
             return (int) GaussianTimingEngine.getDelay(mean, 5.5D, (int) (mean - 10), (int) (mean + 10));
         }
         if (!VectorStreamConfig.randomDelay) {
-            return 120;
+            return 125;
         }
-        return (int) GaussianTimingEngine.getDelay(120.0D, 7.0D, 108, 132);
+        return (int) GaussianTimingEngine.getDelay(125.0D, 7.5D, 112, 138);
     }
 
     private int getSwitchDelayTicks() {
@@ -302,9 +316,9 @@ public final class VectorStreamController {
             return 0;
         }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            return ThreadLocalRandom.current().nextInt(100) < 15 ? 1 : 0;
+            return ThreadLocalRandom.current().nextInt(100) < 20 ? 1 : 0;
         }
-        return ThreadLocalRandom.current().nextInt(100) < 25 ? 1 : 0;
+        return ThreadLocalRandom.current().nextInt(100) < 35 ? 1 : 0;
     }
 
     private void startSpearActive(MinecraftClient client, ClientPlayerEntity player, int slot, boolean doSelect) {
@@ -827,6 +841,7 @@ public final class VectorStreamController {
     }
 
     private void resetAll() {
+        keyHeld = false;
         clearState();
     }
 

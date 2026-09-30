@@ -19,6 +19,7 @@ public final class VectorStreamConfig {
     public static int priorityMode = PRIORITY_AUTO;
     public static boolean maxSpeed = false;
     public static boolean checkCharge = false;
+    public static boolean autoRepeat = true;
 
     private VectorStreamConfig() {}
 

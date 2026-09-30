@@ -24,6 +24,7 @@ import java.util.List;
 public class VectorStreamModule extends NivoratModule {
     public static final String ID = "auto_spear";
     private final VectorStreamController controller = new VectorStreamController();
+    private final activity.client.module.setting.KeybindSetting triggerKeybindSetting;
 
     public VectorStreamModule() {
         super(ID, Text.translatable("activity.module.auto_spear.name"), Text.translatable("activity.module.auto_spear.desc"), ModuleCategory.COMBAT);
@@ -39,7 +40,7 @@ public class VectorStreamModule extends NivoratModule {
                 .aliases("autospear", "spear", "копье", "копьё", "автокопье", "авто-копье", "авто копье", "выпад", "выпад копьем", "выпад копьём", "задержка", "delay", "restore")
                 .build();
 
-        registerKeybind("trigger_keybind", Text.translatable("activity.setting.combat.trigger_keybind"),
+        this.triggerKeybindSetting = registerKeybind("trigger_keybind", Text.translatable("activity.setting.combat.trigger_keybind"),
                 Text.translatable("activity.setting.combat.trigger_keybind.desc"), SettingGroup.GENERAL,
                 new activity.client.module.keybind.Keybind(GLFW.GLFW_KEY_TAB),
                 () -> {
@@ -53,10 +54,14 @@ public class VectorStreamModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).onPress(client -> {
+        );
+        this.triggerKeybindSetting.onPress(client -> {
             if (isEnabled()) {
                 controller.onTrigger(client);
             }
+        });
+        this.triggerKeybindSetting.onRelease(client -> {
+            controller.onKeyRelease(client);
         });
         registerEnum("security_mode", Text.translatable("activity.setting.combat.security_mode"),
                 Text.translatable("activity.setting.combat.security_mode.desc"), SettingGroup.GENERAL,
@@ -223,14 +228,33 @@ public class VectorStreamModule extends NivoratModule {
 
     @Override
     public void onDisable() {
+        controller.onKeyRelease(null);
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.spear_active", false);
     }
 
     @Override
     public void onTick(MinecraftClient client) {
         if (isEnabled()) {
+            if (controller.isKeyHeld() && !isTriggerKeyPressed(client)) {
+                controller.onKeyRelease(client);
+            }
             controller.tick(client);
         }
+    }
+
+    private boolean isTriggerKeyPressed(MinecraftClient client) {
+        if (client == null || client.getWindow() == null || client.currentScreen != null) return false;
+        activity.client.module.keybind.Keybind kb = triggerKeybindSetting != null ? triggerKeybindSetting.get() : null;
+        if (kb == null || kb.isUnbound()) return false;
+        net.minecraft.client.util.Window window = client.getWindow();
+        if (window.getHandle() == 0L) return false;
+        boolean ctrl = net.minecraft.client.util.InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL)
+                || net.minecraft.client.util.InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
+        boolean shift = net.minecraft.client.util.InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT)
+                || net.minecraft.client.util.InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
+        boolean alt = net.minecraft.client.util.InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_ALT)
+                || net.minecraft.client.util.InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_ALT);
+        return kb.matchesWindow(window, ctrl, shift, alt);
     }
 
     @Override
