@@ -112,7 +112,49 @@ final class RevisionSmoke {
         if (tick == 225) {
             capture(client, "revision-07-health-hearts.png");
             System.out.println("REVISION_SMOKE passed: live bind routing, special keys, side mouse, conflict confirmation, dropdown, custom HP editor, GG list, named cooldown groups, pinned theme");
-            VisualSmoke.writeResult(true, "revision GUI + bind routing + renamed cooldowns");
+            client.setScreen(new dev.hpreaper.HpHudEditorScreen(null));
+            dev.hpreaper.VitalityConfig.displayMode = dev.hpreaper.HealthHudOverlay.DisplayMode.OWN_HEALTH;
+            dev.hpreaper.VitalityConfig.setModePos(dev.hpreaper.HealthHudOverlay.DisplayMode.OWN_HEALTH, 320, 190);
+        }
+        if (tick == 235) {
+            var screen = client.currentScreen;
+            float scale = activity.client.gui.custom.utils.render.render2d.Render2DCoordinateSpace.guiIndependentScale();
+            screen.mouseClicked(new Click(20 * scale, 30 * scale, new MouseInput(0, 0)), false);
+            require(screen.isDragging(), "HUD editor heading did not enable mouse drag routing");
+            screen.mouseDragged(new Click(215 * scale, 72 * scale, new MouseInput(0, 0)), 195 * scale, 42 * scale);
+            screen.mouseReleased(new Click(215 * scale, 72 * scale, new MouseInput(0, 0)));
+            screen.mouseClicked(new Click(325 * scale, 195 * scale, new MouseInput(0, 0)), false);
+            require(screen.isDragging(), "HUD indicator did not enable mouse drag routing");
+            screen.mouseDragged(new Click(355 * scale, 215 * scale, new MouseInput(0, 0)), 30 * scale, 20 * scale);
+            screen.mouseReleased(new Click(355 * scale, 215 * scale, new MouseInput(0, 0)));
+            require(dev.hpreaper.VitalityConfig.ownHealthX == 350 && dev.hpreaper.VitalityConfig.ownHealthY == 210, "HP drag did not update native coordinates");
+        }
+        if (tick == 240) capture(client, "revision-08-hp-compact-dragged.png");
+        if (tick == 242) dev.hpreaper.VitalityConfig.displayMode = dev.hpreaper.HealthHudOverlay.DisplayMode.CROSSHAIR_AND_TARGET;
+        if (tick == 245) capture(client, "revision-09-hp-own-target.png");
+        if (tick == 247) dev.hpreaper.VitalityConfig.displayMode = dev.hpreaper.HealthHudOverlay.DisplayMode.TARGET_HEALTH;
+        if (tick == 250) capture(client, "revision-10-hp-target-only.png");
+        if (tick == 252) dev.hpreaper.VitalityConfig.displayMode = dev.hpreaper.HealthHudOverlay.DisplayMode.OWN_TARGET_AND_DIFFERENCE;
+        if (tick == 255) capture(client, "revision-11-hp-difference.png");
+        if (tick == 257) dev.hpreaper.VitalityConfig.displayMode = dev.hpreaper.HealthHudOverlay.DisplayMode.DISABLED;
+        if (tick == 260) {
+            capture(client, "revision-12-hp-disabled.png");
+            client.setScreen(new dev.carthud.CartHudEditorScreen(null));
+            dev.carthud.CartHudConfig.customX = 315; dev.carthud.CartHudConfig.customY = 200;
+        }
+        if (tick == 265) {
+            var screen = client.currentScreen;
+            float scale = activity.client.gui.custom.utils.render.render2d.Render2DCoordinateSpace.guiIndependentScale();
+            screen.mouseClicked(new Click(320 * scale, 207 * scale, new MouseInput(0, 0)), false);
+            require(screen.isDragging(), "Cart HUD did not enable mouse drag routing");
+            screen.mouseDragged(new Click(350 * scale, 227 * scale, new MouseInput(0, 0)), 30 * scale, 20 * scale);
+            screen.mouseReleased(new Click(350 * scale, 227 * scale, new MouseInput(0, 0)));
+            require(dev.carthud.CartHudConfig.customX == 345 && dev.carthud.CartHudConfig.customY == 220, "Cart HUD drag coordinates were wrong");
+        }
+        if (tick == 275) {
+            capture(client, "revision-13-cart-native-editor.png");
+            System.out.println("HUD_EDITOR_SMOKE passed: native panel and HUD drag routing, HP modes, disabled preview, frameless Cart HUD");
+            VisualSmoke.writeResult(true, "revision GUI + native draggable HUD editors + HP modes");
             client.scheduleStop();
         }
     }

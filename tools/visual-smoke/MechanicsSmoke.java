@@ -17,9 +17,21 @@ final class MechanicsSmoke {
     private static activity.client.module.impl.defense.OcclusionCacheModule cart;
 
     static void tick(MinecraftClient client) {
+        if (!client.player.isAlive()) { client.player.requestRespawn(); return; }
         ticks++;
         if (ticks == 1) {
-            client.getServer().execute(() -> client.getServer().getPlayerManager().getPlayer(client.player.getUuid()).changeGameMode(net.minecraft.world.GameMode.CREATIVE));
+            client.getServer().submit(() -> {
+                client.getServer().getPlayerManager().getPlayer(client.player.getUuid()).changeGameMode(net.minecraft.world.GameMode.CREATIVE);
+                var player = client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
+                player.setInvulnerable(true);
+                player.setNoGravity(true);
+                player.requestTeleport(-42, 170, 70);
+                for (var entity : client.getServer().getOverworld().iterateEntities()) if (entity instanceof net.minecraft.entity.mob.HostileEntity || entity instanceof net.minecraft.entity.projectile.thrown.EnderPearlEntity) entity.discard();
+            }).join();
+            client.player.setNoGravity(true);
+            client.player.setPosition(-42, 170, 70);
+            for (int slot = 0; slot < 9; slot++) setStack(client, slot, ItemStack.EMPTY);
+            setStack(client, 40, ItemStack.EMPTY);
             for (var module : activity.client.module.api.ModuleRegistry.getAll()) module.setEnabled(false);
             pearl = (ClickPearlModule) activity.client.module.api.ModuleRegistry.get("click_pearl");
             pearl.setEnabled(true);
@@ -134,6 +146,7 @@ final class MechanicsSmoke {
             ClickPearlConfig.targetHotbarSlot = 3;
             pearl.setEnabled(true);
             serverSawPearl.set(false);
+            client.player.setPitch(-65f);
             client.getServer().execute(() -> {
                 var serverPlayer = client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
                 serverPlayer.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
@@ -141,6 +154,7 @@ final class MechanicsSmoke {
         }
         if (ticks == 134) {
             ClickPearlConfig.searchMode = "inventory";
+            ClickPearlConfig.returnPearl = true;
             ClickPearlConfig.targetHotbarSlot = 3;
             ClickPearlConfig.checkCooldown = false;
             ClickPearlConfig.preferOffhand = false;
@@ -161,7 +175,58 @@ final class MechanicsSmoke {
             require(client.player.getInventory().getStack(2).isEmpty(), "Hotbar was not restored");
             require(!CombatLockManager.isLocked(), "Inventory pearl retained lock");
             System.out.println("INVENTORY_PEARL_SMOKE passed: visible inventory, accepted swap/use/return, restored slots, no lock");
-            VisualSmoke.writeResult(true, "mechanics + physical inventory PEARL");
+            setStack(client, 12, new ItemStack(Items.ENDER_PEARL, 16));
+            setStack(client, 13, new ItemStack(Items.ENDER_PEARL, 8));
+            setStack(client, 2, new ItemStack(Items.DIAMOND_AXE));
+        }
+        if (ticks == 175) {
+            ClickPearlConfig.returnPearl = false;
+            pearl.getController().trigger(client);
+        }
+        if (ticks == 200) {
+            require(client.currentScreen == null, "Leave-in-hotbar inventory stayed open");
+            require(client.player.getInventory().getStack(2).isOf(Items.ENDER_PEARL), "PEARL was not left in configured hotbar slot");
+            require(client.player.getInventory().getStack(12).isOf(Items.DIAMOND_AXE), "Displaced item was lost");
+            require(client.player.getInventory().getStack(13).getCount() == 8, "Second inventory stack was moved");
+            require(!CombatLockManager.isLocked(), "Leave-in-hotbar retained lock");
+            setStack(client, 12, new ItemStack(Items.ENDER_PEARL, 16));
+            setStack(client, 2, ItemStack.EMPTY);
+        }
+        if (ticks == 210) {
+            ClickPearlConfig.returnPearl = true;
+            pearl.getController().trigger(client);
+        }
+        if (ticks == 213) client.setScreen(null);
+        if (ticks == 235) {
+            require(client.currentScreen == null, "Manual close reopened inventory");
+            require(pearl.getController().getState() == dev.pearl.ClickPearlController.State.IDLE, "Manual close did not cancel");
+            require(!CombatLockManager.isLocked(), "Manual close retained lock");
+            setStack(client, 12, new ItemStack(Items.ENDER_PEARL, 16));
+            setStack(client, 2, ItemStack.EMPTY);
+        }
+        if (ticks == 245) pearl.getController().trigger(client);
+        if (ticks == 247) pearl.setEnabled(false);
+        if (ticks == 268) {
+            require(client.currentScreen == null, "Disable reopened inventory");
+            require(!CombatLockManager.isLocked(), "Disable retained lock");
+            pearl.setEnabled(true);
+            ClickPearlConfig.searchMode = "inventory";
+            ClickPearlConfig.checkCooldown = false;
+            setStack(client, 2, new ItemStack(Items.ENDER_PEARL, 16));
+            setStack(client, 12, new ItemStack(Items.ENDER_PEARL, 8));
+        }
+        if (ticks == 278) {
+            System.out.println("HOTBAR_PRIORITY_SETUP hotbar=" + dev.pearl.ClickPearlController.findHotbarItem(client.player, Items.ENDER_PEARL) + " selected=" + client.player.getInventory().getSelectedSlot() + " state=" + pearl.getController().getState());
+            pearl.getController().trigger(client);
+            require(client.currentScreen == null, "Hotbar PEARL opened inventory despite priority");
+        }
+        if (ticks >= 279 && ticks <= 300 && client.currentScreen != null) System.out.println("HOTBAR_PRIORITY_SCREEN " + ticks + " screen=" + client.currentScreen + " state=" + pearl.getController().getState());
+        if (ticks == 300) {
+            require(client.currentScreen == null, "Hotbar operation screen=" + client.currentScreen + " state=" + pearl.getController().getState());
+            require(client.player.getInventory().getStack(12).getCount() == 8, "Hotbar operation touched inventory stack");
+            require(!CombatLockManager.isLocked(), "Hotbar priority retained lock");
+            System.out.println("INVENTORY_LIFECYCLE_SMOKE passed: optional return, leave PEARL, displaced item, multiple stacks, manual cancellation, disable, hotbar priority");
+            VisualSmoke.writeResult(true, "mechanics + inventory lifecycle regression");
             client.scheduleStop();
         }
     }

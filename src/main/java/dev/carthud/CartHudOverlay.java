@@ -92,8 +92,8 @@ public final class CartHudOverlay {
             return;
         }
 
-        int width = context.getScaledWindowWidth();
-        int height = context.getScaledWindowHeight();
+        int width = (int) activity.client.gui.custom.api.drags.Position.screenWidth();
+        int height = (int) activity.client.gui.custom.api.drags.Position.screenHeight();
         int x = getEffectiveX(width);
         int y = getEffectiveY(height);
 
@@ -110,11 +110,16 @@ public final class CartHudOverlay {
                 ICON = new ItemStack(Items.TNT_MINECART);
             } catch (Throwable ignored) {}
         }
-        try(var frame=activity.client.gui.custom.UnifiedHudRender.begin(context)){
-            activity.client.gui.custom.UnifiedHudRender.card(x,y,ELEMENT_WIDTH,ELEMENT_HEIGHT);
+        try(var frame=activity.client.gui.custom.UnifiedHudRender.beginNative(context)){
             int color=cartCount<=2?0xffff6874:0xffedf0f6;
+            activity.client.gui.custom.UnifiedHudRender.text(String.valueOf(cartCount),x+25.5f,y+6.5f,0xee11131b);
             activity.client.gui.custom.UnifiedHudRender.text(String.valueOf(cartCount),x+25,y+6,color);
         }
-        if(ICON!=null)context.drawItem(ICON,x+4,y+3);
+        if (ICON != null) {
+            context.getMatrices().pushMatrix();
+            activity.client.gui.custom.utils.render.render2d.Render2DCoordinateSpace.applyGuiScaleIndependence(context.getMatrices());
+            context.drawItem(ICON, x + 4, y + 3);
+            context.getMatrices().popMatrix();
+        }
     }
 }

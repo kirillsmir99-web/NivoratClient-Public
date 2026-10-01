@@ -115,6 +115,16 @@ public class ClickPearlModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("return_pearl", Text.translatable("activity.setting.combat.click_pearl_return_pearl"),
+                Text.translatable("activity.setting.combat.click_pearl_return_pearl.desc"), SettingGroup.GENERAL,
+                false, () -> ActivityConfigManager.getConfig().clickPearlReturnPearl,
+                value -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    c.clickPearlReturnPearl = value;
+                    syncControllerConfig(c);
+                    ActivityConfigManager.markDirty();
+                });
+
         registerNumber("switch_delay", Text.translatable("activity.setting.combat.click_pearl_switch_delay"),
                 Text.translatable("activity.setting.combat.click_pearl_switch_delay.desc"), SettingGroup.BEHAVIOR,
                 0.0, 300.0, 5.0, " ms", true, 50.0,
@@ -247,6 +257,7 @@ public class ClickPearlModule extends NivoratModule {
         ClickPearlConfig.mode = c.clickPearlMode != null ? c.clickPearlMode : "fast";
         ClickPearlConfig.searchMode = c.clickPearlSearchMode != null ? c.clickPearlSearchMode : "hotbar";
         ClickPearlConfig.switchBack = c.clickPearlSwitchBack;
+        ClickPearlConfig.returnPearl = c.clickPearlReturnPearl;
         ClickPearlConfig.switchDelayMs = c.clickPearlSwitchDelayMs;
         ClickPearlConfig.checkCooldown = c.clickPearlCheckCooldown;
         ClickPearlConfig.preferOffhand = c.clickPearlPreferOffhand;

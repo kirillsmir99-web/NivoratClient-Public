@@ -59,6 +59,7 @@ class ClickPearlModuleTest {
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("search_mode"));
         assertNotNull(mod.getSetting("switch_back"));
+        assertNotNull(mod.getSetting("return_pearl"));
         assertNotNull(mod.getSetting("switch_delay"));
         assertNotNull(mod.getSetting("check_cooldown"));
         assertNotNull(mod.getSetting("prefer_offhand"));
@@ -77,6 +78,7 @@ class ClickPearlModuleTest {
         cfg.clickPearlMode = "legit";
         cfg.clickPearlSearchMode = "inventory";
         cfg.clickPearlSwitchBack = false;
+        cfg.clickPearlReturnPearl = true;
         cfg.clickPearlSwitchDelayMs = 75.0;
         cfg.clickPearlCheckCooldown = false;
         cfg.clickPearlPreferOffhand = false;
@@ -91,6 +93,7 @@ class ClickPearlModuleTest {
         assertEquals("legit", copy.clickPearlMode);
         assertEquals("inventory", copy.clickPearlSearchMode);
         assertFalse(copy.clickPearlSwitchBack);
+        assertTrue(copy.clickPearlReturnPearl);
         assertEquals(75.0, copy.clickPearlSwitchDelayMs);
         assertFalse(copy.clickPearlCheckCooldown);
         assertFalse(copy.clickPearlPreferOffhand);
@@ -110,6 +113,7 @@ class ClickPearlModuleTest {
         cfg.clickPearlMode = "safe";
         cfg.clickPearlSearchMode = "inventory";
         cfg.clickPearlSwitchBack = true;
+        cfg.clickPearlReturnPearl = true;
         cfg.clickPearlSwitchDelayMs = 120.0;
         cfg.clickPearlCheckCooldown = false;
         cfg.clickPearlPreferOffhand = true;
@@ -124,6 +128,7 @@ class ClickPearlModuleTest {
         assertEquals("safe", ClickPearlConfig.mode);
         assertEquals("inventory", ClickPearlConfig.searchMode);
         assertTrue(ClickPearlConfig.switchBack);
+        assertTrue(ClickPearlConfig.returnPearl);
         assertEquals(120.0, ClickPearlConfig.switchDelayMs);
         assertFalse(ClickPearlConfig.checkCooldown);
         assertTrue(ClickPearlConfig.preferOffhand);
@@ -163,6 +168,7 @@ class ClickPearlModuleTest {
         cfg.clickPearlMode = "safe";
         cfg.clickPearlSearchMode = "inventory";
         cfg.clickPearlSwitchBack = false;
+        cfg.clickPearlReturnPearl = true;
         cfg.clickPearlSwitchDelayMs = 80.0;
         cfg.clickPearlCheckCooldown = false;
         cfg.clickPearlPreferOffhand = false;

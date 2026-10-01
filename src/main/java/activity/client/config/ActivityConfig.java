@@ -267,6 +267,7 @@ public class ActivityConfig {
     public String clickPearlMode = "fast";
     public String clickPearlSearchMode = "hotbar";
     public boolean clickPearlSwitchBack = true;
+    public boolean clickPearlReturnPearl = false;
     public double clickPearlSwitchDelayMs = 50.0;
     public boolean clickPearlCheckCooldown = true;
     public boolean clickPearlPreferOffhand = true;
@@ -757,6 +758,7 @@ public class ActivityConfig {
         this.clickPearlMode = "fast";
         this.clickPearlSearchMode = "hotbar";
         this.clickPearlSwitchBack = true;
+        this.clickPearlReturnPearl = false;
         this.clickPearlSwitchDelayMs = 50.0;
         this.clickPearlCheckCooldown = true;
         this.clickPearlPreferOffhand = true;
@@ -1551,6 +1553,7 @@ public class ActivityConfig {
         entry.settings.put("mode", this.clickPearlMode);
         entry.settings.put("search_mode", this.clickPearlSearchMode);
         entry.settings.put("switch_back", this.clickPearlSwitchBack);
+        entry.settings.put("return_pearl", this.clickPearlReturnPearl);
         entry.settings.put("switch_delay", this.clickPearlSwitchDelayMs);
         entry.settings.put("check_cooldown", this.clickPearlCheckCooldown);
         entry.settings.put("prefer_offhand", this.clickPearlPreferOffhand);
@@ -1916,6 +1919,7 @@ public class ActivityConfig {
                 this.clickPearlMode = getSettingString(cp.settings, "mode", this.clickPearlMode);
                 this.clickPearlSearchMode = getSettingString(cp.settings, "search_mode", this.clickPearlSearchMode);
                 this.clickPearlSwitchBack = getSettingBoolean(cp.settings, "switch_back", this.clickPearlSwitchBack);
+                this.clickPearlReturnPearl = getSettingBoolean(cp.settings, "return_pearl", this.clickPearlReturnPearl);
                 this.clickPearlSwitchDelayMs = getSettingDouble(cp.settings, "switch_delay", this.clickPearlSwitchDelayMs);
                 this.clickPearlCheckCooldown = getSettingBoolean(cp.settings, "check_cooldown", this.clickPearlCheckCooldown);
                 this.clickPearlPreferOffhand = getSettingBoolean(cp.settings, "prefer_offhand", this.clickPearlPreferOffhand);
@@ -2159,6 +2163,7 @@ public class ActivityConfig {
         copy.clickPearlMode = this.clickPearlMode;
         copy.clickPearlSearchMode = this.clickPearlSearchMode;
         copy.clickPearlSwitchBack = this.clickPearlSwitchBack;
+        copy.clickPearlReturnPearl = this.clickPearlReturnPearl;
         copy.clickPearlSwitchDelayMs = this.clickPearlSwitchDelayMs;
         copy.clickPearlCheckCooldown = this.clickPearlCheckCooldown;
         copy.clickPearlPreferOffhand = this.clickPearlPreferOffhand;
@@ -2453,6 +2458,7 @@ public class ActivityConfig {
                 Objects.equals(this.clickPearlMode, that.clickPearlMode) &&
                 Objects.equals(this.clickPearlSearchMode, that.clickPearlSearchMode) &&
                 this.clickPearlSwitchBack == that.clickPearlSwitchBack &&
+                this.clickPearlReturnPearl == that.clickPearlReturnPearl &&
                 Double.compare(this.clickPearlSwitchDelayMs, that.clickPearlSwitchDelayMs) == 0 &&
                 this.clickPearlCheckCooldown == that.clickPearlCheckCooldown &&
                 this.clickPearlPreferOffhand == that.clickPearlPreferOffhand &&
@@ -2577,7 +2583,7 @@ public class ActivityConfig {
             waterDropEnableCobweb, waterDropEnablePowderSnow,
 
             clickPearlEnabled, clickPearlKeybind, clickPearlTriggerKeybind, clickPearlMode, clickPearlSearchMode,
-            clickPearlSwitchBack, clickPearlSwitchDelayMs, clickPearlCheckCooldown, clickPearlPreferOffhand,
+            clickPearlSwitchBack, clickPearlReturnPearl, clickPearlSwitchDelayMs, clickPearlCheckCooldown, clickPearlPreferOffhand,
             clickPearlRandomDelay, clickPearlSwingHand, clickPearlTargetSlot, clickPearlCombatGuard,
 
             overlayEnabled, darkThemeEnabled, hudPosition, overlayOpacity, autoHideOnChat, hideInF3, searchFilter, filterCategory, matchCase

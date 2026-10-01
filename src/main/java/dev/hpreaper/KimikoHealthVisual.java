@@ -22,7 +22,6 @@ public final class KimikoHealthVisual {
         int count = 0;
         for (var slot : ARMOR) if (!entity.getEquippedStack(slot).isEmpty()) count++;
         if (count == 0) return;
-        UnifiedHudRender.card(x, y, 4 + count * 16, 20);
         int offset = 0;
         for (var slot : ARMOR) {
             var stack = entity.getEquippedStack(slot);

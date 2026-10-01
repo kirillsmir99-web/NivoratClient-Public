@@ -334,48 +334,56 @@ public final class HealthHudOverlay {
         return getEffectiveY(VitalityConfig.displayMode, screenHeight, elementHeight);
     }
 
+    public static boolean showsOwn(DisplayMode mode) {
+        return mode == DisplayMode.OWN_HEALTH || mode == DisplayMode.CROSSHAIR_AND_TARGET || mode == DisplayMode.OWN_TARGET_AND_DIFFERENCE;
+    }
+    public static boolean showsTarget(DisplayMode mode) {
+        return mode == DisplayMode.TARGET_HEALTH || mode == DisplayMode.CROSSHAIR_AND_TARGET || mode == DisplayMode.OWN_TARGET_AND_DIFFERENCE;
+    }
+    public static boolean showsDifference(DisplayMode mode, boolean enabled) {
+        return mode == DisplayMode.OWN_TARGET_AND_DIFFERENCE && enabled;
+    }
     public static int getPreviewWidth(TextRenderer textRenderer, DisplayMode mode) {
-        if (textRenderer == null) {
-            return 24;
-        }
-        if (mode != DisplayMode.OWN_HEALTH && activity.client.config.ActivityConfigManager.getConfig().hpReaperShowDifference)
-            return 45 + activity.client.gui.custom.UnifiedHudRender.measure("20.0 18.5 +1.5");
-        return switch(mode){
-            case OWN_HEALTH,CROSSHAIR_AND_TARGET,TARGET_HEALTH -> 30+activity.client.gui.custom.UnifiedHudRender.measure("20.0");
-            case OWN_TARGET_AND_DIFFERENCE,DISABLED -> 45+activity.client.gui.custom.UnifiedHudRender.measure("20.0 18.5 +1.5");
-        };
+        if (mode == DisplayMode.DISABLED) return 0;
+        int width = 15 + activity.client.gui.custom.UnifiedHudRender.measure("20.0");
+        if (showsOwn(mode) && showsTarget(mode)) width *= 2;
+        if (showsDifference(mode, activity.client.config.ActivityConfigManager.getConfig().hpReaperShowDifference))
+            width += 8 + activity.client.gui.custom.UnifiedHudRender.measure("+1.5");
+        return width;
     }
-    public static int getPreviewHeight(DisplayMode mode){return activity.client.config.ActivityConfigManager.getConfig().hpReaperShowArmor ? 48 : 24;}
-    public static void renderPreview(DrawContext context,MinecraftClient client,int x,int y,DisplayMode mode){
-        if(context==null||client==null)return;
-        renderElement(context,client,x,y,"20.0",COLOR_NORMAL,"18.5",COLOR_TARGET,"+1.5",COLOR_DIFFERENCE_AHEAD,mode);
+    public static int getPreviewHeight(DisplayMode mode) {
+        if (mode == DisplayMode.DISABLED) return 0;
+        return activity.client.config.ActivityConfigManager.getConfig().hpReaperShowArmor ? 40 : 18;
     }
-    public static void renderElement(DrawContext context,MinecraftClient client,int x,int y,
-                                    String ownText,int ownColor,String targetText,int targetColor,
-                                    String diffText,int diffColor,DisplayMode mode){
-        if(mode==DisplayMode.DISABLED||mode==DisplayMode.TARGET_HEALTH&&targetText==null)return;
-        boolean combined=mode!=DisplayMode.OWN_HEALTH&&targetText!=null&&diffText!=null
-                && activity.client.config.ActivityConfigManager.getConfig().hpReaperShowDifference;
-        String primary=mode==DisplayMode.OWN_HEALTH?ownText:targetText!=null?targetText:ownText;
-        if(combined)primary=ownText;
-        int width=30+activity.client.gui.custom.UnifiedHudRender.measure(primary);
-        if(combined)width+=15+activity.client.gui.custom.UnifiedHudRender.measure(targetText+" "+diffText);
-        try(var frame=activity.client.gui.custom.UnifiedHudRender.beginNative(context)){
-            activity.client.gui.custom.UnifiedHudRender.card(x,y,width,24);
-            activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.HEART,x+6,y+6,9,activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(245));
-            float tx=x+21;
-            activity.client.gui.custom.UnifiedHudRender.text(primary,tx,y+6,primary.equals(ownText)&&ownColor==COLOR_ABSORPTION?0xffffd67a:0xffedf0f6);
-            tx+=activity.client.gui.custom.UnifiedHudRender.measure(primary)+7;
-            if(combined){
-                activity.client.gui.custom.UnifiedHudRender.text(targetText,tx,y+6,activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(250));
-                tx+=activity.client.gui.custom.UnifiedHudRender.measure(targetText)+7;
-                activity.client.gui.custom.UnifiedHudRender.text(diffText,tx,y+6,diffColor);
-            }
-            float numeric=0f;try{numeric=Float.parseFloat(primary);}catch(NumberFormatException ignored){}
-            activity.client.gui.custom.UnifiedHudRender.progress(x+5,y+20,width-10,numeric/20f);
+    public static void renderPreview(DrawContext context, MinecraftClient client, int x, int y, DisplayMode mode) {
+        if (context == null || client == null) return;
+        renderElement(context, client, x, y, "20.0", COLOR_NORMAL, "18.5", COLOR_TARGET, "+1.5", COLOR_DIFFERENCE_AHEAD, mode);
+    }
+    public static void renderElement(DrawContext context, MinecraftClient client, int x, int y,
+                                    String ownText, int ownColor, String targetText, int targetColor,
+                                    String diffText, int diffColor, DisplayMode mode) {
+        if (mode == DisplayMode.DISABLED || mode == DisplayMode.TARGET_HEALTH && targetText == null) return;
+        try (var frame = activity.client.gui.custom.UnifiedHudRender.beginNative(context)) {
+            float tx = x;
+            if (showsOwn(mode)) tx = drawValue(ownText, tx, y, ownColor == COLOR_ABSORPTION ? 0xffffd67a : 0xffedf0f6, 0xffff6376);
+            if (showsTarget(mode) && targetText != null) tx = drawValue(targetText, tx, y, 0xffedf0f6,
+                    activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(250));
+            if (showsDifference(mode, activity.client.config.ActivityConfigManager.getConfig().hpReaperShowDifference) && targetText != null && diffText != null)
+                drawNumber(diffText, tx + 3, y + 4, diffColor);
             var target = client.player == null ? null : getActiveTarget(client.player, System.nanoTime());
-            KimikoHealthVisual.armor(context, mode == DisplayMode.OWN_HEALTH ? client.player : target, x, y - 23);
+            KimikoHealthVisual.armor(context, mode == DisplayMode.TARGET_HEALTH ? target : client.player, x, y - 21);
         }
+    }
+    private static float drawValue(String text, float x, float y, int color, int heartColor) {
+        activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.HEART, x + .5f, y + 4.5f, 8, 0xee11131b);
+        activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.HEART, x, y + 4, 8, heartColor);
+        drawNumber(text, x + 12, y + 4, color);
+        return x + 15 + activity.client.gui.custom.UnifiedHudRender.measure(text);
+    }
+
+    private static void drawNumber(String value, float x, float y, int color) {
+        activity.client.gui.custom.UnifiedHudRender.text(value, x + .5f, y + .5f, 0xee11131b);
+        activity.client.gui.custom.UnifiedHudRender.text(value, x, y, color);
     }
 
     public static void render(DrawContext context, float tickDelta) {
