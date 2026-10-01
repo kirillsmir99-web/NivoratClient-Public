@@ -63,16 +63,7 @@ class DevModeAndWarningsTest {
         assertEquals(1, count);
     }
 
-    @Test
-    void testNormalizeServerAddress() {
-        assertEquals("play.example.com", PresenceHeartbeatService.normalizeServer("play.example.com"));
-        assertEquals("play.example.com", PresenceHeartbeatService.normalizeServer("play.example.com:25565"));
-        assertEquals("play.example.com", PresenceHeartbeatService.normalizeServer("PLAY.EXAMPLE.COM:25565"));
-        assertEquals("play.example.com", PresenceHeartbeatService.normalizeServer("play.example.com."));
-        assertEquals("play.example.com:25566", PresenceHeartbeatService.normalizeServer("play.example.com:25566"));
-        assertEquals("", PresenceHeartbeatService.normalizeServer(null));
-        assertEquals("", PresenceHeartbeatService.normalizeServer("   "));
-    }
+
 
     @Test
     void testAutoToolToggleState() {

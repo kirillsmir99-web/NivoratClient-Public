@@ -215,7 +215,7 @@ public class ActivityKeybindButton extends ActivityComponent {
 
         ScissorHelper.pushScissor(context, this.x + 2, this.y + 1, this.width - 4, this.height - 2);
         try {
-            context.drawCenteredTextWithShadow(tr, this.cachedWrappedLabel, this.x + this.width / 2, textY, textColor);
+            activity.client.gui.font.UiTextRenderer.drawCenteredTextWithShadow(context, tr, this.cachedWrappedLabel, this.x + this.width / 2, textY, textColor);
         } finally {
             ScissorHelper.popScissor(context);
         }

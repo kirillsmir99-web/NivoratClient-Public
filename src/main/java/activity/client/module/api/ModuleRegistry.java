@@ -12,6 +12,7 @@ import java.util.Map;
 public final class ModuleRegistry {
 
     private static final Map<String, IModule> MODULES = new LinkedHashMap<>();
+    private static volatile List<IModule> snapshot = List.of();
 
     static {
         BuiltinModules.registerAll();
@@ -22,12 +23,13 @@ public final class ModuleRegistry {
     public static synchronized void register(IModule module) {
         if (module != null) {
             MODULES.put(module.getId(), module);
+            snapshot = List.copyOf(MODULES.values());
             try {
                 module.onInitialize();
-            } catch (Throwable ignored) {}
+            } catch (Throwable error) { ModuleDiagnostics.report(module.getId(), "initialize", error); }
             try {
                 activity.client.gui.search.SearchController.indexModule(module);
-            } catch (Throwable ignored) {}
+            } catch (Throwable error) { ModuleDiagnostics.report(module.getId(), "search-index", error); }
             ModuleEventDispatcher.updateActiveModules();
             KeybindManager.rebuildBoundKeybinds();
         }
@@ -36,6 +38,7 @@ public final class ModuleRegistry {
     public static synchronized void unregister(String id) {
         if (id != null) {
             MODULES.remove(id);
+            snapshot = List.copyOf(MODULES.values());
             ModuleEventDispatcher.updateActiveModules();
             KeybindManager.rebuildBoundKeybinds();
         }
@@ -72,8 +75,8 @@ public final class ModuleRegistry {
         return module != null ? module.getMetadata() : null;
     }
 
-    public static synchronized List<IModule> getAll() {
-        return Collections.unmodifiableList(new ArrayList<>(MODULES.values()));
+    public static List<IModule> getAll() {
+        return snapshot;
     }
 
     public static synchronized List<IModule> getByCategory(ModuleCategory category) {
@@ -118,7 +121,7 @@ public final class ModuleRegistry {
                     if (config != null) {
                         module.saveToConfig(config);
                     }
-                } catch (Throwable ignored) {}
+                } catch (Throwable error) { ModuleDiagnostics.report(module.getId(), "enable-all", error); }
             }
         }
         ModuleEventDispatcher.updateActiveModules();

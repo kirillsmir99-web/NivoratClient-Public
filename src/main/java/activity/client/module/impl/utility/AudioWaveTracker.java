@@ -81,6 +81,20 @@ public final class AudioWaveTracker {
         "(?i)(?u)(?:\\[.*?\\]\\s*)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+)\\s+(?:победил|выиграл|одолел|разгромил|одержал\\s+победу|won(?:\\s+the\\s+duel)?|defeated)(?:\\s+(?:в\\s+дуэли\\s+)?(?:у\\s+|над\\s+|against\\s+)?(?:(?:игрок[а-я]*|player)\\s+)?([\\w\\u0400-\\u04FF]+))"
     );
 
+    private static final Pattern DUEL_WINNER_LABEL = Pattern.compile("(?i)(?u)(?:победител[ьяе]|winner)\\s*(?:дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+    private static final Pattern DUEL_WINNER_ACTION = Pattern.compile("(?i)(?u)(?:победил|выиграл|одержал\\s+победу)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+    private static final Pattern DUEL_LOSER_LABEL = Pattern.compile("(?i)(?u)(?:проигравш[ийея]|проиграл|потерпел\\s+поражение|loser)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+
+    private static String cachedPlayerName;
+    private static Pattern cachedPlayerPattern;
+    private static synchronized Pattern playerNamePattern(String name) {
+        if (!name.equals(cachedPlayerName)) {
+            cachedPlayerName = name;
+            cachedPlayerPattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(name) + "\\b");
+        }
+        return cachedPlayerPattern;
+    }
+
     private AudioWaveTracker() {}
 
     public static void recordAttack(int entityId, Vec3d pos, long timestampMs) {
@@ -495,7 +509,7 @@ public final class AudioWaveTracker {
             }
         }
 
-        Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
+        Pattern namePattern = playerNamePattern(localPlayerName);
         if (namePattern.matcher(clean).find()) {
             if (lower.contains("умер") || lower.contains("погиб") || lower.contains("разбился")
                     || lower.contains("сгорел") || lower.contains("утонул") || lower.contains("died")
@@ -547,7 +561,7 @@ public final class AudioWaveTracker {
             return true;
         }
 
-        Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
+        Pattern namePattern = playerNamePattern(localPlayerName);
 
         int winnerIdx = lower.indexOf("победил:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель:");
@@ -601,13 +615,13 @@ public final class AudioWaveTracker {
     public static String extractDuelWinner(String clean) {
         if (clean == null || clean.isBlank()) return null;
 
-        Pattern p1 = Pattern.compile("(?i)(?u)(?:победител[ьяе]|winner)\\s*(?:дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+        Pattern p1 = DUEL_WINNER_LABEL;
         Matcher m1 = p1.matcher(clean);
         if (m1.find()) {
             return m1.group(1).trim();
         }
 
-        Pattern p2 = Pattern.compile("(?i)(?u)(?:победил|выиграл|одержал\\s+победу)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+        Pattern p2 = DUEL_WINNER_ACTION;
         Matcher m2 = p2.matcher(clean);
         if (m2.find()) {
             return m2.group(1).trim();
@@ -624,7 +638,7 @@ public final class AudioWaveTracker {
     public static String extractDuelLoser(String clean) {
         if (clean == null || clean.isBlank()) return null;
 
-        Pattern p1 = Pattern.compile("(?i)(?u)(?:проигравш[ийея]|проиграл|потерпел\\s+поражение|loser)\\s*(?:в\\s+дуэли)?\\s*[:—–\\-]\\s*(?:игрок[а-я]*|player)?\\s*([a-zA-Z0-9_\\u0400-\\u04FF]{2,16})");
+        Pattern p1 = DUEL_LOSER_LABEL;
         Matcher m1 = p1.matcher(clean);
         if (m1.find()) {
             return m1.group(1).trim();
@@ -656,7 +670,7 @@ public final class AudioWaveTracker {
             return true;
         }
 
-        Pattern namePattern = Pattern.compile("(?i)(?u)\\b" + Pattern.quote(localPlayerName) + "\\b");
+        Pattern namePattern = playerNamePattern(localPlayerName);
 
         int winnerIdx = lower.indexOf("победил:");
         if (winnerIdx < 0) winnerIdx = lower.indexOf("победитель:");

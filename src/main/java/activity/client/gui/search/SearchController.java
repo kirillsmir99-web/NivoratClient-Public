@@ -193,6 +193,11 @@ public final class SearchController {
     }
 
     private static void initIndex() {
+        for (var kit : activity.client.gui.navigation.PvpKit.values()) {
+            addCategory(kit.id(), Text.translatable("activity.tab." + kit.id()), ActivityIcon.COMBAT,
+                List.of(kit.russianName(), kit.englishName()));
+        }
+        addCategory("themes", Text.translatable("activity.tab.themes"), ActivityIcon.GLASS, List.of("theme", "темы"));
 
         addCategory("combat", Text.translatable("activity.tab.combat"), ActivityIcon.COMBAT,
             List.of("combat", "бой", "оружие", "свапы", "оружие и свапы", "оружие & свапы", "combat & swaps", "пвп", "pvp", "мечи", "булава", "копье", "щит", "слизь"));

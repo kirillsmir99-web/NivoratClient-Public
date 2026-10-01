@@ -9,6 +9,7 @@ public final class ScissorHelper {
     private ScissorHelper() {}
 
     public static void pushScissor(DrawContext context, int x, int y, int width, int height) {
+        if(activity.client.gui.custom.CustomRender.active()){activity.client.gui.custom.utils.render.render2d.Render2D.pushScissor(context,x,y,width,height);return;}
         if (context == null) return;
         if (width <= 0 || height <= 0) {
             context.enableScissor(x, y, x, y);
@@ -41,6 +42,7 @@ public final class ScissorHelper {
     }
 
     public static void popScissor(DrawContext context) {
+        if(activity.client.gui.custom.CustomRender.active()){activity.client.gui.custom.utils.render.render2d.Render2D.popScissor(context);return;}
         if (context == null) return;
         context.disableScissor();
     }

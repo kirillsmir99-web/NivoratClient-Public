@@ -169,6 +169,16 @@ public class ChunkBufferModule extends NivoratModule {
     }
 
     @Override
+    public boolean canTickWhileScreenOpen(MinecraftClient client) {
+        return client != null && client.player != null && client.player.isAlive()
+                && client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen
+                && controller.isOpenedByRefill();
+    }
+
+    @Override
+    public void onDisable() { controller.reset(); }
+
+    @Override
     public void loadFromConfig(ActivityConfig config) {
         if (config == null) return;
         this.enabled = config.cartRefillEnabled;

@@ -23,58 +23,31 @@ public class SidebarTreeTest {
     @Test
     void testCategoriesInitialization() {
         List<SidebarTree.CategoryNode> categories = sidebarTree.getCategories();
-        assertEquals(4, categories.size());
-
-        SidebarTree.CategoryNode combat = categories.get(0);
-        assertEquals("combat", combat.getId());
-        assertEquals(0, combat.getTabIndex());
-        assertEquals(ActivityIcon.COMBAT, combat.getIcon());
-        assertEquals(6, combat.getChildren().size());
-        assertEquals("click_pearl", combat.getChildren().get(5).getId());
-        assertTrue(combat.isExpanded());
-
-        SidebarTree.CategoryNode defense = categories.get(1);
-        assertEquals("defense", defense.getId());
-        assertEquals(1, defense.getTabIndex());
-        assertEquals(ActivityIcon.DEFENSE, defense.getIcon());
-        assertEquals(4, defense.getChildren().size());
-
-        SidebarTree.CategoryNode utility = categories.get(2);
-        assertEquals("utility", utility.getId());
-        assertEquals(2, utility.getTabIndex());
-        assertEquals(ActivityIcon.UTILITY, utility.getIcon());
-        assertEquals(7, utility.getChildren().size());
-        assertEquals("hp_reaper", utility.getChildren().get(0).getId());
-        assertEquals("auto_tool", utility.getChildren().get(1).getId());
-        assertEquals("auto_gg", utility.getChildren().get(2).getId());
-        assertEquals("cart_hud", utility.getChildren().get(3).getId());
-        assertEquals("cooldown_hud", utility.getChildren().get(4).getId());
-        assertEquals("water_drop", utility.getChildren().get(5).getId());
-        assertEquals("hud_activity", utility.getChildren().get(6).getId());
-
-        SidebarTree.CategoryNode config = categories.get(3);
-        assertEquals("config", config.getId());
-        assertEquals(3, config.getTabIndex());
-        assertEquals(ActivityIcon.CONFIG, config.getIcon());
-        assertEquals(2, config.getChildren().size());
-        assertEquals("profiles", config.getChildren().get(0).getId());
-        assertEquals("status", config.getChildren().get(1).getId());
+        assertEquals(11, categories.size());
+        var kits = activity.client.gui.navigation.PvpKit.values();
+        for (int i = 0; i < kits.length; i++) {
+            assertEquals(kits[i].id(), categories.get(i).getId());
+            assertEquals(kits[i].tabIndex(), categories.get(i).getTabIndex());
+            assertFalse(categories.get(i).isExpanded());
+            var expected = activity.client.module.api.ModuleRegistry.getAll().stream()
+                .filter(kits[i]::matches).map(activity.client.module.api.IModule::getId).toList();
+            assertEquals(expected, categories.get(i).getChildren().stream().map(SidebarTree.ModuleItem::getId).toList());
+        }
+        assertEquals("config", categories.get(10).getId());
+        assertEquals(3, categories.get(10).getTabIndex());
+        assertEquals(2, categories.get(10).getChildren().size());
     }
 
     @Test
     void testFooterInitialization() {
         List<SidebarTree.FooterNode> footers = sidebarTree.getFooterItems();
-        assertEquals(2, footers.size());
-
-        SidebarTree.FooterNode settings = footers.get(0);
-        assertEquals("settings", settings.getId());
-        assertEquals(4, settings.getTabIndex());
-        assertEquals(ActivityIcon.SETTINGS, settings.getIcon());
-
-        SidebarTree.FooterNode about = footers.get(1);
-        assertEquals("about", about.getId());
-        assertEquals(5, about.getTabIndex());
-        assertEquals(ActivityIcon.ABOUT, about.getIcon());
+        assertEquals(3, footers.size());
+        assertEquals("themes", footers.get(0).getId());
+        assertEquals(16, footers.get(0).getTabIndex());
+        assertEquals("settings", footers.get(1).getId());
+        assertEquals(4, footers.get(1).getTabIndex());
+        assertEquals("about", footers.get(2).getId());
+        assertEquals(5, footers.get(2).getTabIndex());
     }
 
     @Test
@@ -106,8 +79,8 @@ public class SidebarTreeTest {
         defense.setExpanded(false);
         assertFalse(defense.isExpanded());
 
-        sidebarTree.setSelectedModule("defense", "auto_cart");
-        assertEquals("auto_cart", sidebarTree.getSelectedModuleId());
+        sidebarTree.setSelectedModule("kit_netherite_pot", "auto_totem");
+        assertEquals("auto_totem", sidebarTree.getSelectedModuleId());
         assertTrue(defense.isExpanded());
     }
 
@@ -139,15 +112,14 @@ public class SidebarTreeTest {
 
     @Test
     void testCategoryTitlesAndTranslations() {
-        List<SidebarTree.CategoryNode> categories = sidebarTree.getCategories();
-        assertEquals("activity.tab.combat", ((net.minecraft.text.TranslatableTextContent) categories.get(0).getTitle().getContent()).getKey());
-        assertEquals("activity.tab.defense", ((net.minecraft.text.TranslatableTextContent) categories.get(1).getTitle().getContent()).getKey());
-        assertEquals("activity.tab.utility", ((net.minecraft.text.TranslatableTextContent) categories.get(2).getTitle().getContent()).getKey());
-        assertEquals("activity.tab.config", ((net.minecraft.text.TranslatableTextContent) categories.get(3).getTitle().getContent()).getKey());
-
-        List<SidebarTree.FooterNode> footers = sidebarTree.getFooterItems();
-        assertEquals("activity.tab.settings", ((net.minecraft.text.TranslatableTextContent) footers.get(0).getTitle().getContent()).getKey());
-        assertEquals("activity.tab.about", ((net.minecraft.text.TranslatableTextContent) footers.get(1).getTitle().getContent()).getKey());
+        for (var node : sidebarTree.getCategories()) {
+            assertEquals("activity.tab." + node.getId(),
+                ((net.minecraft.text.TranslatableTextContent) node.getTitle().getContent()).getKey());
+        }
+        for (var node : sidebarTree.getFooterItems()) {
+            assertEquals("activity.tab." + node.getId(),
+                ((net.minecraft.text.TranslatableTextContent) node.getTitle().getContent()).getKey());
+        }
     }
 
     @Test
@@ -176,7 +148,7 @@ public class SidebarTreeTest {
         defense.setUserExpanded(false);
         defense.setSearchExpanded(false);
 
-        sidebarTree.setSelectedModule("defense", "auto_totem");
+        sidebarTree.setSelectedModule("kit_netherite_pot", "auto_totem");
         assertTrue(defense.isExpanded());
         assertTrue(defense.isUserExpanded());
         assertFalse(defense.isSearchExpanded());
@@ -191,7 +163,7 @@ public class SidebarTreeTest {
         sidebarTree.setSelectedModuleId("auto_totem");
         assertEquals("auto_totem", sidebarTree.getSelectedModuleId());
 
-        sidebarTree.setSelectedModule("combat", "combat");
+        sidebarTree.setSelectedModule("kit_all", "kit_all");
         assertNull(sidebarTree.getSelectedModuleId(), "Selecting a category itself must clear selectedModuleId");
         assertTrue(sidebarTree.getCategories().get(0).isExpanded());
         assertTrue(sidebarTree.getCategories().get(0).isUserExpanded());
@@ -220,7 +192,7 @@ public class SidebarTreeTest {
 
         sidebarTree.applySearchFilter("hud");
         assertTrue(utility.isExpanded(), "Utility should expand for hud search");
-        assertFalse(defense.isExpanded());
+        assertTrue(defense.isExpanded(), "Netherite Pot also contains HUD modules");
 
         sidebarTree.applySearchFilter("");
         assertFalse(utility.isExpanded());

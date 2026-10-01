@@ -343,16 +343,18 @@ public class ModuleUXStage6Test {
     @Test
     void testSidebarTreeRebuildAndRefresh() {
         SidebarTree tree = new SidebarTree();
-        assertEquals(4, tree.getCategories().size());
+        assertEquals(11, tree.getCategories().size());
 
         tree.refresh();
-        assertEquals(4, tree.getCategories().size());
+        assertEquals(11, tree.getCategories().size());
 
         tree.rebuildNodes();
-        assertEquals(4, tree.getCategories().size());
-        assertEquals(6, tree.getCategories().get(0).getChildren().size());
-        assertEquals(4, tree.getCategories().get(1).getChildren().size());
-        assertEquals(7, tree.getCategories().get(2).getChildren().size());
+        assertEquals(11, tree.getCategories().size());
+        assertEquals(ModuleRegistry.getAll().size(), tree.getCategories().get(0).getChildren().size());
+        assertTrue(tree.getCategories().get(1).getChildren().stream().allMatch(m ->
+            activity.client.gui.navigation.PvpKit.NETHERITE_POT.matchesId(m.getId())));
+        assertTrue(tree.getCategories().get(2).getChildren().stream().allMatch(m ->
+            activity.client.gui.navigation.PvpKit.CRYSTAL.matchesId(m.getId())));
     }
 
     private static class TestConditionalModule extends NivoratModule {

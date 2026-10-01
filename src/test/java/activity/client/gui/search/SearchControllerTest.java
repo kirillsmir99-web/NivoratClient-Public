@@ -89,7 +89,7 @@ public class SearchControllerTest {
     void testSidebarTreeSearchFilterAutoExpandAndRestore() {
         SidebarTree tree = new SidebarTree();
         SidebarTree.CategoryNode defense = tree.getCategories().get(1);
-        assertEquals("defense", defense.getId());
+        assertEquals("kit_netherite_pot", defense.getId());
         assertFalse(defense.isExpanded());
         assertFalse(defense.isUserExpanded());
         assertFalse(defense.isSearchExpanded());

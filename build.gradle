@@ -34,6 +34,18 @@ test {
 }
 
 processResources {
+    from('vendor/clientspoofer/LICENSE') {
+        into 'META-INF/licenses'
+        rename { 'ClientSpoofer-MIT.txt' }
+    }
+    from('vendor/clientspoofer') {
+        include 'ClientSpoofer-1.21.11-1.4.0.jar'
+        into 'META-INF/jars'
+    }
+
+    exclude 'assets/kimiko/fonts/sf-pro/**'
+    exclude 'assets/kimiko/fonts/monsterat/*-italic.*'
+
 	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
@@ -77,7 +89,15 @@ tasks.register("generateEditionResource") {
 		legacyMarker.text = isDev ? "dev\n" : "public\n"
 	}
 }
-processResources.dependsOn("generateEditionResource")
+tasks.register("verifyClientSpoofer") {
+    def vendorJar = file("vendor/clientspoofer/ClientSpoofer-1.21.11-1.4.0.jar")
+    inputs.file(vendorJar)
+    doLast {
+        def actual = java.security.MessageDigest.getInstance("SHA-256").digest(vendorJar.bytes).encodeHex().toString()
+        if (actual != "c4dabf0cc8bca6f8b582f0ee7c4aff43c535f4d282458cbf48baa32131159ea9") throw new GradleException("ClientSpoofer checksum mismatch")
+    }
+}
+processResources.dependsOn("generateEditionResource", "verifyClientSpoofer")
 
 remapJar {
 	archiveFileName = isDev ? "${project.archives_base_name}-Dev.jar" : "${project.archives_base_name}.jar"

@@ -1,0 +1,38 @@
+allprojects {
+    afterEvaluate { p ->
+        if (p.plugins.hasPlugin('fabric-loom')) {
+            def benchmarkClasses=p.file('build/msdf-benchmark/classes')
+            def baselineClasses=p.file('build/msdf-benchmark/baseline')
+            p.tasks.register('compileFontBench',JavaCompile) {
+                source p.file('tools/msdf-benchmark/FontBench.java')
+                classpath=p.sourceSets.main.compileClasspath+p.sourceSets.main.output
+                destinationDirectory=benchmarkClasses
+                options.encoding='UTF-8'
+                options.release=21
+                dependsOn 'classes'
+            }
+            p.tasks.register('compileBaselineFont',JavaCompile) {
+                def baseline=p.file('backup/optimization-20261001-014857/src/main/java/activity/client/gui/custom/utils/render/render2d/msdf')
+                source p.files(new File(baseline,'MsdfFont.java'),new File(baseline,'MsdfTextRenderState.java'))
+                classpath=p.sourceSets.main.compileClasspath+p.sourceSets.main.output
+                destinationDirectory=baselineClasses
+                options.encoding='UTF-8'
+                options.release=21
+                dependsOn 'classes'
+            }
+            p.tasks.register('fontBenchBefore',JavaExec) {
+                dependsOn 'compileFontBench','compileBaselineFont'
+                mainClass='activity.client.gui.custom.utils.render.render2d.msdf.FontBench'
+                classpath=p.files(baselineClasses,benchmarkClasses)+p.sourceSets.main.runtimeClasspath
+                jvmArgs '-Xmx512m'
+            }
+            p.tasks.register('fontBenchAfter',JavaExec) {
+                dependsOn 'compileFontBench'
+                mainClass='activity.client.gui.custom.utils.render.render2d.msdf.FontBench'
+                classpath=p.files(benchmarkClasses)+p.sourceSets.main.runtimeClasspath
+                jvmArgs '-Xmx512m'
+                mustRunAfter 'fontBenchBefore'
+            }
+        }
+    }
+}

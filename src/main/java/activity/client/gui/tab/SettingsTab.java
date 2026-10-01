@@ -23,7 +23,7 @@ import activity.client.gui.render.ActivityGuiRenderer;
 import activity.client.gui.sound.SoundProfile;
 import activity.client.gui.theme.ActivityColors;
 import activity.client.gui.theme.ActivityMetrics;
-import activity.client.gui.dev.DevLoginScreen;
+
 import activity.client.presence.NivoratDev;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
@@ -733,7 +733,7 @@ public class SettingsTab extends ActivityTab {
         int innerStartX4 = card4X + ActivityMetrics.PADDING_PANEL;
         int curY4 = twoColumns ? col2Y : col1Y;
 
-        int card4Rows = NivoratDev.IS_DEV ? 4 : 3;
+        int card4Rows = 3;
         int card4Height = 22 + card4Rows * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         ActivityPanel card4 = createCard(container, card4X, curY4, cardW, card4Height, Text.translatable("activity.card.settings.actions"));
         registerModuleCard("config_actions", card4);
@@ -825,14 +825,6 @@ public class SettingsTab extends ActivityTab {
         btnCapitulate.setTouchPadding(ActivityMetrics.TOUCH_HITBOX_PADDING);
         addControl(container, btnCapitulate);
 
-        if (NivoratDev.IS_DEV) {
-            rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
-            ActivityButton btnDevLogin = new ActivityButton(
-                innerStartX4, rowY, innerRowW, ActivityMetrics.CONTROL_HEIGHT,
-                ActivityIcon.SETTINGS, Text.literal("Dev-доступ: вход"),
-                btn -> MinecraftClient.getInstance().setScreen(new DevLoginScreen(screen))
-            );
-            addControl(container, btnDevLogin);
-        }
+
     }
 }

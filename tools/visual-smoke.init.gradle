@@ -1,0 +1,32 @@
+allprojects {
+    afterEvaluate { p ->
+        if (p.plugins.hasPlugin('fabric-loom')) {
+            def smokeClasses = p.layout.buildDirectory.dir('visual-smoke/classes')
+            def smokeGame = p.file('build/visual-smoke/game')
+            smokeGame.mkdirs()
+            p.tasks.register('compileVisualSmoke', JavaCompile) {
+                source p.fileTree('tools/visual-smoke') { include '*.java' }
+                classpath = p.sourceSets.main.compileClasspath + p.sourceSets.main.output
+                destinationDirectory = smokeClasses
+                options.encoding = 'UTF-8'
+                options.release = 21
+                dependsOn p.tasks.named('classes')
+            }
+            def smokeJar = p.tasks.register('visualSmokeJar', Jar) {
+                dependsOn p.tasks.named('compileVisualSmoke')
+                from smokeClasses
+                from(p.file('tools/visual-smoke')) { include 'fabric.mod.json' }
+                archiveFileName = 'visual-smoke.jar'
+                destinationDirectory = p.layout.buildDirectory.dir('visual-smoke')
+            }
+            p.tasks.named('runClient', JavaExec) {
+                dependsOn smokeJar
+                workingDir = smokeGame
+                jvmArgs '-Dvisual.smoke.world=true'
+                jvmArgs '-Dfabric.addMods=' + smokeJar.get().archiveFile.get().asFile.absolutePath
+                jvmArgs '-Dvisual.smoke.output=' + p.file('build/visual-smoke/captures').absolutePath
+                args '--width', '1280', '--height', '800'
+            }
+        }
+    }
+}

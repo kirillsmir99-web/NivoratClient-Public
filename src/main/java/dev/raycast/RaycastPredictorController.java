@@ -40,6 +40,12 @@ public final class RaycastPredictorController {
         RESTORE_SLOT
     }
 
+    private ClientPlayerEntity owner;
+    private net.minecraft.world.World ownerWorld;
+    private boolean sequenceFullAuto;
+    private boolean sequenceLegit;
+    private int lifetimeLimit = 60;
+    private int rotationLimit = 10;
     private State state = State.IDLE;
     private Mode currentMode = Mode.VERTICAL;
     private final RaycastInterpolator cameraInterpolator = new RaycastInterpolator();
@@ -97,7 +103,7 @@ public final class RaycastPredictorController {
     }
 
     public void trigger(MinecraftClient client, Mode mode) {
-        if (CombatLockManager.isLocked(CombatLockManager.TOTEM)) {
+        if (CombatLockManager.isLocked() && !CombatLockManager.isLocked(CombatLockManager.PEARL_CATCH)) {
             return;
         }
 
@@ -157,6 +163,8 @@ public final class RaycastPredictorController {
             return;
         }
 
+        owner = client.player;
+        ownerWorld = client.world;
         CombatLockManager.setLock(CombatLockManager.PEARL_CATCH, true);
         lastTriggerTime = now;
         currentMode = mode;
@@ -177,11 +185,20 @@ public final class RaycastPredictorController {
 
         boolean fullAuto = "full_auto".equalsIgnoreCase(config.autoPearlCatchMode);
         boolean legit = config.autoPearlCatchLegitMode;
+        sequenceFullAuto = fullAuto;
+        sequenceLegit = legit;
         int effectiveDelay = calculateEffectiveDelay(client, config.autoPearlCatchThrowDelay);
+        if (config.autoPearlCatchRandomDelay) {
+            effectiveDelay = (int) net.fabricmc.pack.api.GaussianTimingEngine.getDelay(effectiveDelay, 0.5D,
+                    Math.max(1, effectiveDelay - 1), effectiveDelay + 1);
+        }
         this.activeEffectiveDelay = effectiveDelay;
         this.delayTicksRemaining = effectiveDelay;
 
         long rotDuration = Math.max(50L, (long) config.autoPearlCatchRotationTimeMs);
+        rotationLimit = net.fabricmc.pack.api.GaussianTimingEngine.toActionTicks(rotDuration) + 2;
+        lifetimeLimit = Math.max(60, rotationLimit * 2 + effectiveDelay + 8);
+        stateLifetimeTicks = 0;
 
         if (!pearlInOffhand && pearlSlot >= 0 && pearlSlot < 9 && pearlSlot != initialSlot) {
             SafeSlotManager.selectSlot(client, pearlSlot);
@@ -221,8 +238,9 @@ public final class RaycastPredictorController {
 
     public void onRender(MinecraftClient client) {
         ActivityConfig config = ActivityConfigManager.getConfig();
-        boolean fullAuto = config != null && "full_auto".equalsIgnoreCase(config.autoPearlCatchMode);
-        if (fullAuto && cameraInterpolator.isActive()) {
+        boolean fullAuto = sequenceFullAuto;
+        if (client != null && client.player == owner && client.world == ownerWorld
+                && client.currentScreen == null && fullAuto && cameraInterpolator.isActive()) {
             cameraInterpolator.onRender(client);
         }
     }
@@ -234,12 +252,13 @@ public final class RaycastPredictorController {
         }
 
         stateLifetimeTicks++;
-        if (stateLifetimeTicks > 30) {
+        if (stateLifetimeTicks > lifetimeLimit) {
             reset();
             return;
         }
 
-        if (client == null || client.player == null || client.world == null || client.interactionManager == null || !client.player.isAlive()) {
+        if (client == null || client.player == null || client.world == null || client.interactionManager == null
+                || client.player != owner || client.world != ownerWorld || !client.player.isAlive()) {
             reset();
             return;
         }
@@ -254,11 +273,12 @@ public final class RaycastPredictorController {
             return;
         }
 
-        boolean fullAuto = "full_auto".equalsIgnoreCase(config.autoPearlCatchMode);
-        boolean legit = config.autoPearlCatchLegitMode;
+        boolean fullAuto = sequenceFullAuto;
+        boolean legit = sequenceLegit;
+        if (fullAuto && cameraInterpolator.isActive()) cameraInterpolator.onRender(client);
 
         if (state == State.ROTATING_TO_PEARL) {
-            if (!cameraInterpolator.isActive() || stateLifetimeTicks >= 10) {
+            if (!cameraInterpolator.isActive() || stateLifetimeTicks >= rotationLimit) {
                 if (cameraInterpolator.isActive()) {
                     cameraInterpolator.finalizeInterpolation(client, pearlPitch, initialYaw);
                 }
@@ -273,6 +293,9 @@ public final class RaycastPredictorController {
                 if (cur != pearlSlot) {
                     SafeSlotManager.selectSlot(client, pearlSlot);
                 }
+            }
+            if (!readyItem(client, pearlInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND, Items.ENDER_PEARL)) {
+                reset(); return;
             }
             pearlThrowTimeMs = System.currentTimeMillis();
 
@@ -334,6 +357,7 @@ public final class RaycastPredictorController {
             }
 
             Hand hand = windInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+            if (!readyItem(client, hand, Items.WIND_CHARGE)) { reset(); return; }
             ActionResult res = client.interactionManager.interactItem(client.player, hand);
             swingIfNeeded(client.player, hand, res);
 
@@ -490,7 +514,21 @@ public final class RaycastPredictorController {
         this.state = State.THROW_PEARL;
     }
 
+    private static boolean readyItem(MinecraftClient client, Hand hand, Item item) {
+        return client.player.getStackInHand(hand).isOf(item)
+                && !client.player.getItemCooldownManager().isCoolingDown(client.player.getStackInHand(hand));
+    }
+
     public void reset() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        ActivityConfig config = ActivityConfigManager.getConfig();
+        if (client != null && client.player == owner && client.world == ownerWorld && owner != null
+                && config != null && config.autoPearlCatchRestoreSlot) {
+            int selected = owner.getInventory().getSelectedSlot();
+            if (selected == pearlSlot || selected == windSlot) SafeSlotManager.restoreSlot(client, initialSlot);
+        }
+        owner = null;
+        ownerWorld = null;
         state = State.IDLE;
         cameraInterpolator.reset();
         initialSlot = -1;

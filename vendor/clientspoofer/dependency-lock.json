@@ -1,0 +1,14 @@
+{
+  "name": "ClientSpoofer",
+  "version": "1.4.0",
+  "minecraft": "1.21.11",
+  "source": "https://github.com/FabiPunktExe/ClientSpoofer/tree/1.21.11",
+  "download": "https://cdn.modrinth.com/data/nWJHVhGM/versions/pmJF3OV8/ClientSpoofer-1.21.11-1.4.0.jar",
+  "sha256": "c4dabf0cc8bca6f8b582f0ee7c4aff43c535f4d282458cbf48baa32131159ea9",
+  "license": "MIT",
+  "embedding": "unchanged nested Fabric JAR",
+  "alternativeRejected": {
+    "name": "Spoofified 2.1.1-1.21.11",
+    "reason": "class major 69 requires Java 25; client targets Java 21"
+  }
+}

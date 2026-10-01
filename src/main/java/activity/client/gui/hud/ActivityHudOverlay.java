@@ -104,29 +104,7 @@ public final class ActivityHudOverlay {
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (context == null) return;
-
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null || client.world == null) return;
-        if (client.options != null && client.options.hudHidden) return;
-        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
-
-        ActivityConfig config = ActivityConfigManager.getConfig();
-        if (config == null || !config.overlayEnabled) return;
-
-        if (config.hideInF3 && client.getDebugHud() != null && client.getDebugHud().shouldShowDebugHud()) return;
-        if (config.autoHideOnChat && client.currentScreen instanceof ChatScreen) return;
-
-        int sw = context.getScaledWindowWidth();
-        int sh = context.getScaledWindowHeight();
-        if (sw <= 0 || sh <= 0 || client.textRenderer == null) return;
-
-        int totalWidth = getTotalWidth(client, config);
-        int totalHeight = getTotalHeight(client, config);
-        int x = getEffectiveX(config, sw, totalWidth);
-        int y = getEffectiveY(config, sh, totalHeight);
-
-        renderHud(context, client, config, x, y, totalWidth, sw);
+        activity.client.gui.custom.NativeVisualHud.render(context,tickCounter);
     }
 
     public static void renderHud(DrawContext context, MinecraftClient client, ActivityConfig config, int x, int y, int totalWidth, int windowWidth) {

@@ -1,0 +1,16 @@
+{
+  "Installed": "C:\\Users\\Administrator\\AppData\\Roaming\\ElyPrismLauncher\\instances\\1.21.11 TEST V2 NC\\minecraft\\mods\\VortexHUD.jar",
+  "SHA256": "F73598B7F44D61281F4DD52FD63FAE878169168CB6573F5F15AAE98B5FDEDF56",
+  "Backup": "C:\\Users\\Administrator\\Desktop\\Работа с GUI\\backup\\public-1.0.1-20261001-091243\\VortexHUD-before-1.0.1.jar",
+  "BackupSHA256": "D79B769153647961A33982E233D97EF08615796531DB8D45FDE37211636EA5F7",
+  "Bytes": 9441380,
+  "Edition": "PUBLIC",
+  "Version": "1.0.1",
+  "JUnitTests": 726,
+  "PublicArtifactWorldSmoke": "passed; full native GUI and server-observed pearl/cart scenarios with copied modpack",
+  "RuntimeLog": "build/public-1.0.1-mechanics-final-v2.log",
+  "GuiLog": "build/public-1.0.1-final-validation-v2.log",
+  "ClientSpoofer": "1.4.0 nested unchanged JAR; loaded; brand=vanilla",
+  "ClientSpooferSHA256": "c4dabf0cc8bca6f8b582f0ee7c4aff43c535f4d282458cbf48baa32131159ea9",
+  "RuntimeAcceptance": "User launcher restart and multiplayer acceptance pending"
+}

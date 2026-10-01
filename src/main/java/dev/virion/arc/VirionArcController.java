@@ -52,6 +52,8 @@ public final class VirionArcController {
     private int bowDrawTicks;
     private int bowSlot = -1;
     private PlacementJob activeJob;
+    private ClientPlayerEntity owner;
+    private World ownerWorld;
 
     public VirionArcController() {
         activeInstance = this;
@@ -68,18 +70,20 @@ public final class VirionArcController {
 
     public void tick(MinecraftClient client) {
         activeInstance = this;
-        if (client.player == null || client.world == null || client.interactionManager == null) {
+        if (client == null || client.player == null || client.world == null || client.interactionManager == null) {
             resetSession(client);
             return;
         }
 
-        if (!enabled || !client.player.isAlive()) {
+        if (!enabled || !client.player.isAlive() || client.currentScreen != null
+                || (activeJob != null && (owner != client.player || ownerWorld != client.world))) {
             cancelJob(client);
             resetBowTracking();
             return;
         }
 
         trackBowRelease(client);
+        cameraInterpolator.onRender(client);
         runPlacement(client);
     }
 
@@ -146,7 +150,6 @@ public final class VirionArcController {
         }
 
         if (ArcMotorCalibrationService.isActive()) {
-            ArcMotorCalibrationService.onBowReleased(releasedDrawTicks);
             return;
         }
 
@@ -154,7 +157,8 @@ public final class VirionArcController {
     }
 
     private void beginPlacementSequence(MinecraftClient client, int drawTicks) {
-        if (placementRunning || activeJob != null || client.currentScreen != null) {
+        if (placementRunning || activeJob != null || client.currentScreen != null
+                || net.fabricmc.pack.api.CombatLockManager.isLocked()) {
             return;
         }
 
@@ -211,6 +215,8 @@ public final class VirionArcController {
         }
 
         placementRunning = true;
+        owner = client.player;
+        ownerWorld = client.world;
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", true);
         lastPlacementTime = now;
 
@@ -512,13 +518,15 @@ public final class VirionArcController {
         }
 
         if (client.player == null || client.world == null || client.currentScreen != null || !client.player.isAlive()) {
-            placementRunning = false;
-            net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", false);
-            activeJob = null;
+            cancelJob(client);
             return;
         }
 
         long now = System.currentTimeMillis();
+        if (now - activeJob.startTimeMs > 3000L) {
+            cancelJob(client);
+            return;
+        }
         if (now < activeJob.scheduledTimeMs) {
             return;
         }
@@ -573,7 +581,12 @@ public final class VirionArcController {
                 }
 
                 if (!(client.world.getBlockState(activeJob.target).getBlock() instanceof AbstractRailBlock)) {
-                    interactAtTop(client, activeJob.target.down());
+                    if (!(client.player.getMainHandStack().getItem() instanceof net.minecraft.item.BlockItem blockItem)
+                            || !(blockItem.getBlock() instanceof AbstractRailBlock)
+                            || !interactAtTop(client, activeJob.target.down())) {
+                        cancelJob(client);
+                        return;
+                    }
                 }
 
                 if (activeJob.useMainHand) {
@@ -613,8 +626,12 @@ public final class VirionArcController {
                     return;
                 }
 
-                interactOnRail(client, activeJob.target, activeJob.useMainHand ? Hand.MAIN_HAND : Hand.OFF_HAND);
-                activity.client.module.service.CartStateService.notifyCartPlaced(activeJob.target);
+                Hand cartHand = activeJob.useMainHand ? Hand.MAIN_HAND : Hand.OFF_HAND;
+                if (!client.player.getStackInHand(cartHand).isOf(net.minecraft.item.Items.TNT_MINECART)
+                        || !interactOnRail(client, activeJob.target, cartHand)) {
+                    cancelJob(client);
+                    return;
+                }
                 activeJob.stage = Stage.RESTORE_SLOT;
                 int restoreDelay = getDynamicPlacementDelay(activeJob);
                 activeJob.scheduledTimeMs = now + restoreDelay;
@@ -842,19 +859,18 @@ public final class VirionArcController {
     private int getRandomDelay() {
         int min = MorrowConfig.getMinDelayMs();
         int max = MorrowConfig.getMaxDelayMs();
-        if (min >= max) return min;
-        int base = ThreadLocalRandom.current().nextInt(min, max + 1);
-        int jitter = ThreadLocalRandom.current().nextInt(-4, 5);
-        return Math.max(30, base + jitter);
+        if (!MorrowConfig.randomDelay || min >= max) return Math.max(50, min);
+        double sampled = (min + max) * 0.5 + ThreadLocalRandom.current().nextGaussian() * (max - min) / 6.0;
+        return Math.max(50, (int) Math.round(MathHelper.clamp(sampled, min, max)));
     }
 
     private int getDynamicPlacementDelay(PlacementJob job) {
         if (job == null) return getRandomDelay();
         if (MorrowConfig.preset == MorrowConfig.PRESET_LEARNED) {
             ArcNeuralMotorProfile prof = ArcNeuralMotorProfile.getInstance();
-            if (job.stage == Stage.SELECT_RAIL) {
+            if (job.stage == Stage.PLACE_RAIL) {
                 return prof.getLearnedPlacementDelayRailMs();
-            } else if (job.stage == Stage.PLACE_RAIL) {
+            } else if (job.stage == Stage.PLACE_CART) {
                 return prof.getLearnedPlacementDelayCartMs();
             }
         }
@@ -924,24 +940,28 @@ public final class VirionArcController {
         }
     }
 
-    private void interactAtTop(MinecraftClient client, BlockPos blockPos) {
+    private boolean interactAtTop(MinecraftClient client, BlockPos blockPos) {
         Vec3d lookVec = client.player.getRotationVec(1.0F);
         Vec3d hitPosition = calculateExactFaceHit(client.player.getEyePos(), lookVec, blockPos);
         syncLookForPlacement(client, hitPosition);
         BlockHitResult result = new BlockHitResult(hitPosition, Direction.UP, blockPos, false);
-        client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, result);
-        client.player.swingHand(Hand.MAIN_HAND);
+        var action = client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, result);
+        if (action.isAccepted()) client.player.swingHand(Hand.MAIN_HAND);
+        return action.isAccepted();
     }
 
-    private void interactOnRail(MinecraftClient client, BlockPos railPos, Hand hand) {
+    private boolean interactOnRail(MinecraftClient client, BlockPos railPos, Hand hand) {
         Vec3d lookVec = client.player.getRotationVec(1.0F);
         Vec3d topPoint = calculateExactFaceHit(client.player.getEyePos(), lookVec, railPos.down());
         Vec3d hitPosition = new Vec3d(topPoint.x, railPos.getY() + 0.1D, topPoint.z);
         syncLookForPlacement(client, hitPosition);
         BlockHitResult result = new BlockHitResult(hitPosition, Direction.UP, railPos, false);
-        client.interactionManager.interactBlock(client.player, hand, result);
-        client.player.swingHand(hand);
-        activity.client.module.service.CartStateService.notifyCartPlaced(railPos);
+        var action = client.interactionManager.interactBlock(client.player, hand, result);
+        if (action.isAccepted()) {
+            client.player.swingHand(hand);
+            activity.client.module.service.CartStateService.notifyCartPlaced(railPos);
+        }
+        return action.isAccepted();
     }
 
     private Vec3d calculateExactFaceHit(Vec3d eyePos, Vec3d lookVec, BlockPos supportPos) {
@@ -1046,7 +1066,17 @@ public final class VirionArcController {
 
     private void cancelJob(MinecraftClient client) {
         cameraInterpolator.reset();
-        finishJob(client);
+        if (activeJob != null && client != null && client.player == owner && client.world == ownerWorld) {
+            int selected = client.player.getInventory().getSelectedSlot();
+            if (selected == activeJob.railSlot || selected == activeJob.minecartSlot) {
+                SafeSlotManager.restoreSlot(client, activeJob.originalSlot);
+            }
+        }
+        activeJob = null;
+        owner = null;
+        ownerWorld = null;
+        placementRunning = false;
+        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", false);
     }
 
     private void resetBowTracking() {
@@ -1055,7 +1085,7 @@ public final class VirionArcController {
         bowSlot = -1;
     }
 
-    private void resetSession(MinecraftClient client) {
+    public void resetSession(MinecraftClient client) {
         cancelJob(client);
         resetBowTracking();
     }

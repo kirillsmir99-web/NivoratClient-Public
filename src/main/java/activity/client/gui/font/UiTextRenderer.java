@@ -1,6 +1,7 @@
 package activity.client.gui.font;
 
 import activity.client.gui.theme.ActivityColors;
+import activity.client.gui.custom.CustomRender;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.OrderedText;
@@ -18,11 +19,13 @@ public final class UiTextRenderer {
 
     public static int getWidth(TextRenderer tr, Text text) {
         if (tr == null || text == null) return 0;
+        if(CustomRender.active()) return CustomRender.width(text.getString(),9 * getScaleFactor());
         return CooldownFontManager.getWidth(tr, text);
     }
 
     public static int getWidth(TextRenderer tr, String text) {
         if (tr == null || text == null || text.isEmpty()) return 0;
+        if(CustomRender.active()) return CustomRender.width(text,9 * getScaleFactor());
         return CooldownFontManager.getWidth(tr, text);
     }
 
@@ -46,6 +49,7 @@ public final class UiTextRenderer {
 
     public static void drawText(DrawContext context, TextRenderer tr, Text text, int x, int y, int color, boolean shadow) {
         if (context == null || tr == null || text == null) return;
+        if(CustomRender.active()){CustomRender.text(context,text.getString(),x,y,9*getScaleFactor(),color);return;}
         Text wrapped = CooldownFontManager.wrap(text);
         float scale = getScaleFactor();
 
@@ -91,6 +95,7 @@ public final class UiTextRenderer {
     }
 
     public static void drawOrderedText(DrawContext context, TextRenderer tr, OrderedText text, int x, int y, int color, boolean shadow) {
+        if(CustomRender.active()&&text!=null){StringBuilder value=new StringBuilder();text.accept((i,style,cp)->{value.appendCodePoint(cp);return true;});CustomRender.text(context,value.toString(),x,y,9*getScaleFactor(),color);return;}
         if (context == null || tr == null || text == null) return;
         float scale = getScaleFactor();
 
@@ -124,14 +129,14 @@ public final class UiTextRenderer {
         if (tr == null || text == null) return "";
         float scale = getScaleFactor();
         int unscaledMaxW = scale > 0.001f ? Math.max(1, Math.round(maxWidth / scale)) : maxWidth;
-        return tr.trimToWidth(text, unscaledMaxW);
+        return CustomRender.active()?CustomRender.fit(text,maxWidth,9*getScaleFactor()):tr.trimToWidth(text, unscaledMaxW);
     }
 
     public static Text trimToWidth(TextRenderer tr, Text text, int maxWidth) {
         if (tr == null || text == null) return Text.empty();
         float scale = getScaleFactor();
         int unscaledMaxW = scale > 0.001f ? Math.max(1, Math.round(maxWidth / scale)) : maxWidth;
-        String trimmed = tr.trimToWidth(text.getString(), unscaledMaxW);
+        String trimmed = CustomRender.active()?CustomRender.fit(text.getString(),maxWidth,9*getScaleFactor()):tr.trimToWidth(text.getString(), unscaledMaxW);
         return CooldownFontManager.literal(trimmed);
     }
 }

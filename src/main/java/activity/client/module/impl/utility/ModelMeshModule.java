@@ -266,7 +266,6 @@ public class ModelMeshModule extends NivoratModule {
 
     @Override
     public void setEnabled(boolean enabled) {
-        boolean changed = this.enabled != enabled;
         super.setEnabled(enabled);
         ActivityConfig c = ActivityConfigManager.getConfig();
         if (c != null) {
@@ -274,9 +273,6 @@ public class ModelMeshModule extends NivoratModule {
             ActivityConfigManager.markDirty();
         }
         ModelMeshClient.CONFIG.enabled = enabled;
-        if (enabled && changed) {
-            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.autotool.dev_warning"));
-        }
     }
 
     @Override

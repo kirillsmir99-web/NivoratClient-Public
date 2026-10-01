@@ -1,17 +1,13 @@
 package activity.client.module.impl.utility.gui;
 
-import activity.client.gui.ActivityScreen;
 import activity.client.gui.sound.SoundManager;
-import activity.client.gui.theme.ActivityColors;
 import activity.client.module.keybind.Keybind;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import dev.audio.AudioSyncClient;
 
@@ -60,32 +56,6 @@ public final class AudioWaveRadialScreen extends Screen {
             this.y2 = (short) y2;
             this.x1 = (short) x1;
             this.x2 = (short) x2;
-        }
-    }
-
-    private static final Identifier[] BASE_TEXTURES = new Identifier[9];
-    private static final Identifier[][] HIGHLIGHT_TEXTURES = new Identifier[9][];
-    private static final Identifier HUB_HOVER_TEXTURE = Identifier.of("nivoratclient", "textures/gui/radial/hub_hover.png");
-    private static final int[][] SECTOR_TEXT_OFFSETS = new int[9][];
-    private static final Text TEXT_AUTOGG = Text.literal("AutoGG");
-    private static final Text TEXT_MENU = Text.literal("Меню");
-    private static final String WATERMARK_RAW = "ТГ канал автора модов - @virionDEV";
-    private static final Text WATERMARK_NORMAL = Text.literal("§7ТГ канал автора модов - §b@virionDEV");
-    private static final Text WATERMARK_HOVERED = Text.literal("§b§nТГ канал автора модов - @virionDEV");
-
-    static {
-        int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
-        for (int count = 1; count <= 8; count++) {
-            BASE_TEXTURES[count] = Identifier.of("nivoratclient", "textures/gui/radial/base_" + count + ".png");
-            HIGHLIGHT_TEXTURES[count] = new Identifier[count];
-            SECTOR_TEXT_OFFSETS[count] = new int[count * 2];
-            for (int sector = 0; sector < count; sector++) {
-                HIGHLIGHT_TEXTURES[count][sector] = Identifier.of("nivoratclient",
-                    "textures/gui/radial/highlight_" + count + "_" + sector + ".png");
-                double mid = -Math.PI / 2.0 + (sector + 0.5) * Math.PI * 2.0 / count;
-                SECTOR_TEXT_OFFSETS[count][sector * 2] = (int) Math.round(Math.cos(mid) * textRadius);
-                SECTOR_TEXT_OFFSETS[count][sector * 2 + 1] = (int) Math.round(Math.sin(mid) * textRadius);
-            }
         }
     }
 
@@ -232,7 +202,7 @@ public final class AudioWaveRadialScreen extends Screen {
         int cx = width / 2;
         int cy = height / 2 - (height < 220 ? 4 : 8);
 
-        context.fill(0, 0, width, height, ActivityColors.BACKGROUND_OVERLAY);
+        context.fill(0, 0, width, height, 0x25000000);
 
         float scale = computeScale();
         double virtMouseX = cx + (mouseX - cx) / scale;
@@ -259,53 +229,7 @@ public final class AudioWaveRadialScreen extends Screen {
         context.getMatrices().pushMatrix();
         context.getMatrices().scaleAround(scale, scale, (float) cx, (float) cy);
 
-        int textureCount = Math.clamp(count, 1, 8);
-        int textureX = cx - 160;
-        int textureY = cy - 160;
-        drawWheelTexture(context, BASE_TEXTURES[textureCount], textureX, textureY);
-        if (hoveredSector >= 0 && hoveredSector < textureCount) {
-            drawWheelTexture(context, HIGHLIGHT_TEXTURES[textureCount][hoveredSector], textureX, textureY);
-        }
-        if (hubHovered) {
-            drawWheelTexture(context, HUB_HOVER_TEXTURE, textureX, textureY);
-        }
-
-        String defaultPhrase = AudioSyncClient.CONFIG.currentPhrase();
-        if (count > 0) {
-            int[] offsets = (count <= 8) ? SECTOR_TEXT_OFFSETS[count] : null;
-            double sectorAngle = (Math.PI * 2.0) / count;
-            int textRadius = (INNER_RADIUS + OUTER_RADIUS) / 2;
-
-            for (int i = 0; i < count; i++) {
-                int tx, ty;
-                if (offsets != null) {
-                    tx = cx + offsets[i * 2];
-                    ty = cy + offsets[i * 2 + 1];
-                } else {
-                    double mid = -Math.PI / 2.0 + (i + 0.5) * sectorAngle;
-                    tx = cx + (int) Math.round(Math.cos(mid) * textRadius);
-                    ty = cy + (int) Math.round(Math.sin(mid) * textRadius);
-                }
-
-                String phrase = phrases.get(i);
-                boolean isHov = (this.hoveredSector == i);
-                boolean isDefault = phrase.equalsIgnoreCase(defaultPhrase);
-
-                int color = isHov ? 0xFFFFFFFF : (isDefault ? 0xFF00D2FF : 0xFFD8DFE8);
-                String display = isDefault ? ("★ " + phrase) : phrase;
-                if (textRenderer.getWidth(display) > 85) {
-                    display = textRenderer.trimToWidth(display, 79) + "…";
-                }
-                context.drawCenteredTextWithShadow(textRenderer, Text.literal(display), tx, ty - 4, color);
-            }
-        }
-
-        int autoGgColor = hubHovered ? 0xFFFFFFFF : 0xFF00D2FF;
-        context.drawCenteredTextWithShadow(textRenderer, TEXT_AUTOGG, cx, cy - 12, autoGgColor);
-        int menuColor = hubHovered ? 0xFF00D2FF : 0xFF8D94A3;
-        context.drawCenteredTextWithShadow(textRenderer, TEXT_MENU, cx, cy + 2, menuColor);
-
-        renderTelegramWatermark(context, cx, cy, virtMouseX, virtMouseY);
+        activity.client.gui.custom.NativeAutoGgWheel.render(context,cx,cy,phrases,AudioSyncClient.CONFIG.currentPhrase(),hoveredSector,hubHovered);
 
         context.getMatrices().popMatrix();
 
@@ -321,11 +245,6 @@ public final class AudioWaveRadialScreen extends Screen {
         float ease = 1.0f - (float) Math.pow(1.0f - progress, 3);
         float animScale = 0.88f + 0.12f * ease;
         return baseScale * animScale;
-    }
-
-    private static void drawWheelTexture(DrawContext context, Identifier texture, int x, int y) {
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, texture, x, y,
-            0.0f, 0.0f, 320, 320, 320, 320, 0xFFFFFFFF);
     }
 
     public static int getHoveredSector(double mouseX, double mouseY, int cx, int cy, int count) {
@@ -370,22 +289,7 @@ public final class AudioWaveRadialScreen extends Screen {
     }
 
     private boolean isTelegramHovered(double mouseX, double mouseY, int cx, int cy) {
-        int tgY = cy + OUTER_RADIUS + 18;
-        int textW = textRenderer != null ? textRenderer.getWidth(WATERMARK_RAW) : 180;
-        int tgX = cx - textW / 2;
-        return mouseX >= tgX - 6 && mouseX <= tgX + textW + 6 && mouseY >= tgY - 3 && mouseY <= tgY + 13;
-    }
-
-    private void renderTelegramWatermark(DrawContext context, int cx, int cy, double mouseX, double mouseY) {
-        int tgY = cy + OUTER_RADIUS + 18;
-        int textW = textRenderer.getWidth(WATERMARK_RAW);
-        int tgX = cx - textW / 2;
-        boolean hovered = mouseX >= tgX - 6 && mouseX <= tgX + textW + 6 && mouseY >= tgY - 3 && mouseY <= tgY + 13;
-
-        if (hovered) {
-            context.fill(tgX - 6, tgY - 3, tgX + textW + 6, tgY + 13, 0x3300D2FF);
-        }
-        context.drawCenteredTextWithShadow(textRenderer, hovered ? WATERMARK_HOVERED : WATERMARK_NORMAL, cx, tgY, 0xFFFFFFFF);
+        return activity.client.gui.custom.NativeAutoGgWheel.isFooterHovered(mouseX, mouseY, cx, cy);
     }
 
     @Override
@@ -401,7 +305,7 @@ public final class AudioWaveRadialScreen extends Screen {
         if (click.button() == 0 && isInsideHub(virtMx, virtMy, cx, cy, HUB_RADIUS)) {
             SoundManager.playClick();
             if (this.client != null) {
-                ActivityScreen screen = new ActivityScreen();
+                var screen = activity.client.gui.custom.api.ui.UI.INSTANCE;
                 this.client.setScreen(screen);
                 screen.navigateToModule("auto_gg");
             }

@@ -101,29 +101,8 @@ public class DefenseTab extends ActivityTab {
     @Override
     public void buildTab(ActivityScreen screen, ScrollContainer container, int startX, int startY, int rowWidth) {
         this.clearComponents();
-        boolean twoColumns = rowWidth >= ActivityMetrics.RESPONSIVE_TWO_COLUMN_BREAKPOINT;
-        int colGap = ActivityMetrics.COLUMN_GAP;
-        int cardW = twoColumns ? (rowWidth - colGap) / 2 : rowWidth;
-        int col1X = startX;
-        int col2X = twoColumns ? (startX + cardW + colGap) : startX;
-        int innerRowW = cardW - ActivityMetrics.PADDING_PANEL * 2;
+        int gridEndY = activity.client.gui.builder.ModuleGridBuilder.build(this, screen, container,
+            ModuleRegistry.getByCategory(getCategory()), startX, startY, rowWidth);
 
-        int col1Y = startY;
-        int col2Y = startY;
-
-        List<IModule> modules = ModuleRegistry.getByCategory(getCategory());
-        for (int i = 0; i < modules.size(); i++) {
-            IModule mod = modules.get(i);
-            boolean isCol2 = twoColumns && (i % 2 == 1);
-            int curX = isCol2 ? col2X : col1X;
-            int curY = isCol2 ? col2Y : col1Y;
-
-            int h = ModuleCardBuilder.buildCard(this, screen, container, mod, curX, curY, cardW, innerRowW);
-            if (isCol2) {
-                col2Y += h + 10;
-            } else {
-                col1Y += h + 10;
-            }
-        }
     }
 }

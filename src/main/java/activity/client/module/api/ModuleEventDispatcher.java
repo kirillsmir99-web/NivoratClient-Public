@@ -38,8 +38,21 @@ public final class ModuleEventDispatcher {
     private static volatile IModule[] activeAttackModules = new IModule[0];
     private static volatile IModule[] activeHudModules = new IModule[0];
 
+    private static final ClassValue<java.util.Map<String, Boolean>> overrides = new ClassValue<>() {
+        @Override protected java.util.Map<String, Boolean> computeValue(Class<?> type) {
+            return java.util.Map.of(
+                "onTick", resolveOverride(type, "onTick", MinecraftClient.class),
+                "onClientTick", resolveOverride(type, "onClientTick", MinecraftClient.class),
+                "onAttackEntity", resolveOverride(type, "onAttackEntity", PlayerEntity.class, World.class, Hand.class, Entity.class, EntityHitResult.class),
+                "onRenderHud", resolveOverride(type, "onRenderHud", DrawContext.class, RenderTickCounter.class));
+        }
+    };
+
     private static boolean eventsRegistered = false;
     private static long clientTickCounter = 0L;
+    private static net.minecraft.client.world.ClientWorld sessionWorld;
+    private static net.minecraft.client.network.ClientPlayerEntity sessionPlayer;
+    private static boolean suspended = true;
 
     private ModuleEventDispatcher() {}
 
@@ -107,6 +120,34 @@ public final class ModuleEventDispatcher {
     }
 
     public static void onClientTick(MinecraftClient client) {
+        boolean sessionChanged = client == null || client.world != sessionWorld || client.player != sessionPlayer;
+        boolean blocked = client == null || client.player == null || client.world == null
+                || !client.player.isAlive() || client.player.isSpectator() || client.currentScreen != null
+                || activity.client.capitulation.CapitulationManager.isCapitulated()
+                || activity.client.security.RemoteLockService.isLocked();
+        if (sessionChanged || (blocked && !suspended)) {
+            for (IModule module : ModuleRegistry.getAll()) {
+                if (!sessionChanged && module.isEnabled() && module.canTickWhileScreenOpen(client)) continue;
+                try { module.onSuspend(client); }
+                catch (Throwable error) { ModuleDiagnostics.report(module.getId(), "suspend", error); }
+            }
+            TickBoundScheduler.clear();
+            boolean managedScreen = !sessionChanged && ModuleRegistry.getAll().stream()
+                    .anyMatch(module -> module.isEnabled() && module.canTickWhileScreenOpen(client));
+            if (!managedScreen) net.fabricmc.pack.api.CombatLockManager.reset();
+            net.fabricmc.pack.api.SafeSlotManager.reset();
+            PlayerStateService.reset();
+            TargetCacheService.reset();
+            InventoryScanService.invalidate();
+            CombatRaytraceGuard.clearCache();
+            sessionWorld = client != null ? client.world : null;
+            sessionPlayer = client != null ? client.player : null;
+        }
+        suspended = blocked;
+        for (IModule module : ModuleRegistry.getAll()) {
+            try { module.onCleanupTick(client); }
+            catch (Throwable error) { ModuleDiagnostics.report(module.getId(), "cleanup", error); }
+        }
         if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
             return;
         }
@@ -121,9 +162,16 @@ public final class ModuleEventDispatcher {
         }
 
         if (client.currentScreen != null) {
-            TickBoundScheduler.clear();
+            KeybindManager.handleTick(client);
+            for (IModule module : activeTickModules) {
+                if (module.canTickWhileScreenOpen(client)) {
+                    try { module.onClientTick(client); }
+                    catch (Throwable error) { ModuleDiagnostics.report(module.getId(), "screen-tick", error); }
+                }
+            }
             return;
         }
+        if (blocked) return;
 
         long tick = ++clientTickCounter;
 
@@ -143,8 +191,8 @@ public final class ModuleEventDispatcher {
         IModule[] modules = activeTickModules;
         for (int i = 0; i < modules.length; i++) {
             try {
-                modules[i].onTick(client);
-            } catch (Throwable ignored) {}
+                modules[i].onClientTick(client);
+            } catch (Throwable error) { ModuleDiagnostics.report(modules[i].getId(), "tick", error); }
         }
     }
 
@@ -176,7 +224,7 @@ public final class ModuleEventDispatcher {
                             return result;
                         }
                     }
-                } catch (Throwable ignored) {}
+                } catch (Throwable error) { ModuleDiagnostics.report(modules[i].getId(), "attack", error); }
             }
         } catch (Throwable ignored) {
             return ActionResult.PASS;
@@ -199,11 +247,15 @@ public final class ModuleEventDispatcher {
         for (int i = 0; i < modules.length; i++) {
             try {
                 modules[i].onRenderHud(context, tickCounter);
-            } catch (Throwable ignored) {}
+            } catch (Throwable error) { ModuleDiagnostics.report(modules[i].getId(), "hud", error); }
         }
     }
 
     private static boolean isMethodOverridden(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+        return overrides.get(clazz).getOrDefault(methodName, false);
+    }
+
+    private static boolean resolveOverride(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         try {
             java.lang.reflect.Method method = clazz.getMethod(methodName, parameterTypes);
             Class<?> declaring = method.getDeclaringClass();

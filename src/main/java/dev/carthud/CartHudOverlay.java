@@ -10,8 +10,8 @@ import net.minecraft.text.Text;
 
 public final class CartHudOverlay {
     public static ItemStack ICON = null;
-    public static final int ELEMENT_WIDTH = 34;
-    public static final int ELEMENT_HEIGHT = 18;
+    public static final int ELEMENT_WIDTH = 46;
+    public static final int ELEMENT_HEIGHT = 22;
 
     private static final Text[] COUNT_TEXT_CACHE = new Text[65];
     static {
@@ -110,13 +110,11 @@ public final class CartHudOverlay {
                 ICON = new ItemStack(Items.TNT_MINECART);
             } catch (Throwable ignored) {}
         }
-        if (ICON != null) {
-            context.drawItem(ICON, x, y - 4);
+        try(var frame=activity.client.gui.custom.UnifiedHudRender.begin(context)){
+            activity.client.gui.custom.UnifiedHudRender.card(x,y,ELEMENT_WIDTH,ELEMENT_HEIGHT);
+            int color=cartCount<=2?0xffff6874:0xffedf0f6;
+            activity.client.gui.custom.UnifiedHudRender.text(String.valueOf(cartCount),x+25,y+6,color);
         }
-        int color = cartCount <= 2 ? 0xFFFF5555 : 0xFFFFFFFF;
-        Text text = (cartCount >= 0 && cartCount <= 64) ? COUNT_TEXT_CACHE[cartCount] : Text.literal(String.valueOf(cartCount));
-        if (client != null && client.textRenderer != null) {
-            context.drawTextWithShadow(client.textRenderer, text, x + 18, y, color);
-        }
+        if(ICON!=null)context.drawItem(ICON,x+4,y+3);
     }
 }

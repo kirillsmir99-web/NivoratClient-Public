@@ -1,0 +1,90 @@
+{
+  "repository": "https://github.com/lucide-icons/lucide",
+  "commit": "5a92b9ba262de5bf10e864219883267672c05db8",
+  "icons": [
+    {
+      "name": "layout-grid",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/layout-grid.svg",
+      "sha256": "b8903f61d09b1d75e55c71158277d26570962f69c2099446a251871e0a2d6678"
+    },
+    {
+      "name": "flask-conical",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/flask-conical.svg",
+      "sha256": "a2ce857c159bef4c128a6d9f0b6dcbd6504ecf1a2a670ee220efd14fd032b561"
+    },
+    {
+      "name": "gem",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/gem.svg",
+      "sha256": "377618223555b2847b553a81f6974c76b7ce14d1207bcc0e98baa27a6a36d40e"
+    },
+    {
+      "name": "shield",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/shield.svg",
+      "sha256": "be32f6a86df7cbe43a83c439dd8849e5bcf5145e484d23420c20d8b98a78e82b"
+    },
+    {
+      "name": "trees",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/trees.svg",
+      "sha256": "5bd0ff178d40b8c81dd38180dae0683aa9bc89c71b204167e06d2a3a0d506563"
+    },
+    {
+      "name": "hammer",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/hammer.svg",
+      "sha256": "db75caf31bd080726be0c2dab09372498b999cbdcf10c756f44636831f9529f5"
+    },
+    {
+      "name": "paw-print",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/paw-print.svg",
+      "sha256": "578001404e63e57af3da69c739f247f20d4ccc8a40882123c352d4160fe63996"
+    },
+    {
+      "name": "sword",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/sword.svg",
+      "sha256": "0649799fe0d04e803d0fc1b861f4adec694f8afbcc0946b8ec87bb18447efa3c"
+    },
+    {
+      "name": "axe",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/axe.svg",
+      "sha256": "8be1cd7066c1ebe19da4a8ee9b370a729dcdc26e856c2a2ea99f2735ac8ee1cc"
+    },
+    {
+      "name": "flask-round",
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/flask-round.svg",
+      "sha256": "e1cb2dd0797e277663c1b1c22a22fe5b5adc6fc3872bbd70115910b2ef997ff0"
+    }
+  ],
+  "localIcons": [
+    {
+      "name": "end-crystal",
+      "source": "Project-authored SVG; Minecraft kit silhouette",
+      "sha256": "419cd86ad954735b5e50e11bc3d1b20059fc07e42a2bdd14e45bb216543a90c4"
+    },
+    {
+      "name": "water-bucket",
+      "source": "Project-authored SVG; Minecraft kit silhouette",
+      "sha256": "fec1948d6a7cd9d5f6a78ca2810562ab2eff5cca3aa80ea7eeb6ef4eea6a687f"
+    },
+    {
+      "name": "diamond-sword",
+      "source": "Project-authored SVG; Minecraft kit silhouette",
+      "sha256": "974692150012c00d0d3acbbd0a5aa01a5fcfca87c2cc5f0da0fa26cafc2a5d2d"
+    },
+    {
+      "name": "plain-helmet",
+      "source": "Project-authored SVG; Minecraft kit silhouette",
+      "sha256": "a8fdf14585719d82aa9ce2ce6494b8c65016256424a45b772ecae338bbed0877"
+    }
+  ],
+  "activeOrder": [
+    "layout-grid",
+    "flask-conical",
+    "end-crystal",
+    "water-bucket",
+    "shield",
+    "hammer",
+    "diamond-sword",
+    "plain-helmet",
+    "axe",
+    "flask-round"
+  ]
+}

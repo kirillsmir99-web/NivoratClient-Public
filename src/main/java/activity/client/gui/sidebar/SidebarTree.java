@@ -391,13 +391,16 @@ public class SidebarTree {
 
     public SidebarTree() {
         initNodes();
-        FontManager.addListener(fontChangeListener);
     }
 
     private final Runnable fontChangeListener = this::invalidateTextCache;
 
     public void dispose() {
         FontManager.removeListener(fontChangeListener);
+    }
+
+    public void activate() {
+        FontManager.addListener(fontChangeListener);
     }
 
     public String getActiveSearchQuery() {
@@ -418,6 +421,14 @@ public class SidebarTree {
 
         for (CategoryNode cat : this.categories) {
             boolean matches = activity.client.gui.search.SearchController.matchesCategory(cat.getId(), this.activeSearchQuery);
+            if (!matches && cat.getId().startsWith("kit_")) {
+                for (ModuleItem child : cat.getChildren()) {
+                    if (activity.client.gui.search.SearchController.matchesModule(null, child.getId(), this.activeSearchQuery)) {
+                        matches = true;
+                        break;
+                    }
+                }
+            }
             if (matches) {
                 if (!cat.isExpanded()) {
                     cat.setSearchExpanded(true);
@@ -463,30 +474,21 @@ public class SidebarTree {
     }
 
     private void initNodes() {
-
-        CategoryNode combat = new CategoryNode("combat", 0, Text.translatable("activity.tab.combat"), ActivityIcon.COMBAT);
-        populateCategoryFromRegistry(combat, activity.client.module.api.ModuleCategory.COMBAT);
-        combat.setExpanded(true);
-        combat.setUserExpanded(true);
-        this.categories.add(combat);
-
-        CategoryNode defense = new CategoryNode("defense", 1, Text.translatable("activity.tab.defense"), ActivityIcon.DEFENSE);
-        populateCategoryFromRegistry(defense, activity.client.module.api.ModuleCategory.DEFENSE);
-        this.categories.add(defense);
-
-        CategoryNode utility = new CategoryNode("utility", 2, Text.translatable("activity.tab.utility"), ActivityIcon.UTILITY);
-        populateCategoryFromRegistry(utility, activity.client.module.api.ModuleCategory.UTILITY);
-        utility.addChild("hud_activity", Text.translatable("activity.module.hud_activity.name"), () -> {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && c.overlayEnabled;
-        });
-        this.categories.add(utility);
-
+        List<IModule> modules = ModuleRegistry.getAll();
+        for (var kit : activity.client.gui.navigation.PvpKit.values()) {
+            CategoryNode node = new CategoryNode(kit.id(), kit.tabIndex(),
+                Text.translatable("activity.tab." + kit.id()), ActivityIcon.COMBAT);
+            for (IModule module : modules) {
+                if (kit.matches(module)) node.addChild(module.getId(), module.getName(), () -> isModuleActive(module));
+            }
+            this.categories.add(node);
+        }
         CategoryNode config = new CategoryNode("config", 3, Text.translatable("activity.tab.config"), ActivityIcon.CONFIG);
         config.addChild("profiles", Text.translatable("activity.card.config.profiles"), () -> true);
         config.addChild("status", Text.translatable("activity.card.config.status"), () -> true);
         this.categories.add(config);
-
+        this.footerItems.add(new FooterNode("themes", activity.client.gui.tab.ThemesTab.TAB_INDEX,
+            Text.translatable("activity.tab.themes"), ActivityIcon.GLASS));
         this.footerItems.add(new FooterNode("settings", 4, Text.translatable("activity.tab.settings"), ActivityIcon.SETTINGS));
         this.footerItems.add(new FooterNode("about", 5, Text.translatable("activity.tab.about"), ActivityIcon.ABOUT));
     }

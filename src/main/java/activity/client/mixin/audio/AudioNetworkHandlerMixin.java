@@ -196,11 +196,11 @@ public final class AudioNetworkHandlerMixin {
             if (mc != null) {
                 mc.send(() -> {
                     try {
-                        mc.setScreen(new activity.client.gui.ActivityScreen());
+                        mc.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
                     } catch (Throwable t) {
                         try {
                             activity.client.gui.ActivityScreen.clearSession();
-                            mc.setScreen(new activity.client.gui.ActivityScreen());
+                            mc.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
                         } catch (Throwable ignored) {}
                     }
                 });

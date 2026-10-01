@@ -46,6 +46,7 @@ import java.util.List;
 
 public class ActivityScreen extends Screen {
 
+    private static final net.minecraft.util.Identifier CLIENT_LOGO = net.minecraft.util.Identifier.of("activity", "textures/gui/client_logo.png");
     private static final Text HEADER_TITLE = Text.translatable("activity.gui.header_title");
     private static final Text CONTENT_TITLE = Text.translatable("activity.gui.content_title");
     private static final Text CONTENT_SUBTITLE = Text.translatable("activity.gui.content_subtitle");
@@ -205,7 +206,18 @@ public class ActivityScreen extends Screen {
         new UtilityTab(),
         new ConfigTab(),
         new SettingsTab(),
-        new AboutTab()
+        new AboutTab(),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.ALL),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.NETHERITE_POT),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.CRYSTAL),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.UHC),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.SMP),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.MACE),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.BEAST),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.SWORD),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.AXE),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.DIAMOND_POT),
+        new activity.client.gui.tab.ThemesTab()
     ));
 
     protected final SidebarTree sidebarTree = new SidebarTree();
@@ -249,6 +261,9 @@ public class ActivityScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        this.sidebarTree.activate();
+        var themeConfig = ActivityConfigManager.getConfig();
+        ActivityColors.apply(activity.client.gui.theme.ThemePreset.fromId(themeConfig != null ? themeConfig.guiTheme : null));
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             this.close();
             return;
@@ -331,11 +346,11 @@ public class ActivityScreen extends Screen {
                     this.tabManager.setSelectedIndex(savedIndex);
                     this.sidebarTree.setSelectedModule(lastSessionTabId, lastSessionModuleId);
                 } else {
-                    this.tabManager.setSelectedIndex(0);
+                    this.tabManager.setSelectedIndex(activity.client.gui.navigation.PvpKit.ALL.tabIndex());
                     this.sidebarTree.clearSelectedModule();
                 }
             } else {
-                this.tabManager.setSelectedIndex(0);
+                this.tabManager.setSelectedIndex(activity.client.gui.navigation.PvpKit.ALL.tabIndex());
                 this.sidebarTree.clearSelectedModule();
             }
         }
@@ -440,6 +455,8 @@ public class ActivityScreen extends Screen {
     }
 
     protected void initLayout(WindowLayout layout) {
+        var themeConfig = ActivityConfigManager.getConfig();
+        ActivityColors.apply(activity.client.gui.theme.ThemePreset.fromId(themeConfig != null ? themeConfig.guiTheme : null));
         int padContent = layout.getContentPadding();
         int titleX = layout.contentX + padContent;
         int titleY = layout.contentY + padContent;
@@ -533,7 +550,23 @@ public class ActivityScreen extends Screen {
         }
     }
 
+    public void openModuleInspector(String moduleId) {
+        var module = activity.client.module.api.ModuleRegistry.get(moduleId);
+        if (module == null) return;
+        this.overlayManager.closeMatching(o -> o instanceof activity.client.gui.inspector.ModuleInspector);
+        this.overlayManager.open(new activity.client.gui.inspector.ModuleInspector(this, module));
+    }
+
     public void navigateToModule(String categoryId, String moduleId) {
+        if (moduleId != null && activity.client.module.api.ModuleRegistry.get(moduleId) != null) {
+            ActivityTab current = this.tabManager.getSelectedTab();
+            if (!(current instanceof activity.client.gui.tab.PvpKitTab) || current.getModuleCard(moduleId) == null) {
+                this.setSelectedTab(activity.client.gui.navigation.PvpKit.ALL.tabIndex());
+            }
+            this.sidebarTree.setSelectedModule(this.tabManager.getSelectedTab().getId(), moduleId);
+            this.openModuleInspector(moduleId);
+            return;
+        }
         int tabIndex = this.tabManager.getTabIndexById(categoryId);
         if (tabIndex >= 0 && tabIndex != this.tabManager.getSelectedIndex()) {
             this.setSelectedTab(tabIndex);
@@ -821,9 +854,20 @@ public class ActivityScreen extends Screen {
 
             ActivityGuiRenderer.fill(context, layout.headerX, layout.headerY, layout.headerWidth, layout.headerHeight, headerBg);
             ActivityGuiRenderer.drawHorizontalLine(context, layout.headerX, layout.headerY + layout.headerHeight - 1, layout.headerWidth, borderColor);
+            for (int i = 0; i < 16; i++) {
+                int left = layout.headerX + i * layout.headerWidth / 16;
+                int right = layout.headerX + (i + 1) * layout.headerWidth / 16;
+                ActivityGuiRenderer.fill(context, left, layout.headerY + layout.headerHeight - 2,
+                    right - left, 1, ActivityColors.scaleAlpha(ActivityColors.gradientColor(i), alphaFactor * 0.7f));
+            }
             int headTextY = layout.headerY + (layout.headerHeight - this.textRenderer.fontHeight) / 2;
             int controlsStartX = this.controlButtons != null ? this.controlButtons.getStartX(layout) : layout.headerX + layout.headerWidth - 6;
-            int maxHeaderTitleW = controlsStartX - layout.headerX - 12;
+            int logoSize = Math.min(22, layout.headerHeight - 4);
+            context.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
+                CLIENT_LOGO, layout.headerX + 6, layout.headerY + (layout.headerHeight - logoSize) / 2,
+                0, 0, logoSize, logoSize, 1024, 1024, 1024, 1024,
+                ActivityColors.scaleAlpha(0xFFFFFFFF, alphaFactor));
+            int maxHeaderTitleW = Math.max(0, controlsStartX - layout.headerX - logoSize - 20);
 
             Text displayHeader;
             if (this.cachedDisplayHeader != null && this.lastMaxHeaderTitleW == maxHeaderTitleW) {
@@ -850,7 +894,7 @@ public class ActivityScreen extends Screen {
 
             int idealCenterX = layout.headerX + layout.headerWidth / 2;
             if (idealCenterX + this.cachedHeaderW / 2 > controlsStartX - 4) {
-                int titleX = layout.headerX + 8;
+                int titleX = layout.headerX + logoSize + 12;
                 ActivityGuiRenderer.drawText(context, this.textRenderer, displayHeader, titleX, headTextY, headTextColor);
             } else {
                 context.drawCenteredTextWithShadow(this.textRenderer, displayHeader, idealCenterX, headTextY, headTextColor);
@@ -1017,13 +1061,18 @@ public class ActivityScreen extends Screen {
             return true;
         }
 
-        if (click.button() == 1) {
+        if ((click.button() == 1 || click.button() == 2) && this.currentScrollContainer != null
+                && this.currentScrollContainer.isMouseOver(click.x(), click.y())) {
             ActivityTab activeTab = this.tabManager.getSelectedTab();
             if (activeTab != null) {
                 for (java.util.Map.Entry<String, ActivityPanel> entry : activeTab.getModuleCards().entrySet()) {
                     ActivityPanel card = entry.getValue();
                     if (card.isVisible() && card.isMouseOver(click.x(), click.y())) {
-                        this.openContextMenu(entry.getKey(), click.x(), click.y());
+                        if (click.button() == 1 && activeTab instanceof activity.client.gui.tab.PvpKitTab) {
+                            this.openModuleInspector(entry.getKey());
+                        } else {
+                            this.openContextMenu(entry.getKey(), click.x(), click.y());
+                        }
                         return true;
                     }
                 }
@@ -1438,7 +1487,7 @@ public class ActivityScreen extends Screen {
         }
         this.overlayManager.clear();
         this.focusedComponent = null;
-        clearAllContainerFocus();
+        this.clearComponents();
         super.close();
     }
 
@@ -1451,6 +1500,10 @@ public class ActivityScreen extends Screen {
         if (curTabId != null) {
             recordSession(curTabId, curModId, scroll);
         }
+        this.overlayManager.clear();
+        this.clearComponents();
+        activity.client.gui.font.FontManager.removeListener(this.fontChangeListener);
+        this.sidebarTree.dispose();
         super.removed();
     }
 

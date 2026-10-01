@@ -25,6 +25,7 @@ import dev.virion.arc.ArcMotorCalibrationService;
 
 @Mixin(ClientPlayerInteractionManager.class)
 public abstract class PipelineInteractionManagerMixin {
+    @org.spongepowered.asm.mixin.Unique private int activity$calibrationItem;
     @Shadow private boolean breakingBlock;
     @Shadow private BlockPos currentBreakingPos;
 
@@ -55,19 +56,30 @@ public abstract class PipelineInteractionManagerMixin {
 
     @Inject(method = "interactBlock", at = @At("HEAD"))
     private void activity$calibration$onInteractBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
+        activity$calibrationItem = 0;
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         try {
             if (ArcMotorCalibrationService.isActive() && player != null && hitResult != null) {
                 ItemStack stack = player.getStackInHand(hand);
                 if (stack != null && !stack.isEmpty()) {
                     if (stack.isIn(ItemTags.RAILS) || (stack.getItem() instanceof BlockItem bi && bi.getBlock() instanceof AbstractRailBlock)) {
-                        ArcMotorCalibrationService.onRailPlaced(hitResult.getBlockPos());
+                        activity$calibrationItem = 1;
                     } else if (stack.isOf(Items.TNT_MINECART)) {
-                        ArcMotorCalibrationService.onCartPlaced(hitResult.getBlockPos());
+                        activity$calibrationItem = 2;
                     }
                 }
             }
         } catch (Throwable ignored) {}
+    }
+
+    @Inject(method = "interactBlock", at = @At("RETURN"))
+    private void activity$calibration$onInteractionResult(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
+        int item = activity$calibrationItem;
+        activity$calibrationItem = 0;
+        if (hitResult == null || cir.getReturnValue() == null || !cir.getReturnValue().isAccepted()
+                || !ArcMotorCalibrationService.isActive()) return;
+        if (item == 1) ArcMotorCalibrationService.onRailPlaced(hitResult.getBlockPos().offset(hitResult.getSide()));
+        else if (item == 2) ArcMotorCalibrationService.onCartPlaced(hitResult.getBlockPos());
     }
 
     @Inject(method = "stopUsingItem", at = @At("HEAD"))

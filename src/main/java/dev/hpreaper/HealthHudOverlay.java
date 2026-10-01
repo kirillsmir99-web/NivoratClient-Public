@@ -338,64 +338,38 @@ public final class HealthHudOverlay {
         if (textRenderer == null) {
             return 24;
         }
-        return switch (mode) {
-            case OWN_HEALTH -> textRenderer.getWidth("20.0");
-            case CROSSHAIR_AND_TARGET, TARGET_HEALTH -> textRenderer.getWidth("18.5");
-            case OWN_TARGET_AND_DIFFERENCE, DISABLED ->
-                textRenderer.getWidth("20.0") + textRenderer.getWidth(SEPARATOR) * 2 + textRenderer.getWidth("18.5") + textRenderer.getWidth("+1.5");
+        return switch(mode){
+            case OWN_HEALTH,CROSSHAIR_AND_TARGET,TARGET_HEALTH -> 30+activity.client.gui.custom.UnifiedHudRender.measure("20.0");
+            case OWN_TARGET_AND_DIFFERENCE,DISABLED -> 45+activity.client.gui.custom.UnifiedHudRender.measure("20.0 18.5 +1.5");
         };
     }
-
-    public static int getPreviewHeight(DisplayMode mode) {
-        return 10;
+    public static int getPreviewHeight(DisplayMode mode){return 24;}
+    public static void renderPreview(DrawContext context,MinecraftClient client,int x,int y,DisplayMode mode){
+        if(context==null||client==null)return;
+        renderElement(context,client,x,y,"20.0",COLOR_NORMAL,"18.5",COLOR_TARGET,"+1.5",COLOR_DIFFERENCE_AHEAD,mode);
     }
-
-    public static void renderPreview(DrawContext context, MinecraftClient client, int x, int y, DisplayMode mode) {
-        if (context == null || client == null || client.textRenderer == null) {
-            return;
-        }
-        renderElement(context, client, x, y, "20.0", COLOR_NORMAL, "18.5", COLOR_TARGET, "+1.5", COLOR_DIFFERENCE_AHEAD, mode);
-    }
-
-    public static void renderElement(DrawContext context, MinecraftClient client, int x, int y,
-                                     String ownText, int ownColor,
-                                     String targetText, int targetColor,
-                                     String diffText, int diffColor,
-                                     DisplayMode mode) {
-        TextRenderer tr = client.textRenderer;
-        if (tr == null) return;
-
-        switch (mode) {
-            case OWN_HEALTH -> context.drawTextWithShadow(tr, ownText, x, y, ownColor);
-            case CROSSHAIR_AND_TARGET -> {
-                if (targetText != null) {
-                    context.drawTextWithShadow(tr, targetText, x, y, targetColor);
-                } else {
-                    context.drawTextWithShadow(tr, ownText, x, y, ownColor);
-                }
+    public static void renderElement(DrawContext context,MinecraftClient client,int x,int y,
+                                    String ownText,int ownColor,String targetText,int targetColor,
+                                    String diffText,int diffColor,DisplayMode mode){
+        if(mode==DisplayMode.DISABLED||mode==DisplayMode.TARGET_HEALTH&&targetText==null)return;
+        boolean combined=mode==DisplayMode.OWN_TARGET_AND_DIFFERENCE&&targetText!=null&&diffText!=null;
+        String primary=mode==DisplayMode.OWN_HEALTH?ownText:targetText!=null?targetText:ownText;
+        if(combined)primary=ownText;
+        int width=30+activity.client.gui.custom.UnifiedHudRender.measure(primary);
+        if(combined)width+=15+activity.client.gui.custom.UnifiedHudRender.measure(targetText+" "+diffText);
+        try(var frame=activity.client.gui.custom.UnifiedHudRender.begin(context)){
+            activity.client.gui.custom.UnifiedHudRender.card(x,y,width,24);
+            activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.HEART,x+6,y+6,9,activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(245));
+            float tx=x+21;
+            activity.client.gui.custom.UnifiedHudRender.text(primary,tx,y+6,primary.equals(ownText)&&ownColor==COLOR_ABSORPTION?0xffffd67a:0xffedf0f6);
+            tx+=activity.client.gui.custom.UnifiedHudRender.measure(primary)+7;
+            if(combined){
+                activity.client.gui.custom.UnifiedHudRender.text(targetText,tx,y+6,activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(250));
+                tx+=activity.client.gui.custom.UnifiedHudRender.measure(targetText)+7;
+                activity.client.gui.custom.UnifiedHudRender.text(diffText,tx,y+6,diffColor);
             }
-            case TARGET_HEALTH -> {
-                if (targetText != null) {
-                    context.drawTextWithShadow(tr, targetText, x, y, targetColor);
-                }
-            }
-            case OWN_TARGET_AND_DIFFERENCE -> {
-                if (targetText != null && diffText != null) {
-                    int curX = x;
-                    context.drawTextWithShadow(tr, ownText, curX, y, ownColor);
-                    curX += tr.getWidth(ownText);
-                    context.drawTextWithShadow(tr, SEPARATOR, curX, y, COLOR_MARKER);
-                    curX += tr.getWidth(SEPARATOR);
-                    context.drawTextWithShadow(tr, targetText, curX, y, targetColor);
-                    curX += tr.getWidth(targetText);
-                    context.drawTextWithShadow(tr, SEPARATOR, curX, y, COLOR_MARKER);
-                    curX += tr.getWidth(SEPARATOR);
-                    context.drawTextWithShadow(tr, diffText, curX, y, diffColor);
-                } else {
-                    context.drawTextWithShadow(tr, ownText, x, y, ownColor);
-                }
-            }
-            case DISABLED -> {}
+            float numeric=0f;try{numeric=Float.parseFloat(primary);}catch(NumberFormatException ignored){}
+            activity.client.gui.custom.UnifiedHudRender.progress(x+5,y+20,width-10,numeric/20f);
         }
     }
 

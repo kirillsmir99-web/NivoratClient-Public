@@ -29,6 +29,11 @@ public final class ArcNeuralMotorProfile {
 
     private final float[][] momentumInputHidden = new float[INPUT_SIZE][HIDDEN_SIZE];
     private final float[][] momentumHiddenOutput = new float[HIDDEN_SIZE][OUTPUT_SIZE];
+    private final float[] inputsScratch = new float[INPUT_SIZE];
+    private final float[] hiddenScratch = new float[HIDDEN_SIZE];
+    private final float[] outputsScratch = new float[OUTPUT_SIZE];
+    private final float[] deltaOutputScratch = new float[OUTPUT_SIZE];
+    private final float[] deltaHiddenScratch = new float[HIDDEN_SIZE];
 
     private float saccadeSpeedMultiplier = 1.0f;
     private float curvatureBias = 0.35f;
@@ -38,6 +43,9 @@ public final class ArcNeuralMotorProfile {
     private double learnedGcd = 0.0096;
     private int sampleCount = 0;
     private boolean calibrated = false;
+    private boolean lastCalibrationSucceeded = false;
+    private long lastSaveTimeMs = System.currentTimeMillis();
+    private boolean dirty = false;
 
     private boolean calibrating = false;
     private long calibrationStartTimeMs = 0L;
@@ -82,8 +90,14 @@ public final class ArcNeuralMotorProfile {
     private float lastPlayerYaw = 0.0f;
     private long lastTrackTimeNs = 0L;
     private boolean trackerInitialized = false;
+    private final Path storagePath;
 
     private ArcNeuralMotorProfile() {
+        this(getConfigPath());
+    }
+
+    ArcNeuralMotorProfile(Path storagePath) {
+        this.storagePath = storagePath;
         initDefaultWeights();
         load();
     }
@@ -117,13 +131,18 @@ public final class ArcNeuralMotorProfile {
     }
 
     public synchronized float[] forward(float progress, float angleDeltaDeg, float currentVelocity, float directionSign) {
+        if (!Float.isFinite(progress) || !Float.isFinite(angleDeltaDeg)
+                || !Float.isFinite(currentVelocity) || !Float.isFinite(directionSign)) {
+            return new float[]{1.0f, curvatureBias, tremorVolatility};
+        }
         float x0 = MathHelper.clamp(progress, 0.0f, 1.0f);
         float x1 = MathHelper.clamp(angleDeltaDeg / 180.0f, 0.0f, 1.0f);
         float x2 = MathHelper.clamp(currentVelocity / 50.0f, -2.0f, 2.0f);
         float x3 = MathHelper.clamp(directionSign, -1.0f, 1.0f);
 
-        float[] inputs = new float[]{x0, x1, x2, x3};
-        float[] hidden = new float[HIDDEN_SIZE];
+        float[] inputs = inputsScratch;
+        inputs[0] = x0; inputs[1] = x1; inputs[2] = x2; inputs[3] = x3;
+        float[] hidden = hiddenScratch;
 
         for (int j = 0; j < HIDDEN_SIZE; j++) {
             float sum = biasHidden[j];
@@ -133,7 +152,7 @@ public final class ArcNeuralMotorProfile {
             hidden[j] = (float) Math.tanh(sum);
         }
 
-        float[] outputs = new float[OUTPUT_SIZE];
+        float[] outputs = outputsScratch;
         for (int k = 0; k < OUTPUT_SIZE; k++) {
             float sum = biasOutput[k];
             for (int j = 0; j < HIDDEN_SIZE; j++) {
@@ -150,25 +169,28 @@ public final class ArcNeuralMotorProfile {
     }
 
     public synchronized void trainOnline(float progress, float angleDeltaDeg, float currentVelocity, float directionSign, float targetVelMod, float targetCurvMod, float targetTremorMod) {
+        if (!Float.isFinite(progress) || !Float.isFinite(angleDeltaDeg)
+                || !Float.isFinite(currentVelocity) || !Float.isFinite(directionSign)
+                || !Float.isFinite(targetVelMod) || !Float.isFinite(targetCurvMod)
+                || !Float.isFinite(targetTremorMod)) return;
         float x0 = MathHelper.clamp(progress, 0.0f, 1.0f);
         float x1 = MathHelper.clamp(angleDeltaDeg / 180.0f, 0.0f, 1.0f);
         float x2 = MathHelper.clamp(currentVelocity / 50.0f, -2.0f, 2.0f);
         float x3 = MathHelper.clamp(directionSign, -1.0f, 1.0f);
 
-        float[] inputs = new float[]{x0, x1, x2, x3};
-        float[] hiddenRaw = new float[HIDDEN_SIZE];
-        float[] hidden = new float[HIDDEN_SIZE];
+        float[] inputs = inputsScratch;
+        inputs[0] = x0; inputs[1] = x1; inputs[2] = x2; inputs[3] = x3;
+        float[] hidden = hiddenScratch;
 
         for (int j = 0; j < HIDDEN_SIZE; j++) {
             float sum = biasHidden[j];
             for (int i = 0; i < INPUT_SIZE; i++) {
                 sum += inputs[i] * weightsInputHidden[i][j];
             }
-            hiddenRaw[j] = sum;
             hidden[j] = (float) Math.tanh(sum);
         }
 
-        float[] outputs = new float[OUTPUT_SIZE];
+        float[] outputs = outputsScratch;
         for (int k = 0; k < OUTPUT_SIZE; k++) {
             float sum = biasOutput[k];
             for (int j = 0; j < HIDDEN_SIZE; j++) {
@@ -178,7 +200,7 @@ public final class ArcNeuralMotorProfile {
         }
 
         float[] targets = new float[]{
-            MathHelper.clamp((targetVelMod - 1.0f) / 0.15f, -1.0f, 1.0f),
+            MathHelper.clamp((targetVelMod - 1.0f) / Math.max(0.01f, 0.15f * saccadeSpeedMultiplier), -1.0f, 1.0f),
             MathHelper.clamp((targetCurvMod - curvatureBias) / Math.max(0.01f, curvatureBias * 0.25f), -1.0f, 1.0f),
             MathHelper.clamp((targetTremorMod - tremorVolatility) / Math.max(0.01f, tremorVolatility * 0.20f), -1.0f, 1.0f)
         };
@@ -186,14 +208,14 @@ public final class ArcNeuralMotorProfile {
         float learningRate = 0.015f;
         float momentumFactor = 0.85f;
 
-        float[] deltaOutput = new float[OUTPUT_SIZE];
+        float[] deltaOutput = deltaOutputScratch;
         for (int k = 0; k < OUTPUT_SIZE; k++) {
             float err = targets[k] - outputs[k];
             float dtanh = 1.0f - outputs[k] * outputs[k];
             deltaOutput[k] = err * dtanh;
         }
 
-        float[] deltaHidden = new float[HIDDEN_SIZE];
+        float[] deltaHidden = deltaHiddenScratch;
         for (int j = 0; j < HIDDEN_SIZE; j++) {
             float sum = 0.0f;
             for (int k = 0; k < OUTPUT_SIZE; k++) {
@@ -225,10 +247,12 @@ public final class ArcNeuralMotorProfile {
             biasHidden[j] += learningRate * deltaHidden[j];
         }
 
-        sampleCount++;
-        if (sampleCount % 50 == 0) {
-            save();
-        }
+        if (sampleCount < Integer.MAX_VALUE) sampleCount++;
+        dirty = true;
+    }
+
+    public synchronized void flushCheckpoint() {
+        if (dirty && System.currentTimeMillis() - lastSaveTimeMs >= 30_000L) save();
     }
 
     public synchronized void resetTremor() {
@@ -271,7 +295,8 @@ public final class ArcNeuralMotorProfile {
         float currentPitch = client.player.getPitch();
         float currentYaw = client.player.getYaw();
 
-        if (ArcCameraInterpolator.isAnyActive()) {
+        if (client.currentScreen != null || client.world == null
+                || net.fabricmc.pack.api.CombatLockManager.isLocked() || ArcCameraInterpolator.isAnyActive()) {
             lastPlayerPitch = currentPitch;
             lastPlayerYaw = currentYaw;
             lastTrackTimeNs = now;
@@ -286,7 +311,8 @@ public final class ArcNeuralMotorProfile {
             return;
         }
 
-        double dt = Math.max(0.001, (now - lastTrackTimeNs) / 1_000_000_000.0);
+        double dt = (now - lastTrackTimeNs) / 1_000_000_000.0;
+        if (dt < 0.05) return;
         lastTrackTimeNs = now;
 
         float deltaPitch = currentPitch - lastPlayerPitch;
@@ -294,6 +320,8 @@ public final class ArcNeuralMotorProfile {
 
         lastPlayerPitch = currentPitch;
         lastPlayerYaw = currentYaw;
+
+        if (dt > 0.25 || !Float.isFinite(deltaPitch) || !Float.isFinite(deltaYaw)) return;
 
         float magSq = deltaPitch * deltaPitch + deltaYaw * deltaYaw;
         if (magSq < 0.0001f) {
@@ -341,8 +369,9 @@ public final class ArcNeuralMotorProfile {
     }
 
     public synchronized void recordBowRelease(int drawTicks) {
-        if (!calibrating) return;
+        if (!calibrating || drawTicks < 3) return;
         long now = System.currentTimeMillis();
+        if (now - lastBowReleaseTimeMs < 50L) return;
         lastBowReleaseTimeMs = now;
         bowShotsCount++;
         totalActionsCount++;
@@ -359,6 +388,7 @@ public final class ArcNeuralMotorProfile {
                 sumDeltaT1 += dt1;
                 countDeltaT1++;
             }
+            lastBowReleaseTimeMs = 0L;
         }
         lastRailPlacementTimeMs = now;
     }
@@ -375,6 +405,7 @@ public final class ArcNeuralMotorProfile {
                 sumDeltaT2 += dt2;
                 countDeltaT2++;
             }
+            lastRailPlacementTimeMs = 0L;
         }
         lastCartPlacementTimeMs = now;
     }
@@ -405,6 +436,7 @@ public final class ArcNeuralMotorProfile {
     }
 
     public synchronized void startCalibration() {
+        lastCalibrationSucceeded = false;
         calibrating = true;
         calibrationStartTimeMs = System.currentTimeMillis();
         calibrationSamplesCollected = 0;
@@ -437,6 +469,8 @@ public final class ArcNeuralMotorProfile {
 
     public synchronized void finishCalibration() {
         calibrating = false;
+        lastCalibrationSucceeded = calibrationSamplesCollected >= 20 && countDeltaT1 >= 3 && countDeltaT2 >= 3;
+        if (!lastCalibrationSucceeded) return;
         calibrated = true;
 
         if (calibrationSamplesCollected > 0) {
@@ -485,6 +519,8 @@ public final class ArcNeuralMotorProfile {
     }
 
     public synchronized void resetCalibration() {
+        lastCalibrationSucceeded = false;
+        trackerInitialized = false;
         this.calibrated = false;
         this.calibrating = false;
         this.sampleCount = 0;
@@ -549,6 +585,10 @@ public final class ArcNeuralMotorProfile {
 
     public synchronized boolean isCalibrated() {
         return calibrated;
+    }
+
+    public synchronized boolean didLastCalibrationSucceed() {
+        return lastCalibrationSucceeded;
     }
 
     public synchronized float getSaccadeSpeedMultiplier() {
@@ -635,13 +675,13 @@ public final class ArcNeuralMotorProfile {
 
     public synchronized void save() {
         try {
-            Path path = getConfigPath();
+            Path path = storagePath;
             Path parent = path.getParent();
             if (parent != null && !Files.exists(parent)) {
                 Files.createDirectories(parent);
             }
             JsonObject root = new JsonObject();
-            root.addProperty("version", 2);
+            root.addProperty("version", 3);
             root.addProperty("calibrated", calibrated);
             root.addProperty("sampleCount", sampleCount);
             root.addProperty("saccadeSpeedMultiplier", saccadeSpeedMultiplier);
@@ -674,20 +714,32 @@ public final class ArcNeuralMotorProfile {
                 }
             }
             root.add("weights", weightsObj);
+            root.add("biasHidden", GSON.toJsonTree(biasHidden));
+            root.add("biasOutput", GSON.toJsonTree(biasOutput));
 
             String json = GSON.toJson(root);
-            Files.writeString(path, json, StandardCharsets.UTF_8);
+            Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
+            Files.writeString(temporary, json, StandardCharsets.UTF_8);
+            try {
+                Files.move(temporary, path, java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (java.nio.file.AtomicMoveNotSupportedException ex) {
+                Files.move(temporary, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+            dirty = false;
+            lastSaveTimeMs = System.currentTimeMillis();
         } catch (Exception ignored) {}
     }
 
     public synchronized void load() {
         try {
-            Path path = getConfigPath();
+            Path path = storagePath;
             if (!Files.exists(path)) {
                 return;
             }
             String content = Files.readString(path, StandardCharsets.UTF_8);
             JsonObject root = JsonParser.parseString(content).getAsJsonObject();
+            validateNumbers(root);
             if (root.has("calibrated")) {
                 calibrated = root.get("calibrated").getAsBoolean();
             }
@@ -752,7 +804,7 @@ public final class ArcNeuralMotorProfile {
                     for (int j = 0; j < HIDDEN_SIZE; j++) {
                         String key = "ih_" + i + "_" + j;
                         if (weightsObj.has(key)) {
-                            weightsInputHidden[i][j] = weightsObj.get(key).getAsFloat();
+                            weightsInputHidden[i][j] = MathHelper.clamp(weightsObj.get(key).getAsFloat(), -8.0f, 8.0f);
                         }
                     }
                 }
@@ -760,11 +812,39 @@ public final class ArcNeuralMotorProfile {
                     for (int k = 0; k < OUTPUT_SIZE; k++) {
                         String key = "ho_" + j + "_" + k;
                         if (weightsObj.has(key)) {
-                            weightsHiddenOutput[j][k] = weightsObj.get(key).getAsFloat();
+                            weightsHiddenOutput[j][k] = MathHelper.clamp(weightsObj.get(key).getAsFloat(), -8.0f, 8.0f);
                         }
                     }
                 }
             }
+            loadBias(root, "biasHidden", biasHidden);
+            loadBias(root, "biasOutput", biasOutput);
+            saccadeSpeedMultiplier = MathHelper.clamp(saccadeSpeedMultiplier, 0.8f, 1.35f);
+            curvatureBias = MathHelper.clamp(curvatureBias, 0.2f, 0.5f);
+            tremorVolatility = MathHelper.clamp(tremorVolatility, 0.03f, 0.08f);
+            twoPhaseRatio = MathHelper.clamp(twoPhaseRatio, 0.5f, 0.95f);
+            microDamping = MathHelper.clamp(microDamping, 0.0f, 1.0f);
+            learnedGcd = MathHelper.clamp(learnedGcd, 0.00001D, 10.0D);
+            sampleCount = Math.max(0, sampleCount);
         } catch (Exception ignored) {}
+    }
+
+    private static void validateNumbers(com.google.gson.JsonElement element) {
+        if (element.isJsonObject()) {
+            for (var entry : element.getAsJsonObject().entrySet()) validateNumbers(entry.getValue());
+        } else if (element.isJsonArray()) {
+            for (var item : element.getAsJsonArray()) validateNumbers(item);
+        } else if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isNumber()) {
+            if (!Double.isFinite(element.getAsDouble())) throw new IllegalArgumentException("Non-finite neural profile");
+        }
+    }
+
+    private static void loadBias(JsonObject root, String key, float[] destination) {
+        if (!root.has(key)) return;
+        var values = root.getAsJsonArray(key);
+        if (values.size() != destination.length) throw new IllegalArgumentException("Invalid bias dimensions");
+        for (int i = 0; i < destination.length; i++) {
+            destination[i] = MathHelper.clamp(values.get(i).getAsFloat(), -8.0f, 8.0f);
+        }
     }
 }

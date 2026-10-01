@@ -140,9 +140,6 @@ public class OcclusionCacheModule extends NivoratModule {
 
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
-                        if ("fast".equalsIgnoreCase(val) || "medium".equalsIgnoreCase(val)) {
-                            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_camera_beta_warning"));
-                        }
                     }
                 }
         );
@@ -248,9 +245,6 @@ public class OcclusionCacheModule extends NivoratModule {
                         c.autoCartAutoCamera = "auto".equalsIgnoreCase(val) || "assisted".equalsIgnoreCase(val);
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
-                        if ("packet".equalsIgnoreCase(val) || "auto".equalsIgnoreCase(val) || "assisted".equalsIgnoreCase(val)) {
-                            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_camera_beta_warning"));
-                        }
                     }
                 }
         );
@@ -532,9 +526,6 @@ public class OcclusionCacheModule extends NivoratModule {
         if (c != null) {
             c.autoCartEnabled = enabled;
             ActivityConfigManager.markDirty();
-            if (enabled && ("packet".equalsIgnoreCase(c.autoCartCameraMode) || "auto".equalsIgnoreCase(c.autoCartCameraMode))) {
-                activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_camera_beta_warning"));
-            }
         }
         if (controller.isEnabled() != enabled) {
             controller.toggle();
@@ -543,6 +534,7 @@ public class OcclusionCacheModule extends NivoratModule {
 
     @Override
     public void onDisable() {
+        controller.resetSession(MinecraftClient.getInstance());
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", false);
     }
 

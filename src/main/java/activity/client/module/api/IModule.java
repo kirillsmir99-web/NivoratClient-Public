@@ -96,6 +96,11 @@ public interface IModule {
 
     default void onWorldLeave(MinecraftClient client) {}
 
+    default void onSuspend(MinecraftClient client) { onDisable(); }
+
+    default void onCleanupTick(MinecraftClient client) {}
+    default boolean canTickWhileScreenOpen(MinecraftClient client) { return false; }
+
     default ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         return ActionResult.PASS;
     }

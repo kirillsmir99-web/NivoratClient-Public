@@ -92,11 +92,22 @@ public final class SurfaceImpactController {
     private long lastCombatWeaponTime = 0L;
     private long lastPearlTime = 0L;
     private long lastWindChargeUseTime = 0L;
+    private ClientPlayerEntity sessionPlayer;
+    private net.minecraft.world.World sessionWorld;
+    private boolean cleanupPending;
+
+    public void cleanup() { if (cleanupPending) reset(); }
 
     public void reset() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        boolean sameSession = client != null && client.player != null
+                && client.player == sessionPlayer && client.world == sessionWorld;
         if (swappedFromInventory && sourceInvSlot >= 9 && targetHotbarIndex >= 0) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client != null && client.player != null && client.interactionManager != null) {
+            if (sameSession && client.player.currentScreenHandler != client.player.playerScreenHandler) {
+                cleanupPending = true;
+                return;
+            }
+            if (sameSession && client.interactionManager != null) {
                 try {
                     client.interactionManager.clickSlot(
                             client.player.playerScreenHandler.syncId,
@@ -108,6 +119,12 @@ public final class SurfaceImpactController {
                 } catch (Throwable ignored) {}
             }
         }
+        if (sameSession && originalSlot >= 0 && client.player.getInventory().getSelectedSlot() == selectedDropSlot) {
+            net.fabricmc.pack.api.SafeSlotManager.restoreSlot(client, originalSlot);
+        }
+        cleanupPending = false;
+        sessionPlayer = null;
+        sessionWorld = null;
         state = State.IDLE;
         originalSlot = -1;
         selectedDropSlot = -1;
@@ -145,6 +162,12 @@ public final class SurfaceImpactController {
         }
 
         ClientPlayerEntity player = client.player;
+        if (cleanupPending || (sessionPlayer != null && (sessionPlayer != player || sessionWorld != client.world))) {
+            reset();
+            return;
+        }
+        sessionPlayer = player;
+        sessionWorld = client.world;
         if (!SurfaceImpactConfig.enabled || !player.isAlive()) {
             reset();
             return;

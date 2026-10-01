@@ -1,0 +1,44 @@
+apply from: new File(initscript.sourceFile.parentFile, 'visual-smoke.init.gradle')
+
+allprojects {
+    afterEvaluate { p ->
+        if (p.plugins.hasPlugin('fabric-loom')) {
+            def original = p.tasks.named('runClient', JavaExec)
+            p.tasks.register('publicVisualSmoke', JavaExec) {
+                dependsOn 'visualSmokeJar', 'remapJar', 'configureClientLaunch', 'downloadAssets'
+                mainClass.set(p.provider { original.get().mainClass.get() })
+                classpath = p.files(p.provider {
+                    def excluded = p.sourceSets.main.output.files.collect { it.canonicalFile }.toSet()
+                    original.get().classpath.files.findAll { !excluded.contains(it.canonicalFile) }
+                })
+                workingDir p.file('build/visual-smoke/game')
+                doFirst {
+                    p.file('build/public-visual-smoke').mkdirs()
+                    p.file('build/public-visual-smoke/result.txt').delete()
+                    def source = original.get()
+                    args source.args
+                    jvmArgs source.jvmArgs.findAll { !it.startsWith('-Dfabric.addMods=') && !it.startsWith('-Dfabric.classPathGroups=') && !it.startsWith('-Dvisual.smoke.output=') }
+                    def publicJar = p.tasks.named('remapJar').get().archiveFile.get().asFile
+                    def helperJar = p.file('build/visual-smoke/visual-smoke.jar')
+                    jvmArgs '-Dfabric.classPathGroups='
+                    jvmArgs '-Dfabric.addMods=' + [publicJar, helperJar].collect { it.absolutePath }.join(File.pathSeparator)
+                    jvmArgs '-XX:ActiveProcessorCount=1'
+                    jvmArgs '-Dvisual.smoke.release=true'
+                    jvmArgs '-Dvisual.smoke.result=' + p.file('build/public-visual-smoke/result.txt').absolutePath
+                    jvmArgs '-Dvisual.smoke.spoofer=true'
+                    if(p.hasProperty('visualProfile'))jvmArgs '-XX:StartFlightRecording=filename=' + p.file('build/profiles/' + p.property('visualProfile') + '.jfr').absolutePath + ',settings=profile,dumponexit=true,maxsize=64m'
+                    if(p.hasProperty('lowFps'))jvmArgs '-Dvisual.smoke.lowfps=true'
+                    if(p.hasProperty('tooltipSmoke'))jvmArgs '-Dvisual.smoke.tooltip=true'
+                    if(p.hasProperty('mechanicsSmoke'))jvmArgs '-Dvisual.smoke.mechanics=true'
+                    jvmArgs '-Dvisual.smoke.output=' + p.file('build/public-visual-smoke/captures').absolutePath
+                }
+                doLast {
+                    def result = p.file('build/public-visual-smoke/result.txt')
+                    if(!result.isFile() || !result.text.startsWith('PASSED ')) {
+                        throw new GradleException('PUBLIC smoke did not pass: ' + (result.isFile() ? result.text : 'missing result marker'))
+                    }
+                }
+            }
+        }
+    }
+}

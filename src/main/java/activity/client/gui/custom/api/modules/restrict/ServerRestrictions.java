@@ -1,0 +1,2 @@
+package activity.client.gui.custom.api.modules.restrict;
+public final class ServerRestrictions {public static java.util.EnumSet<Server> current(){return java.util.EnumSet.noneOf(Server.class);}public static boolean isHiddenBy(activity.client.gui.custom.api.modules.Module m,java.util.EnumSet<Server> s){return false;}public static boolean isBlockedBy(activity.client.gui.custom.api.modules.Module m,java.util.EnumSet<Server> s){return false;}}

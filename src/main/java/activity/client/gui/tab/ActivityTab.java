@@ -154,6 +154,10 @@ public abstract class ActivityTab {
         }
     }
 
+    public void endModuleSection() {
+        this.currentBuildingModule = null;
+    }
+
     public ActivityPanel getModuleCard(String moduleId) {
         return moduleId != null ? this.moduleCards.get(moduleId) : null;
     }
@@ -178,7 +182,7 @@ public abstract class ActivityTab {
 
         java.util.Set<String> matching = new java.util.HashSet<>();
         for (ModuleSection sec : this.moduleSections.values()) {
-            if (activity.client.gui.search.SearchController.matchesModule(this.getId(), sec.moduleId, query)) {
+            if (activity.client.gui.search.SearchController.matchesModule(this.getId().startsWith("kit_") ? null : this.getId(), sec.moduleId, query)) {
                 matching.add(sec.moduleId);
             }
         }

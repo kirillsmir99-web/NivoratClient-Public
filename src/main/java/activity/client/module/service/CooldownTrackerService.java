@@ -21,6 +21,8 @@ public final class CooldownTrackerService {
         public final int totalTicks;
         public int remainingTicks;
         public final long startTimestampMs;
+        private int formattedTicks = Integer.MIN_VALUE;
+        private String formattedRemaining;
 
         public CooldownEntry(Item item, int totalTicks) {
             this.item = item;
@@ -42,6 +44,13 @@ public final class CooldownTrackerService {
         }
 
         public String getFormattedRemaining() {
+            if (formattedRemaining != null && formattedTicks == remainingTicks) return formattedRemaining;
+            formattedTicks = remainingTicks;
+            formattedRemaining = formatRemaining();
+            return formattedRemaining;
+        }
+
+        private String formatRemaining() {
             float sec = getRemainingSeconds();
             if (sec <= 0.0f) {
                 return "0.0s";
@@ -106,9 +115,10 @@ public final class CooldownTrackerService {
 
     public static boolean hasItemInInventory(net.minecraft.client.network.ClientPlayerEntity player, Item item) {
         if (player == null || player.getInventory() == null || item == null) return false;
+        boolean trident = isTridentItem(item);
         for (int i = 0; i < player.getInventory().size(); i++) {
             ItemStack s = player.getInventory().getStack(i);
-            if (!s.isEmpty() && (s.isOf(item) || (isTridentItem(item) && isTridentItem(s.getItem())))) {
+            if (!s.isEmpty() && (s.isOf(item) || (trident && isTridentItem(s.getItem())))) {
                 return true;
             }
         }
@@ -163,6 +173,8 @@ public final class CooldownTrackerService {
 
         boolean hasPlayer = client != null && client.player != null && client.player.getItemCooldownManager() != null;
 
+        long now = System.currentTimeMillis();
+        Boolean tridentPresent = null;
         for (Map.Entry<Object, CooldownEntry> mapEntry : ACTIVE_COOLDOWNS.entrySet()) {
             CooldownEntry entry = mapEntry.getValue();
             entry.remainingTicks--;
@@ -173,13 +185,14 @@ public final class CooldownTrackerService {
             }
 
             if (isTridentItem(entry.item)) {
-                if (hasPlayer && !hasTridentInInventory(client.player)) {
+                if (hasPlayer && tridentPresent == null) tridentPresent = hasTridentInInventory(client.player);
+                if (Boolean.FALSE.equals(tridentPresent)) {
                     ACTIVE_COOLDOWNS.remove(mapEntry.getKey());
                     continue;
                 }
             }
 
-            if (hasPlayer && entry.iconStack != null && System.currentTimeMillis() - entry.startTimestampMs > 250L && !client.player.getItemCooldownManager().isCoolingDown(entry.iconStack)) {
+            if (hasPlayer && entry.iconStack != null && now - entry.startTimestampMs > 250L && !client.player.getItemCooldownManager().isCoolingDown(entry.iconStack)) {
                 ACTIVE_COOLDOWNS.remove(mapEntry.getKey());
             }
         }

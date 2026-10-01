@@ -317,6 +317,7 @@ public class ActivityConfig {
 
     public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
     public String menuCommand = "nt";
+    public String guiTheme = "client";
     public String fontFamily = "minecraft";
     public String typographySize = "normal";
     public String language = "auto";
@@ -799,6 +800,7 @@ public class ActivityConfig {
         this.filterRegex = ".*";
         this.gcPolicy = "Консервативный";
 
+        this.guiTheme = "client";
         this.fontFamily = "minecraft";
         this.typographySize = "normal";
         this.language = "auto";
@@ -2195,6 +2197,7 @@ public class ActivityConfig {
         copy.filterRegex = this.filterRegex;
         copy.gcPolicy = this.gcPolicy;
 
+        copy.guiTheme = this.guiTheme;
         copy.fontFamily = this.fontFamily;
         copy.typographySize = this.typographySize;
         copy.language = this.language;
@@ -2489,6 +2492,7 @@ public class ActivityConfig {
                this.sliderSoundEnabled == that.sliderSoundEnabled &&
                this.animationsEnabled == that.animationsEnabled &&
                this.spatialOpenAnimation == that.spatialOpenAnimation &&
+               Objects.equals(this.guiTheme, that.guiTheme) &&
                Objects.equals(this.fontFamily, that.fontFamily) &&
                Objects.equals(this.typographySize, that.typographySize) &&
                Objects.equals(this.language, that.language) &&
@@ -2564,7 +2568,7 @@ public class ActivityConfig {
             customPrefix, toastStyle, showCoordinates, showFps, showBiome, showWorldTime, showDirection, coordFormat, hudPadding,
             customTitle, textShadow, hudCustomX, hudCustomY, hudShowActiveModules, debugLogging, profilerActive, asyncTickEnabled, logLevel, benchmarksEnabled, maxCacheEntries,
             scissorOpt, filterRegex, gcPolicy,
-            fontFamily, typographySize, language, windowOpacity, panelOpacity, glassEffect, windowPosX, windowPosY, windowWidth, windowHeight, windowMaximized, unmaximizedX, unmaximizedY, unmaximizedWidth, unmaximizedHeight, soundEnabled, soundProfile, sliderSoundEnabled, animationsEnabled, spatialOpenAnimation
+            guiTheme, fontFamily, typographySize, language, windowOpacity, panelOpacity, glassEffect, windowPosX, windowPosY, windowWidth, windowHeight, windowMaximized, unmaximizedX, unmaximizedY, unmaximizedWidth, unmaximizedHeight, soundEnabled, soundProfile, sliderSoundEnabled, animationsEnabled, spatialOpenAnimation
         );
         return result;
     }

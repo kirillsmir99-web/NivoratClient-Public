@@ -1,5 +1,6 @@
 package activity.client.gui.render;
 
+import activity.client.gui.custom.CustomRender;
 import activity.client.gui.theme.ActivityColors;
 import activity.client.gui.theme.ActivityMetrics;
 import net.minecraft.client.MinecraftClient;
@@ -16,11 +17,13 @@ public final class ActivityGuiRenderer {
     }
 
     public static void fill(DrawContext context, int x, int y, int width, int height, int color) {
+        if (CustomRender.active()) { CustomRender.rect(context,x,y,width,height,0,color); return; }
         if (width <= 0 || height <= 0) return;
         context.fill(x, y, x + width, y + height, color);
     }
 
     public static void drawBorder(DrawContext context, int x, int y, int width, int height, int color) {
+        if (CustomRender.active()) { CustomRender.outline(context,x,y,width,height,4,color); return; }
         if (width <= 0 || height <= 0) return;
 
         context.fill(x, y, x + width, y + 1, color);
@@ -33,6 +36,7 @@ public final class ActivityGuiRenderer {
     }
 
     public static void drawGlassHighlight(DrawContext context, int x, int y, int width, int height, float alphaFactor) {
+        if (CustomRender.active()) return;
         if (width <= 2 || height <= 2 || alphaFactor <= 0.005f) return;
         int primary = ActivityColors.scaleAlpha(ActivityColors.GLASS_HIGHLIGHT_PRIMARY, alphaFactor);
         int secondary = ActivityColors.scaleAlpha(ActivityColors.GLASS_HIGHLIGHT_SECONDARY, alphaFactor);
@@ -52,6 +56,7 @@ public final class ActivityGuiRenderer {
     }
 
     public static void drawPanel(DrawContext context, int x, int y, int width, int height, int bgColor, int borderColor, boolean glassEffect) {
+        if (CustomRender.active()) { CustomRender.panel(context,x,y,width,height,7,(bgColor >>> 24)/255f); return; }
         fill(context, x, y, width, height, bgColor);
         drawBorder(context, x, y, width, height, borderColor);
         if (glassEffect) {
@@ -70,6 +75,7 @@ public final class ActivityGuiRenderer {
     }
 
     public static void drawWindowFrame(DrawContext context, int x, int y, int width, int height, int bgColor, int borderColor, boolean glassEffect) {
+        if (CustomRender.active()) { CustomRender.panel(context,x,y,width,height,12,(bgColor >>> 24)/255f); return; }
         float alpha = (float) (borderColor >>> 24) / 255.0f;
         if (glassEffect) {
             int shadow1 = ActivityColors.scaleAlpha(ActivityColors.SHADOW_SUBTLE, alpha);

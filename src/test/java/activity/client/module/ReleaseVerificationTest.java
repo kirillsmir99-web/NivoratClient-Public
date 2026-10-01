@@ -157,7 +157,7 @@ public class ReleaseVerificationTest {
 
         assertTrue(root.has("mixins"), "fabric.mod.json must declare mixins");
         var mixinArray = root.getAsJsonArray("mixins");
-        assertEquals(4, mixinArray.size(), "Should declare exactly 4 mixin configs");
+        assertEquals(5, mixinArray.size(), "Should declare the original four configs and custom renderer integration");
         List<String> declaredMixins = new java.util.ArrayList<>();
         for (var m : mixinArray) {
             declaredMixins.add(m.getAsString());
@@ -166,6 +166,7 @@ public class ReleaseVerificationTest {
         assertTrue(declaredMixins.contains("activity.audio.mixins.json") || declaredMixins.contains("activity.autogg.mixins.json"), "Must declare activity.audio.mixins.json");
         assertTrue(declaredMixins.contains("activity.dev.mixins.json"), "Must declare activity.dev.mixins.json");
         assertTrue(declaredMixins.contains("activity.cooldown.mixins.json"), "Must declare activity.cooldown.mixins.json");
+        assertTrue(declaredMixins.contains("activity.custom-render.mixins.json"), "Must declare custom GPU renderer integration");
         for (String mixin : declaredMixins) {
             assertTrue(mixin.startsWith("activity."), "Mixin config " + mixin + " must be namespaced with 'activity.'");
             assertNotNull(getClass().getResourceAsStream("/" + mixin), "Mixin config " + mixin + " must exist on classpath");
@@ -221,7 +222,7 @@ public class ReleaseVerificationTest {
     }
 
     @Test
-    @DisplayName("Clean Install: Monolithic JAR contains 0 nested JARs and all 12 compiled module classes")
+    @DisplayName("Clean Install: only pinned ClientSpoofer is nested and all module classes are present")
     void testCleanInstallMonolithicJarStructure() throws Exception {
         Path jarPath = Path.of("build", "libs", "PulseHUD.jar");
         if (!Files.exists(jarPath)) {
@@ -234,7 +235,17 @@ public class ReleaseVerificationTest {
 
         try (ZipFile zip = new ZipFile(jarPath.toFile())) {
             long nestedJars = zip.stream().filter(e -> e.getName().endsWith(".jar")).count();
-            assertEquals(0, nestedJars, "Clean install JAR must contain exactly 0 nested JARs");
+            assertEquals(1, nestedJars, "Only the pinned ClientSpoofer dependency may be nested");
+            var dependency = zip.getEntry("META-INF/jars/ClientSpoofer-1.21.11-1.4.0.jar");
+            assertNotNull(dependency);
+            byte[] bytes;
+            try (var stream = zip.getInputStream(dependency)) { bytes = stream.readAllBytes(); }
+            String hash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes));
+            assertEquals("c4dabf0cc8bca6f8b582f0ee7c4aff43c535f4d282458cbf48baa32131159ea9", hash);
+            try (var stream = zip.getInputStream(zip.getEntry("fabric.mod.json"))) {
+                var descriptor = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject();
+                assertEquals(dependency.getName(), descriptor.getAsJsonArray("jars").get(0).getAsJsonObject().get("file").getAsString());
+            }
 
             assertNotNull(zip.getEntry("fabric.mod.json"), "JAR must contain fabric.mod.json");
             assertTrue(zip.getEntry("activity/client/CooldownHudClient.class") != null || zip.getEntry("activity/client/NivoratClient.class") != null, "JAR must contain CooldownHudClient.class or NivoratClient.class");

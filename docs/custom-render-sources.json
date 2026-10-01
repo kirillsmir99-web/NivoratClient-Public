@@ -1,0 +1,1287 @@
+[
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\IMinecraft.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\IMinecraft.java",
+    "sourceSha256": "a3dcaacf21abc27ad389164f03fb68b9e921fd7602cd27732ffffd78e6280789",
+    "targetSha256": "32978c67101e7f02d640d8845c390d626510203b63e8666d4aded7d548c10a9e"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\NV.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\NV.java",
+    "sourceSha256": "3f5baf39287aef8ad5ea5b38216846e1f8658c60f01117e93f8c85b0ec31390c",
+    "targetSha256": "9490497b5d4452609fa0505df1f85f2f3dc4fe0184401b9fd28162eb8e0d3bc0"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\VisualMaterial.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\impl\\Interface\\InterfaceModule.java",
+    "sourceSha256": "c274de96052a0ea2a0805adb12de947cd165ac4fa7120a55535337e4f99d0bac",
+    "targetSha256": "29d4b48967353d4bc5f72cc33fbe2cdc82d338c5f8a4f4fee522fb68731efac2"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\config\\ConfigManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\config\\ConfigManager.java",
+    "sourceSha256": "41ac8f1584301683419a12680a0eb8d9edfb57ce65bb5bca9808a0b9b2b97e6a",
+    "targetSha256": "b2d259c61f8898c8c914ae2bf511baba37045445d6df192e7cfdeed6fccd8fee"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\drags\\DragController.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\drags\\DragController.java",
+    "sourceSha256": "ee0c3501eeb550173f075ee2ef08f5c8e002d8a55e0c7846961a88289bb28ae5",
+    "targetSha256": "4ac3895ba1f28d8ba19cbcfd86395e1e50cf806d072405e1466ab4e2ea0f054e"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\drags\\DragLerpAnim.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\drags\\DragLerpAnim.java",
+    "sourceSha256": "1495fcd49015d7fd7940c92c5efab16ac53af24e36aa015ec1e82b212c314125",
+    "targetSha256": "d7fda58f238f4129b02883b8e13dee368ae593704d3f4159932658662227fde8"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\drags\\DragOverlayRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\drags\\DragOverlayRenderer.java",
+    "sourceSha256": "3c78d973b93e8824a7635d1a578d2b1a0c1997f21bee4e4d98395cd935f195ac",
+    "targetSha256": "e3526fe2ac44e16170490f6b144d3927fc2fa8f6912f15e4c19771b15a17f67c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\drags\\Position.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\drags\\Position.java",
+    "sourceSha256": "cc82509df998aca8ce72b41f47f2237979dfa1cf198811a54b9b21dea73b3124",
+    "targetSha256": "ac27e14ec9c42697084310d315c289763639ea5eacac980da00d14faad742351"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\localization\\Lang.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\localization\\Lang.java",
+    "sourceSha256": "e241ab43ee294f05b97425285dec47af9aa798bdf7e15584f9aebc211a556b57",
+    "targetSha256": "5e69c8a217a69891f4f60565625bf3440b3d858b7b7a10721aa5a4c6dee4180a"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\localization\\LocalizationManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\localization\\LocalizationManager.java",
+    "sourceSha256": "eb7cada74edf3029090232fd2a4e9e5d7e7341066e24ca03317530370afb2556",
+    "targetSha256": "627ae568b99b9cfbc020390b36a1a364e8adb3fc88ad10404c2bc3194471e681"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\mods\\chatanim\\config\\ModConfig.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\mods\\chatanim\\config\\ModConfig.java",
+    "sourceSha256": "88ccec19aba0a682a4eeb87c380ecf1250a8d742bfcbe5c6230e6bd9bd5c6351",
+    "targetSha256": "8720ada79bdbecc1543d04f274c0baf728f6f3530232adb9d712528ab28e9c5b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\Category.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\Category.java",
+    "sourceSha256": "d32080044bcd2ab696aa72488087356dda804bdd8d35925fd71593c0b688d8ca",
+    "targetSha256": "f399fe9485d278fb751093b608b0d2fdbe240075415ac5aad9865f113bfd3714"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\Module.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\Module.java",
+    "sourceSha256": "ae5199cf6f9c1456b1b82700ca3c4bada78d250a12775e26fc90c7b744fb724e",
+    "targetSha256": "d0b3196576d00d3f41d0103ef53006d2379e2bbb62d076b576194f0f596f43c3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\ModuleManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\ModuleManager.java",
+    "sourceSha256": "3064d9d0396b4e51f313b22992a8b08e0e8fce7615e44df23927deaa8c9ad8e0",
+    "targetSha256": "d1dc3bdef6f31c623835e494309fdb57d35eb7aee11af99543ffd4b2bc9b787f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\impl\\Interface\\ClickGui.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\impl\\Interface\\ClickGui.java",
+    "sourceSha256": "83de37da9a40708df4a6dc2bc914f6995323058eeb8bf6dbab2db4151cc7c4a6",
+    "targetSha256": "6f3fc75ddf0159e2790c8b5960b826ae3d396622f7ca075b8fea05c18588f966"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\impl\\Interface\\NotificationsModule.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\impl\\Interface\\NotificationsModule.java",
+    "sourceSha256": "78e435c39e9473ed16965c32aa57b01f09ccca6468b97fc15c22db0a0e4652ad",
+    "targetSha256": "e8b5953ea6656bf46ddac83ef58ab0721b277a94ff063692c717d2c330352c82"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\impl\\Utils\\ClientSounds.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\impl\\Utils\\ClientSounds.java",
+    "sourceSha256": "e31cf74bbe4bdb45363dabfecd460fcd4a7f8fc7aa91924cbdc6c2d0e59b368d",
+    "targetSha256": "0822b74de24445f06d7646f440b130696368baeb4bf6f7a0693133433006b719"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\restrict\\Server.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\restrict\\Server.java",
+    "sourceSha256": "2edbdc5906d4c7a98df520fe5f9b89e143243d0f7bdc279fbf4c466464f4eeca",
+    "targetSha256": "c0eaad9b145eb0d848e2f9971472441ccc30bb99cf39117fedb9c424fae0eb43"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\restrict\\ServerRestrictions.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\restrict\\ServerRestrictions.java",
+    "sourceSha256": "e6f0814119aef05ec4322ad45d330a6c4a35e2996008332168c9b5b2ddf768e5",
+    "targetSha256": "db4746b8ad9b6d214167b2bd455e463e40fcd50857b0e1312dd3a4782d93c1ea"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\Setting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\Setting.java",
+    "sourceSha256": "d4b9ed0d8f7a4746d631a602183cd825ccb662bd48efae4ad9283b22ec2b20aa",
+    "targetSha256": "37c417c77deb64e45ee79c4a58e7ec2292d5381eb840e82b79d3f194a9e885f3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\SettingRepository.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\SettingRepository.java",
+    "sourceSha256": "6a4fe45df8863e0294aa783c27c1e756ef6ad6c9ba821839e0276eb8cc49e0c3",
+    "targetSha256": "53eb1148415c8768d6072e0da801c7b12fcffff99f79978e2b62b83f43052c57"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\BindSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\BindSetting.java",
+    "sourceSha256": "d2cbb2ca3c2e8b5cdd465644fbe0219bb54143f0e8c4ca70d18bea652554356b",
+    "targetSha256": "8a8070259eca02f247f058588c93912ceca8272ff5cff3fdd0b90c25144c7714"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\BooleanSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\BooleanSetting.java",
+    "sourceSha256": "cda71af8b6535c2438d68296824698d2ffa9d82ee41ac7d97cd09b1c45f0de07",
+    "targetSha256": "425865411bf2d481d5369ed7a6e574e40c3abf772bbb709b0566eaa25a47e6ce"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\ButtonSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\ButtonSetting.java",
+    "sourceSha256": "6fd2481b7c814c872fc912053d00d0d292e0a2556b7a61eb1dda774e000cf059",
+    "targetSha256": "55d94b2ab5c1764e903f786ca86082815675723eb6621fa509dee17ac221b134"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\ColorSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\ColorSetting.java",
+    "sourceSha256": "abea025a9d8d117a98fe95fc5f0c9d0ba00ff1ebd0e0db0efca2b3d5081862b3",
+    "targetSha256": "be1e774de78253ac0cf646b7b416e9fc719be0977040f5e16c78fd9d15865a7d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\ModeSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\ModeSetting.java",
+    "sourceSha256": "1a540dc342f311413229768eee8b2a7b1ee9b3dea3ccb9eec3b948721d34285c",
+    "targetSha256": "69c38e563b8756c5044c059c02be1ec11253533d0d7e78afbc927f0f0791d0f7"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\MultiModeSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\MultiModeSetting.java",
+    "sourceSha256": "80eb78be3a981cc52610741a7346d541d31866026c2148f024352ad2a4ce0568",
+    "targetSha256": "74158aad7f6b35fbf6828ec62b77601e3a5f1f48b2b12d441668482b965f3f91"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\MultiSelectSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\MultiSelectSetting.java",
+    "sourceSha256": "d5fc1ca2b7c65c54931d50c7628b53c1cf78d02eab0fcf7e24714ff10540af49",
+    "targetSha256": "21a37e873c7f83b0bf38fb9af64d1485ad47a120dd0659855232c7c9f90e101f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\NumberSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\NumberSetting.java",
+    "sourceSha256": "06a459e87980933c074e1b88e61c8e5642619935aa0c405344fcf365660d617d",
+    "targetSha256": "52056c6f8f96645422e0b7bf16cd2d34ea6b9470f2e7b68c8b32f0818a828e2b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\PositionSettings.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\PositionSettings.java",
+    "sourceSha256": "c1778132937697298ff1ee332ef899eb1ec9dc2ce3f9009d9977ddb337ea2e0d",
+    "targetSha256": "ed762c6951f762ddc5ddf07bc69dbeb667c57db38190c0d38842e17f751eaf47"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\SelectSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\SelectSetting.java",
+    "sourceSha256": "c076a2eb87af76e840577aa260bad457bc0a192eb23c0a61f85c044a012a32a7",
+    "targetSha256": "66b41e5086a7758c3ea16bb78eb0a4505b2475500547f96b0f5f35c121f6d2b9"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\SeparatorSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\SeparatorSetting.java",
+    "sourceSha256": "e139a4cc2db25d8e8547792cf008b1fbc5e68c3b945801648104028e0503b8aa",
+    "targetSha256": "26b3b112095791f779b8a00bf53f86aace550f0dcfc6cf634c186ef8ff77f9b3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\SliderSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\SliderSetting.java",
+    "sourceSha256": "c4a71078ede661f5645aa02c74fb6a942c620c592a11086ffeb34e815d618f6b",
+    "targetSha256": "5fd50188fa3a6c8d4a6c82c091921e5a89d26fca6ff40b12f6cbf0aa4b0c07e8"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\StringSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\StringSetting.java",
+    "sourceSha256": "473ed4d4b0049cfb3b3ab864271532e342dd2551473634144f195eefe5b38977",
+    "targetSha256": "27ffbb2cdda754d03b27883ae7b36bc81b1f463b812806220aa52c9d4a356cea"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\modules\\settings\\impl\\TextSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\modules\\settings\\impl\\TextSetting.java",
+    "sourceSha256": "5f953697b11c7f3e66bd7fe4b3b0311521fd2ed0934801be3da784a9c8a8b4d6",
+    "targetSha256": "cef29e1daa30b860973537963641cbd7d2463558add1f325aeeb0961629f46ff"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\BaseScreen.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\BaseScreen.java",
+    "sourceSha256": "984a0d7a8ba347c6adae44e9456203cbefed559775fb8b05dab90c1530c3cf7a",
+    "targetSha256": "0596fd3311dc3bd5810d3b7f40abc5feb07b28c140a055ff152df96e3a812ddd"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\BindPopup.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\BindPopup.java",
+    "sourceSha256": "16a20c3192bf2efc5a4e39cc191988a0886187882a1ae033384a5e837ff4e6e6",
+    "targetSha256": "b2989ced66390f777914ff9cdfe9f6fbaaff44b1d8b45ebbabc37425f209c5e1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\BrandMark.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\BrandMark.java",
+    "sourceSha256": "5cab3f2b99ad19b682b89190cdc4124b1e853e5215a627f498b91eb3cf3ffeaf",
+    "targetSha256": "b67da1cc290b72edbd4ddc1fcb5d1d196a206086ce7cd19771e1409fcf39fe91"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\GuiDebugRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\GuiDebugRenderer.java",
+    "sourceSha256": "b88a77facb62e66a6f00c00d8f62189e6078d4202440eacfcc607633a8a5ee6a",
+    "targetSha256": "6f11899dc1b03ebdd274e35cf8e704fbbaaeced76b796c95cd1564a0ba15b072"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\ScrollBar.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\ScrollBar.java",
+    "sourceSha256": "fefa77c84c01714482d383fa179d28c45cffe6420cb5e0e359f519c20d9321b5",
+    "targetSha256": "3f0e9041d6bd31939a710c69d2c2ffc35d0c38f0f98e9a28086ab1b2e66f0179"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\SettingsPopup.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\SettingsPopup.java",
+    "sourceSha256": "fe5a09488ca7aa0b91141453383b7f706fd5e55d09bca3feff35010f82a0ec6e",
+    "targetSha256": "7ed56bf3c26e023d404f0ff8e8a2b4e4428ea7901163ba16c047bd52535d3c74"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\UI.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\UI.java",
+    "sourceSha256": "9dcd6f7ac15527d63d33d31546cfe1ed931578a75d9f0a7e470c073e8af2ecc3",
+    "targetSha256": "7230f607781efb9a94b9945c55928c38a6f7d4e67c88b8fa71b8d61f74f4dbea"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\UiTokens.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\UiTokens.java",
+    "sourceSha256": "b5e17a72214bffc7465accf58a9c5ad3c214557ec983d78842039900a292f3d8",
+    "targetSha256": "cd7bc5c23d42a1913f5ec9e63bf1bf1b6adf345b0b736b8c0b5466a38111890e"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\inspector\\InspectorRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\inspector\\InspectorRenderer.java",
+    "sourceSha256": "7a1596b56ced0e773a141cdd45456f1003756a28d4384508616274b24c02cebe",
+    "targetSha256": "647babcbe289818a786e7ebb1119029182211d6b2d892e7e67544dbafab8d19d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\module\\ModuleListRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\module\\ModuleListRenderer.java",
+    "sourceSha256": "5b3179c11a0a4d4249e8a1d96f38f9f1741c95021592d831a4e30b2de8de2c17",
+    "targetSha256": "d2962e38a1eb04dda4275e1e1ab6aae5d79bd6abc7f849450fb2d46885aa8201"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\module\\SearchField.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\module\\SearchField.java",
+    "sourceSha256": "2b80d74cb2ad34bc4a25d10907cc03bebd292012e0197a5a1c7c899a4060ceab",
+    "targetSha256": "c6df00199867ce1b062505c2a9ab69fe0cc2fe5de20ecd170dd76e33f0b22911"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\pin\\PinManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\pin\\PinManager.java",
+    "sourceSha256": "7d2118abf3b1ca06f7f1dfdbda1d3bed5d532c8c28da514c09894fb2b3e02828",
+    "targetSha256": "686b9a3ade906dfccd38b2e2e1647aa858578dedcdec4bc9cb89077de85fe450"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\NvSectionHeader.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\NvSectionHeader.java",
+    "sourceSha256": "8972364e006af7995bd061eee37460b120f2e6c3853b5f1067215829ef60c389",
+    "targetSha256": "c0513291fe936accd9bde910792617ba07640fe392cf689288cf65551bbf189d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\RenderHelper.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\RenderHelper.java",
+    "sourceSha256": "4e16f9140ac69dcf7ae986ce31395ff5cf5360d62380f1a245bc791ca9c9ddbe",
+    "targetSha256": "e2c699d90db4681f9e2ac04c8cb7053dce30dfc1d7c2d1ac269b128174dbfdbb"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\Setting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\Setting.java",
+    "sourceSha256": "8f1d3d36750878d9c95bbfaa9af3d7d50550102ffe9bcb4c71896b249770a686",
+    "targetSha256": "be881127bb72cce206687fa0f4529296acdbc02250eed1a76de58a4ba6f461fd"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\SettingsFactory.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\SettingsFactory.java",
+    "sourceSha256": "7815db72243b0110c17aa948cf3c6511d836aa2caa0c0792815274c0f9de12d8",
+    "targetSha256": "f741907fc22907507e5e5edc26aad1d92c8d12ba107b9ecc48236d4fced1cd97"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\BindSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\BindSetting.java",
+    "sourceSha256": "a7f76e22fbae5a5ad2bc6f4a9d3fd5f90ca7ef14dfc9ff9e51a377f3c479dbf3",
+    "targetSha256": "77cd851c7c0592a1429fb417711adc7cec7b9f1711ff7c010476d1b482182a2e"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\BoolSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\BoolSetting.java",
+    "sourceSha256": "c86a5bfe50f2fc674c16ca6542e799d5b132c0ce02785d4030fc13ab66ad1622",
+    "targetSha256": "d223e16cf64be4730c842e101b5a99205f30920750d4517529c2e05713837dbb"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\ButtonRowSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\ButtonRowSetting.java",
+    "sourceSha256": "e3b56970d3c043dd7d8375fa08c7611bef1d9d054e968ca2633029286ac098b1",
+    "targetSha256": "6b85b8cb7824a4f12e37a6e03b73e9bc6698a2aac6ee67c04eefe036cf2f7f95"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\ColorSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\ColorSetting.java",
+    "sourceSha256": "272ee613f0795718fba10092e79a27284380b19ae0e6cb57c89e9ec1524b4d2e",
+    "targetSha256": "cc0961282744051e4849343714c9ef8012b1556a34b08144c362e4b7f52d2455"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\MultiSelectSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\MultiSelectSetting.java",
+    "sourceSha256": "901a5321beafee7803edadbe27627a89fa7145ae30886b1393c757ae16cab048",
+    "targetSha256": "f524b7954e57c40387ecbb4b69acf613dee8bcb4d821101ae9f51725253f3448"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\SelectSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\SelectSetting.java",
+    "sourceSha256": "17d9ac9c8561222e80605e9d32ac68e372f468d8cb076c116ab2a8fc8f6a403c",
+    "targetSha256": "f7a243af43188b175560ef23cf3d42e515067028f74f2f3b84d459c02eccd1b2"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\SeparatorSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\SeparatorSetting.java",
+    "sourceSha256": "e9ed5eacb45bd2900aabcf1baec08b092864bff1ff0c04d2a410db539c8933d4",
+    "targetSha256": "aefe92ce8b6193c3abf6690bd2050e7fe2c1b957166c5c3009feca9de6c55ed1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\SliderSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\SliderSetting.java",
+    "sourceSha256": "19eeaef82de9243b287061339ebeafe79a878dc13a2e2f2c16073ca975bb50e5",
+    "targetSha256": "8a03d3aa13954cfdaf177fc1e7d411a3a9b3cea662c04b41bd2f9d4bbc961130"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\settings\\impl\\TextSetting.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\settings\\impl\\TextSetting.java",
+    "sourceSha256": "14bafffd529e56aeef0cb01c33de8ee8d0b2108cdf64f59e034057fbabba67e6",
+    "targetSha256": "3089309c0fd87667ce09777063ee8afbbc5565fd6e7f535134a6f0fefc234f80"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\AccentGradient.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\AccentGradient.java",
+    "sourceSha256": "f0f9374c7d5b72c8ad31acceeadebd84f7642dad802d27b450ec6a8f9e4e69cd",
+    "targetSha256": "9596de1a3c0484b2d00123a71ca55f6df0f35295ec7807c7561fdcbf41df55e3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\ClientAccent.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\ClientAccent.java",
+    "sourceSha256": "1237935c8fe278a8d2b501f88bf736cddab8643cc17b0361c5b930045f21de75",
+    "targetSha256": "f16cf474eeafc9780dc16ffdf485328187e55948bfb34b00e662384082a0b8af"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\CustomTheme.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\CustomTheme.java",
+    "sourceSha256": "1c4f136879892dc56959a72aa6c59ea11016c65b50ef2ab42a03aac7fd834f77",
+    "targetSha256": "80e370a3bce634cf2f65bd6690ac8fb53051136a69450196e084e5580c4ff53a"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\CustomThemeManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\CustomThemeManager.java",
+    "sourceSha256": "ab210a25ecbd4c0105ecf37556424d5ccd6ef35a9f48245ecbfaf9cb2835a14c",
+    "targetSha256": "27d6bf6fba26d65aaf84c335dadb080b75cbffadbcf8b2f37ada77999b305d8b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\ITheme.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\ITheme.java",
+    "sourceSha256": "6b79efd38228ff2d3134a53db65912804ae92c872c2a2b9dc6367386d23683b3",
+    "targetSha256": "7133e8dd16e0d5c32c25eebe99cec9baae1d1e1fe89cbd3f44edcb1ee1821d02"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\LauncherMirrorPreview.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\LauncherMirrorPreview.java",
+    "sourceSha256": "b1c0baa6deb4e2e38c149dd257821309282fe717f875664fca3ebce376297a01",
+    "targetSha256": "468375cd3fb92fb8945280bb79b2dd006ef4516801132afdbf27e3af96736045"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\MiniClickGuiRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\MiniClickGuiRenderer.java",
+    "sourceSha256": "76fcf4bc387bf135d2872bbce10fd04064e94b90e869491165dd23e9b956353d",
+    "targetSha256": "4fa7f940e856e64118c9cd1ddf805e42d24b8a42917548efb5faf2459fd272f7"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\PreviewRenderContext.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\PreviewRenderContext.java",
+    "sourceSha256": "8a14f2d2908e00635d8acfa36a0f5a285b0445d3311ce216511b4e6031907b2a",
+    "targetSha256": "299f93b1f7be2048f018e42860d28b763c1538a52d0c737abed65eddf0b21b19"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\Theme.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\Theme.java",
+    "sourceSha256": "0f49af60022735c06b0f92e1a872dd530e2e3a41e9dba9129128417389de0d4a",
+    "targetSha256": "af315ecfe8e42b0ea5444d0e18ce565e38b40f5bc4cc48863e7a3ccfe4e23afa"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\ThemeDraft.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\ThemeDraft.java",
+    "sourceSha256": "d792b5f61d476a76259e93bf50ee774d0c626d4929c9e99a0a907dec9a791233",
+    "targetSha256": "df9bfdd6e816997cd96c50a29123472ef130aed0ff32a16ab53a2a4a57cfc402"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\ThemeEditorRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\ThemeEditorRenderer.java",
+    "sourceSha256": "1099ac69b3a5b3e3dcc2b49ee9a27df93333d10a91de6bc60fc2c2613c29bb07",
+    "targetSha256": "daadad138af92ca18f3115a3aec4e31f2d088ab1836d0bd01e4bf50beb2b52bf"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\ThemeManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\ThemeManager.java",
+    "sourceSha256": "903bc3965cb53e578c185affad863aef11f54e95b11a83569233c6ca26be154b",
+    "targetSha256": "eb9fdab63c4ca4370faefd471f0f77748d41c6b8577548114a8f47982c120f6f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\ThemeProfile.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\ThemeProfile.java",
+    "sourceSha256": "a3056f55a16ff91f07d1fe862612f0112e1ec48f229dbfefbac9bab62765d44c",
+    "targetSha256": "4bbf0b0129a940ad03a5b77fcab319ecbd13d907edfe4e795c2206705e05f994"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\theme\\ThemesRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\theme\\ThemesRenderer.java",
+    "sourceSha256": "be05f91eb735af7eb7aabb37419d5cf71cbdad0d01e71b23cb80c4ea136aab62",
+    "targetSha256": "f7c5e3383aaf8775e4706a7f85f6cd735e46c4ea6687ae8a799fb7adf8c4ef31"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\window\\GuiShatterAnimation.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\window\\GuiShatterAnimation.java",
+    "sourceSha256": "7d49c20ab1fa68cfbb0bca3d3a5fbcc80e623185ea2b71bd61b8b145f1583c01",
+    "targetSha256": "32eb256055fcd8522d891ac2c986d50a7f425f6a897f4b37a51f2a8fc1840460"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\api\\ui\\window\\WorldGuiCloseAnimation.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\api\\ui\\window\\WorldGuiCloseAnimation.java",
+    "sourceSha256": "6928932277577dfce509cc2104bca78f2ee80b90f8cc45491c8f12ca3bd477a0",
+    "targetSha256": "309d6332f6197eb3eef8675cca0b28070ad0c42740637f6ecc8cad4f78f2ced8"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\mixin\\GameRendererMixin.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\mixin\\GameRendererMixin.java",
+    "sourceSha256": "f25877877332bb17ad6af8eea1745971388e07d6b24e28d9599647b5d7e222bf",
+    "targetSha256": "bddc5818cb462535a1919f78efea129e3f5b35390deea3350abc687c310e076a"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\mixin\\GuiRendererMixin.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\mixin\\GuiRendererMixin.java",
+    "sourceSha256": "ae8d4302c8b99b7422ab21cb629b23ed40aad025b60e843b8370a69cdaa59cb5",
+    "targetSha256": "8532315c74e78255d0de19fac9d450a90bb52135f0d0b4982ec4ee39e238100f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\mixin\\GuiRenderStateMixin.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\mixin\\GuiRenderStateMixin.java",
+    "sourceSha256": "c4303be93c67036dac6f20555d257f96592405474d4c798a58457c5b36556055",
+    "targetSha256": "edfa757ea4b6d21fb9bfdfcb43fe299160c77d4f2f883d808ef138633b1e0113"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\mixin\\accessor\\GuiGraphicsExtractorAccessor.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\mixin\\accessor\\GuiGraphicsExtractorAccessor.java",
+    "sourceSha256": "f23ddd164f07e1239a15f3f1fe83a0fafe6b8431287a3c6f2c411901ed5dc2ec",
+    "targetSha256": "26a27a3109945353b8b1afaccd7e231bdb8564a99b5013e0171af73201715ebb"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\mixin\\accessor\\GuiRendererDrawAccessor.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\mixin\\accessor\\GuiRendererDrawAccessor.java",
+    "sourceSha256": "d86abb96080ebb1ee2f5bddd9262618852d9d5ef9fe6ec6e80b372072c615d4d",
+    "targetSha256": "441c4c45e318cec2086be0c1eedfd2e4f443f566e9cf03a81a4d837c9f060f9e"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\mixin\\chatanim\\ChatComponentMixin.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\mixin\\chatanim\\ChatComponentMixin.java",
+    "sourceSha256": "5198b6ea82a62354dee65c33516f9424ea5ee77131d2c2f4d7abe004ed19af2c",
+    "targetSha256": "242f929b7dc25da00ab3b21dbf2884324bdfc5878efba3304c1c5e2a400198d0"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\mixin\\chatanim\\ChatScreenMixin.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\mixin\\chatanim\\ChatScreenMixin.java",
+    "sourceSha256": "3f9c67eaa18c17665ef292b35ad91cc6ed13b0227e41c414caceded17e0b76c9",
+    "targetSha256": "fbbbe6530fe43b0df66d835a729ff659b8af038dd3252991dca52763e0ca4273"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\Animation.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\Animation.java",
+    "sourceSha256": "02f810dd5dee9032b1161d05c96b79acd365e9344a6e48a7e79d28a65240c957",
+    "targetSha256": "e69f269f4c2091ca365c340d9af69d279c6a2040640d0e53b90503b04ef01667"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\AnimationCalculation.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\AnimationCalculation.java",
+    "sourceSha256": "f169e8e266df56fd25eab3bbf9e37f40fa55df50b5b8b7458c75418a5897cc8a",
+    "targetSha256": "f5f3991a774aed154ac39e7813432a63caaf5aefc7a18c27fbc80ed0aca2681b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\AnimationUtil.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\AnimationUtil.java",
+    "sourceSha256": "a0f9cc4d1aef9c160c694a5839bc00f74a8140eb98b797ae968222bca583628a",
+    "targetSha256": "fc98e4b4821dcd293df518cbd4dd1607ce4003edfcf3fc3fda76bca9e999cba5"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\Decelerate.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\Decelerate.java",
+    "sourceSha256": "fcd141c24c947452f1d8fedc861a53b9caf581fd82c4d887ce5a5340cece6c40",
+    "targetSha256": "c8ebccd293654c22ffa3f7fe0fbce5e97e5073520575786722f27528efe2bc07"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\Direction.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\Direction.java",
+    "sourceSha256": "a5727057068571e611ec14779280f0e58b14468600e70a6399d694208eb65c0a",
+    "targetSha256": "69f3d9c54f441930be9fc4d16035f5dda33deace0d8b8c6bf0ada8fd930bc343"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\Easing.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\Easing.java",
+    "sourceSha256": "e050be6e5037bf5cc758731a8daedd30fa46d1e08484bb5fbd35156919cf6150",
+    "targetSha256": "8983a967e55f955130841d4a3082292f75726bbe10d6e8110bf96241150b26cd"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\Easings.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\Easings.java",
+    "sourceSha256": "d84ebccfeb7405b18b0b5206d4e41ebc957e32c91aea3450af2e1bc9b519892b",
+    "targetSha256": "65d9c6c08cfb7ca0a9e45e92ce09aaabd5fd9fb8ce12aee8714de4dbaf9d7ee8"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\GuiMotionAnimation.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\GuiMotionAnimation.java",
+    "sourceSha256": "ec1db17eb1a21506524c1b27bf75bdf6e973e0e647578a0325a081a93c142f9c",
+    "targetSha256": "91a6a5faa343969ce1997e3acbf252bd02bc3f5fe0ac16e08d829feb4ff109c8"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\animations\\SmoothAnimation.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\animations\\SmoothAnimation.java",
+    "sourceSha256": "ccac817830b3857ae4abaf6263bd2080e252772f63ce2c75f19c6da57121a350",
+    "targetSha256": "7e86ec4e4be57d786c8693be51b0fdaeac60672cfac1c3dcb55a28163100fb49"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\color\\ColorUtil.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\color\\ColorUtil.java",
+    "sourceSha256": "18eb677adf6edc891a70ce1b987606c3c28b622e91a91c506a631291ca08a3b9",
+    "targetSha256": "e8df273e62b16d81607e4d5b4aebc6de4d652fb3b24f87ad0fa2a55b9b24d607"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\key\\InputType.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\key\\InputType.java",
+    "sourceSha256": "9c185dc396ec16d62197d013f940d5d63886e88c1c4071e4995c9d5719f9d9ac",
+    "targetSha256": "f1cfa8f76dc05d391f20496630403d86469ae87214a36b44ea76c3f99ea3286b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\key\\KeyBind.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\key\\KeyBind.java",
+    "sourceSha256": "ad16ddb9e3363202009ece1f16c62a7639d1b2121e3936aac8685e4a12081353",
+    "targetSha256": "7781451fca1da8e2dff698ccb2c6c20500489cc3f922630a6bb3d1f98c645464"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\key\\KeyHelper.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\key\\KeyHelper.java",
+    "sourceSha256": "8424de172e57ab33ddcbd06ef75655e2e584a5522fb31a912bdfa924883a7cb9",
+    "targetSha256": "bc1db373c03c0a4291bd20a73de1111b105764b19867334ff61cd9f97452b1a3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\math\\MathUtils.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\math\\MathUtils.java",
+    "sourceSha256": "8856357885246dad851330c679cdf0363f3fe08ca7bd155169c59148f79bc015",
+    "targetSha256": "0c2d72b534b15776fee10b0fad9d0a6d15c6112252b2186ee9f5459fd9bd70f4"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\fonts\\Fonts.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\fonts\\Fonts.java",
+    "sourceSha256": "fca08be3dc42398964d9a619473ab8313bd682d09e6f7a5fe72c65bd1202ba14",
+    "targetSha256": "e0fe6c1797a4e88245b90be5a48d8e09222a786bd75bd5a2ff9bc761720d0b89"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\fonts\\NvIcons.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\fonts\\NvIcons.java",
+    "sourceSha256": "d6deab1ae7f4e26bf37e28660a1dd38fdae5886490b7c461546c0a9c66f78af3",
+    "targetSha256": "4950a0c16ac5d5a1ead1396739d006c36d6180217926842e13146acc342f7a30"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\others\\FullscreenQuadBuffer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\others\\FullscreenQuadBuffer.java",
+    "sourceSha256": "b27231b15767b3f5ffe564a3f763539d0b797bc6d0da2edc221a73ddbbca24c4",
+    "targetSha256": "f8272a4f2923233993592227f2193777c55f2bd1ae2157b7d9cdc501759bec33"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\others\\RectUtil.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\others\\RectUtil.java",
+    "sourceSha256": "95da7601a3fbccec3f7a3c626b61f4609c341f21a11681fd9eb559266d84bd69",
+    "targetSha256": "ab659332dc3ed0f5c26ce74e4198936672f17b1e7c04e8adbe357b24cd704f32"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\others\\RenderSampler.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\others\\RenderSampler.java",
+    "sourceSha256": "3cc54fc136a1a3b9731f04c6ee5a3b674be9e4b6d0af34df2ed0e91f74ae47b4",
+    "targetSha256": "f22b91d0f2cb282d7a24ce41de982d7a53cfdf9252c939ee88ee7a8eba7e4204"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\others\\RoundedScissor.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\others\\RoundedScissor.java",
+    "sourceSha256": "3fc88e593f378215ec33e43f68c3d09c436a06e08aba72c2fdbfdc1ff0e46342",
+    "targetSha256": "47e663df88f14b4dfd1555aa21208533b6f438c034762d8a3348305d51d64944"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\post\\GuiRenderStateLayerAccessor.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\post\\GuiRenderStateLayerAccessor.java",
+    "sourceSha256": "4671dd7115f4bca8050bd84001c7096fc5034c1e54a1704e6dde8c4c34c74c50",
+    "targetSha256": "2dffe10e156a30f0a089c03ba8f083e0196c3c87f6e0e592188d55ae706bce3c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\post\\guilayerblur\\GuiCapture.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\post\\guilayerblur\\GuiCapture.java",
+    "sourceSha256": "80f18e582968c26588e929dd1dfad713dab600f1f20e2cd1383c159611ea6920",
+    "targetSha256": "49c612ecc91d69e8a8afd28ee51aedebc182110caeac0acb1544f055a1801e89"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\post\\guilayerblur\\GuiLayerBlurRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\post\\guilayerblur\\GuiLayerBlurRenderer.java",
+    "sourceSha256": "387c6b789ecf1483d6318b8be733131e68fc335214b42324bfc78954f96c6a44",
+    "targetSha256": "c932731e6986ec3bd25317d74fcfd1b9054052e041823905218533ef4e2e4e79"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\post\\guimotionblur\\GuiMotionBlurRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\post\\guimotionblur\\GuiMotionBlurRenderer.java",
+    "sourceSha256": "a0aff5e4ed31d978f9ad310a05991ca9c1ca16a1b5da885f03c19c0bd3ce9469",
+    "targetSha256": "e004197cbfaa896d4403905d86de5ecdf8a52cf39328814dd4fcc2d6fbe839f1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\ClientPalette.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\ClientPalette.java",
+    "sourceSha256": "91dadb4e3022e8b7c5eef0ea8b2ba0c2dbd5a27a0a23b5d0753719278175e140",
+    "targetSha256": "5bc1991d4c258a872503d3327bc7c4fda3aac234eea0bd0a8d0419e8551064b3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\ClientSplits.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\ClientSplits.java",
+    "sourceSha256": "613826a5d0308f200e5ee354398b8d7381580f72008786401b5017f8ec70829c",
+    "targetSha256": "88dd0f3f314248ffac5f2c0f8f337ce428a48d7b9de71d6f125e632a47a9f1e4"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\GradientSweep.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\GradientSweep.java",
+    "sourceSha256": "432776a321715f8153cc10d63bda2b13a2d4e26f4275e1d68ceb1f19d343d40a",
+    "targetSha256": "3187a88ff36fde4a6e50899b7e617d328ba6ff3fb36da147be538170d43ac4e1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\Render2D.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\Render2D.java",
+    "sourceSha256": "458dfaa50a5406797bbe2e6f78163efe3a1f80a3b5e1a35f772768149eb82d30",
+    "targetSha256": "67d98cc8a75d16ccbe656aa9dcc1ffb0240b435b917ee2820a7db0b02ff50036"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\Render2DCoordinateSpace.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\Render2DCoordinateSpace.java",
+    "sourceSha256": "8dc7caa24d008a2df9c3398580112c7f1a4e080174bb08ba64fac3e9c6b5a62d",
+    "targetSha256": "829e46a20dacc5ab3ae24eac97198edd9cb0b37f41a848ae2776fc8ba86e27ad"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\arc\\ArcRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\arc\\ArcRenderer.java",
+    "sourceSha256": "3f60853c518088b07caaeeb1365d3f74cebfbdd0d31004618b36e94fe4f291f5",
+    "targetSha256": "f73a331bbc547622b709bce1311c3a8a578128865f3ab8a6e3fe63b47d59656f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\arc\\ArcRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\arc\\ArcRenderState.java",
+    "sourceSha256": "c2ceef1c5aa174c755e28f82fe6d6d37bb953077136b891774e069aaa5261232",
+    "targetSha256": "b67df181a8799df1c69c7fb86be9882a4f4e47f6c708accb1e54f872f93d50b9"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\arc\\BuiltArc.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\arc\\BuiltArc.java",
+    "sourceSha256": "ae34e8b8c672269c6f782fc4e4a392e0f331ecd7d213bdeaa4ed6c93f879c4c4",
+    "targetSha256": "e285f56143d7ce5fb541eb3a7b52210423c39b084107825095bf34f51e51762d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\blur\\BlurBuilder.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\blur\\BlurBuilder.java",
+    "sourceSha256": "5e3dd8d7eb7eb8cc6b8aa103782b1b6c3bfa000dc831b552fd9fac04860938b6",
+    "targetSha256": "42f9be9f81d7fbc1f178e4586010a85f74078719ab3c6545692a423fffc64bd2"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\blur\\BlurCapture.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\blur\\BlurCapture.java",
+    "sourceSha256": "02e52c13e76a2f21babc86bd090a722ced98efc9bdac9aff52add9820a295996",
+    "targetSha256": "6d0f657e9d9bf1486d34ec526347e50bb3a233a7a838e192c6c73587f809bcb5"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\blur\\BlurFramebuffer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\blur\\BlurFramebuffer.java",
+    "sourceSha256": "50693bf80ff3f2d195a4c028d9f353508e7e84b9055eb67445b081bc92ba9dc6",
+    "targetSha256": "1bf5bf4d009fb3ce208675cb06086dc426ca3d0712b76bf29aa8cd69fb3b295b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\blur\\BlurRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\blur\\BlurRenderState.java",
+    "sourceSha256": "f55496b036685bb1c8417072ecef6f7338257d4b0c1df29b3f1a4f6041c730c3",
+    "targetSha256": "0f9c4d458245d0e12f8c54d85ae1528a4ca6063b39c46db2558bac0eb4c36ff1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\blur\\BuiltBlur.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\blur\\BuiltBlur.java",
+    "sourceSha256": "add4b126e1324745aa990839b187bf34445a1c40041913b5212cada0f585f83e",
+    "targetSha256": "e5085fa98352d5cfdb8bc82225d167e57cf61940b22461101fa8680fca78f560"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\circle\\BuiltCircle.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\circle\\BuiltCircle.java",
+    "sourceSha256": "a2abc5a554bbf786433213654c43379d8acf758bf68415cc3a97e81b7cf31519",
+    "targetSha256": "9f08f96fab7391e67b824180fadb7002fb4e428ee8081dd5761afdf029f977b7"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\circle\\CircleRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\circle\\CircleRenderer.java",
+    "sourceSha256": "3060bf9b04c049ccbd2728a5b3711ca005e67eb02ad98d2cfb42ab94b5749cc0",
+    "targetSha256": "52cc41856ff264d950ebb87318b5afbd543cbfa060130ba5d200ad6fe9d9767d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\circle\\CircleRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\circle\\CircleRenderState.java",
+    "sourceSha256": "527c679b0d99374548618c03fc82a3fb2bcfed2a720d16bdd708b688269cbcd8",
+    "targetSha256": "1a7a8bb743fe7289208afa6e5239f1d7c676064800e611fb6089cb376280c3d3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\effecticon\\BuiltEffectIcon.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\effecticon\\BuiltEffectIcon.java",
+    "sourceSha256": "1281be4c0d856353ceed9f2b2337349ac95e766b559655e102457710d393b16c",
+    "targetSha256": "02c8e9ddf59f83bc9c73f7b7887077617c68baf8dfb70d9ba6e7e20550cfae88"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\effecticon\\EffectIconQuad.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\effecticon\\EffectIconQuad.java",
+    "sourceSha256": "63946866885f127b5a1b26852f000c256b71292657a88835b2d530308bef0027",
+    "targetSha256": "00337bb622578f841704bbcb7277495e0c6ec28dc6925e5d88ee58739e9a9ded"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\effecticon\\EffectIconRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\effecticon\\EffectIconRenderer.java",
+    "sourceSha256": "d9f5456ad503d5d2a47fb07175a51b127a3396fc3e62b20954bdaed1cda3fec9",
+    "targetSha256": "f5ea506fcfc66697bda60788ec174054cc241f94945c1e6b81e9c4e37790ab37"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\effecticon\\EffectIconRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\effecticon\\EffectIconRenderState.java",
+    "sourceSha256": "979ab263c64dfd87fbfd1407f50e254fee09ea4121ef391031ee50c3d4c33667",
+    "targetSha256": "b69a87481ccb19aba1c7c52dbc9d067cefdcd5b02508acd1752f5b3a10d01de5"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\effecticon\\EffectIconTexture.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\effecticon\\EffectIconTexture.java",
+    "sourceSha256": "4f38a19b239216d89ad6e1a10ed3599b25cf76437b6920fe7c17a351ddee9df1",
+    "targetSha256": "0fe1ec5584ebb6eaf2ff25ac55dcb91c003d20f11e5609ed4474b12d9b6cda6f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\effecticon\\PoseKey.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\effecticon\\PoseKey.java",
+    "sourceSha256": "a65937a33564e54496d46982754da425954f6dc88a497be6412f0debfb638535",
+    "targetSha256": "fb587624db12f030c87827bf7e8a399025390e9faf51b76c2edbc66db9f1e07d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\BuiltText.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\BuiltText.java",
+    "sourceSha256": "26c7aba7545c7e54721865e5bdf8ac83541a0b688774c7c29e9410069ad660d3",
+    "targetSha256": "6e27961baea90842d2d9e2fb1fcf70b4fe7b30f379d5af9940525e8cfa970df7"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\FontFamily.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\FontFamily.java",
+    "sourceSha256": "78815a7d51a145284162dbbda1ab783f0ce154cdaca0e821d3166adfcda19a48",
+    "targetSha256": "5d86455cdbf25aea478747c0f2d46fcf2e6c1b5db35a3d168abe5652ab388ef7"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\FontManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\FontManager.java",
+    "sourceSha256": "e37e180822cb3a6403acdc5363bfcc8791505b6e70225a7661066457b515d480",
+    "targetSha256": "572f5bbd46b27528d3dfa2a4b5dbe7cad2c1359e5c5fb6d2535cf11fb370f2e7"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\FontQuality.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\FontQuality.java",
+    "sourceSha256": "2286421458f085fe0f900df34d6a179fcba0df350ac87ee3748c4f63d413bed6",
+    "targetSha256": "a8f90edd773213ad9464bdbc90fc75f98c25aa5dbdcfa9e5dc8c8bcd22cf6d7f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\FontStrike.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\FontStrike.java",
+    "sourceSha256": "fb65a365336c2053727cdb99054b6b39c66b4c47b4d4bacd4af72ff79ae9ba25",
+    "targetSha256": "6ef680988781d0b6ec6416ed6b5cdd69be7a12fbaed2c03c046c762b55b6edca"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\GlyphAtlasPage.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\GlyphAtlasPage.java",
+    "sourceSha256": "cf557ae1fa6d3a0021bb0b43199df91b38eb7adad06dafdc14cc1a2e1d50989c",
+    "targetSha256": "43d9f263d90e9ac9ce702975f206a4d6fb41423149c6ab6599c2643563f434ca"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\GlyphInfo.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\GlyphInfo.java",
+    "sourceSha256": "2a06d512f6e61af6984c12218e3a9f361adf6193bfa296766a1504d6cd45984d",
+    "targetSha256": "2ccabe7b6d57d30bb52e32ba089dd3c12ac007b2730fc4241f03676c2e70033d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\GlyphLayout.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\GlyphLayout.java",
+    "sourceSha256": "8a43c56c40392d4ca4e93a71978f08cac7efbd0dbfca22b894a32e5c50455500",
+    "targetSha256": "a3784a7783c9c3683b81f6dd7b1c88911bfda3f7db2df0d31b31dbab3e8a3e67"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\GlyphQuad.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\GlyphQuad.java",
+    "sourceSha256": "9f268ec67ab2864af89f5d7384e4327c5842db7d606854624b6bf4efaf4e0c84",
+    "targetSha256": "e90aa235703067258a1932b71882986c25235d2780092a2eae5a5c274d1d472c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\LayoutGlyph.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\LayoutGlyph.java",
+    "sourceSha256": "9a98bfd11f32f9df59a95fa343fe7c2a93318dfa1b6bdd2c561d14f012965563",
+    "targetSha256": "09d46999a49c85b9651c2fc244b457fbbb81ab24f44591ae363c686c2cbf966e"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\TextLayout.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\TextLayout.java",
+    "sourceSha256": "5c25ba52fac0b16cc25f22942097820e35a77958a714050ede778e2001acaea6",
+    "targetSha256": "d39ef55237fea0bdabdbb34ce5084af06cdfff2ef683cf67ee997f49074f0837"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\TextRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\TextRenderer.java",
+    "sourceSha256": "d0bb0bc09ec5294e86e8de9f03033e045aa5bcf44d991e346cd131c3d76a9093",
+    "targetSha256": "c3e0646a5aa3b8873fab5417e09b6840491d2159de9e281419a36e6ea492820d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\font\\TextRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\font\\TextRenderState.java",
+    "sourceSha256": "13e18624a5a9663bd46f4cf90802cb5071ffbfbd5d8ae1abb2c8c74b60acfd70",
+    "targetSha256": "dfe2220993d0d53d1f2e3a23adabb1695ddcadc898647be79b99e9120b47cef6"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\gif\\GifRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\gif\\GifRenderer.java",
+    "sourceSha256": "18145728b5f295d0203f2a3f181f9bc1651b6bf1974e880e3d6aa1d79ad27dc4",
+    "targetSha256": "75876e99779bdce3fc88d8c47d2aea0f0c1d147e598919ed1db666e6259b23ec"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\glass\\BuiltGlass.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\glass\\BuiltGlass.java",
+    "sourceSha256": "26bc32ed64fc11dc19c695a65265172e1f41f364b4a440b2fcc68363a36c4ce7",
+    "targetSha256": "af6a98b5ec5090c0841d19eb0b0fc3fb94612303c809ae553ddd3f5246829086"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\glass\\GlassRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\glass\\GlassRenderer.java",
+    "sourceSha256": "6147e8fec142b10ba700ee0ba7683318f0c03844357f5daca0595b9f62bb1ae4",
+    "targetSha256": "3783960c76ac0c0f484e6386df70756283dcf63c6a1bb0416b979d4e8a84e036"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\glass\\GlassRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\glass\\GlassRenderState.java",
+    "sourceSha256": "730507e205c4081a707bf303addbb1363c0737c443f43cff83f2e9f24d8e132f",
+    "targetSha256": "dc4c134e585e0f8253dba986b2ff26712dfd12cc4db173186142143c141235ec"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\glow\\BuiltGlow.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\glow\\BuiltGlow.java",
+    "sourceSha256": "679fc6216634c3cd70e8d6e8d4d4a2ae1c11401b90d2bba558cbe55937d23b37",
+    "targetSha256": "a997a99bf677dc744a2dbb27b2f9a8f4b129a0fde08b903a64cb8250755ed98d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\glow\\GlowCapture.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\glow\\GlowCapture.java",
+    "sourceSha256": "3826df89414a173067f1227907369a95710d0c939a58f04ff5126d979accd4f2",
+    "targetSha256": "20d89e235fb13f8feea61d99f854f084ef62867d0eecfa821d1d408ddf12e080"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\glow\\GlowRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\glow\\GlowRenderer.java",
+    "sourceSha256": "4e80cd8bf4a487df47202999d33d9de3622cba5abff432c2f367061fafc6636c",
+    "targetSha256": "ed6f2f9692fdaab49f2c4ad88a2608a6514d500b9ca4f5a6e8c5af4ec044e9fd"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\glow\\GlowRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\glow\\GlowRenderState.java",
+    "sourceSha256": "8d0d00a9be196afb3998cd3ff9d0d14bd0b553354ee25cd34c75d448af3afd25",
+    "targetSha256": "b697c50a2f95f2341fbfbc68f9e95bbd40a982e877118c96c980c3ebcfe628b3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\image\\BuiltImage.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\image\\BuiltImage.java",
+    "sourceSha256": "84946c77ad4736430d0177a5fb0b0facf0ed157e9c75cbf8cd562af7cdf083c2",
+    "targetSha256": "70cddc81239f6958edc091f66d0eb7992fd0eb1f09e907c46f8226627d2ad113"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\image\\ImageQuad.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\image\\ImageQuad.java",
+    "sourceSha256": "42e793f64f86ab26f7b65b18aa26c1a0679953495b71a06eddb9be7b8569406f",
+    "targetSha256": "8e0bc55d8da00f0954a42d95977e4df324e25c2a9fb322d4a0dc501ac2fc36e9"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\image\\ImageRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\image\\ImageRenderer.java",
+    "sourceSha256": "95d918cd920c838eea54a1cae44bf0f578ec0983659f7a3f77e0512c8ab2d9a0",
+    "targetSha256": "2b34f023ebd688b719d76958327777461f2ca9b389ae5743ffb6cb92aca8e63a"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\image\\ImageRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\image\\ImageRenderState.java",
+    "sourceSha256": "e39d8b358cfc1b6be72555312ef90d85939af5140442f2cc4f2584d99753ed84",
+    "targetSha256": "5ad56ec46746ed18b8f005ae350a28343c12eaab78516f6a4244b975b53a5af1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\image\\ImageTexture.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\image\\ImageTexture.java",
+    "sourceSha256": "ba5c455dc78888f4eb2b34055d1bf4c88e0d9b6d83a1ae73bd46ff5bce1e3d4d",
+    "targetSha256": "6798e0c7c4c4db209a18dd9548f55414783898d6eda1a5c98055d14305d93e49"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\line\\BuiltLine.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\line\\BuiltLine.java",
+    "sourceSha256": "40f1e7244237600446e26526fa4eebc6cecad1966b6f41314057d7bdac079bbf",
+    "targetSha256": "52c16e62ac19e991d22818a43702ae87854f18085dce7697e9865305962f6e39"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\line\\LineRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\line\\LineRenderer.java",
+    "sourceSha256": "09f4e0fa79d9c2d8f01eb85ad1507f11592e69cf638b5b8ac425ca408cf81425",
+    "targetSha256": "7ab50b7ed86ee7a7fa972a61fc07a967706014b2b14067138e0b5559695b9e64"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\line\\LineRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\line\\LineRenderState.java",
+    "sourceSha256": "74445a2924fc68a13c3f2f9b75b2a94f9b99f12082ecd97fa13d9dce7f3c2996",
+    "targetSha256": "9e378bd8426cbf25985bcc9421e04067d54373452a203fb8e8873fe53af68208"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\BuiltMsdfText.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\BuiltMsdfText.java",
+    "sourceSha256": "317b3fd8a1fbc8bd5aaa0b3a266fe32c815dc8fbfda05dd7ba6838322c3125ff",
+    "targetSha256": "0bca1a825669523d9903ee8d689028ee959d4b01ed914c8ceadb204db9d28d55"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\GlyphNormalizer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\GlyphNormalizer.java",
+    "sourceSha256": "85cffcfb302e6ffec4dedfb18fc47a7fca12bfdac64f85d7e940f6214c142c65",
+    "targetSha256": "a6bfa182bb2623327f4ebfd41291a3547c4ec02837cea17e2cabf1e5ae2c901d"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\MsdfFont.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\MsdfFont.java",
+    "sourceSha256": "a3d1fa23486c5ccdf7dd3be8978223615fa6117430ef8616c9c9acf45f05ad39",
+    "targetSha256": "0d504948298de13f1490724800399c8c9bb26248e6ed019064559a45b4b7b061"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\MsdfFontLoader.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\MsdfFontLoader.java",
+    "sourceSha256": "6fb400fd9a81f03ba521a012e36aa18f78d060a053dbc43f25daee6386806aa4",
+    "targetSha256": "25208e29f25449c4e7a85f3462a3f6db666c71c2c96be4f36dd710f436e2022f"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\MsdfFonts.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\MsdfFonts.java",
+    "sourceSha256": "6df2684a0d969f2353c20b8400e4399a4dcba75f7aeec55257c5647573f15a4d",
+    "targetSha256": "65a4a90d68cc7369f382dc79ea2aa8f196ffcc502680a95ca7ebeff5ec63eb79"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\MsdfGlyph.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\MsdfGlyph.java",
+    "sourceSha256": "308d2f7b191fb677a9b459ec59f309baf9b1a0f2ced37084d03c86ebb3da1a9a",
+    "targetSha256": "f66eaa3f17a72206996794d958368c212423ba206237a0b697f81fda736489aa"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\MsdfQuadLayout.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\MsdfQuadLayout.java",
+    "sourceSha256": "2259bd7ccf5cf88b029c226a245fc316330f20043867188ac7e2dbb4a9c2a566",
+    "targetSha256": "7512952dcc12bfd1f3126f2e3b7e87e8df807d42898b7f80a0d959ac9ccdea39"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\MsdfTextRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\MsdfTextRenderer.java",
+    "sourceSha256": "5196512af609e03eab1562b00f3061a078fc8f511b4c323dee8c7c745844cdd4",
+    "targetSha256": "ea57a6c8975eb1c5f08a2592682d41de3ba7db6b218a44f40b32dac6b3ad43f1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\msdf\\MsdfTextRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\msdf\\MsdfTextRenderState.java",
+    "sourceSha256": "7f43dcb4e1c324321b9aab745ccfa1e2e387db2c0d686084a340c8c2c7058a48",
+    "targetSha256": "10de18932b4727b95a7e7651e52e25137165fa40d9a9b009ad11cc87e67a3720"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outline360\\BuiltOutline360.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outline360\\BuiltOutline360.java",
+    "sourceSha256": "ade5e6e6052110b3d00c6d85a86606608007c93206df81db58b54eb9f224f83f",
+    "targetSha256": "8c89f79f2ef4fb70832a38fe7e173f475a3b904a1e57a5fda49479536c7f3561"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outline360\\Outline360Range.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outline360\\Outline360Range.java",
+    "sourceSha256": "b2a35bea7f25548655b326c17b0c48340e4c8944914d370814802ad664c5d055",
+    "targetSha256": "1fcfb07f907f704f466628c11f3f967f1aa53e536669306961310ddd4672e28c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outline360\\Outline360Renderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outline360\\Outline360Renderer.java",
+    "sourceSha256": "2925e927467c9aa63c544c573228142b292754fe81a65e7c082917d9d57478d7",
+    "targetSha256": "4b6dfeac4f6f7c1a85f094f13d8a0f3614700b0243bf5bbe1c6037c15a50374b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outline360\\Outline360RenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outline360\\Outline360RenderState.java",
+    "sourceSha256": "04b3b028ee36d427a84372f79fdbd16b78599e3138e8baf83f443480a760aa77",
+    "targetSha256": "4c789ea71ce701314b86ef26ac668230d94ae4a6c34e7cdefc3fbeba42c12239"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outlinedefault\\BuiltOutline.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outlinedefault\\BuiltOutline.java",
+    "sourceSha256": "fb574ef8dc7f3dd0a48c54803f7c7f4b8aaecbb34e1ee0e383259e76bac32a54",
+    "targetSha256": "8b28ab992c45b3385c52a47b9a3692d4f4489035592a3d5a86e53a26142d975c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outlinedefault\\DefaultOutlineRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outlinedefault\\DefaultOutlineRenderer.java",
+    "sourceSha256": "0841c88118daf74be21e53578e9f8d668da8795da34ec4eeb3c0d78360289ac9",
+    "targetSha256": "1a685627cf83485a1a4a0590a1b22ce28d3492e12e72012ca4a197655c39ff25"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outlinedefault\\DefaultOutlineRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outlinedefault\\DefaultOutlineRenderState.java",
+    "sourceSha256": "3d44027dec6da6458df371edfb38df4646b7039b257797db88b2d7288620d720",
+    "targetSha256": "ed87261c5eb08d89049daae866ae631f1c397f12c8e624561ee50f2b95e9041b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outlineglass\\BuiltGlassOutline.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outlineglass\\BuiltGlassOutline.java",
+    "sourceSha256": "841273783bd7593f2570eef302a10152bd90b99dabadc19a874927d27ffdbbb4",
+    "targetSha256": "076e76020788543e485e92bb3397423c99f9142caa6b48f5072bdee69bd22782"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outlineglass\\GlassOutlineRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outlineglass\\GlassOutlineRenderer.java",
+    "sourceSha256": "d90e78a1863d62ed8dad879708bb215b36d592eae14fe970e54b13be13edfcfe",
+    "targetSha256": "141f4b9ea220cee12bb73442877b845fda50c3ce69e29cde07b9f44695317fbe"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\outline\\outlineglass\\GlassOutlineRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\outline\\outlineglass\\GlassOutlineRenderState.java",
+    "sourceSha256": "ef6ba667eb062bd3d02ff1efdc6cde1dce71a209e44db1d5952390590ea65f3b",
+    "targetSha256": "e4b9105ca5d2950f4b78448b9b4766d7492a885cc6afde5fe7a02edef7919121"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\picker\\BuiltPicker.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\picker\\BuiltPicker.java",
+    "sourceSha256": "192e8af18640c8b951b2ffeabcf41489e32b21107d427128a8380c8b084875f6",
+    "targetSha256": "e36ee9b0becc6d1a449dacd2e0b3b7a8d51b2f069f3915269f5279ecb4f11c58"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\picker\\PickerRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\picker\\PickerRenderer.java",
+    "sourceSha256": "f0492990fb88bc46f769b62a16c285efcdb141fad11a2a0deff775d673316eec",
+    "targetSha256": "bfcce706439facacf85123b77bef63797d2e5c175e751bf9fa717bb27ae13f80"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\picker\\PickerRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\picker\\PickerRenderState.java",
+    "sourceSha256": "d85be899e2a25a5a336234b575c5c4a15ad40a9cf0227efe82d5d2682fafab4a",
+    "targetSha256": "5fdd4be10217a02173a0cb6ee644dcec2c80a76de471c70ffa116a5e8aab29e0"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\radialglass\\BuiltRadialGlass.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\radialglass\\BuiltRadialGlass.java",
+    "sourceSha256": "893b9883f808e7f51116adc6e04372bea487ca41e079470c87fda147e14724b0",
+    "targetSha256": "d161a5be450d91e49e1ba0aa4acac5964fdcc108d5666a498464f32353c14de8"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\radialglass\\RadialGlassRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\radialglass\\RadialGlassRenderer.java",
+    "sourceSha256": "27185d5e4daa04658ee5cb9553abb6ac8ee1a864995c1d8638950c84250143f0",
+    "targetSha256": "13370546196c335e4671fc322a40d7c00181384182aa5dc450fb5d0fe220d467"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\radialglass\\RadialGlassRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\radialglass\\RadialGlassRenderState.java",
+    "sourceSha256": "ed3354f531c37374275a886906b0172dfca9ce991f7be1e98cfcf5352925c611",
+    "targetSha256": "62f1d1c4e4583c249136335e07502db31b8b8dc92d706c3ed2af0c9da2dfef3b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\rectdefault\\BuiltRectangle.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\rectdefault\\BuiltRectangle.java",
+    "sourceSha256": "b0a3f6641893a05b4b83cf2758ab1ebf7030433389cae809bcded16d5c17ef82",
+    "targetSha256": "8d3de9413292e4de4efb533c82633ad5a21d40c61560bc63f9348003d432db14"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\rectdefault\\DefaultRectangleRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\rectdefault\\DefaultRectangleRenderer.java",
+    "sourceSha256": "9eae60808e5afb2ca4a80cea523ccfa602ebf7e6477d4205dea1b6da4184adfe",
+    "targetSha256": "13bc705afb823645ebf4d5f4faf085c203f86353f7d44a3c4603f21eacfd24cd"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\rectdefault\\DefaultRectangleRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\rectdefault\\DefaultRectangleRenderState.java",
+    "sourceSha256": "5ae2a9d5460366da372646cb7f2f21d83b46f82a67601fbcd56eca4d058020ed",
+    "targetSha256": "32645ce2114a730ac025d2f460f9179dc9ec8f814de8f12184c87a571aad2433"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\recthalficon\\BuiltHalfIconRectangle.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\recthalficon\\BuiltHalfIconRectangle.java",
+    "sourceSha256": "6f0520162646fd7881938b088772fb69229723d536645108a77d6a4d8fa80a97",
+    "targetSha256": "9924f92f53dfab5182e844b29dc8fc6d77b98f7c9beaeb6eab0761f9526975b9"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\recthalficon\\HalfIconRectangleRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\recthalficon\\HalfIconRectangleRenderer.java",
+    "sourceSha256": "d271e01f5f1564b7bc8478c1fc31491777181acff5991fb882c4fab72396feea",
+    "targetSha256": "69b291df3d77d5b167fc17827e6b84e40b96769307469b33020fac947af4b4c7"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\recthalficon\\HalfIconRectangleRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\recthalficon\\HalfIconRectangleRenderState.java",
+    "sourceSha256": "ad22383ea3e9a399a2b8a1d36dfa5cdc7c42d714ba3f9cdf862e8ae041066f02",
+    "targetSha256": "c79bc4b3ef5d3918574f0556ad76fe5a4d0394310bafa0618fdf33382c654b87"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\recthalftone\\BuiltHalftoneRectangle.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\recthalftone\\BuiltHalftoneRectangle.java",
+    "sourceSha256": "bffe7bb7287a76249ed4ef3fa978784ab497096f9bd417f399006815d240c844",
+    "targetSha256": "7c440c6fae212014a49f6fea3c17140c30ef50e41e00769638cf25949d9e195b"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\recthalftone\\HalftoneRectangleRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\recthalftone\\HalftoneRectangleRenderer.java",
+    "sourceSha256": "62eaaf6fa5075a388cc7c5c058f9ffa5c89b4bfad0a9a04cff9333314b51799e",
+    "targetSha256": "fc25e50fe5784ad9d10a4979d7f1d6c1f6028a7e84601c1e948f279311a012a0"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\rectangle\\recthalftone\\HalftoneRectangleRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\rectangle\\recthalftone\\HalftoneRectangleRenderState.java",
+    "sourceSha256": "f3da1eb0492bea29a835333a7c1d119203b6626127fa09ea8990fa778d050a00",
+    "targetSha256": "8fe3e37a22f23378d98784c638f8bf774b7e95e3de05b182259bf39cdd5d128c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\ripple\\BuiltRipple.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\ripple\\BuiltRipple.java",
+    "sourceSha256": "76dad34dc8452f8f8b598c260246206c3d6d14c24c42709e67bcb746a26fe38c",
+    "targetSha256": "bcc801c13f38e24694ee72c5856ee4bada96072498b6e4a8214eec313b96550c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\ripple\\RippleRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\ripple\\RippleRenderer.java",
+    "sourceSha256": "ecd5d9d1bec017c3357af0592464dc580c6352788750751e48b4282100c5dbea",
+    "targetSha256": "8089794aaa62cb507989bd8f60fdfcd9bb788826e3975f85d6bf1079b6343b0c"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\ripple\\RippleRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\ripple\\RippleRenderState.java",
+    "sourceSha256": "80d9ffd19e614ce32744c0937efa2878636bc402081b1d96dd0c5b576c9fa7b3",
+    "targetSha256": "3be2a7cecda6fb6702fb5e0c4760fd5f93729c3cbf863d2b5be1663ff40ac3f3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\sectormask\\BuiltSectorMask.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\sectormask\\BuiltSectorMask.java",
+    "sourceSha256": "5ba4cc74a7658052c75ebe40fdf2309a0831e54c837ad3868d5b0f7cdf26fa49",
+    "targetSha256": "4b3337b6bc92fed9ae319b8969d7aadc47f4b43b263d89dcd5188e7b17302474"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\sectormask\\SectorMaskRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\sectormask\\SectorMaskRenderer.java",
+    "sourceSha256": "59083b2ef8cf019f033f611c516cb103ac03d432dd5ae8a91d93611a4bea6afd",
+    "targetSha256": "6621091076583d2a7f99cd0a848d9fa2cce10ee0b7aa6db0b7830768c2c32801"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\sectormask\\SectorMaskRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\sectormask\\SectorMaskRenderState.java",
+    "sourceSha256": "8ed07d036e5bcb185acf43e87faed92e658b8918943cc781c5f814da0f859945",
+    "targetSha256": "b792611dbdde16040100ca81250b608c133b9e7cba7a3ac838ba024892032818"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\shape\\BuiltShape.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\shape\\BuiltShape.java",
+    "sourceSha256": "25977796c2c465f564e997e70a461cca56d5e95e9546fab3bccfb94eb18bc2ae",
+    "targetSha256": "cc39cd18a1755a6494399d7f65772c8691449bb62cca029c3afd92680dbce8d3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\shape\\ShapeRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\shape\\ShapeRenderer.java",
+    "sourceSha256": "ee4db9fbe4fc663e91fadbd2a6dca8bf1c84ce749e14648cd5558ee05072eb77",
+    "targetSha256": "5e4ee162fc10d788b748aa7a928f5267cea841a666c116117851eeb225761ab9"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\shape\\ShapeRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\shape\\ShapeRenderState.java",
+    "sourceSha256": "a242c446bd15444ec20b30f834f76fde5deb8f7b3767326e9b9f258973b5c2ce",
+    "targetSha256": "4a81a39fde96f1d762b555aa9a09a83da95b683199c53a41cca8b7b9b21f5022"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\shimmer\\BuiltShimmer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\shimmer\\BuiltShimmer.java",
+    "sourceSha256": "f659b613ebc015029e7a95d5052461340404d3b9acbbe63c3072d60437c246d5",
+    "targetSha256": "5639c39effd48a9d8b606e776fba1a992bb74d52e264903140aebe57e68709ea"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\shimmer\\ShimmerRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\shimmer\\ShimmerRenderer.java",
+    "sourceSha256": "952c13a9e4c1b529a5bacd114759aee19a5256b8ea78020091b3d4651ffd62bd",
+    "targetSha256": "2d851f7dfd53709402c5863997a5f976379d047191b083a0b82376af17965fb3"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\shimmer\\ShimmerRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\shimmer\\ShimmerRenderState.java",
+    "sourceSha256": "5261356f63f700109889ed90e47cb2a5c83303aad9a3b8174c2ba9290657b396",
+    "targetSha256": "f6fcab6d118df3a18e26ed38c2d8e933e281894e4b3d4e4df16715573ddcd186"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\zippy\\BuiltZippy.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\zippy\\BuiltZippy.java",
+    "sourceSha256": "627541304d006892aff43c1399f759a6a78781f2c72e7c0880770eb963e6d844",
+    "targetSha256": "9e4045dc481b6e9ce67357ddf8c55c36f24323c7983940a6d68d8537e6dc9e44"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\zippy\\ZippyRenderer.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\zippy\\ZippyRenderer.java",
+    "sourceSha256": "2d055e045b81287fef626f613ddfdedbef57cf80e26a8059f6de5069366056ea",
+    "targetSha256": "3a36e64285e02d06473bea3255dfdc8c142c8c7976c6ac14012a756d4ee4bd70"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\render2d\\zippy\\ZippyRenderState.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\render2d\\zippy\\ZippyRenderState.java",
+    "sourceSha256": "884fafc26348738766b4bae8d8049214bd44202dbb3e8fe24040ade49ebd7142",
+    "targetSha256": "15b4a39b0edd6d9985035cddc8012a4f560bd26764214d4b7c8df4f39d5772f1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\scissor\\ScissorUtil.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\scissor\\ScissorUtil.java",
+    "sourceSha256": "4c9761d080b7ecd849069f147a5296ad098421be9a2fb5d4dff243df9c94105d",
+    "targetSha256": "3216ce9408722632a96ad20c77602066a0feabfd22001814a78c10ffb9a8d3de"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\render\\voronoi\\VoronoiOfQuad.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\render\\voronoi\\VoronoiOfQuad.java",
+    "sourceSha256": "73971dec67b68f05698b9678e417804fdbe20365878465e0b8f49bbf448b45d5",
+    "targetSha256": "c6ff6a4ce0a89bb8fbfd0495fece3a6201c3441d4df049401497c6b7f3ee6da1"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\sounds\\SoundManager.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\sounds\\SoundManager.java",
+    "sourceSha256": "862ecd3d2acc13081df94bb6db86a05e5841678f4170df613ea4c5fcbe5be183",
+    "targetSha256": "4b0fbb6e45f1eb480a4e5e5b34b7bcde46111c6dbca08c8d8a70bcea0f1bad22"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\sounds\\Sounds.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\sounds\\Sounds.java",
+    "sourceSha256": "b5921f40d50a3e752895c1605a836036911b25f33e9f89c8a0bef6d7b5794c5e",
+    "targetSha256": "376813dff9e6b4e6c189653db8b825e8a82ac18aaa0f54e3a396826aa84b49d6"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\storage\\AtomicFiles.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\storage\\AtomicFiles.java",
+    "sourceSha256": "76c0c82aedb939abc4282ccf3a37da0cf9ac918ee33ae6c18828e008d8eb663c",
+    "targetSha256": "4108e14a627f40bd9b5dc3e4161836286bb8578f8580f3f2d034a2d097255585"
+  },
+  {
+    "target": "src\\main\\java\\activity\\client\\gui\\custom\\utils\\time\\TimerUtil.java",
+    "source": "C:\\Users\\Administrator\\Desktop\\Kimiko\\src\\main\\java\\rtx\\nv\\utils\\time\\TimerUtil.java",
+    "sourceSha256": "89c7886cb82dcbe73441f26024564b7e16edd4720dd96d57b920047831b5fd20",
+    "targetSha256": "4d164b279781a3baa8f09257188f106d71f1a5594cc8d6b659164a6b5ce8b9f1"
+  },
+  {
+    "target": "src/main/java/activity/client/gui/custom/hud/CooldownListRenderer.java",
+    "source": "C:/Users/Administrator/Desktop/Kimiko/src/main/java/rtx/nv/api/drags/components/ListHudComp.java",
+    "sourceSha256": "0853e316f9d4a4b30bffa34b8ff9e94f1956c398153c9b4df29b322978a2c23e",
+    "targetSha256": "7018fd5bc2e78bf097c9d1a46b0aa2f49890aad684fff5a46836ef8ea8c0dff6",
+    "adaptation": "Original glass list layout, row easing 0.22/0.18s, width easing 0.24s, header/font/divider; current tracker exclusively. New icon atlas; bounded horizontal layout."
+  }
+]

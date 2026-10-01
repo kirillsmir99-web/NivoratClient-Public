@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "activity.client.gui.custom.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "GuiRendererMixin",
+    "GuiRenderStateMixin",
+    "accessor.GuiGraphicsExtractorAccessor",
+    "accessor.GuiRendererDrawAccessor",
+    "chatanim.ChatScreenMixin",
+    "chatanim.ChatComponentMixin",
+    "GameRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

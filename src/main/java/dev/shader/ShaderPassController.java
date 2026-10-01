@@ -25,6 +25,8 @@ public final class ShaderPassController {
     private static final String COMBO_LOCK_PROPERTY = "pvp.shield_combo_active";
     private static final double MAX_COMBAT_REACH = 2.85D;
 
+    private ClientPlayerEntity owner;
+    private World ownerWorld;
     private boolean enabled = true;
     private Stage stage = Stage.IDLE;
     private UUID targetId;
@@ -62,7 +64,8 @@ public final class ShaderPassController {
             }
 
             if (stage == Stage.SEMI_AWAIT_HIT) {
-                if (targetId == null || target.getUuid().equals(targetId)) {
+                if (hand == Hand.MAIN_HAND && client.player.getInventory().getSelectedSlot() == activeAxeSlot
+                        && (targetId == null || target.getUuid().equals(targetId))) {
                     stage = Stage.WAITING_RESTORE;
                     stageTicks = 0;
                     restoreDelayTicks = Math.max(1, getRestoreDelayTicks());
@@ -78,12 +81,13 @@ public final class ShaderPassController {
 
     public void tick(MinecraftClient client) {
         try {
-            if (client.player == null || client.world == null || client.interactionManager == null) {
+            if (client == null || client.player == null || client.world == null || client.interactionManager == null
+                    || (stage != Stage.IDLE && (client.player != owner || client.world != ownerWorld))) {
                 clearState();
                 return;
             }
 
-            if (!enabled || !client.player.isAlive()) {
+            if (!enabled || !client.player.isAlive() || client.currentScreen != null) {
                 if (stage != Stage.IDLE) {
                     restoreWeapon(client);
                     clearState();
@@ -136,7 +140,7 @@ public final class ShaderPassController {
             return;
         }
 
-        if (net.fabricmc.pack.api.CombatLockManager.isLocked(net.fabricmc.pack.api.CombatLockManager.SUNDER)) {
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) {
             trackingShieldTargetId = null;
             shieldSeenStartTimeMs = 0L;
             return;
@@ -186,6 +190,8 @@ public final class ShaderPassController {
     }
 
     private void trigger(MinecraftClient client, PlayerEntity target, int axeSlot) {
+        owner = client.player;
+        ownerWorld = client.world;
         initialSlot = client.player.getInventory().getSelectedSlot();
         targetId = target.getUuid();
         activeAxeSlot = axeSlot;
@@ -228,6 +234,11 @@ public final class ShaderPassController {
             return;
         }
 
+        if (!client.player.getMainHandStack().isIn(ItemTags.AXES)) {
+            restoreWeapon(client);
+            finish(1);
+            return;
+        }
         try {
             client.interactionManager.attackEntity(client.player, target);
             client.player.swingHand(Hand.MAIN_HAND);
@@ -266,19 +277,11 @@ public final class ShaderPassController {
     }
 
     private int getSwitchDelayTicks() {
-        if (ShaderPassConfig.randomDelay) {
-            long randomized = GaussianTimingEngine.getShieldBreakerSwitchDelay();
-            return Math.max(1, (int) Math.round(randomized / 50.0D));
-        }
-        return Math.max(1, (int) Math.round(ShaderPassConfig.switchDelayMs / 50.0D));
+        return GaussianTimingEngine.sampleActionTicks(ShaderPassConfig.switchDelayMs, ShaderPassConfig.randomDelay);
     }
 
     private int getRestoreDelayTicks() {
-        if (ShaderPassConfig.randomDelay) {
-            long randomized = GaussianTimingEngine.getShieldBreakerRestoreDelay();
-            return Math.max(1, (int) Math.round(randomized / 50.0D));
-        }
-        return Math.max(1, (int) Math.round(ShaderPassConfig.restoreDelayMs / 50.0D));
+        return GaussianTimingEngine.sampleActionTicks(ShaderPassConfig.restoreDelayMs, ShaderPassConfig.randomDelay);
     }
 
     private boolean isPlayerBusy(ClientPlayerEntity player) {
@@ -323,7 +326,7 @@ public final class ShaderPassController {
     private PlayerEntity findTargetAlongRay(MinecraftClient client) {
         Vec3d eyePos = client.player.getEyePos();
         Vec3d lookVec = client.player.getRotationVec(1.0F);
-        double maxDist = Math.min(MAX_COMBAT_REACH, ShaderPassConfig.triggerDistance);
+        double maxDist = Math.min(client.player.getEntityInteractionRange() - 0.05D, ShaderPassConfig.triggerDistance);
         Vec3d reachEnd = eyePos.add(lookVec.multiply(maxDist));
 
         PlayerEntity best = null;
@@ -357,14 +360,10 @@ public final class ShaderPassController {
         }
 
         Vec3d eyePos = client.player.getEyePos();
-        double cappedReach = Math.min(MAX_COMBAT_REACH, maxReach);
+        double cappedReach = Math.min(client.player.getEntityInteractionRange() - 0.05D, maxReach);
 
         if (!CombatRaytraceGuard.hasLineOfSight(client.player, target)) {
             return false;
-        }
-
-        if (client.targetedEntity == target) {
-            return eyePos.squaredDistanceTo(target.getEyePos()) <= cappedReach * cappedReach;
         }
 
         if (client.crosshairTarget instanceof EntityHitResult ehr && ehr.getEntity() == target) {
@@ -373,7 +372,7 @@ public final class ShaderPassController {
 
         Vec3d lookVec = client.player.getRotationVec(1.0F);
         Vec3d reachEnd = eyePos.add(lookVec.multiply(cappedReach));
-        Box box = target.getBoundingBox().expand(0.1D);
+        Box box = target.getBoundingBox();
         var hit = box.raycast(eyePos, reachEnd);
         if (hit.isPresent()) {
             return eyePos.squaredDistanceTo(hit.get()) <= cappedReach * cappedReach;
@@ -385,7 +384,11 @@ public final class ShaderPassController {
     private int findAxeHotbarSlot(ClientPlayerEntity player) {
         if (player == null) return -1;
         int cached = activity.client.module.service.InventoryScanService.findAxeSlot(player);
-        if (cached >= 0) return cached;
+        if (cached >= 0) {
+            ItemStack item = player.getInventory().getStack(cached);
+            if (item.isIn(ItemTags.AXES) && (!item.isDamageable()
+                    || item.getMaxDamage() - item.getDamage() >= MIN_AXE_DURABILITY)) return cached;
+        }
         for (int slot = 0; slot < 9; slot++) {
             ItemStack stack = player.getInventory().getStack(slot);
             if (stack.isIn(ItemTags.AXES)
@@ -404,8 +407,9 @@ public final class ShaderPassController {
     }
 
     private void restoreWeapon(MinecraftClient client) {
-        if (client.player != null && initialSlot >= 0 && initialSlot < 9) {
-            selectSlot(client, initialSlot);
+        if (client != null && client.player == owner && client.world == ownerWorld && owner != null
+                && owner.getInventory().getSelectedSlot() == activeAxeSlot) {
+            SafeSlotManager.restoreSlot(client, initialSlot);
         }
     }
 
@@ -421,11 +425,14 @@ public final class ShaderPassController {
     }
 
     public void reset() {
+        restoreWeapon(MinecraftClient.getInstance());
         clearState();
     }
 
     private void clearState() {
         stage = Stage.IDLE;
+        owner = null;
+        ownerWorld = null;
         targetId = null;
         initialSlot = -1;
         activeAxeSlot = -1;

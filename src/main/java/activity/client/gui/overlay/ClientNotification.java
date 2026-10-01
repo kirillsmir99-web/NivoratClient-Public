@@ -10,16 +10,6 @@ public final class ClientNotification {
     private ClientNotification() {}
 
     public static void show(Text text) {
-        if (text == null) return;
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc == null) return;
-        if (mc.currentScreen instanceof ActivityScreen screen) {
-            screen.showToast(text, null, null);
-        } else if (mc.currentScreen instanceof ModuleSettingsView msv) {
-            msv.showToast(text);
-        }
-        if (mc.player != null) {
-            mc.player.sendMessage(text, true);
-        }
+        if(text!=null)activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.notify((text.getContent() instanceof net.minecraft.text.TranslatableTextContent t ? activity.client.i18n.LocalizationService.get(t.getKey(),text.getString()) : text.getString()),3000);
     }
 }

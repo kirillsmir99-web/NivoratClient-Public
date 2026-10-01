@@ -66,7 +66,7 @@ public class Stage11IntegrationFixPassTest {
 
         SidebarTree sidebarTree = new SidebarTree();
         SidebarTree.CategoryNode combatNode = sidebarTree.getCategories().get(0);
-        assertEquals("combat", combatNode.getId());
+        assertEquals("kit_all", combatNode.getId());
 
         SidebarTree.ModuleItem childItem = combatNode.getChildren().stream()
                 .filter(item -> DYNAMIC_COMBAT_ID.equals(item.getId()))

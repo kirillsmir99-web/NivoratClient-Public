@@ -125,32 +125,10 @@ public class UtilityTab extends ActivityTab {
         this.clearComponents();
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        boolean twoColumns = rowWidth >= ActivityMetrics.RESPONSIVE_TWO_COLUMN_BREAKPOINT;
-        int colGap = ActivityMetrics.COLUMN_GAP;
-        int cardW = twoColumns ? (rowWidth - colGap) / 2 : rowWidth;
-        int col1X = startX;
-        int col2X = twoColumns ? (startX + cardW + colGap) : startX;
-        int innerRowW = cardW - ActivityMetrics.PADDING_PANEL * 2;
+        int gridEndY = activity.client.gui.builder.ModuleGridBuilder.build(this, screen, container,
+            ModuleRegistry.getByCategory(getCategory()), startX, startY, rowWidth);
 
-        int col1Y = startY;
-        int col2Y = startY;
-
-        List<IModule> modules = ModuleRegistry.getByCategory(getCategory());
-        for (int i = 0; i < modules.size(); i++) {
-            IModule mod = modules.get(i);
-            boolean isCol2 = twoColumns && (i % 2 == 1);
-            int curX = isCol2 ? col2X : col1X;
-            int curY = isCol2 ? col2Y : col1Y;
-
-            int h = ModuleCardBuilder.buildCard(this, screen, container, mod, curX, curY, cardW, innerRowW);
-            if (isCol2) {
-                col2Y += h + 10;
-            } else {
-                col1Y += h + 10;
-            }
-        }
-
-        int curY = Math.max(col1Y, col2Y);
+        int curY = gridEndY;
         int hudRows = 5;
         int hudHeight = 22 + hudRows * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         registerModuleCard("hud_activity", createCard(container, startX, curY, rowWidth, hudHeight, Text.translatable("activity.card.utility.hud_activity")));

@@ -287,6 +287,11 @@ public class ClickPearlModule extends NivoratModule {
     }
 
     @Override
+    public void onCleanupTick(MinecraftClient client) {
+        controller.cleanup(client);
+    }
+
+    @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         ActivityConfig c = ActivityConfigManager.getConfig();

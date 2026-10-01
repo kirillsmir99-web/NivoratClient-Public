@@ -57,9 +57,6 @@ public class LightmapFilterModule extends NivoratModule {
                         controller.cancelState(MinecraftClient.getInstance());
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
-                        if ("double".equalsIgnoreCase(val) && !"double".equalsIgnoreCase(old)) {
-                            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.anchor.double_dev_warning"));
-                        }
                     }
                 }
         );
@@ -352,9 +349,6 @@ public class LightmapFilterModule extends NivoratModule {
             controller.toggle();
         }
         LightmapFilterConfig.enabled = enabled;
-        if (enabled && changed && c != null && "double".equalsIgnoreCase(c.autoAnchorMode)) {
-            activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.anchor.double_dev_warning"));
-        }
     }
 
     @Override

@@ -7,7 +7,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.item.ItemStack;
+import activity.client.gui.custom.hud.CooldownLayout;
+import activity.client.gui.custom.hud.CooldownListRenderer;
 import net.minecraft.item.Items;
 
 import java.util.List;
@@ -15,8 +16,10 @@ import java.util.List;
 public final class CooldownHudOverlay {
 
     public static final int ITEM_SIZE = 16;
-    public static final int ITEM_HEIGHT = 18;
-    public static final int GAP = 6;
+    public static final int ITEM_HEIGHT = CooldownLayout.ROW_HEIGHT;
+    public static final int GAP = CooldownLayout.COLUMN_GAP;
+    private static final CooldownListRenderer LIVE = new CooldownListRenderer();
+    private static final CooldownListRenderer PREVIEW = new CooldownListRenderer();
 
     private CooldownHudOverlay() {}
 
@@ -63,16 +66,18 @@ public final class CooldownHudOverlay {
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null || mc.player == null) {
+            LIVE.clear();
             return;
         }
 
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config == null || !config.cooldownHudEnabled) {
+            LIVE.clear();
             return;
         }
 
         List<CooldownTrackerService.CooldownEntry> entries = CooldownTrackerService.getActiveEntries();
-        if (entries.isEmpty()) {
+        if (entries.isEmpty() && !LIVE.hasRows()) {
             return;
         }
 
@@ -82,7 +87,7 @@ public final class CooldownHudOverlay {
         int startX = getEffectiveX(context.getScaledWindowWidth(), totalW);
         int startY = getEffectiveY(context.getScaledWindowHeight(), totalH);
 
-        renderCooldownList(context, mc.textRenderer, entries, startX, startY, vertical);
+        LIVE.render(context, entries, startX, startY, vertical);
     }
 
     public static void renderCooldownList(DrawContext context, TextRenderer textRenderer,
@@ -92,37 +97,7 @@ public final class CooldownHudOverlay {
             return;
         }
 
-        int curX = startX;
-        int curY = startY;
-
-        for (CooldownTrackerService.CooldownEntry entry : entries) {
-            ItemStack stack = entry.iconStack;
-            if (stack == null && entry.item != null) {
-                try {
-                    stack = new ItemStack(entry.item);
-                } catch (Throwable ignored) {
-                }
-            }
-            if (stack != null) {
-                context.drawItem(stack, curX, curY);
-            }
-
-            String timeText = entry.getFormattedRemaining();
-            int color = getCooldownColor(entry.getRemainingSeconds()) | 0xFF000000;
-
-            int textX = curX + ITEM_SIZE + 2;
-            int textY = curY + (ITEM_HEIGHT - textRenderer.fontHeight) / 2;
-            context.drawTextWithShadow(textRenderer, timeText, textX, textY, color);
-
-            int textWidth = textRenderer.getWidth(timeText);
-            int elementWidth = ITEM_SIZE + 2 + textWidth;
-
-            if (vertical) {
-                curY += ITEM_HEIGHT + GAP;
-            } else {
-                curX += elementWidth + GAP;
-            }
-        }
+        PREVIEW.render(context, entries, startX, startY, vertical);
     }
 
     public static int getCooldownColor(float remainingSeconds) {
@@ -135,36 +110,19 @@ public final class CooldownHudOverlay {
         }
     }
 
+    private static CooldownLayout layout(List<CooldownTrackerService.CooldownEntry> entries, boolean vertical) {
+        var mc = MinecraftClient.getInstance();
+        int available = mc == null || mc.getWindow() == null ? 320 : mc.getWindow().getScaledWidth() - 4;
+        List<CooldownTrackerService.CooldownEntry> safe = entries == null ? List.of() : entries;
+        return CooldownLayout.of(safe.size(), CooldownListRenderer.cellWidth(safe), vertical, available);
+    }
+
     public static int calculateTotalWidth(TextRenderer textRenderer, List<CooldownTrackerService.CooldownEntry> entries, boolean vertical) {
-        if (entries == null || entries.isEmpty() || textRenderer == null) {
-            return 40;
-        }
-        if (vertical) {
-            int maxW = 0;
-            for (CooldownTrackerService.CooldownEntry e : entries) {
-                int w = ITEM_SIZE + 2 + textRenderer.getWidth(e.getFormattedRemaining());
-                if (w > maxW) maxW = w;
-            }
-            return maxW;
-        } else {
-            int total = 0;
-            for (int i = 0; i < entries.size(); i++) {
-                total += ITEM_SIZE + 2 + textRenderer.getWidth(entries.get(i).getFormattedRemaining());
-                if (i < entries.size() - 1) total += GAP;
-            }
-            return total;
-        }
+        return layout(entries, vertical).width();
     }
 
     public static int calculateTotalHeight(List<CooldownTrackerService.CooldownEntry> entries, boolean vertical) {
-        if (entries == null || entries.isEmpty()) {
-            return ITEM_HEIGHT;
-        }
-        if (vertical) {
-            return entries.size() * ITEM_HEIGHT + (entries.size() - 1) * GAP;
-        } else {
-            return ITEM_HEIGHT;
-        }
+        return layout(entries, vertical).height();
     }
 
     public static List<CooldownTrackerService.CooldownEntry> getMockEntriesForPreview() {

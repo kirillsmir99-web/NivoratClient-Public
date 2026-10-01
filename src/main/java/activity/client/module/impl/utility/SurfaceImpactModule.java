@@ -446,6 +446,9 @@ public class SurfaceImpactModule extends NivoratModule {
     }
 
     @Override
+    public void onCleanupTick(MinecraftClient client) { controller.cleanup(); }
+
+    @Override
     public void onTick(MinecraftClient client) {
         if (isEnabled()) {
             controller.tick(client);

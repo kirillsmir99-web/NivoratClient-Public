@@ -161,19 +161,18 @@ public class AutoCartNeuralAimTest {
     }
 
     @Test
-    @DisplayName("Calibration Service: Auto activation of learned preset upon calibration completion")
+    @DisplayName("Calibration Service: Empty calibration must not activate learned preset")
     void testCalibrationCompletionActivatesLearnedPreset() {
         ArcMotorCalibrationService.start();
         assertTrue(ArcMotorCalibrationService.isActive());
 
         ArcNeuralMotorProfile.getInstance().finishCalibration();
         assertFalse(ArcNeuralMotorProfile.getInstance().isCalibrating());
-        assertTrue(ArcNeuralMotorProfile.getInstance().isCalibrated());
+        assertFalse(ArcNeuralMotorProfile.getInstance().didLastCalibrationSucceed());
 
         ArcMotorCalibrationService.checkCompletion();
         assertFalse(ArcMotorCalibrationService.isActive());
-        assertEquals(MorrowConfig.PRESET_LEARNED, MorrowConfig.preset);
-        assertEquals("learned", ActivityConfigManager.getConfig().autoCartPreset);
+        assertNotEquals(MorrowConfig.PRESET_LEARNED, MorrowConfig.preset);
     }
 
     @Test

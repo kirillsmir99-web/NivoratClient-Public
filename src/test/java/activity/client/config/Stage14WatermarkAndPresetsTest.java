@@ -15,6 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class Stage14WatermarkAndPresetsTest {
 
+    private String packagedVersion() {
+        InputStream stream = getClass().getResourceAsStream("/fabric.mod.json");
+        assertNotNull(stream);
+        JsonObject metadata = new Gson().fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), JsonObject.class);
+        return "v" + metadata.get("version").getAsString();
+    }
+
     @BeforeEach
     void setUp() {
         ActivityConfigManager.resetDefaults();
@@ -36,7 +43,7 @@ public class Stage14WatermarkAndPresetsTest {
         assertEquals("@virionDEV", json.get("activity.project.telegram").getAsString());
 
         assertTrue(json.has("activity.watermark.version"));
-        assertEquals("v1.0.0", json.get("activity.watermark.version").getAsString());
+        assertEquals(packagedVersion(), json.get("activity.watermark.version").getAsString());
 
         assertTrue(json.has("activity.watermark.footer"));
         assertTrue(json.get("activity.watermark.footer").getAsString().contains("@virionDEV"));
@@ -55,7 +62,7 @@ public class Stage14WatermarkAndPresetsTest {
         assertEquals("@virionDEV", json.get("activity.about.val_telegram").getAsString());
 
         assertTrue(json.has("activity.watermark.version"));
-        assertEquals("v1.0.0", json.get("activity.watermark.version").getAsString());
+        assertEquals(packagedVersion(), json.get("activity.watermark.version").getAsString());
     }
 
     @Test

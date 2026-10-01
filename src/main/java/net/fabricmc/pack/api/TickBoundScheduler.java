@@ -46,7 +46,7 @@ public final class TickBoundScheduler {
     }
 
     public static void runAfterMs(long delayMs, Runnable action) {
-        int ticks = Math.max(1, (int) Math.round(delayMs / 50.0D));
+        int ticks = GaussianTimingEngine.toActionTicks(delayMs);
         runAfterTicks(ticks, action);
     }
 
@@ -69,7 +69,9 @@ public final class TickBoundScheduler {
                 TASKS.remove(task);
                 try {
                     task.action.run();
-                } catch (Throwable ignored) {}
+                } catch (Throwable error) {
+                    activity.client.module.api.ModuleDiagnostics.report("scheduler", "action", error);
+                }
             }
         }
     }

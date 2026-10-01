@@ -27,8 +27,18 @@ public final class SafeSlotManager {
     }
 
     public static boolean selectSlot(MinecraftClient client, int slot, long currentTick) {
+        return changeSlot(client, slot, currentTick, false);
+    }
+
+    public static boolean restoreSlot(MinecraftClient client, int slot) {
+        return changeSlot(client, slot, -1L, true);
+    }
+
+    private static boolean changeSlot(MinecraftClient client, int slot, long currentTick, boolean restoring) {
         try {
-            if (client == null || client.player == null || client.interactionManager == null || client.currentScreen != null || slot < 0 || slot >= 9) {
+            if (client == null || client.player == null || client.interactionManager == null
+                    || !client.player.isAlive() || client.player.isSpectator()
+                    || (!restoring && client.currentScreen != null) || slot < 0 || slot >= 9) {
                 return false;
             }
             if (currentTick < 0) {

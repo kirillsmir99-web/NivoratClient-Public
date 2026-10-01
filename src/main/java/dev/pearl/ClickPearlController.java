@@ -1,5 +1,7 @@
 package dev.pearl;
 
+import net.fabricmc.pack.api.CombatLockManager;
+import net.fabricmc.pack.api.GaussianTimingEngine;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -9,256 +11,161 @@ import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-
-import java.util.Random;
+import net.minecraft.world.World;
 
 public final class ClickPearlController {
-    private static final Random RNG = new Random();
-
-    public enum State {
-        IDLE,
-        THROWING,
-        WAITING_RETURN
-    }
-
+    public enum State { IDLE, THROWING, WAITING_RETURN }
     private State state = State.IDLE;
+    private ClientPlayerEntity owner;
+    private World world;
     private int originalSlot = -1;
     private int selectedPearlSlot = -1;
     private int sourceInvSlot = -1;
-    private int targetHotbarIndex = -1;
-    private boolean isInventorySwapped = false;
-
-    private long throwTimeMs = 0L;
-    private long returnTimeMs = 0L;
-    private long lastTriggerTimeMs = 0L;
+    private boolean inventorySwapped;
+    private boolean cleanupPending;
+    private ItemStack displacedStack;
+    private long actionTimeMs;
+    private long lastTriggerTimeMs;
 
     public void trigger(MinecraftClient client) {
-        if (client == null || client.player == null || client.world == null || client.interactionManager == null) {
-            return;
-        }
-        if (ClickPearlConfig.combatGuard && client.currentScreen != null) {
-            return;
-        }
-        if (!client.player.isAlive()) {
-            return;
-        }
-        if (state != State.IDLE) {
-            return;
-        }
-
-        long now = System.currentTimeMillis();
-        if (now - lastTriggerTimeMs < 150L) {
-            return;
-        }
-
+        if (!usable(client) || !ClickPearlConfig.enabled || state != State.IDLE
+                || CombatLockManager.isLocked()) return;
         ClientPlayerEntity player = client.player;
-        if (ClickPearlConfig.checkCooldown && player.getItemCooldownManager().isCoolingDown(Items.ENDER_PEARL.getDefaultStack())) {
-            return;
-        }
-
-        lastTriggerTimeMs = now;
-
+        if (ClickPearlConfig.combatGuard && player.isUsingItem()) return;
+        long now = System.currentTimeMillis();
+        if (now - lastTriggerTimeMs < 150L) return;
+        if (ClickPearlConfig.checkCooldown && player.getItemCooldownManager().isCoolingDown(Items.ENDER_PEARL.getDefaultStack())) return;
         if (ClickPearlConfig.preferOffhand && isOffhandItem(player, Items.ENDER_PEARL)) {
-            ActionResult res = client.interactionManager.interactItem(player, Hand.OFF_HAND);
-            if (ClickPearlConfig.swingHand && res.isAccepted()) {
-                player.swingHand(Hand.OFF_HAND);
+            lastTriggerTimeMs = now;
+            usePearl(client, Hand.OFF_HAND);
+            return;
+        }
+        int hotbar = findHotbarItem(player, Items.ENDER_PEARL);
+        int inventory = hotbar < 0 && "inventory".equalsIgnoreCase(ClickPearlConfig.searchMode)
+                ? findInventoryItem(player, Items.ENDER_PEARL) : -1;
+        if (hotbar < 0 && inventory < 0) {
+            if (isOffhandItem(player, Items.ENDER_PEARL)) {
+                lastTriggerTimeMs = now;
+                usePearl(client, Hand.OFF_HAND);
             }
             return;
         }
-
-        int hotbarSlot = findHotbarItem(player, Items.ENDER_PEARL);
-        if (hotbarSlot >= 0) {
-            handleHotbarThrow(client, player, hotbarSlot, now);
-            return;
-        }
-
-        if ("inventory".equalsIgnoreCase(ClickPearlConfig.searchMode)) {
-            int invSlot = findInventoryItem(player, Items.ENDER_PEARL);
-            if (invSlot >= 9) {
-                handleInventoryThrow(client, player, invSlot, now);
-            }
-        }
-    }
-
-    private void handleHotbarThrow(MinecraftClient client, ClientPlayerEntity player, int hotbarSlot, long now) {
+        owner = player;
+        world = client.world;
         originalSlot = player.getInventory().getSelectedSlot();
-        selectedPearlSlot = hotbarSlot;
-
-        String mode = ClickPearlConfig.mode != null ? ClickPearlConfig.mode : "fast";
-
-        if ("fast".equalsIgnoreCase(mode)) {
-            if (originalSlot != hotbarSlot) {
-                SafeSlotManager.selectSlot(client, hotbarSlot);
+        lastTriggerTimeMs = now;
+        CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, true);
+        try {
+            if (inventory >= 9) {
+                sourceInvSlot = inventory;
+                hotbar = ClickPearlConfig.getTargetHotbarIndex();
+                displacedStack = player.getInventory().getStack(hotbar).copy();
+                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, inventory, hotbar, SlotActionType.SWAP, player);
+                inventorySwapped = true;
             }
-            ActionResult res = client.interactionManager.interactItem(player, Hand.MAIN_HAND);
-            if (ClickPearlConfig.swingHand && res.isAccepted()) {
-                player.swingHand(Hand.MAIN_HAND);
+            selectedPearlSlot = hotbar;
+            SafeSlotManager.selectSlot(client, hotbar);
+            if (player.getInventory().getSelectedSlot() != hotbar || !player.getMainHandStack().isOf(Items.ENDER_PEARL)) {
+                reset();
+                return;
             }
-
-            if (ClickPearlConfig.switchBack && originalSlot != hotbarSlot) {
-                if (ClickPearlConfig.switchDelayMs <= 5.0) {
-                    SafeSlotManager.selectSlot(client, originalSlot);
-                    originalSlot = -1;
-                    state = State.IDLE;
-                } else {
-                    long delay = (long) ClickPearlConfig.switchDelayMs;
-                    if (ClickPearlConfig.randomDelay) {
-                        delay += RNG.nextInt(20);
-                    }
-                    returnTimeMs = now + delay;
-                    state = State.WAITING_RETURN;
-                }
+            if ("fast".equalsIgnoreCase(ClickPearlConfig.mode) && !inventorySwapped) {
+                usePearl(client, Hand.MAIN_HAND);
+                scheduleReturn(now);
             } else {
-                originalSlot = -1;
-                state = State.IDLE;
+                state = State.THROWING;
+                actionTimeMs = now + 50L * GaussianTimingEngine.sampleActionTicks(30.0D, ClickPearlConfig.randomDelay);
             }
-        } else {
-            if (originalSlot != hotbarSlot) {
-                SafeSlotManager.selectSlot(client, hotbarSlot);
-            }
-            long prepDelay = ClickPearlConfig.randomDelay ? 30L + RNG.nextInt(25) : 30L;
-            throwTimeMs = now + prepDelay;
-            state = State.THROWING;
+        } catch (Throwable error) {
+            activity.client.module.api.ModuleDiagnostics.report("click_pearl", "trigger", error);
+            reset();
         }
     }
 
-    private void handleInventoryThrow(MinecraftClient client, ClientPlayerEntity player, int invSlot, long now) {
-        originalSlot = player.getInventory().getSelectedSlot();
-        sourceInvSlot = invSlot;
-        targetHotbarIndex = ClickPearlConfig.getTargetHotbarIndex();
-        isInventorySwapped = true;
+    private static boolean usable(MinecraftClient client) {
+        return client != null && client.player != null && client.world != null && client.interactionManager != null
+                && client.currentScreen == null && client.player.isAlive() && !client.player.isSpectator()
+                && client.player.currentScreenHandler == client.player.playerScreenHandler;
+    }
 
-        client.interactionManager.clickSlot(
-                player.playerScreenHandler.syncId,
-                sourceInvSlot,
-                targetHotbarIndex,
-                SlotActionType.SWAP,
-                player
-        );
-        selectedPearlSlot = targetHotbarIndex;
-        SafeSlotManager.selectSlot(client, targetHotbarIndex);
+    private boolean owns(MinecraftClient client) {
+        return client != null && client.player == owner && client.world == world && owner != null;
+    }
 
-        String mode = ClickPearlConfig.mode != null ? ClickPearlConfig.mode : "fast";
+    private boolean usePearl(MinecraftClient client, Hand hand) {
+        if (!usable(client) || !client.player.getStackInHand(hand).isOf(Items.ENDER_PEARL)) return false;
+        ActionResult result = client.interactionManager.interactItem(client.player, hand);
+        if (ClickPearlConfig.swingHand && result instanceof ActionResult.Success success
+                && success.swingSource() == ActionResult.SwingSource.CLIENT) client.player.swingHand(hand);
+        return result.isAccepted();
+    }
 
-        if ("fast".equalsIgnoreCase(mode)) {
-            ActionResult res = client.interactionManager.interactItem(player, Hand.MAIN_HAND);
-            if (ClickPearlConfig.swingHand && res.isAccepted()) {
-                player.swingHand(Hand.MAIN_HAND);
-            }
-
-            long delay = Math.max(30L, (long) ClickPearlConfig.switchDelayMs);
-            if (ClickPearlConfig.randomDelay) {
-                delay += RNG.nextInt(20);
-            }
-            returnTimeMs = now + delay;
-            state = State.WAITING_RETURN;
-        } else {
-            long prepDelay = ClickPearlConfig.randomDelay ? 40L + RNG.nextInt(25) : 40L;
-            throwTimeMs = now + prepDelay;
-            state = State.THROWING;
-        }
+    private void scheduleReturn(long now) {
+        if (!ClickPearlConfig.switchBack && !inventorySwapped) { clear(); return; }
+        state = State.WAITING_RETURN;
+        actionTimeMs = now + 50L * GaussianTimingEngine.sampleActionTicks(ClickPearlConfig.switchDelayMs, ClickPearlConfig.randomDelay);
     }
 
     public void onTick(MinecraftClient client) {
-        if (state == State.IDLE) {
-            return;
-        }
-        if (client == null || client.player == null || !client.player.isAlive()) {
-            reset();
-            return;
-        }
-
+        if (state == State.IDLE) return;
+        if (!owns(client) || !owner.isAlive()) { clear(); return; }
+        if (!usable(client)) { reset(); return; }
+        if (cleanupPending) { cleanup(client); return; }
+        if (owner.getInventory().getSelectedSlot() != selectedPearlSlot) { reset(); return; }
         long now = System.currentTimeMillis();
-
+        if (now < actionTimeMs) return;
         if (state == State.THROWING) {
-            if (now >= throwTimeMs) {
-                ClientPlayerEntity player = client.player;
-                ActionResult res = client.interactionManager.interactItem(player, Hand.MAIN_HAND);
-                if (ClickPearlConfig.swingHand && res.isAccepted()) {
-                    player.swingHand(Hand.MAIN_HAND);
-                }
-
-                if (ClickPearlConfig.switchBack || isInventorySwapped) {
-                    long delay = Math.max(30L, (long) ClickPearlConfig.switchDelayMs);
-                    if (ClickPearlConfig.randomDelay) {
-                        delay += RNG.nextInt(20);
-                    }
-                    returnTimeMs = now + delay;
-                    state = State.WAITING_RETURN;
-                } else {
-                    originalSlot = -1;
-                    state = State.IDLE;
-                }
-            }
-            return;
+            usePearl(client, Hand.MAIN_HAND);
+            scheduleReturn(now);
+        } else if (state == State.WAITING_RETURN) {
+            cleanupPending = true;
+            cleanup(client);
         }
+    }
 
-        if (state == State.WAITING_RETURN) {
-            if (now >= returnTimeMs) {
-                if (isInventorySwapped && sourceInvSlot >= 9 && targetHotbarIndex >= 0) {
-                    client.interactionManager.clickSlot(
-                            client.player.playerScreenHandler.syncId,
-                            sourceInvSlot,
-                            targetHotbarIndex,
-                            SlotActionType.SWAP,
-                            client.player
-                    );
-                    isInventorySwapped = false;
-                    sourceInvSlot = -1;
-                    targetHotbarIndex = -1;
-                }
-
-                if (ClickPearlConfig.switchBack && originalSlot >= 0 && originalSlot < 9) {
-                    SafeSlotManager.selectSlot(client, originalSlot);
-                }
-                originalSlot = -1;
-                selectedPearlSlot = -1;
-                state = State.IDLE;
+    public void cleanup(MinecraftClient client) {
+        if (!cleanupPending) return;
+        if (!owns(client) || !owner.isAlive()) { clear(); return; }
+        if (client.interactionManager == null) return;
+        if (inventorySwapped) {
+            if (owner.currentScreenHandler != owner.playerScreenHandler) return;
+            ItemStack source = owner.getInventory().getStack(sourceInvSlot);
+            ItemStack target = owner.getInventory().getStack(selectedPearlSlot);
+            if (ItemStack.areItemsAndComponentsEqual(source, displacedStack) && source.getCount() == displacedStack.getCount()
+                    && (target.isEmpty() || target.isOf(Items.ENDER_PEARL))) {
+                client.interactionManager.clickSlot(owner.playerScreenHandler.syncId, sourceInvSlot, selectedPearlSlot, SlotActionType.SWAP, owner);
             }
         }
+        if (ClickPearlConfig.switchBack && owner.getInventory().getSelectedSlot() == selectedPearlSlot) {
+            SafeSlotManager.restoreSlot(client, originalSlot);
+        }
+        clear();
     }
 
     public void reset() {
-        if (isInventorySwapped && sourceInvSlot >= 9 && targetHotbarIndex >= 0) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client != null && client.player != null && client.interactionManager != null) {
-                try {
-                    client.interactionManager.clickSlot(
-                            client.player.playerScreenHandler.syncId,
-                            sourceInvSlot,
-                            targetHotbarIndex,
-                            SlotActionType.SWAP,
-                            client.player
-                    );
-                } catch (Throwable ignored) {}
-            }
-            isInventorySwapped = false;
-            sourceInvSlot = -1;
-            targetHotbarIndex = -1;
-        }
+        if (state == State.IDLE && owner == null) return;
+        cleanupPending = true;
+        state = State.WAITING_RETURN;
+        cleanup(MinecraftClient.getInstance());
+    }
 
-        if (originalSlot >= 0 && originalSlot < 9) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client != null && client.player != null) {
-                SafeSlotManager.selectSlot(client, originalSlot);
-            }
-        }
-        originalSlot = -1;
-        selectedPearlSlot = -1;
+    private void clear() {
         state = State.IDLE;
+        owner = null;
+        world = null;
+        originalSlot = selectedPearlSlot = sourceInvSlot = -1;
+        inventorySwapped = cleanupPending = false;
+        displacedStack = null;
+        CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, false);
     }
 
-    public State getState() {
-        return state;
-    }
+    public State getState() { return state; }
 
     public static int findHotbarItem(ClientPlayerEntity player, Item targetItem) {
         if (player == null || targetItem == null) return -1;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getStack(i);
-            if (!stack.isEmpty() && stack.isOf(targetItem)) {
-                return i;
-            }
+            if (!stack.isEmpty() && stack.isOf(targetItem)) return i;
         }
         return -1;
     }
@@ -267,16 +174,12 @@ public final class ClickPearlController {
         if (player == null || targetItem == null) return -1;
         for (int i = 9; i < 36; i++) {
             ItemStack stack = player.getInventory().getStack(i);
-            if (!stack.isEmpty() && stack.isOf(targetItem)) {
-                return i;
-            }
+            if (!stack.isEmpty() && stack.isOf(targetItem)) return i;
         }
         return -1;
     }
 
     public static boolean isOffhandItem(ClientPlayerEntity player, Item targetItem) {
-        if (player == null || targetItem == null) return false;
-        ItemStack offhand = player.getOffHandStack();
-        return !offhand.isEmpty() && offhand.isOf(targetItem);
+        return player != null && targetItem != null && player.getOffHandStack().isOf(targetItem);
     }
 }

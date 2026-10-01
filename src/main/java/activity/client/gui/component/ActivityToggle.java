@@ -159,6 +159,7 @@ public class ActivityToggle extends ActivityComponent {
         }
 
         float eased = AnimationClock.smoothStep(this.animationProgress);
+        if(activity.client.gui.custom.CustomRender.active()){activity.client.gui.custom.api.ui.settings.impl.BoolSetting.drawToggle(x,y,width,height,eased,alpha);return;}
 
         int trackColor = ActivityColors.interpolateColor(ActivityColors.STATE_OFF_BG, ActivityColors.STATE_ON_BG, eased);
         if (this.hoverProgress > 0.001f && this.enabled) {

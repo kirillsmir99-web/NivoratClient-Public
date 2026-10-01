@@ -1,0 +1,55 @@
+{
+  "repository": "https://github.com/lucide-icons/lucide",
+  "commit": "5a92b9ba262de5bf10e864219883267672c05db8",
+  "license": "ISC and MIT (see bundled lucide.txt)",
+  "icons": {
+    "circle-dot": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/circle-dot.svg",
+      "sha256": "c263f6a08a089c06ad40f408ad5da9100359ab52d379e6c571cd7c5bd74eaa87"
+    },
+    "bomb": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/bomb.svg",
+      "sha256": "1172a1bda9cca358d981ea16b15e1eeb18e5ee9835d0bc3dbd34fb9ac99a103d"
+    },
+    "wind": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/wind.svg",
+      "sha256": "eb35f6f00125b779a993c21ee761432faf8fc3210272c94448f63e2196d419b7"
+    },
+    "bow-arrow": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/bow-arrow.svg",
+      "sha256": "8d022b3e9027f92c3d5995eeb7b4bee4b93abbd553178661366f721ba463cc34"
+    },
+    "apple": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/apple.svg",
+      "sha256": "55ae3426d521764c769c295a02a5bf11323068e6abf46c89a4b418b75e7e0f54"
+    },
+    "flower-2": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/flower-2.svg",
+      "sha256": "692f8bf23db876d6b9526b6e4335cfec6a3227a32bdc52db2704a01a0f259a9e"
+    },
+    "drumstick": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/drumstick.svg",
+      "sha256": "33d515a447eec391ec5b1f8b686fcd3b89eb93d6b8225eb72e21fcedb67b7168"
+    },
+    "shield": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/shield.svg",
+      "sha256": "be32f6a86df7cbe43a83c439dd8849e5bcf5145e484d23420c20d8b98a78e82b"
+    },
+    "hammer": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/hammer.svg",
+      "sha256": "db75caf31bd080726be0c2dab09372498b999cbdcf10c756f44636831f9529f5"
+    },
+    "swords": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/swords.svg",
+      "sha256": "2dcf7d618baa1fbf21064bc99eb754b8b6d589f444781975a6ea0008be4e2e82"
+    },
+    "timer": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/timer.svg",
+      "sha256": "6771297be65225d462c930865b6f9ee1617aa453885be4c8116a7512a77ac2b6"
+    },
+    "message-circle": {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/5a92b9ba262de5bf10e864219883267672c05db8/icons/message-circle.svg",
+      "sha256": "146f39740fe50844394d56ae1f8821937655bcfff3842bf6fe8ffc0bcd324076"
+    }
+  }
+}

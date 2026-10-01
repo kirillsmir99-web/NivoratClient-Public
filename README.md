@@ -1,90 +1,38 @@
-# PulseHUD
+# PulseHUD 1.0.1
 
-> Высокопроизводительный клиентский мод для Minecraft **Fabric 1.21.11** (тестовая сборка test3) с кастомным интерфейсом нового поколения, звуковым движком и боевыми модулями.
+Клиентский мод для Minecraft **1.21.11**, Fabric, Java **21**. Выпускается PUBLIC JAR; IRC, авторизация разработчика и сервер присутствия удалены.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-brightgreen.svg)](https://minecraft.net/)
-[![Fabric](https://img.shields.io/badge/Loader-Fabric-blue.svg)](https://fabricmc.net/)
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
-[![Version](https://img.shields.io/badge/Version-v1.0.0--test3-purple.svg)]()
-[![Build](https://img.shields.io/badge/Build-test3-yellow.svg)]()
-[![Developer](https://img.shields.io/badge/Developer-kt1xW-red.svg)](https://t.me/virionDEV)
+Нативный визуальный слой перенесён из Kimiko: стеклянный рендер, темы и редактор, анимации, настройки ClickGUI, поиск, локализация RU/EN, иконки и звуки. Разделение по китам, красная палитра и логотип взяты из второго визуального проекта. Игровые модули принадлежат текущему клиенту.
 
----
+## Модули
 
-## 🌟 Ключевые возможности
+* Бой: AutoMace, AutoSpear, AutoShieldbreaker, AutoStunSlam, ClickPearl, AutoPearlCatch.
+* Защита и взаимодействия: AutoTotem, AutoCart, AutoAnchor, CartRefill, WaterDrop.
+* Утилиты и интерфейс: AutoTool, AutoGG, HPReaper, Cart HUD, Cooldown HUD и настройки клиента.
 
-### 🎨 Интерфейс и графический движок (Dark Glass UI)
-- **Стеклянный полупрозрачный дизайн**: динамическая прозрачность окон (30–100%) и карточек (20–100%), адаптивное размытие и стеклянные грани.
-- **Пространственная анимация**: плавное открытие/закрытие с масштабным смещением (scale + 	ranslation + lpha) по кривым Безье.
-- **Адаптивный респонсивный layout**: поддержка любых масштабов интерфейса (GUI Scale 2/3/4/Auto), экранов малого разрешения и PojavLauncher.
-- **Перетаскивание и максимизация**: свободное позиционирование окна мышью с экранным ограничением и сохранением координат, кнопки **Refresh**, **Maximize/Restore**, **Close**.
-- **Билингвальный поиск (Ctrl+F)**: мгновенная индексация всех 12 модулей и их параметров на русском и английском языках с автокомплитом и переходом к карточке.
-- **Иерархический сайдбар**: раскрывающиеся категории (аккордеон), индикаторы активности модулей, быстрый доступ и пины.
+AutoCart использует баллистический расчёт места установки и обучаемый профиль моторики камеры/задержек. Профиль обучается на ручных действиях; пустая калибровка не считается успешной.
 
-### 🔤 Система типографики (Typography Engine)
-- **Горячее переключение шрифтов**: поддержка runtime-переключения без перезапуска клиента:
-  - Onest (современный гротеск с полным покрытием кириллицы)
-  - Inter
-  - Manrope
-  - Rubik
-  - Minecraft (ванильный пиксельный шрифт)
-- **Физическое масштабирование текста**:
-  - Маленький (0.90x)
-  - Обычный (1.00x)
-  - Крупный (1.15x)
-  Синхронный пересчёт матриц рендеринга и метрик (UiTextRenderer) исключает обрезание текста и наезды элементов.
-- **Безопасный фоллбэк**: четырёхуровневая цепочка резервных шрифтов (TTF -> space -> default -> unifont) исключает появление пустых квадратов.
+## Сборка
 
-### 🔊 Мультипрофильная звуковая система (Sound System)
-- **3 звуковых профиля**:
-  - Nivorat Serene (дефолтный тактильный пак)
-  - Nivorat Classic
-  - Minecraft (ванильные клики и щелчки)
-- **Дискретная трещотка слайдеров ('трррк')**: тактильная аудио-обратная связь с динамическим питчем и аппаратным debounce.
-- **Балансировка громкости**: нормализованное усиление калиброванных уровней без клиппинга и звукового спама.
-
-### 🛡️ Безопасность настроек и пресеты
-- **5-секундное удержание для сброса (Hold Confirmation)**: модальное окно с динамическим обратным отсчётом и заполнением полосы прогресса (0% -> 100%) при зажатии ЛКМ. Защищает от случайного сброса.
-- **Менеджер пресетов**: сохранение, экспорт/импорт настроек через буфер обмена (JSON / Base64).
-
----
-
-## ⚔️ Модули
-
-| Категория | Модули | Описание |
-|---|---|---|
-| **Бой (Combat)** | AutoMace, AutoSpear, AutoShieldbreaker, AutoStunSlam | Автоматическая смена оружия, оптимизация ударов булавой, пробитие щитов, стан-комбо |
-| **Защита (Defense)** | AutoTotem, AutoCart, AutoAnchor, CartRefill | Моментальный свап тотемов, взрыв вагонеток и якорей, автозакупка и пополнение |
-| **Утилиты (Utility)** | HPReaper, AutoTool, AutoGG, ActivityHUD | Автоматический добив, умная смена инструментов, кастомный оверлей активности |
-
----
-
-## 🛠️ Сборка из исходников
-
-### Требования
-- **Java Development Kit (JDK) 21**
-- Git
-
-### Команды сборки
-`ash
-# Клонирование репозитория
-git clone https://github.com/kirillsmir99-web/NivoratClient.git
-cd NivoratClient
-
-# Сборка JAR мода (Fabric 1.21.1)
-./gradlew clean build
-
-# Скомпилированный артефакт появится в:
-# build/libs/PulseHUD.jar
+```powershell
+git clone https://github.com/kirillsmir99-web/dorabotka-v2-versii.git
+cd dorabotka-v2-versii
+./gradlew.bat test remapJar --no-daemon
 ```
 
----
+Артефакт: `build/libs/PulseHUD.jar`. Требуется Fabric API для Minecraft 1.21.11. Внутри JAR находится неизменённый ClientSpoofer 1.4.0 с MIT-лицензией и проверкой SHA-256; отдельная его копия не нужна.
 
-## 👥 Сообщество и ссылки
+При замене установленного клиента сохраните старый JAR и конфигурацию, затем оставьте одну версию клиента в `mods`. В каталог `mods` устанавливается итоговый remapped JAR.
 
-- **Разработчик**: kt1xW
-- **Telegram канал**: [t.me/virionDEV](https://t.me/virionDEV)
-- **Discord**: [discord.gg/qkezDA7tFX](https://discord.gg/qkezDA7tFX)
-- **YouTube**: [youtube.com/@Nivorat](https://www.youtube.com/@Nivorat)
-- **TikTok**: [tiktok.com/@nivorat](https://www.tiktok.com/@nivorat)
-- **Поддержка**: [donationalerts.com/r/nivorat](https://www.donationalerts.com/r/nivorat)
+## Проверки
+
+[Разбор механик](docs/MECHANICS_AUDIT.md), [оптимизация](docs/OPTIMIZATION_REPORT.md), [перенос визуала](docs/VISUAL_PORT.md), [состав перенесённых исходников](docs/custom-render-sources.json).
+
+JUnit проверяет конфигурации, переходы, расчёты, локализацию, GUI и обучение. Изолированный игровой сценарий проверяет PUBLIC JAR с копией набора модов: перл и вагонетка должны реально появиться на встроенном сервере, а слот и блокировки — восстановиться. Тестовый helper не включается в продукт.
+
+```powershell
+./gradlew.bat -I tools/public-visual-smoke.init.gradle publicVisualSmoke -PmechanicsSmoke --no-daemon
+./gradlew.bat -I tools/public-visual-smoke.init.gradle publicVisualSmoke --no-daemon
+```
+
+Это ограниченные воспроизводимые проверки. Совместимость всех режимов с каждым сторонним сервером, универсальный FPS на слабых компьютерах и отсутствие античит-отклонений ими не подтверждаются.

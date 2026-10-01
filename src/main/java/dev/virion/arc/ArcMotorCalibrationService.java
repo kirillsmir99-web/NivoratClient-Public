@@ -73,8 +73,17 @@ public final class ArcMotorCalibrationService {
     }
 
     public static void checkCompletion() {
+        ArcNeuralMotorProfile.getInstance().flushCheckpoint();
         if (active && !ArcNeuralMotorProfile.getInstance().isCalibrating()) {
             active = false;
+            try { activity.client.module.api.ModuleEventDispatcher.updateActiveModules(); }
+            catch (Throwable ignored) {}
+            if (!ArcNeuralMotorProfile.getInstance().didLastCalibrationSucceed()) {
+                try {
+                    activity.client.gui.overlay.ClientNotification.show(Text.literal("Недостаточно данных: повторите калибровку с движением камеры и установкой вагонеток."));
+                } catch (Throwable ignored) {}
+                return;
+            }
             try {
                 activity.client.module.api.ModuleEventDispatcher.updateActiveModules();
             } catch (Throwable ignored) {}

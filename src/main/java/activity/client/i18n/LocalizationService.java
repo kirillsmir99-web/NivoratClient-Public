@@ -78,6 +78,13 @@ public final class LocalizationService {
         return val != null ? val : fallback;
     }
 
+    public static String getForLanguage(String key,String fallback,String language) {
+        boolean ru="ru".equalsIgnoreCase(language);
+        String value=(ru?RU_STRINGS:EN_STRINGS).get(key);
+        if(value==null)value=(ru?EN_STRINGS:RU_STRINGS).get(key);
+        return value==null?fallback:value;
+    }
+
     public static boolean hasTranslation(String key) {
         if (key == null || !key.startsWith("activity.")) return false;
         return RU_STRINGS.containsKey(key) || EN_STRINGS.containsKey(key);

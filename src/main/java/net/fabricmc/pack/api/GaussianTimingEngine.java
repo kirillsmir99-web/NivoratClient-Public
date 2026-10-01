@@ -7,6 +7,17 @@ public final class GaussianTimingEngine {
 
     private GaussianTimingEngine() {}
 
+    public static int toActionTicks(double delayMs) {
+        if (!Double.isFinite(delayMs) || delayMs <= 0.0D) return 1;
+        return (int) Math.min(Integer.MAX_VALUE, Math.max(1.0D, Math.ceil(delayMs / 50.0D)));
+    }
+
+    public static int sampleActionTicks(double delayMs, boolean random) {
+        int base = toActionTicks(delayMs);
+        if (!random) return base;
+        return (int) getDelay(base, 0.65D, Math.max(1L, (long) base - 1L), Math.min(Integer.MAX_VALUE, (long) base + 2L));
+    }
+
     public static long getDelay(double mean, double stdDev, long min, long max) {
         if (max <= min) {
             return min;

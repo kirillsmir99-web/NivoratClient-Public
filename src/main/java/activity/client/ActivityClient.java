@@ -31,8 +31,9 @@ public class ActivityClient implements ClientModInitializer {
         activity.client.module.api.ModuleRegistry.initEvents();
         activity.client.gui.font.FontManager.init();
         activity.client.gui.sound.ActivitySoundEvents.register();
-        activity.client.presence.PresenceHeartbeatService.start();
-        activity.client.presence.DevPeerTracker.start();
+        activity.client.gui.custom.utils.sounds.SoundManager.init();
+
+
 
         KeyBinding.Category cooldownCategory = KeyBinding.Category.create(net.minecraft.util.Identifier.of("cooldown_hud", "main"));
         openCooldownHudKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -98,11 +99,11 @@ public class ActivityClient implements ClientModInitializer {
             if (isDown && !menuKeyDown) {
                 menuKeyDown = true;
                 try {
-                    client.setScreen(new ActivityScreen());
+                    client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
                 } catch (Throwable t) {
                     try {
                         ActivityScreen.clearSession();
-                        client.setScreen(new ActivityScreen());
+                        client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
                     } catch (Throwable ignored) {
                     }
                 }
@@ -112,8 +113,8 @@ public class ActivityClient implements ClientModInitializer {
         });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
-            activity.client.presence.PresenceHeartbeatService.stop();
-            activity.client.presence.DevPeerTracker.stop();
+
+
             activity.client.module.service.CooldownTrackerService.clear();
             if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
                 return;

@@ -1,0 +1,146 @@
+[
+  {
+    "icon": "ANIMATION",
+    "source": "animation.svg",
+    "u": 0,
+    "v": 0
+  },
+  {
+    "icon": "CHECK",
+    "source": "check.svg",
+    "u": 24,
+    "v": 0
+  },
+  {
+    "icon": "CHEVRON_DOWN",
+    "source": "chevron-down.svg",
+    "u": 48,
+    "v": 0
+  },
+  {
+    "icon": "CHEVRON_RIGHT",
+    "source": "next.svg",
+    "u": 72,
+    "v": 0
+  },
+  {
+    "icon": "CLOSE",
+    "source": "close.svg",
+    "u": 96,
+    "v": 0
+  },
+  {
+    "icon": "COPY",
+    "source": "duplicate.svg",
+    "u": 120,
+    "v": 0
+  },
+  {
+    "icon": "FONT",
+    "source": "language.svg",
+    "u": 24,
+    "v": 24
+  },
+  {
+    "icon": "GLASS",
+    "source": "glass.svg",
+    "u": 48,
+    "v": 24
+  },
+  {
+    "icon": "IMPORT",
+    "source": "import.svg",
+    "u": 72,
+    "v": 24
+  },
+  {
+    "icon": "KEYBIND",
+    "source": "bind.svg",
+    "u": 120,
+    "v": 24
+  },
+  {
+    "icon": "PIN",
+    "source": "pinned.svg",
+    "u": 168,
+    "v": 24
+  },
+  {
+    "icon": "REFRESH",
+    "source": "speed.svg",
+    "u": 0,
+    "v": 48
+  },
+  {
+    "icon": "SAVE",
+    "source": "check.svg",
+    "u": 72,
+    "v": 48
+  },
+  {
+    "icon": "SEARCH",
+    "source": "search.svg",
+    "u": 96,
+    "v": 48
+  },
+  {
+    "icon": "SETTINGS",
+    "source": "settings.svg",
+    "u": 120,
+    "v": 48
+  },
+  {
+    "icon": "PROFILE",
+    "source": "profile.svg",
+    "u": 24,
+    "v": 96
+  },
+  {
+    "icon": "SOUND",
+    "source": "sound.svg",
+    "u": 144,
+    "v": 48
+  },
+  {
+    "icon": "TRASH",
+    "source": "delete.svg",
+    "u": 24,
+    "v": 72
+  },
+  {
+    "icon": "COMBAT",
+    "source": "modules.svg",
+    "u": 120,
+    "v": 72
+  },
+  {
+    "icon": "DEFENSE",
+    "source": "potions.svg",
+    "u": 144,
+    "v": 72
+  },
+  {
+    "icon": "UTILITY",
+    "source": "utils.svg",
+    "u": 168,
+    "v": 72
+  },
+  {
+    "icon": "ABOUT",
+    "source": "more.svg",
+    "u": 96,
+    "v": 96
+  },
+  {
+    "icon": "CONFIG",
+    "source": "import.svg",
+    "u": 48,
+    "v": 96
+  },
+  {
+    "icon": "EXPORT",
+    "source": "export.svg",
+    "u": 120,
+    "v": 96
+  }
+]

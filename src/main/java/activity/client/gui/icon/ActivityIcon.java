@@ -269,7 +269,7 @@ public enum ActivityIcon {
         ".XX.XX.XX.",
         "...XXXX..."
     ),
-    PROFILE(120, 48, 24, 24,
+    PROFILE(24, 96, 24, 24,
         "...XXXX...",
         "..XXXXXX..",
         "..XXXXXX..",
@@ -404,7 +404,7 @@ public enum ActivityIcon {
         ".X..XX..X."
     ),
 
-    ABOUT(96, 24, 24, 24,
+    ABOUT(96, 96, 24, 24,
         "...XXXX...",
         "..XX..XX..",
         ".XX....XX.",
@@ -416,7 +416,7 @@ public enum ActivityIcon {
         "..XX..XX..",
         "...XXXX..."
     ),
-    CONFIG(120, 48, 24, 24,
+    CONFIG(48, 96, 24, 24,
         "..X.......",
         "XXXXX.....",
         "..X.......",
@@ -464,7 +464,7 @@ public enum ActivityIcon {
         "...X..X...",
         "...XXXX..."
     ),
-    EXPORT(120, 0, 24, 24,
+    EXPORT(120, 96, 24, 24,
         "....XX....",
         "...XXXX...",
         "..XXXXXX..",
