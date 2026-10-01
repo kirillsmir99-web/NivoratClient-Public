@@ -14,7 +14,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
 public final class ClickPearlController {
-    public enum State { IDLE, THROWING, WAITING_RETURN }
+    public enum State { IDLE, OPENING_INVENTORY, CLOSING_INVENTORY, THROWING, WAITING_RETURN }
     private State state = State.IDLE;
     private ClientPlayerEntity owner;
     private World world;
@@ -26,6 +26,13 @@ public final class ClickPearlController {
     private ItemStack displacedStack;
     private long actionTimeMs;
     private long lastTriggerTimeMs;
+    private net.minecraft.client.gui.screen.Screen inventoryScreen;
+    private int inventoryFrames;
+    private int lastInventoryStep = -1;
+
+    public boolean ownsInventoryScreen(MinecraftClient client) {
+        return inventoryScreen != null && owns(client) && client.currentScreen == inventoryScreen;
+    }
 
     public void trigger(MinecraftClient client) {
         if (!usable(client) || !ClickPearlConfig.enabled || state != State.IDLE
@@ -60,8 +67,13 @@ public final class ClickPearlController {
                 sourceInvSlot = inventory;
                 hotbar = ClickPearlConfig.getTargetHotbarIndex();
                 displacedStack = player.getInventory().getStack(hotbar).copy();
-                client.interactionManager.clickSlot(player.playerScreenHandler.syncId, inventory, hotbar, SlotActionType.SWAP, player);
-                inventorySwapped = true;
+                selectedPearlSlot = hotbar;
+                inventoryScreen = new net.minecraft.client.gui.screen.ingame.InventoryScreen(player);
+                state = State.OPENING_INVENTORY;
+                inventoryFrames = 0;
+                client.setScreen(inventoryScreen);
+                if (client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen) inventoryScreen = client.currentScreen;
+                return;
             }
             selectedPearlSlot = hotbar;
             SafeSlotManager.selectSlot(client, hotbar);
@@ -109,8 +121,28 @@ public final class ClickPearlController {
     public void onTick(MinecraftClient client) {
         if (state == State.IDLE) return;
         if (!owns(client) || !owner.isAlive()) { clear(); return; }
-        if (!usable(client)) { reset(); return; }
         if (cleanupPending) { cleanup(client); return; }
+        if (state == State.OPENING_INVENTORY || state == State.CLOSING_INVENTORY) {
+            if (!ownsInventoryScreen(client)) { reset(); return; }
+            if (!inventoryStep()) return;
+            inventoryFrames = 0;
+            if (state == State.OPENING_INVENTORY) {
+                ItemStack source = owner.getInventory().getStack(sourceInvSlot);
+                ItemStack target = owner.getInventory().getStack(selectedPearlSlot);
+                if (!source.isOf(Items.ENDER_PEARL) || !ItemStack.areEqual(target, displacedStack)) { reset(); return; }
+                client.interactionManager.clickSlot(owner.playerScreenHandler.syncId, sourceInvSlot, selectedPearlSlot, SlotActionType.SWAP, owner);
+                inventorySwapped = true;
+                state = State.CLOSING_INVENTORY;
+            } else {
+                client.setScreen(null);
+                inventoryScreen = null;
+                SafeSlotManager.selectSlot(client, selectedPearlSlot);
+                state = State.THROWING;
+                actionTimeMs = System.currentTimeMillis() + 50L;
+            }
+            return;
+        }
+        if (!usable(client)) { reset(); return; }
         if (owner.getInventory().getSelectedSlot() != selectedPearlSlot) { reset(); return; }
         long now = System.currentTimeMillis();
         if (now < actionTimeMs) return;
@@ -129,9 +161,18 @@ public final class ClickPearlController {
         if (client.interactionManager == null) return;
         if (inventorySwapped) {
             if (owner.currentScreenHandler != owner.playerScreenHandler) return;
+            if (client.currentScreen == null) {
+                inventoryScreen = new net.minecraft.client.gui.screen.ingame.InventoryScreen(owner);
+                inventoryFrames = 0;
+                client.setScreen(inventoryScreen);
+                if (client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen) inventoryScreen = client.currentScreen;
+                return;
+            }
+            if (!ownsInventoryScreen(client)) return;
+            if (!inventoryStep()) return;
             ItemStack source = owner.getInventory().getStack(sourceInvSlot);
             ItemStack target = owner.getInventory().getStack(selectedPearlSlot);
-            if (ItemStack.areItemsAndComponentsEqual(source, displacedStack) && source.getCount() == displacedStack.getCount()
+            if (ItemStack.areEqual(source, displacedStack)
                     && (target.isEmpty() || target.isOf(Items.ENDER_PEARL))) {
                 client.interactionManager.clickSlot(owner.playerScreenHandler.syncId, sourceInvSlot, selectedPearlSlot, SlotActionType.SWAP, owner);
             }
@@ -139,6 +180,7 @@ public final class ClickPearlController {
         if (ClickPearlConfig.switchBack && owner.getInventory().getSelectedSlot() == selectedPearlSlot) {
             SafeSlotManager.restoreSlot(client, originalSlot);
         }
+        if (ownsInventoryScreen(client)) client.setScreen(null);
         clear();
     }
 
@@ -150,6 +192,9 @@ public final class ClickPearlController {
     }
 
     private void clear() {
+        inventoryScreen = null;
+        inventoryFrames = 0;
+        lastInventoryStep = -1;
         state = State.IDLE;
         owner = null;
         world = null;
@@ -160,6 +205,12 @@ public final class ClickPearlController {
     }
 
     public State getState() { return state; }
+
+    private boolean inventoryStep() {
+        if (lastInventoryStep == owner.age) return false;
+        lastInventoryStep = owner.age;
+        return ++inventoryFrames >= 2;
+    }
 
     public static int findHotbarItem(ClientPlayerEntity player, Item targetItem) {
         if (player == null || targetItem == null) return -1;

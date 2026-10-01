@@ -11,10 +11,10 @@ public final class ClientPalette {
     public static final int MAX_STOPS = 6;
     private static final int VEC4_FLOATS = 4;
     private static final int META2_OFFSET = 112;
-    private static final int UNIFORM_BYTES = 128;
-    public static final int SLOT_STRIDE_BYTES = 128;
+    private static final int UNIFORM_BYTES = 56 * 16;
+    public static final int SLOT_STRIDE_BYTES = UNIFORM_BYTES;
     public static final int SLOTS = 5;
-    private static final int TOTAL_BYTES = 640;
+    private static final int TOTAL_BYTES = SLOT_STRIDE_BYTES * SLOTS;
     private static final long PERIOD_MS = 24000L;
     public static final long SCROLL_PERIOD_MS = 2200L;
     private static GpuBuffer buffer;
@@ -63,7 +63,7 @@ public final class ClientPalette {
             return;
         }
         try (MemoryStack memoryStack = MemoryStack.stackPush();){
-            ByteBuffer byteBuffer = memoryStack.calloc(128);
+            ByteBuffer byteBuffer = memoryStack.calloc(UNIFORM_BYTES);
             byteBuffer.putFloat(0, count);
             byteBuffer.putFloat(4, phase);
             byteBuffer.putFloat(8, styleId);
@@ -80,7 +80,7 @@ public final class ClientPalette {
                 byteBuffer.putFloat(n2 + 12, 1.0f);
             }
             byteBuffer.position(0);
-            RenderSystem.getDevice().createCommandEncoder().writeToBuffer(gpuBuffer.slice(0L, 128L), byteBuffer);
+            RenderSystem.getDevice().createCommandEncoder().writeToBuffer(gpuBuffer.slice(0L, UNIFORM_BYTES), byteBuffer);
         }
         catch (RuntimeException runtimeException) {
 
@@ -186,7 +186,7 @@ public final class ClientPalette {
             return;
         }
         try (MemoryStack memoryStack = MemoryStack.stackPush();){
-            ByteBuffer byteBuffer = memoryStack.calloc(128);
+            ByteBuffer byteBuffer = memoryStack.calloc(UNIFORM_BYTES);
             byteBuffer.putFloat(0, 6.0f);
             byteBuffer.putFloat(4, f);
             byteBuffer.putFloat(8, f2);
@@ -203,7 +203,7 @@ public final class ClientPalette {
                 byteBuffer.putFloat(n3 + 12, 1.0f);
             }
             byteBuffer.position(0);
-            RenderSystem.getDevice().createCommandEncoder().writeToBuffer(gpuBuffer.slice((long)(n * 128), 128L), byteBuffer);
+            RenderSystem.getDevice().createCommandEncoder().writeToBuffer(gpuBuffer.slice((long)n * SLOT_STRIDE_BYTES, UNIFORM_BYTES), byteBuffer);
         }
         catch (RuntimeException runtimeException) {
 
@@ -236,12 +236,12 @@ public final class ClientPalette {
     }
 
     private static GpuBuffer ensureBuffer() {
-        if (buffer != null && !buffer.isClosed() && buffer.size() >= 640L) {
+        if (buffer != null && !buffer.isClosed() && buffer.size() >= TOTAL_BYTES) {
             return buffer;
         }
         ClientPalette.closeBuffer();
-        try {
-            buffer = RenderSystem.getDevice().createBuffer(() -> "nv_client_palette", 136, 640L);
+        try (MemoryStack memoryStack = MemoryStack.stackPush()) {
+            buffer = RenderSystem.getDevice().createBuffer(() -> "nv_client_palette", 136, memoryStack.calloc(TOTAL_BYTES));
             return buffer;
         }
         catch (RuntimeException runtimeException) {

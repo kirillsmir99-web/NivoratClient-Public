@@ -18,6 +18,16 @@ public class Module implements activity.client.gui.custom.IMinecraft {
  public void setEnabled(boolean value){if(delegate==null)enabled=value;else{delegate.setEnabled(value);delegate.saveToConfig(activity.client.config.ActivityConfigManager.getConfig());activity.client.config.ActivityConfigManager.markDirty();}}
  public void toggle(){setEnabled(!isEnabled());var sounds=ModuleManager.get().get(activity.client.gui.custom.api.modules.impl.Utils.ClientSounds.class);sounds.onModuleToggle(this,isEnabled());ModuleManager.get().get(activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.class).onModuleToggle(this,isEnabled());}
  public KeyBind getBind(){if(delegate==null)return bind;int code=delegate.getKeybind().getKeyCode();return code<=activity.client.module.keybind.Keybind.MOUSE_OFFSET?KeyBind.mouse(activity.client.module.keybind.Keybind.MOUSE_OFFSET-code):KeyBind.keyboard(code);}
- public void setBind(KeyBind value){if(delegate==null){bind=value;return;}var old=delegate.getKeybind();int code=value.getCode();if(value.getType()==activity.client.gui.custom.utils.key.InputType.MOUSE)code=activity.client.module.keybind.Keybind.MOUSE_OFFSET-(code==1002?2:code);old.set(code,old.isCtrl(),old.isShift(),old.isAlt());delegate.saveToConfig(activity.client.config.ActivityConfigManager.getConfig());activity.client.config.ActivityConfigManager.markDirty();}
+ public void setBind(KeyBind value){
+  if(delegate==null){bind=value;return;}
+  var current=delegate.getKeybind();
+  int code=value.getCode();
+  if(value.getType()==activity.client.gui.custom.utils.key.InputType.MOUSE)code=activity.client.module.keybind.Keybind.MOUSE_OFFSET-(code==1002?2:code);
+  var next=new activity.client.module.keybind.Keybind(code);
+  activity.client.gui.custom.NativeBindAssignment.request(current,next,()->{
+   current.copyFrom(next);delegate.saveToConfig(activity.client.config.ActivityConfigManager.getConfig());activity.client.config.ActivityConfigManager.markDirty();
+  });
+ }
+
  public BindMode getBindMode(){return BindMode.TOGGLE;}public void setBindMode(BindMode mode){if(mode==BindMode.HOLD)activity.client.gui.overlay.ClientNotification.show(net.minecraft.text.Text.literal(activity.client.i18n.LocalizationService.isRussianPreferred()?"Этот модуль использует переключение по клавише":"This module uses toggle key bindings"));}
 }

@@ -82,6 +82,18 @@ public class HPReaperModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("show_armor", Text.literal("Броня"), Text.literal("Показывать предметы брони выбранной цели"), SettingGroup.EXTRA, true,
+                () -> ActivityConfigManager.getConfig().hpReaperShowArmor,
+                value -> ActivityConfigManager.getConfig().hpReaperShowArmor = value);
+        registerBoolean("show_difference", Text.literal("Разница HP"), Text.literal("Показывать разницу вашего здоровья и здоровья цели"), SettingGroup.EXTRA, true,
+                () -> ActivityConfigManager.getConfig().hpReaperShowDifference,
+                value -> ActivityConfigManager.getConfig().hpReaperShowDifference = value);
+        registerBoolean("low_health_hearts", Text.literal("HP Focus"), Text.literal("Векторные сердца Kimiko при низком здоровье"), SettingGroup.EXTRA, true,
+                () -> ActivityConfigManager.getConfig().hpReaperLowHealthHearts,
+                value -> ActivityConfigManager.getConfig().hpReaperLowHealthHearts = value);
+        registerInteger("low_health_threshold", Text.literal("Порог HP Focus"), Text.literal("Показывать сердца ниже этого количества HP"), SettingGroup.EXTRA, 1, 40, 1, activity.client.module.setting.NumberUnit.NONE, 8,
+                () -> ActivityConfigManager.getConfig().hpReaperLowHealthThreshold,
+                value -> ActivityConfigManager.getConfig().hpReaperLowHealthThreshold = value);
         registerAction("open_editor", Text.translatable("activity.setting.utility.open_editor"),
                 Text.translatable("activity.setting.utility.open_editor.desc"), SettingGroup.EXTRA,
                 () -> {

@@ -316,6 +316,11 @@ public class ClickPearlModule extends NivoratModule {
     }
 
     @Override
+    public boolean canTickWhileScreenOpen(MinecraftClient client) {
+        return controller.ownsInventoryScreen(client);
+    }
+
+    @Override
     public void saveToConfig(ActivityConfig config) {
         if (config == null) return;
         config.clickPearlEnabled = this.enabled;

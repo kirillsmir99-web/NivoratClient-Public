@@ -19,6 +19,7 @@ public final class AudioSyncConfig {
     public boolean sendOnOwnDeath = true;
     public boolean randomOrder = false;
     public List<String> phrases = new ArrayList<>(DEFAULT_PHRASES);
+    public List<String> favorites = new ArrayList<>();
     public int selected = 0;
 
     private static final Gson G = new GsonBuilder().setPrettyPrinting().create();
@@ -38,19 +39,7 @@ public final class AudioSyncConfig {
                 if (c == null) c = new AudioSyncConfig();
                 c.enabled = true;
                 if (c.phrases == null) c.phrases = new ArrayList<>();
-                c.phrases.removeIf(s -> s == null || s.isBlank() || s.equalsIgnoreCase("Новая фраза"));
-
-                for (int i = 0; i < c.phrases.size(); i++) {
-                    if ("Yes".equalsIgnoreCase(c.phrases.get(i).trim())) {
-                        c.phrases.set(i, "ez");
-                    }
-                }
-
-                List<String> legacyList = List.of(
-                        "Good Fight", "Короля не убить", "Катка супер!", "Мощно!",
-                        "GF", "Well Played!", "Well Played", "Новая фраза"
-                );
-                c.phrases.removeIf(s -> s == null || s.isBlank() || legacyList.stream().anyMatch(leg -> leg.equalsIgnoreCase(s.trim())));
+                c.phrases.removeIf(s -> s == null || s.isBlank());
 
                 List<String> deduped = new ArrayList<>();
                 for (String p : c.phrases) {
@@ -70,6 +59,9 @@ public final class AudioSyncConfig {
                 }
 
                 c.selected = Math.max(0, Math.min(c.selected, c.phrases.size() - 1));
+                if (c.favorites == null) c.favorites = new ArrayList<>();
+                List<String> loadedPhrases = c.phrases;
+                c.favorites.removeIf(phrase -> !loadedPhrases.contains(phrase));
                 return c;
             }
         } catch (Exception ignored) {
@@ -80,11 +72,17 @@ public final class AudioSyncConfig {
     public String currentPhrase() {
         if (phrases == null || phrases.isEmpty()) return "GGWP";
         int idx = Math.max(0, Math.min(selected, phrases.size() - 1));
+        if (favorites != null && !favorites.isEmpty() && !favorites.contains(phrases.get(idx)))
+            for (String phrase : phrases) if (favorites.contains(phrase)) return phrase;
         return phrases.get(idx);
     }
 
     public String nextPhrase() {
         if (phrases == null || phrases.isEmpty()) return "GGWP";
+        if (favorites != null && !favorites.isEmpty()) {
+            List<String> available = phrases.stream().filter(favorites::contains).toList();
+            if (!available.isEmpty()) return randomOrder ? available.get(ThreadLocalRandom.current().nextInt(available.size())) : currentPhrase();
+        }
         if (randomOrder) {
             int idx = ThreadLocalRandom.current().nextInt(phrases.size());
             return phrases.get(idx);
@@ -106,7 +104,7 @@ public final class AudioSyncConfig {
                 phrases = new ArrayList<>(phrases.subList(0, MAX_PHRASES));
             }
             Files.createDirectories(p().getParent());
-            Files.writeString(p(), G.toJson(this));
+            activity.client.gui.custom.utils.storage.AtomicFiles.writeUtf8(p(), G.toJson(this));
         } catch (Exception ignored) {
         }
     }

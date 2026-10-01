@@ -119,7 +119,8 @@ public class SelectSetting implements Setting {
         boolean hasScroll = list.size() > MAX_VISIBLE;
         this.updateScroll();
 
-        RenderHelper.drawDropBackground(dropX, dropY, dropW, dropH, effectiveAlpha);
+        Render2D.rect(dropX, dropY, dropW, dropH, 4f, rgba(18, 20, 29, 252f * f4));
+        Render2D.outline(dropX, dropY, dropW, dropH, 4f, .6f, ClientAccent.accentSoft(100f * effectiveAlpha));
         float topClip = dropY + 1.0f;
         float botClip = dropY + dropH - 1.0f;
 

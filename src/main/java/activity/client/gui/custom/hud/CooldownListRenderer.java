@@ -24,7 +24,7 @@ import java.util.Map;
 public final class CooldownListRenderer {
     private static final float ROW_SIZE = 6.5f;
     private static final Easing ROW_EASING = value -> value * value * (3.0 - 2.0 * value);
-    private final Map<Item, RowState> rows = new LinkedHashMap<>();
+    private final Map<Object, RowState> rows = new LinkedHashMap<>();
     private final SmoothAnimation width = new SmoothAnimation();
     private String cachedLanguage;
     private String title;
@@ -40,6 +40,7 @@ public final class CooldownListRenderer {
 
     public static String itemName(CooldownEntry entry) {
         if (entry.item == null) return "";
+        if (entry.iconStack != null && entry.iconStack.contains(net.minecraft.component.DataComponentTypes.CUSTOM_NAME)) return entry.iconStack.getName().getString();
         String key = "activity.hud.cooldown.item." + Registries.ITEM.getId(entry.item).getPath();
         return VisualText.safe(LocalizationService.get(key, entry.item.getName().getString()), VisualText.language());
     }
@@ -67,7 +68,7 @@ public final class CooldownListRenderer {
         }
         for (var row : rows.values()) row.active = false;
         for (var entry : entries) {
-            var row = rows.computeIfAbsent(entry.item, item -> new RowState());
+            var row = rows.computeIfAbsent(entry.key, item -> new RowState());
             if (row.entry != entry || row.name == null) row.name = itemName(entry);
             row.entry = entry;
             row.active = true;

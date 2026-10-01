@@ -201,19 +201,15 @@ public class AutoGGRadialScreenTest {
     }
 
     @Test
-    @DisplayName("Config: Legacy test phrases are stripped and Yes migrated on load")
-    void testLegacyPhrasesStrippedOnLoad() {
+    @DisplayName("Config: User phrases survive saving and loading unchanged")
+    void testUserPhrasesPreservedOnLoad() {
         AudioSyncConfig config = new AudioSyncConfig();
         config.phrases = new ArrayList<>(List.of("GGWP", "Good Fight", "Короля не убить", "Yes", "GG"));
         config.save();
 
         try {
             AudioSyncConfig loaded = AudioSyncConfig.load();
-            assertEquals(List.of("GGWP", "ez", "GG"), loaded.phrases);
-            assertFalse(loaded.phrases.contains("Good Fight"));
-            assertFalse(loaded.phrases.contains("Короля не убить"));
-            assertFalse(loaded.phrases.contains("Yes"));
-            assertTrue(loaded.phrases.contains("ez"));
+            assertEquals(config.phrases, loaded.phrases);
         } finally {
             config.phrases = new ArrayList<>(AudioSyncConfig.DEFAULT_PHRASES);
             config.selected = 0;
@@ -333,8 +329,8 @@ public class AutoGGRadialScreenTest {
     }
 
     @Test
-    @DisplayName("AudioWaveModule: Legacy 'Yes' in autoGGPhrase is migrated to 'ez' without resurrecting 'Yes'")
-    void testLegacyYesMigrationInSyncEngineConfig() {
+    @DisplayName("AudioWaveModule: A user phrase is selected without replacing its text")
+    void testUserPhrasePreservedInSyncEngineConfig() {
         activity.client.module.impl.utility.AudioWaveModule module = new activity.client.module.impl.utility.AudioWaveModule();
         activity.client.config.ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
         assertNotNull(config);
@@ -345,10 +341,10 @@ public class AutoGGRadialScreenTest {
         config.autoGGPhrase = "Yes";
         module.syncEngineConfig(config);
 
-        assertEquals("ez", config.autoGGPhrase, "Legacy 'Yes' phrase must be migrated to 'ez'");
-        assertEquals("ez", AudioSyncClient.CONFIG.currentPhrase(), "Active selected phrase must be 'ez'");
-        assertFalse(AudioSyncClient.CONFIG.phrases.contains("Yes"), "Phrases list must never resurrect 'Yes'");
-        assertTrue(AudioSyncClient.CONFIG.phrases.contains("ez"), "Phrases list must contain 'ez'");
+        assertEquals("Yes", config.autoGGPhrase);
+        assertEquals("Yes", AudioSyncClient.CONFIG.currentPhrase());
+        assertTrue(AudioSyncClient.CONFIG.phrases.contains("Yes"));
+        assertTrue(AudioSyncClient.CONFIG.phrases.contains("ez"));
     }
 
     @Test

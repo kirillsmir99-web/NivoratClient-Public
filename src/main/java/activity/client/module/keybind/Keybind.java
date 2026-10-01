@@ -58,6 +58,9 @@ public final class Keybind {
     }
 
     public void setKey(int keyCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) modifiers &= ~GLFW.GLFW_MOD_SHIFT;
+        if (keyCode == GLFW.GLFW_KEY_LEFT_CONTROL || keyCode == GLFW.GLFW_KEY_RIGHT_CONTROL) modifiers &= ~GLFW.GLFW_MOD_CONTROL;
+        if (keyCode == GLFW.GLFW_KEY_LEFT_ALT || keyCode == GLFW.GLFW_KEY_RIGHT_ALT) modifiers &= ~GLFW.GLFW_MOD_ALT;
         boolean ctrl = (modifiers & GLFW.GLFW_MOD_CONTROL) != 0;
         boolean shift = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
         boolean alt = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
@@ -102,7 +105,7 @@ public final class Keybind {
         boolean altDown = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
 
         if (this.ctrl && !ctrlDown) return false;
-        return this.shift == shiftDown && this.alt == altDown;
+        return (isShiftKey() || this.shift == shiftDown) && (isAltKey() || this.alt == altDown);
     }
 
     public boolean matchesButton(int button, int modifiers) {
@@ -125,11 +128,11 @@ public final class Keybind {
     public boolean matchesWindow(Window window, boolean ctrlDown, boolean shiftDown, boolean altDown) {
         if (isUnbound() || window == null || window.getHandle() == 0L) return false;
         if (this.ctrl && !ctrlDown) return false;
-        if (this.shift != shiftDown || this.alt != altDown) return false;
+        if ((!isShiftKey() && this.shift != shiftDown) || (!isAltKey() && this.alt != altDown)) return false;
 
         if (isMouseButton()) {
             int button = getMouseButton();
-            return GLFW.glfwGetMouseButton(window.getHandle(), button) == GLFW.GLFW_PRESS;
+            return button >= 0 && button <= GLFW.GLFW_MOUSE_BUTTON_LAST && GLFW.glfwGetMouseButton(window.getHandle(), button) == GLFW.GLFW_PRESS;
         }
 
         return InputUtil.isKeyPressed(window, this.keyCode);
@@ -196,6 +199,9 @@ public final class Keybind {
 
         return sb.toString();
     }
+
+    private boolean isShiftKey() { return keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT; }
+    private boolean isAltKey() { return keyCode == GLFW.GLFW_KEY_LEFT_ALT || keyCode == GLFW.GLFW_KEY_RIGHT_ALT; }
 
     public Text getDisplayText() {
         if (isUnbound()) {

@@ -56,6 +56,9 @@ public final class RaycastPredictorController {
     private float pearlPitch = 0.0f;
     private float targetWindPitch = 0.0f;
     private float targetWindYaw = 0.0f;
+    private Vec3d thrownPearlOrigin;
+    private Vec3d thrownPearlVelocity;
+    private int pearlAge;
 
     private boolean pearlInOffhand = false;
     private int pearlSlot = -1;
@@ -221,7 +224,7 @@ public final class RaycastPredictorController {
                 RaycastTrajectory.Solution sol = RaycastTrajectory.solve3D(
                         effectiveDelay,
                         initialYaw,
-                        client.player.getVelocity(),
+                        client.player.getMovement(),
                         client.player.isOnGround(),
                         (float) config.autoPearlCatchHorizontalOffset
                 );
@@ -298,6 +301,11 @@ public final class RaycastPredictorController {
                 reset(); return;
             }
             pearlThrowTimeMs = System.currentTimeMillis();
+            thrownPearlOrigin = new Vec3d(client.player.getX(), client.player.getEyeY() - .1, client.player.getZ());
+            Vec3d movement = client.player.getMovement();
+            thrownPearlVelocity = RaycastTrajectory.getDirectionVector(client.player.getPitch(), client.player.getYaw())
+                    .multiply(RaycastTrajectory.PEARL_SPEED).add(movement.x, client.player.isOnGround() ? 0 : movement.y, movement.z);
+            pearlAge = 0;
 
             Hand hand = pearlInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
             ActionResult res = client.interactionManager.interactItem(client.player, hand);
@@ -328,6 +336,7 @@ public final class RaycastPredictorController {
         }
 
         if (state == State.WAIT_FOR_WIND) {
+            pearlAge++;
             delayTicksRemaining--;
 
             if (delayTicksRemaining <= 1 && !windInOffhand && windSlot >= 0 && windSlot < 9) {
@@ -345,7 +354,14 @@ public final class RaycastPredictorController {
 
         if (state == State.THROW_WIND) {
 
-            if (fullAuto && currentMode == Mode.HORIZONTAL) {
+            if (fullAuto && thrownPearlOrigin != null && thrownPearlVelocity != null) {
+                Vec3d movement = client.player.getMovement();
+                Vec3d inherited = new Vec3d(movement.x, client.player.isOnGround() ? 0 : movement.y, movement.z);
+                var solution = RaycastTrajectory.solveIntercept(thrownPearlOrigin, thrownPearlVelocity, pearlAge,
+                        client.player.getEyePos(), inherited);
+                if (!solution.valid()) { reset(); return; }
+                targetWindPitch = solution.windPitch();
+                targetWindYaw = solution.windYaw();
                 cameraInterpolator.finalizeInterpolation(client, targetWindPitch, targetWindYaw);
             }
 

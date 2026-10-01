@@ -13,20 +13,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ItemCooldownManager.class)
 public class MixinItemCooldownManager {
 
-    @Inject(method = "set(Lnet/minecraft/item/ItemStack;I)V", at = @At("HEAD"))
-    private void onSetCooldownStack(ItemStack stack, int duration, CallbackInfo ci) {
-        try {
-            if (stack != null && !stack.isEmpty()) {
-                CooldownTrackerService.onCooldownSet(stack.getItem(), duration);
-            }
-        } catch (Throwable ignored) {}
+    private boolean isLocalManager() {
+        var client = net.minecraft.client.MinecraftClient.getInstance();
+        return client != null && client.player != null && (Object) this == client.player.getItemCooldownManager();
     }
 
     @Inject(method = "set(Lnet/minecraft/util/Identifier;I)V", at = @At("HEAD"))
     private void onSetCooldownId(Identifier id, int duration, CallbackInfo ci) {
         try {
-            if (id != null) {
-                CooldownTrackerService.onCooldownSet(Registries.ITEM.get(id), duration);
+            if (id != null && isLocalManager()) {
+                CooldownTrackerService.onCooldownGroupSet(id, duration);
             }
         } catch (Throwable ignored) {}
     }
@@ -34,8 +30,8 @@ public class MixinItemCooldownManager {
     @Inject(method = "remove(Lnet/minecraft/util/Identifier;)V", at = @At("HEAD"))
     private void onRemoveCooldownId(Identifier id, CallbackInfo ci) {
         try {
-            if (id != null) {
-                CooldownTrackerService.onCooldownRemoved(Registries.ITEM.get(id));
+            if (id != null && isLocalManager()) {
+                CooldownTrackerService.onCooldownGroupRemoved(id);
             }
         } catch (Throwable ignored) {}
     }

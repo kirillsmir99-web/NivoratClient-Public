@@ -105,6 +105,7 @@ public final class InspectorRenderer {
 
     public void closeOverlays() {
         for (Setting setting : this.widgets) {
+            if (setting instanceof activity.client.gui.custom.api.ui.settings.impl.BindSetting bind) bind.setListening(false);
             if (setting.isOverlayOpen()) {
                 setting.closeOverlay(false);
             }
@@ -208,6 +209,9 @@ public final class InspectorRenderer {
             float itemH = setting.height();
             if (setting.hasOverlay() && setting.isOverlayOpen()) {
                 try {
+                    Render2D.flush();
+                    ((activity.client.gui.custom.mixin.accessor.GuiGraphicsExtractorAccessor) drawContext).nv_getGuiRenderState().createNewRootLayer();
+                    Render2D.beginFrame(drawContext);
                     setting.renderOverlay(drawContext, bodyX, overlayY, bodyW, effectiveAlpha);
                 } catch (Throwable t) {
                     t.printStackTrace();
@@ -328,6 +332,8 @@ public final class InspectorRenderer {
                 if (setting.clickOverlay(bodyX, overlayClickY, bodyW, mouseX, mouseY)) {
                     return true;
                 }
+                setting.closeOverlay(false);
+                return true;
             }
             overlayClickY += itemH + WIDGET_GAP;
         }
@@ -435,7 +441,7 @@ public final class InspectorRenderer {
         for (Setting setting : this.widgets) {
             if (setting instanceof activity.client.gui.custom.api.ui.settings.impl.BindSetting bindSetting) {
                 if (bindSetting.isListening()) {
-                    bindSetting.setKey(input.key());
+                    bindSetting.capture(input.key(), input.modifiers(), false);
                     return true;
                 }
             }
@@ -443,6 +449,17 @@ public final class InspectorRenderer {
                 if (textSetting.isFocused() && textSetting.typeKey(input.key())) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    public boolean captureMouse(int button) {
+        if (!isOpen()) return false;
+        for (Setting setting : widgets) {
+            if (setting instanceof activity.client.gui.custom.api.ui.settings.impl.BindSetting bind && bind.isListening()) {
+                bind.capture(button, 0, true);
+                return true;
             }
         }
         return false;

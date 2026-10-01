@@ -63,6 +63,7 @@ public final class ThemesRenderer {
         List<ITheme> list = new ArrayList<>();
         list.addAll(CustomThemeManager.getCustomThemes());
         Collections.addAll(list, Theme.values());
+        list.sort(java.util.Comparator.comparing((ITheme theme) -> !ThemePins.isPinned(theme)));
         return list;
     }
 
@@ -154,6 +155,8 @@ public final class ThemesRenderer {
             if (!(f4 >= f14) || !(f4 <= f14 + f11) || !(f5 >= f15) || !(f5 <= f15 + CARD_H)) continue;
 
 
+            float pinX = f14 + f11 - 30f;
+            if(f4 >= pinX - 2 && f4 <= pinX + 8 && f5 >= f15 + 3 && f5 <= f15 + 16){ThemePins.toggle(th);return true;}
             if (th.isCustom()) {
                 CustomTheme ct = (CustomTheme) th;
 
@@ -401,6 +404,7 @@ public final class ThemesRenderer {
             Fonts.MONTSERRAT_MEDIUM.draw(descriptor, f34, f25 + 16.5f, 5.0f, ThemeManager.rgba(0x9E9E9E, (155.0f + 35.0f * f26) * f32));
 
 
+            Fonts.NV.msdf(NvIcons.PINNED, f24 + f13 - 30f, f25 + 6.5f, 6f, ThemePins.isPinned(theme2) ? ClientAccent.accentBright(255 * f32) : ThemeManager.rgba(0xffffff, 90 * f32));
             if (theme2.isCustom()) {
 
                 float delX = f24 + f13 - 10.0f;
@@ -427,7 +431,7 @@ public final class ThemesRenderer {
 
             int[] nArray = theme2.palette();
             if (nArray != null && nArray.length >= 2) {
-                float dotsX = f24 + f13 - (theme2.isCustom() ? 44.0f : 34.0f);
+                float dotsX = f24 + f13 - (theme2.isCustom() ? 55.0f : 50.0f);
                 for (int d = 0; d < Math.min(3, nArray.length); ++d) {
                     Render2D.rect(dotsX + (float)d * 6.0f, f25 + 7.5f, 3.5f, 3.5f, 1.75f, ThemeManager.rgba(nArray[d], (190.0f + 50.0f * f26) * f32));
                 }

@@ -328,6 +328,7 @@ implements GuiCapture.Source {
     }
 
     public boolean keyPressed(KeyInput input) {
+        if (activity.client.gui.custom.NativeBindAssignment.keyPressed(input.key())) return true;
         int n;
         Setting setting;
         if (this.screenAnim.isClosing()) {
@@ -387,6 +388,7 @@ implements GuiCapture.Source {
     }
 
     public void removed() {
+        activity.client.gui.custom.NativeBindAssignment.cancel();
         activity.client.gui.custom.VisualSettingsStore.save(); activity.client.config.ActivityConfigManager.save();
         if (!this.screenAnim.isClosing()) {
             this.screenAnim.snapClosed();
@@ -425,6 +427,9 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseClicked(Click click, boolean doubled) {
+        if (activity.client.gui.custom.NativeBindAssignment.click(Position.mouseX(), Position.mouseY(), click.button())) return true;
+        if (this.inspector.captureMouse(click.button())) return true;
+        if (this.bindPopup.mouseBind(click.button())) return true;
         if(click.button()==2&&isModuleView()){Module m=moduleAtCursor();if(m!=null){bindPopup.open(m,Position.mouseX(),Position.mouseY());return true;}}
         if (!this.screenAnim.canInteract()) {
             return true;
@@ -648,6 +653,7 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (activity.client.gui.custom.NativeBindAssignment.isOpen()) return true;
         if (!this.screenAnim.canInteract()) {
             return true;
         }
@@ -718,6 +724,7 @@ implements GuiCapture.Source {
     }
 
     public boolean charTyped(CharInput input) {
+        if (activity.client.gui.custom.NativeBindAssignment.isOpen()) return true;
         if (this.screenAnim.isClosing()) {
             return true;
         }
@@ -1747,6 +1754,7 @@ implements GuiCapture.Source {
         if(UI.isOpen()&&!UI.guiCaptureActive()&&!this.bindPopup.isVisible()&&!this.settingsPopup.isVisible()&&!this.themesRenderer.getEditor().isOpen()){
             if(this.inspector.isOpen())this.inspector.renderExplanation(drawContext, f6);else if(this.isModuleView())this.moduleList.renderExplanation(drawContext, f6);
         }
+        activity.client.gui.custom.NativeBindAssignment.render(drawContext, f6);
         drawContext.getMatrices().popMatrix();
         if (this.themesRenderer.getEditor().isOpen()) {
             this.themesRenderer.getEditor().renderOverlays(drawContext, f6);

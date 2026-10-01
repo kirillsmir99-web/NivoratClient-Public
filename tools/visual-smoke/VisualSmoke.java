@@ -110,6 +110,8 @@ public final class VisualSmoke implements ClientModInitializer {
                         System.out.println("CLIENTSPOOFER_SMOKE loaded 1.4.0; brand="+net.minecraft.client.ClientBrandRetriever.getClientModName());
                     }
                     if(Boolean.getBoolean("visual.smoke.lowfps"))client.options.getMaxFps().setValue(10);
+                    if(Boolean.getBoolean("visual.smoke.revision")) {client.setScreen(null); stage=501; ticks=0; return;}
+                    if(Boolean.getBoolean("visual.smoke.pearlCatch")) {client.setScreen(null); stage=502; ticks=0; return;}
                     if(Boolean.getBoolean("visual.smoke.mechanics")) {client.setScreen(null); stage=500; ticks=0; return;}
                     verifyInventory(client);verifyNativeText();screen = activity.client.gui.custom.api.ui.UI.INSTANCE;
                     client.setScreen(screen);
@@ -119,6 +121,8 @@ public final class VisualSmoke implements ClientModInitializer {
                     return;
                 }
                 if(stage==500) {MechanicsSmoke.tick(client);return;}
+                if(stage==501) {RevisionSmoke.tick(client);return;}
+                if(stage==502) {PearlCatchSmoke.tick(client);return;}
                 if(stage==21||stage==22){
                     var field=screen.getClass().getDeclaredField("moduleList");field.setAccessible(true);
                     var renderer=(activity.client.gui.custom.api.ui.module.ModuleListRenderer)field.get(screen);

@@ -1,4 +1,4 @@
-# PulseHUD 1.0.1
+# PulseHUD 1.0.2
 
 Клиентский мод для Minecraft **1.21.11**, Fabric, Java **21**. Выпускается PUBLIC JAR; IRC, авторизация разработчика и сервер присутствия удалены.
 
@@ -26,7 +26,7 @@ cd dorabotka-v2-versii
 
 ## Проверки
 
-[Разбор механик](docs/MECHANICS_AUDIT.md), [оптимизация](docs/OPTIMIZATION_REPORT.md), [перенос визуала](docs/VISUAL_PORT.md), [состав перенесённых исходников](docs/custom-render-sources.json).
+[PUBLIC 1.0.2: бинды, PEARL, HP и списки](docs/PUBLIC_1.0.2.md), [разбор механик](docs/MECHANICS_AUDIT.md), [оптимизация](docs/OPTIMIZATION_REPORT.md), [перенос визуала](docs/VISUAL_PORT.md), [состав перенесённых исходников](docs/custom-render-sources.json).
 
 JUnit проверяет конфигурации, переходы, расчёты, локализацию, GUI и обучение. Изолированный игровой сценарий проверяет PUBLIC JAR с копией набора модов: перл и вагонетка должны реально появиться на встроенном сервере, а слот и блокировки — восстановиться. Тестовый helper не включается в продукт.
 

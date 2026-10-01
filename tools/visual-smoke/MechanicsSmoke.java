@@ -19,6 +19,7 @@ final class MechanicsSmoke {
     static void tick(MinecraftClient client) {
         ticks++;
         if (ticks == 1) {
+            client.getServer().execute(() -> client.getServer().getPlayerManager().getPlayer(client.player.getUuid()).changeGameMode(net.minecraft.world.GameMode.CREATIVE));
             for (var module : activity.client.module.api.ModuleRegistry.getAll()) module.setEnabled(false);
             pearl = (ClickPearlModule) activity.client.module.api.ModuleRegistry.get("click_pearl");
             pearl.setEnabled(true);
@@ -125,14 +126,54 @@ final class MechanicsSmoke {
             cart.setEnabled(false);
             System.out.println("MECHANICS_SMOKE completed: server-observed pearl throw, tick dispatch, slot return, GUI cancellation, lock cleanup; source=" + pearl.getClass().getProtectionDomain().getCodeSource().getLocation());
             System.out.println("MECHANICS_CART_SMOKE completed: integrated-server TNT minecart, accepted rail/cart interactions, slot return, lock cleanup");
-            VisualSmoke.writeResult(true, "mechanics");
+            for (int slot = 0; slot < 9; slot++) setStack(client, slot, ItemStack.EMPTY);
+            setStack(client, 40, ItemStack.EMPTY);
+            setStack(client, 0, new ItemStack(Items.DIAMOND_SWORD));
+            setStack(client, 12, new ItemStack(Items.ENDER_PEARL, 16));
+            ClickPearlConfig.searchMode = "inventory";
+            ClickPearlConfig.targetHotbarSlot = 3;
+            pearl.setEnabled(true);
+            serverSawPearl.set(false);
+            client.getServer().execute(() -> {
+                var serverPlayer = client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
+                serverPlayer.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+            });
+        }
+        if (ticks == 134) {
+            ClickPearlConfig.searchMode = "inventory";
+            ClickPearlConfig.targetHotbarSlot = 3;
+            ClickPearlConfig.checkCooldown = false;
+            ClickPearlConfig.preferOffhand = false;
+            ClickPearlConfig.combatGuard = false;
+            System.out.println("INVENTORY_PEARL_SETUP state=" + pearl.getController().getState() + " inv=" + dev.pearl.ClickPearlController.findInventoryItem(client.player, Items.ENDER_PEARL) + " hotbar=" + dev.pearl.ClickPearlController.findHotbarItem(client.player, Items.ENDER_PEARL) + " lock=" + CombatLockManager.getLockMask() + " selected=" + client.player.getInventory().getSelectedSlot());
+            pearl.getController().trigger(client);
+            require(client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen, "Inventory was not physically opened");
+        }
+        if (ticks == 135) require(client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen, "Inventory closed before an extraction tick");
+        if (ticks >= 140 && ticks <= 159) client.getServer().execute(() -> {
+            for (var entity : client.getServer().getOverworld().iterateEntities()) if (entity instanceof net.minecraft.entity.projectile.thrown.EnderPearlEntity) serverSawPearl.set(true);
+        });
+        if (ticks == 165) {
+            require(serverSawPearl.get(), "Inventory PEARL was not received by the server");
+            require(client.currentScreen == null, "Managed inventory remained open");
+            require(client.player.getInventory().getSelectedSlot() == 0, "Inventory pearl did not restore selected slot");
+            require(client.player.getInventory().getStack(12).isOf(Items.ENDER_PEARL), "Inventory pearl stack was not restored");
+            require(client.player.getInventory().getStack(2).isEmpty(), "Hotbar was not restored");
+            require(!CombatLockManager.isLocked(), "Inventory pearl retained lock");
+            System.out.println("INVENTORY_PEARL_SMOKE passed: visible inventory, accepted swap/use/return, restored slots, no lock");
+            VisualSmoke.writeResult(true, "mechanics + physical inventory PEARL");
             client.scheduleStop();
         }
     }
 
     private static void setStack(MinecraftClient client, int slot, ItemStack stack) {
         client.player.getInventory().setStack(slot, stack);
-        client.interactionManager.clickCreativeStack(stack, 36 + slot);
+        var uuid = client.player.getUuid();
+        client.getServer().execute(() -> {
+            var player = client.getServer().getPlayerManager().getPlayer(uuid);
+            player.getInventory().setStack(slot, stack.copy());
+            player.playerScreenHandler.sendContentUpdates();
+        });
     }
 
     private static void require(boolean condition, String message) {

@@ -11,7 +11,8 @@ import net.minecraft.client.gui.DrawContext;
 public final class UnifiedHudRender {
     public static final float FONT_SIZE=8f;
     private UnifiedHudRender() {}
-    public static Scope begin(DrawContext context){return new Scope(context);}
+    public static Scope begin(DrawContext context){return new Scope(context, false);}
+    public static Scope beginNative(DrawContext context){return new Scope(context, true);}
     public static float textWidth(String text){return Fonts.MONTSERRAT_MEDIUM.width(text,FONT_SIZE);}
     public static int measure(String text){
         if(net.minecraft.client.MinecraftClient.getInstance()==null)return Math.max(1,text.length()*5);
@@ -28,11 +29,11 @@ public final class UnifiedHudRender {
     }
     public static final class Scope implements AutoCloseable {
         private final DrawContext context;private final boolean own;
-        private Scope(DrawContext context){
+        private Scope(DrawContext context, boolean nativeCoordinates){
             this.context=context;own=!CustomRender.active();
             CustomRender.init();VisualSettingsStore.load();
             context.getMatrices().pushMatrix();
-            float inverse=1f/Render2DCoordinateSpace.guiIndependentScale();
+            float inverse=nativeCoordinates ? 1f : 1f/Render2DCoordinateSpace.guiIndependentScale();
             context.getMatrices().scaleLocal(inverse,inverse);
             if(own)CustomRender.enter(context);
         }

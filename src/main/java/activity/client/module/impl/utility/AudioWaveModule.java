@@ -144,6 +144,8 @@ public class AudioWaveModule extends NivoratModule {
                     }
                 }
         );
+        registerAction("edit_phrases", Text.literal("Список фраз"), Text.literal("Добавить, изменить, удалить или отметить избранные фразы"), SettingGroup.EXTRA,
+                () -> { var mc = MinecraftClient.getInstance(); mc.send(() -> mc.setScreen(new activity.client.gui.custom.NativeCollectionScreen(mc.currentScreen, activity.client.gui.custom.NativeCollectionScreen.Kind.GG))); });
     }
 
     @Override
@@ -412,10 +414,7 @@ public class AudioWaveModule extends NivoratModule {
         AudioSyncClient.CONFIG.randomOrder = c.autoGGRandomOrder;
         AudioSyncClient.customDelayMs = c.autoGGDelayMs;
         if (c.autoGGPhrase != null && !c.autoGGPhrase.isBlank()) {
-            if ("Yes".equalsIgnoreCase(c.autoGGPhrase.trim())) {
-                c.autoGGPhrase = "ez";
-                ActivityConfigManager.markDirty();
-            }
+
             int idx = -1;
             for (int i = 0; i < AudioSyncClient.CONFIG.phrases.size(); i++) {
                 if (AudioSyncClient.CONFIG.phrases.get(i).equalsIgnoreCase(c.autoGGPhrase.trim())) {

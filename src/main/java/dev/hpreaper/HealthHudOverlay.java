@@ -321,9 +321,9 @@ public final class HealthHudOverlay {
     public static int getEffectiveY(DisplayMode mode, int screenHeight, int elementHeight) {
         int customY = VitalityConfig.getModeY(mode);
         if (customY >= 0) {
-            return Math.max(4, Math.min(screenHeight - elementHeight - 2, customY));
+            return Math.max(elementHeight > 24 ? 25 : 4, Math.min(screenHeight - elementHeight - 2, customY));
         }
-        return getDefaultY(screenHeight);
+        return getDefaultY(screenHeight) - (elementHeight > 24 ? 8 : 0);
     }
 
     public static int getEffectiveX(int screenWidth, int elementWidth) {
@@ -338,12 +338,14 @@ public final class HealthHudOverlay {
         if (textRenderer == null) {
             return 24;
         }
+        if (mode != DisplayMode.OWN_HEALTH && activity.client.config.ActivityConfigManager.getConfig().hpReaperShowDifference)
+            return 45 + activity.client.gui.custom.UnifiedHudRender.measure("20.0 18.5 +1.5");
         return switch(mode){
             case OWN_HEALTH,CROSSHAIR_AND_TARGET,TARGET_HEALTH -> 30+activity.client.gui.custom.UnifiedHudRender.measure("20.0");
             case OWN_TARGET_AND_DIFFERENCE,DISABLED -> 45+activity.client.gui.custom.UnifiedHudRender.measure("20.0 18.5 +1.5");
         };
     }
-    public static int getPreviewHeight(DisplayMode mode){return 24;}
+    public static int getPreviewHeight(DisplayMode mode){return activity.client.config.ActivityConfigManager.getConfig().hpReaperShowArmor ? 48 : 24;}
     public static void renderPreview(DrawContext context,MinecraftClient client,int x,int y,DisplayMode mode){
         if(context==null||client==null)return;
         renderElement(context,client,x,y,"20.0",COLOR_NORMAL,"18.5",COLOR_TARGET,"+1.5",COLOR_DIFFERENCE_AHEAD,mode);
@@ -352,12 +354,13 @@ public final class HealthHudOverlay {
                                     String ownText,int ownColor,String targetText,int targetColor,
                                     String diffText,int diffColor,DisplayMode mode){
         if(mode==DisplayMode.DISABLED||mode==DisplayMode.TARGET_HEALTH&&targetText==null)return;
-        boolean combined=mode==DisplayMode.OWN_TARGET_AND_DIFFERENCE&&targetText!=null&&diffText!=null;
+        boolean combined=mode!=DisplayMode.OWN_HEALTH&&targetText!=null&&diffText!=null
+                && activity.client.config.ActivityConfigManager.getConfig().hpReaperShowDifference;
         String primary=mode==DisplayMode.OWN_HEALTH?ownText:targetText!=null?targetText:ownText;
         if(combined)primary=ownText;
         int width=30+activity.client.gui.custom.UnifiedHudRender.measure(primary);
         if(combined)width+=15+activity.client.gui.custom.UnifiedHudRender.measure(targetText+" "+diffText);
-        try(var frame=activity.client.gui.custom.UnifiedHudRender.begin(context)){
+        try(var frame=activity.client.gui.custom.UnifiedHudRender.beginNative(context)){
             activity.client.gui.custom.UnifiedHudRender.card(x,y,width,24);
             activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.HEART,x+6,y+6,9,activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(245));
             float tx=x+21;
@@ -370,6 +373,8 @@ public final class HealthHudOverlay {
             }
             float numeric=0f;try{numeric=Float.parseFloat(primary);}catch(NumberFormatException ignored){}
             activity.client.gui.custom.UnifiedHudRender.progress(x+5,y+20,width-10,numeric/20f);
+            var target = client.player == null ? null : getActiveTarget(client.player, System.nanoTime());
+            KimikoHealthVisual.armor(context, mode == DisplayMode.OWN_HEALTH ? client.player : target, x, y - 23);
         }
     }
 
@@ -451,6 +456,7 @@ public final class HealthHudOverlay {
                 displayTargetHp = -1.0F;
             }
 
+            KimikoHealthVisual.lowHealth(context, client);
             if (VitalityConfig.displayMode == DisplayMode.TARGET_HEALTH && targetText == null) {
                 return;
             }
@@ -463,8 +469,8 @@ public final class HealthHudOverlay {
                 return;
             }
 
-            int sw = context.getScaledWindowWidth();
-            int sh = context.getScaledWindowHeight();
+            int sw = (int) activity.client.gui.custom.api.drags.Position.screenWidth();
+            int sh = (int) activity.client.gui.custom.api.drags.Position.screenHeight();
             int x = getEffectiveX(VitalityConfig.displayMode, sw, elementWidth);
             int y = getEffectiveY(VitalityConfig.displayMode, sh, elementHeight);
 

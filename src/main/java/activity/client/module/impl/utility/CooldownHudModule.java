@@ -51,6 +51,8 @@ public class CooldownHudModule extends NivoratModule {
                 }
         );
 
+        registerAction("custom_items", Text.literal("Свои предметы"), Text.literal("Поиск предметов по названию, ID или имени в хотбаре"), SettingGroup.EXTRA,
+                () -> { var mc = MinecraftClient.getInstance(); mc.send(() -> mc.setScreen(new activity.client.gui.custom.NativeCollectionScreen(mc.currentScreen, activity.client.gui.custom.NativeCollectionScreen.Kind.COOLDOWN))); });
         registerAction("open_editor", Text.literal("Редактировать место Cooldown HUD"),
                 Text.literal("Интерактивное перемещение и настройка отображения кулдаунов"), SettingGroup.EXTRA,
                 () -> {

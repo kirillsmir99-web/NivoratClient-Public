@@ -21,15 +21,22 @@ public final class CooldownTrackerService {
         public final int totalTicks;
         public int remainingTicks;
         public final long startTimestampMs;
+        public final Object key;
         private int formattedTicks = Integer.MIN_VALUE;
         private String formattedRemaining;
 
         public CooldownEntry(Item item, int totalTicks) {
+            this(item == null ? null : item.getDefaultStack(), item, totalTicks);
+        }
+
+        public CooldownEntry(ItemStack original, Object key, int totalTicks) {
+            Item item = original == null ? null : original.getItem();
+            this.key = key;
             this.item = item;
             ItemStack stack = null;
             try {
                 if (item != null) {
-                    stack = new ItemStack(item);
+                    stack = original.copy();
                 }
             } catch (Throwable ignored) {
             }
@@ -140,6 +147,31 @@ public final class CooldownTrackerService {
         }
         registerCooldown(item, item, durationTicks);
     }
+
+    public static void onCooldownGroupSet(net.minecraft.util.Identifier group, int durationTicks) {
+        var client = MinecraftClient.getInstance();
+        if (client == null || client.player == null || durationTicks <= 0) return;
+        var manager = client.player.getItemCooldownManager();
+        ItemStack selected = null;
+        for (int i = 0; i < client.player.getInventory().size(); i++) {
+            ItemStack stack = client.player.getInventory().getStack(i);
+            if (!stack.isEmpty() && manager.getGroup(stack).equals(group)) {
+                if (selected == null) selected = stack;
+                if (activity.client.gui.custom.CooldownSelections.matches(stack)) { selected = stack; break; }
+            }
+        }
+        if (selected == null) {
+            var item = net.minecraft.registry.Registries.ITEM.get(group);
+            if (!isAirItem(item)) selected = item.getDefaultStack();
+        }
+        if (selected == null) return;
+        var cfg = ActivityConfigManager.getConfig();
+        boolean custom = activity.client.gui.custom.CooldownSelections.matches(selected);
+        if (!custom && durationTicks < Math.round((cfg == null ? 2.5 : cfg.cooldownHudMinDuration) * 20)) return;
+        ACTIVE_COOLDOWNS.put(group, new CooldownEntry(selected, group, durationTicks));
+    }
+
+    public static void onCooldownGroupRemoved(net.minecraft.util.Identifier group) { ACTIVE_COOLDOWNS.remove(group); }
 
     public static void onCooldownSetForTest(String testKey, int durationTicks) {
         if (testKey == null || durationTicks <= 0) {

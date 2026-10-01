@@ -188,6 +188,10 @@ public class ActivityConfig {
     public boolean cartRefillLegitMode = true;
 
     public boolean hpReaperEnabled = true;
+    public boolean hpReaperShowArmor = true;
+    public boolean hpReaperShowDifference = true;
+    public boolean hpReaperLowHealthHearts = true;
+    public int hpReaperLowHealthThreshold = 8;
     public Keybind hpReaperKeybind = new Keybind();
     public String hpReaperMode = "target_hp";
     public String hpReaperTargetFilter = "all_entities";
@@ -673,6 +677,11 @@ public class ActivityConfig {
         this.cartRefillLegitMode = true;
 
         this.hpReaperEnabled = true;
+        this.hpReaperShowArmor = true;
+        this.hpReaperShowDifference = true;
+        this.hpReaperLowHealthHearts = true;
+        this.hpReaperLowHealthThreshold = 8;
+
         this.hpReaperKeybind.clear();
         this.hpReaperMode = "target_hp";
         this.hpReaperTargetFilter = "all_entities";
@@ -2071,6 +2080,11 @@ public class ActivityConfig {
         copy.cartRefillLegitMode = this.cartRefillLegitMode;
 
         copy.hpReaperEnabled = this.hpReaperEnabled;
+        copy.hpReaperShowArmor = this.hpReaperShowArmor;
+        copy.hpReaperShowDifference = this.hpReaperShowDifference;
+        copy.hpReaperLowHealthHearts = this.hpReaperLowHealthHearts;
+        copy.hpReaperLowHealthThreshold = this.hpReaperLowHealthThreshold;
+
         copy.hpReaperKeybind.copyFrom(this.hpReaperKeybind);
         copy.hpReaperMode = this.hpReaperMode;
         copy.hpReaperTargetFilter = this.hpReaperTargetFilter;
@@ -2545,7 +2559,12 @@ public class ActivityConfig {
         );
         result = 31 * result + Objects.hash(
 
-            hpReaperEnabled, hpReaperKeybind, hpReaperMode, hpReaperTargetFilter,
+            hpReaperEnabled,
+            hpReaperShowArmor,
+            hpReaperShowDifference,
+            hpReaperLowHealthHearts,
+            hpReaperLowHealthThreshold,
+ hpReaperKeybind, hpReaperMode, hpReaperTargetFilter,
             hpReaperOwnHealthX, hpReaperOwnHealthY, hpReaperCrosshairTargetX, hpReaperCrosshairTargetY, hpReaperTargetHealthX, hpReaperTargetHealthY, hpReaperDiffX, hpReaperDiffY,
             autoToolEnabled, autoToolKeybind, autoToolCombatGuard, autoToolDurabilitySaver, autoToolDurabilityThreshold, autoToolPreferSilkTouch, autoToolRestorePrevious, autoToolLegitMode, autoToolSingleSlotMode, autoToolSingleSlot, autoToolIgnoreInstantBreak, autoToolLockWhileMining,
             autoGGEnabled, autoGGKeybind, autoGGMenuKeybind, autoGGPhrase, autoGGSendOnKill, autoGGSendOnOwnDeath, autoGGRandomOrder, autoGGDelayMs,

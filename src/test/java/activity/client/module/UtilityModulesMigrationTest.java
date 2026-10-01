@@ -42,6 +42,12 @@ public class UtilityModulesMigrationTest {
 
     @BeforeAll
     static void initRegistry() {
+        net.minecraft.SharedConstants.createGameVersion();
+        try {
+            for (var field : net.minecraft.Bootstrap.class.getDeclaredFields()) if (field.getType() == boolean.class) {
+                field.setAccessible(true); field.setBoolean(null, true);
+            }
+        } catch (ReflectiveOperationException error) { throw new IllegalStateException(error); }
         BuiltinModules.registerAll();
     }
 
