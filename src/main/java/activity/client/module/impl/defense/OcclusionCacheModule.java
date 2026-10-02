@@ -100,15 +100,15 @@ public class OcclusionCacheModule extends NivoratModule {
                             camCurve = 20.0;
                             camRand = 20.0;
                         } else if ("safe".equalsIgnoreCase(val)) {
-                            minD = 70.0;
-                            maxD = 100.0;
+                            minD = 85.0;
+                            maxD = 120.0;
                             chance = 100.0;
                             maxDist = 4.2;
                             pit = true;
                             legit = true;
                             camMode = "auto";
-                            camSmooth = 160.0;
-                            camRetSmooth = 150.0;
+                            camSmooth = 180.0;
+                            camRetSmooth = 165.0;
                             camCurve = 45.0;
                             camRand = 40.0;
                         } else if ("learned".equalsIgnoreCase(val)) {
@@ -300,18 +300,18 @@ public class OcclusionCacheModule extends NivoratModule {
 
         registerEnum("camera_mode", Text.translatable("activity.setting.defense.cart_camera_mode"),
                 Text.translatable("activity.setting.defense.cart_camera_mode.desc"), SettingGroup.BEHAVIOR,
-                List.of("off", "packet", "auto", "assisted"), "auto",
+                List.of("off", "packet", "auto"), "auto",
                 opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt),
                 opt -> Text.translatable("activity.dropdown.cart_camera_mode." + opt + ".desc"),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoCartCameraMode : "auto";
+                    return c != null && !"assisted".equalsIgnoreCase(c.autoCartCameraMode) ? c.autoCartCameraMode : "auto";
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
-                        c.autoCartCameraMode = val;
-                        c.autoCartAutoCamera = "auto".equalsIgnoreCase(val) || "assisted".equalsIgnoreCase(val);
+                        c.autoCartCameraMode = "assisted".equalsIgnoreCase(val) ? "auto" : val;
+                        c.autoCartAutoCamera = "auto".equalsIgnoreCase(c.autoCartCameraMode);
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }

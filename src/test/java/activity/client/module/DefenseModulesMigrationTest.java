@@ -322,13 +322,13 @@ public class DefenseModulesMigrationTest {
         assertEquals("safe", config.autoCartPreset);
         assertEquals(MorrowConfig.PRESET_SAFE, MorrowConfig.preset);
         assertTrue(config.autoCartLegitMode);
-        assertEquals(70.0, config.autoCartMinDelayMs, 0.001);
-        assertEquals(100.0, config.autoCartMaxDelayMs, 0.001);
+        assertEquals(85.0, config.autoCartMinDelayMs, 0.001);
+        assertEquals(120.0, config.autoCartMaxDelayMs, 0.001);
         assertEquals("auto", config.autoCartCameraMode);
         assertEquals("auto", MorrowConfig.cameraMode);
         assertTrue(config.autoCartAutoCamera);
         assertTrue(MorrowConfig.autoCamera);
-        assertEquals(160.0, config.autoCartCameraSmoothness, 0.001);
+        assertEquals(180.0, config.autoCartCameraSmoothness, 0.001);
 
         presetSetting.set("medium");
         assertEquals("medium", config.autoCartPreset);
@@ -396,11 +396,10 @@ public class DefenseModulesMigrationTest {
         assertTrue(config.autoCartUseMainHand);
         EnumSetting cameraModeSetting = (EnumSetting) mod.getSetting("camera_mode");
         assertNotNull(cameraModeSetting);
-        assertEquals(List.of("off", "packet", "auto", "assisted"), cameraModeSetting.getOptions());
+        assertEquals(List.of("off", "packet", "auto"), cameraModeSetting.getOptions());
         assertNotNull(cameraModeSetting.getOptionTooltip("off"));
         assertNotNull(cameraModeSetting.getOptionTooltip("packet"));
         assertNotNull(cameraModeSetting.getOptionTooltip("auto"));
-        assertNotNull(cameraModeSetting.getOptionTooltip("assisted"));
         assertNotNull(presetSetting.getOptionTooltip("fast"));
         assertNotNull(presetSetting.getOptionTooltip("medium"));
         assertNotNull(presetSetting.getOptionTooltip("safe"));
@@ -420,12 +419,6 @@ public class DefenseModulesMigrationTest {
         autoPlaceSetting.set(true);
         assertTrue(config.autoCartAutonomousPlacement);
         assertTrue(MorrowConfig.autonomousPlacement);
-
-        cameraModeSetting.set("assisted");
-        assertEquals("assisted", config.autoCartCameraMode);
-        assertEquals("assisted", MorrowConfig.cameraMode);
-        assertTrue(config.autoCartAutoCamera);
-        assertTrue(MorrowConfig.autoCamera);
 
         cameraModeSetting.set("packet");
         assertEquals("packet", config.autoCartCameraMode);

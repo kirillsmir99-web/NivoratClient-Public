@@ -45,9 +45,9 @@ public class AutoCartAdaptiveAimTest {
         assertTrue(MorrowConfig.cameraMouseGcd);
 
         MorrowConfig.applyPreset(MorrowConfig.PRESET_SAFE);
-        assertEquals(70, MorrowConfig.minDelayMs);
-        assertEquals(100, MorrowConfig.maxDelayMs);
-        assertEquals(160, MorrowConfig.cameraSmoothnessMs);
+        assertEquals(85, MorrowConfig.minDelayMs);
+        assertEquals(120, MorrowConfig.maxDelayMs);
+        assertEquals(180, MorrowConfig.cameraSmoothnessMs);
         assertEquals("auto", MorrowConfig.cameraMode);
         assertTrue(MorrowConfig.autoCamera);
         assertTrue(MorrowConfig.cameraMouseGcd);
