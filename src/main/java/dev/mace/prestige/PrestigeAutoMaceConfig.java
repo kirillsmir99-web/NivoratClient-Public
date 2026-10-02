@@ -14,10 +14,11 @@ public final class PrestigeAutoMaceConfig {
     public boolean predictSwitch = false;
     public boolean unequipElytra = false;
     public boolean stayOnMace = false;
-    public boolean silentAim = false;
-    public double silentAimRange = 3.5;
+    public boolean silentAim = true;
+    public double silentAimRange = 4.0;
     public boolean movementFix = true;
     public boolean breach = true;
+    public boolean shieldBreak = true;
     public boolean hitbox = false;
     public double hitboxExpand = 1.0;
     public String enchantMode = "smart";
@@ -36,10 +37,11 @@ public final class PrestigeAutoMaceConfig {
         this.predictSwitch = false;
         this.unequipElytra = false;
         this.stayOnMace = false;
-        this.silentAim = false;
-        this.silentAimRange = 3.5;
+        this.silentAim = true;
+        this.silentAimRange = 4.0;
         this.movementFix = true;
         this.breach = true;
+        this.shieldBreak = true;
         this.hitbox = false;
         this.hitboxExpand = 1.0;
         this.enchantMode = "smart";

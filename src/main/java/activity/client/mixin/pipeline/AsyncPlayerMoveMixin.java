@@ -2,11 +2,14 @@ package activity.client.mixin.pipeline;
 
 import dev.raycast.async.AsyncSilentRot;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.hit.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class AsyncPlayerMoveMixin {
@@ -46,6 +49,16 @@ public abstract class AsyncPlayerMoveMixin {
     private float async$lby;
     @Unique
     private float async$lhy;
+    @Unique
+    private boolean async$csave;
+    @Unique
+    private float async$cy;
+    @Unique
+    private float async$cp;
+    @Unique
+    private float async$cly;
+    @Unique
+    private float async$clp;
 
     @Inject(method = "tickMovement", at = @At("HEAD"))
     private void async$tmHead(CallbackInfo ci) {
@@ -128,6 +141,39 @@ public abstract class AsyncPlayerMoveMixin {
             p.lastYaw = this.async$ly;
             p.lastPitch = this.async$lp;
             this.async$save = false;
+        }
+    }
+
+    @Inject(method = "getCrosshairTarget", at = @At("HEAD"))
+    private void async$chtHead(float tickDelta, Entity cameraEntity, CallbackInfoReturnable<HitResult> cir) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
+        if (AsyncSilentRot.on()) {
+            ClientPlayerEntity p = (ClientPlayerEntity) (Object) this;
+            this.async$cy = p.getYaw();
+            this.async$cp = p.getPitch();
+            this.async$cly = p.lastYaw;
+            this.async$clp = p.lastPitch;
+            this.async$csave = true;
+            float wy = AsyncSilentRot.yaw();
+            float wp = AsyncSilentRot.pitch();
+            if (!Float.isNaN(wy) && !Float.isNaN(wp) && !Float.isInfinite(wy) && !Float.isInfinite(wp)) {
+                p.setYaw(wy);
+                p.setPitch(wp);
+                p.lastYaw = wy;
+                p.lastPitch = wp;
+            }
+        }
+    }
+
+    @Inject(method = "getCrosshairTarget", at = @At("RETURN"))
+    private void async$chtTail(float tickDelta, Entity cameraEntity, CallbackInfoReturnable<HitResult> cir) {
+        if (this.async$csave) {
+            ClientPlayerEntity p = (ClientPlayerEntity) (Object) this;
+            p.setYaw(this.async$cy);
+            p.setPitch(this.async$cp);
+            p.lastYaw = this.async$cly;
+            p.lastPitch = this.async$clp;
+            this.async$csave = false;
         }
     }
 }

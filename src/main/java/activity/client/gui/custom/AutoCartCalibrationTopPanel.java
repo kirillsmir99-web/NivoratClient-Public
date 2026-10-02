@@ -1,10 +1,12 @@
 package activity.client.gui.custom;
 
 import activity.client.gui.custom.api.drags.Position;
+import activity.client.gui.custom.api.ui.UI;
 import activity.client.gui.custom.api.ui.theme.ClientAccent;
 import activity.client.gui.custom.utils.render.fonts.Fonts;
 import activity.client.gui.custom.utils.render.fonts.NvIcons;
 import activity.client.gui.custom.utils.render.render2d.Render2D;
+import activity.client.gui.custom.utils.render.render2d.glow.BuiltGlow;
 import activity.client.gui.sound.SoundManager;
 import dev.nivorat.arc.ArcCalibrationState;
 import dev.nivorat.arc.ArcMotionProfile;
@@ -17,7 +19,7 @@ import net.minecraft.util.math.MathHelper;
 import java.util.List;
 
 public final class AutoCartCalibrationTopPanel {
-    private static float currentSlideY = -65f;
+    private static float currentSlideY = -70f;
     private static long lastRenderNs = 0L;
     private static boolean confirmReset = false;
     private static boolean manuallyOpened = false;
@@ -42,7 +44,7 @@ public final class AutoCartCalibrationTopPanel {
     }
 
     public static boolean isOpened() {
-        return manuallyOpened || ArcMotorCalibrationService.hasSession();
+        return manuallyOpened;
     }
 
     public static void render(DrawContext context, int mouseX, int mouseY) {
@@ -50,22 +52,42 @@ public final class AutoCartCalibrationTopPanel {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null) return;
 
-        boolean session = ArcMotorCalibrationService.hasSession();
+        boolean inGui = mc.currentScreen == UI.INSTANCE;
+        boolean shouldShow = manuallyOpened && inGui;
         ArcMotionProfile profile = ArcMotionProfile.getInstance();
-        boolean shouldShow = manuallyOpened || session;
+        boolean session = ArcMotorCalibrationService.hasSession();
 
         long now = System.nanoTime();
         float dt = lastRenderNs > 0L ? (float) ((now - lastRenderNs) / 1_000_000_000.0) : 0.016f;
         lastRenderNs = now;
 
-        float targetY = shouldShow ? 8f : -65f;
+        float width = 380f;
+        float height = 50f;
+        float x;
+        float targetY;
+
+        if (inGui) {
+            float px = UI.panelX();
+            float py = UI.panelY();
+            float pw = UI.panelW();
+            width = Math.min(380f, pw);
+            x = px + pw - width;
+            if (py >= height + 6f) {
+                targetY = shouldShow ? (py - height - 3f) : (py - height - 25f);
+            } else {
+                targetY = shouldShow ? (py + 4f) : (py - height - 15f);
+            }
+        } else {
+            x = (Position.screenWidth() - width) * 0.5f;
+            targetY = shouldShow ? 8f : -70f;
+        }
+
         currentSlideY += (targetY - currentSlideY) * MathHelper.clamp(dt * 12f, 0.05f, 1.0f);
 
-        if (currentSlideY < -60f && !shouldShow) return;
+        if (!shouldShow && Math.abs(currentSlideY - targetY) < 1.0f) {
+            return;
+        }
 
-        float width = 480f;
-        float height = 52f;
-        float x = (context.getScaledWindowWidth() - width) * 0.5f;
         float y = currentSlideY;
 
         ArcCalibrationState state = profile.getState();
@@ -77,7 +99,9 @@ public final class AutoCartCalibrationTopPanel {
         int currentDurationMins = ArcMotorCalibrationService.getTargetDurationMinutes();
 
         try (var frame = UnifiedHudRender.beginNative(context)) {
-            CustomRender.panel(context, x, y, width, height, 8, 1);
+            CustomRender.panel(context, x, y, width, height, 6, 1);
+            Render2D.glow(new BuiltGlow(x, y, width, height, new float[]{6f, 6f, 6f, 6f}, ClientAccent.accent(255), 0.22f, 4f, 1f));
+            Render2D.outline(x, y, width, height, 6f, 0.7f, ClientAccent.accent(175));
 
             float badgeW = Fonts.MONTSERRAT_MEDIUM.width(state.getTitle(), 7f) + 12f;
             Render2D.rect(x + 10f, y + 8f, badgeW, 14f, 4f, (0x33 << 24) | (state.getColorRgba() & 0x00FFFFFF));
@@ -88,38 +112,38 @@ public final class AutoCartCalibrationTopPanel {
             Fonts.MONTSERRAT_MEDIUM.draw(masteryText, x + 16f + badgeW + 68f, y + 11.5f, 7.5f, ClientAccent.accentBright(255));
 
             float pillY = y + 8f;
-            renderDurationPill(x + 172f, pillY, 32f, 14f, "1 мин", currentDurationMins == 1, !session, mouseX, mouseY);
-            renderDurationPill(x + 208f, pillY, 32f, 14f, "2 мин", currentDurationMins == 2, !session, mouseX, mouseY);
-            renderDurationPill(x + 244f, pillY, 32f, 14f, "5 мин", currentDurationMins == 5, !session, mouseX, mouseY);
+            renderDurationPill(x + 172f, pillY, 30f, 14f, "1 мин", currentDurationMins == 1, !session, mouseX, mouseY);
+            renderDurationPill(x + 205f, pillY, 30f, 14f, "2 мин", currentDurationMins == 2, !session, mouseX, mouseY);
+            renderDurationPill(x + 238f, pillY, 30f, 14f, "5 мин", currentDurationMins == 5, !session, mouseX, mouseY);
 
             if (session) {
-                Fonts.NV.msdf(NvIcons.ANIMATION, x + width - 180f, y + 11f, 8f, 0xff8fa0b5);
-                Fonts.MONTSERRAT_MEDIUM.draw(timerStr, x + width - 168f, y + 11.5f, 7.5f, 0xffffffff);
+                Fonts.NV.msdf(NvIcons.ANIMATION, x + width - 110f, y + 11f, 8f, 0xff8fa0b5);
+                Fonts.MONTSERRAT_MEDIUM.draw(timerStr, x + width - 98f, y + 11.5f, 7.5f, 0xffffffff);
             } else if (profile.isCalibrated()) {
-                String confText = "Уверенность: " + Math.round(confidence * 100f) + "%";
-                Fonts.MONTSERRAT_MEDIUM.draw(confText, x + width - 210f, y + 11.5f, 7.5f, 0xff8fa0b5);
+                String confText = Math.round(confidence * 100f) + "%";
+                Fonts.MONTSERRAT_MEDIUM.draw(confText, x + width - 70f, y + 11.5f, 7.5f, 0xff8fa0b5);
             }
 
-            renderCloseButton(x + width - 22f, y + 8f, 14f, 14f, mouseX, mouseY);
+            renderCloseButton(x + width - 20f, y + 8f, 14f, 14f, mouseX, mouseY);
 
-            Render2D.rect(x + 10f, y + 26f, width - 20f, 3.5f, 2f, 0xff1e2330);
-            Render2D.rect(x + 10f, y + 26f, (width - 20f) * (mastery / 100.0f), 3.5f, 2f, ClientAccent.accent(235));
+            Render2D.rect(x + 10f, y + 25f, width - 20f, 3f, 1.5f, 0xff1e2330);
+            Render2D.rect(x + 10f, y + 25f, (width - 20f) * (mastery / 100.0f), 3f, 1.5f, ClientAccent.accent(235));
 
             List<String> hints = profile.getMissingDataHints();
             String hintText;
             if (session) {
-                hintText = hints.isEmpty() ? "Все действия зафиксированы, профиль формируется" : hints.get(0);
+                hintText = hints.isEmpty() ? "Профиль моторики формируется" : hints.get(0);
             } else if (profile.isCalibrated()) {
-                hintText = "Профиль моторики активен (сэмплов: " + profile.getSampleCount() + ")";
+                hintText = "Сэмплов: " + profile.getSampleCount();
             } else {
-                hintText = "Нажмите 'Старт' для запуска " + currentDurationMins + "-минутной калибровки";
+                hintText = currentDurationMins + "-мин калибровка";
             }
-            Fonts.MONTSERRAT_MEDIUM.draw(hintText, x + 12f, y + 36f, 6.5f, 0xff8e9eb3);
+            Fonts.MONTSERRAT_MEDIUM.draw(hintText, x + 12f, y + 34f, 6.5f, 0xff8e9eb3);
 
-            renderButton(x + width - 195f, y + 33f, 44f, 15f, "Старт", !session && mc.player != null, mouseX, mouseY);
-            renderButton(x + width - 147f, y + 33f, 44f, 15f, profile.isCalibrationPaused() ? "Пуск" : "Пауза", session, mouseX, mouseY);
-            renderButton(x + width - 99f, y + 33f, 44f, 15f, "Готово", session && profile.isReadyToFinish(), mouseX, mouseY);
-            renderButton(x + width - 51f, y + 33f, 44f, 15f, confirmReset ? "Да?" : "Сброс", !session, mouseX, mouseY);
+            renderButton(x + width - 180f, y + 31f, 40f, 14f, "Старт", !session && mc.player != null, mouseX, mouseY);
+            renderButton(x + width - 136f, y + 31f, 40f, 14f, profile.isCalibrationPaused() ? "Пуск" : "Пауза", session, mouseX, mouseY);
+            renderButton(x + width - 92f, y + 31f, 40f, 14f, "Готово", session && profile.isReadyToFinish(), mouseX, mouseY);
+            renderButton(x + width - 48f, y + 31f, 40f, 14f, confirmReset ? "Да?" : "Сброс", !session, mouseX, mouseY);
         }
     }
 
@@ -147,30 +171,36 @@ public final class AutoCartCalibrationTopPanel {
         int textCol = enabled ? (hover ? 0xffffffff : 0xffc4cbd6) : 0xff556073;
         Render2D.rect(bx, by, bw, bh, 3f, bg);
         float tw = Fonts.MONTSERRAT_MEDIUM.width(title, 6.5f);
-        Fonts.MONTSERRAT_MEDIUM.draw(title, bx + (bw - tw) * 0.5f, by + 4f, 6.5f, textCol);
+        Fonts.MONTSERRAT_MEDIUM.draw(title, bx + (bw - tw) * 0.5f, by + 3.5f, 6.5f, textCol);
     }
 
     public static boolean mouseClicked(Click click) {
-        if (click == null || click.button() != 0) return false;
+        if (click == null || click.button() != 0 || !manuallyOpened) return false;
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null) return false;
 
-        float width = 480f;
-        float x = (Position.screenWidth() - width) * 0.5f;
+        boolean inGui = mc.currentScreen == UI.INSTANCE;
+        if (!inGui) return false;
+
+        float width = 380f;
+        float height = 50f;
+        float px = UI.panelX();
+        float pw = UI.panelW();
+        width = Math.min(380f, pw);
+        float x = px + pw - width;
         float y = currentSlideY;
 
-        float mx = Position.mouseX();
-        float my = Position.mouseY();
+        float mx = (float) click.x();
+        float my = (float) click.y();
 
-        if (mx < x || mx > x + width || my < y || my > y + 52f) {
-            confirmReset = false;
+        if (mx < x || mx > x + width || my < y || my > y + height) {
             return false;
         }
 
         ArcMotionProfile profile = ArcMotionProfile.getInstance();
         boolean session = ArcMotorCalibrationService.hasSession();
 
-        if (checkHit(x + width - 22f, y + 8f, 14f, 14f, mx, my)) {
+        if (checkHit(x + width - 20f, y + 8f, 14f, 14f, mx, my)) {
             close();
             SoundManager.playClick();
             return true;
@@ -178,33 +208,34 @@ public final class AutoCartCalibrationTopPanel {
 
         if (!session) {
             float pillY = y + 8f;
-            if (checkHit(x + 172f, pillY, 32f, 14f, mx, my)) {
+            if (checkHit(x + 172f, pillY, 30f, 14f, mx, my)) {
                 ArcMotorCalibrationService.setTargetDurationMinutes(1);
                 SoundManager.playClick();
                 return true;
             }
-            if (checkHit(x + 208f, pillY, 32f, 14f, mx, my)) {
+            if (checkHit(x + 205f, pillY, 30f, 14f, mx, my)) {
                 ArcMotorCalibrationService.setTargetDurationMinutes(2);
                 SoundManager.playClick();
                 return true;
             }
-            if (checkHit(x + 244f, pillY, 32f, 14f, mx, my)) {
+            if (checkHit(x + 238f, pillY, 30f, 14f, mx, my)) {
                 ArcMotorCalibrationService.setTargetDurationMinutes(5);
                 SoundManager.playClick();
                 return true;
             }
         }
 
-        if (checkHit(x + width - 195f, y + 33f, 44f, 15f, mx, my)) {
+        if (checkHit(x + width - 180f, y + 31f, 40f, 14f, mx, my)) {
             if (!session && mc.player != null) {
                 ArcMotorCalibrationService.start();
                 SoundManager.playToggle(true);
                 confirmReset = false;
+                close();
                 return true;
             }
         }
 
-        if (checkHit(x + width - 147f, y + 33f, 44f, 15f, mx, my)) {
+        if (checkHit(x + width - 136f, y + 31f, 40f, 14f, mx, my)) {
             if (session) {
                 if (profile.isCalibrationPaused()) {
                     ArcMotorCalibrationService.resume();
@@ -218,16 +249,17 @@ public final class AutoCartCalibrationTopPanel {
             }
         }
 
-        if (checkHit(x + width - 99f, y + 33f, 44f, 15f, mx, my)) {
+        if (checkHit(x + width - 92f, y + 31f, 40f, 14f, mx, my)) {
             if (session && profile.isReadyToFinish()) {
                 ArcMotorCalibrationService.finish();
                 SoundManager.playSuccess();
                 confirmReset = false;
+                close();
                 return true;
             }
         }
 
-        if (checkHit(x + width - 51f, y + 33f, 44f, 15f, mx, my)) {
+        if (checkHit(x + width - 48f, y + 31f, 40f, 14f, mx, my)) {
             if (!session) {
                 if (!confirmReset) {
                     confirmReset = true;
@@ -241,7 +273,7 @@ public final class AutoCartCalibrationTopPanel {
             }
         }
 
-        return false;
+        return true;
     }
 
     private static boolean checkHit(float bx, float by, float bw, float bh, float mx, float my) {

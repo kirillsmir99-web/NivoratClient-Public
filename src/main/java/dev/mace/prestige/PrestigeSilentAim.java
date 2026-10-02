@@ -48,42 +48,56 @@ public final class PrestigeSilentAim {
         return (float) Math.max(0.001, gcd);
     }
 
+    private boolean isRealLookOnTarget(ClientPlayerEntity player, Entity target) {
+        Vec3d eyePos = player.getEyePos();
+        Vec3d rotVec = player.getRotationVector(player.getPitch(), player.getYaw());
+        Vec3d reachEnd = eyePos.add(rotVec.x * 3.5D, rotVec.y * 3.5D, rotVec.z * 3.5D);
+        Box box = target.getBoundingBox().expand(0.1D);
+        return box.contains(eyePos) || box.raycast(eyePos, reachEnd).isPresent();
+    }
+
     public void track(Entity target, ClientPlayerEntity player, MinecraftClient client) {
         if (player == null || target == null || !target.isAlive()) {
-            stop();
+            decay(player, client);
             return;
         }
 
+        if (player.age == lastUpdateTick) {
+            return;
+        }
+        lastUpdateTick = player.age;
         targetEntityId = target.getId();
-        float gcd = getGcdStep(client);
 
-        Vec3d eyePos = player.getEyePos().add(player.getVelocity());
-        Box box = target.getBoundingBox();
-        Vec3d targetCenter = box.getCenter();
-        if (PrestigeAutoMaceController.getInstance().getConfig().randomJitter) {
-            double jx = Math.sin(System.currentTimeMillis() * 0.006) * 0.07;
-            double jy = Math.cos(System.currentTimeMillis() * 0.008) * 0.05;
-            targetCenter = targetCenter.add(jx, jy, jx * 0.5);
+        float targetYaw;
+        float targetPitch;
+
+        if (isRealLookOnTarget(player, target)) {
+            targetYaw = player.getYaw();
+            targetPitch = MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
+        } else {
+            Vec3d eyePos = player.getEyePos().add(player.getVelocity());
+            Vec3d targetCenter = target.getBoundingBox().getCenter();
+            double dx = targetCenter.x - eyePos.x;
+            double dy = targetCenter.y - eyePos.y;
+            double dz = targetCenter.z - eyePos.z;
+            double distHoriz = Math.sqrt(dx * dx + dz * dz);
+            if (distHoriz < 0.0001D) {
+                targetYaw = player.getYaw();
+                targetPitch = player.getPitch();
+            } else {
+                targetYaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
+                targetPitch = (float) (-Math.toDegrees(Math.atan2(dy, distHoriz)));
+            }
         }
 
-        double dx = targetCenter.x - eyePos.x;
-        double dy = targetCenter.y - eyePos.y;
-        double dz = targetCenter.z - eyePos.z;
-        double distHoriz = Math.sqrt(dx * dx + dz * dz);
-
-        if (distHoriz < 0.0001D) {
-            return;
-        }
-
-        float targetYaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
-        float targetPitch = (float) (-Math.toDegrees(Math.atan2(dy, distHoriz)));
         if (Float.isNaN(targetYaw) || Float.isNaN(targetPitch) || Float.isInfinite(targetYaw) || Float.isInfinite(targetPitch)) {
             return;
         }
         targetPitch = MathHelper.clamp(targetPitch, -90.0f, 90.0f);
 
-        float startYaw = active && !Float.isNaN(currentYaw) ? currentYaw : player.getYaw();
-        float startPitch = active && !Float.isNaN(currentPitch) ? currentPitch : MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
+        float gcd = getGcdStep(client);
+        float startYaw = active ? currentYaw : player.getYaw();
+        float startPitch = active ? currentPitch : MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
 
         float deltaYaw = MathHelper.wrapDegrees(targetYaw - startYaw);
         float stepYaw = Math.round(deltaYaw / gcd) * gcd;
@@ -93,17 +107,47 @@ public final class PrestigeSilentAim {
         int maxUp = (int) Math.floor((90.0f - startPitch) / gcd);
         int maxDown = (int) Math.ceil((-90.0f - startPitch) / gcd);
         pitchSteps = Math.max(maxDown, Math.min(maxUp, pitchSteps));
+        float stepPitch = pitchSteps * gcd;
 
-        float nextYaw = MathHelper.wrapDegrees(startYaw + stepYaw);
-        float nextPitch = MathHelper.clamp(startPitch + pitchSteps * gcd, -90.0f, 90.0f);
+        currentYaw = MathHelper.wrapDegrees(startYaw + stepYaw);
+        currentPitch = MathHelper.clamp(startPitch + stepPitch, -90.0f, 90.0f);
 
-        if (Float.isNaN(nextYaw) || Float.isNaN(nextPitch) || Float.isInfinite(nextYaw) || Float.isInfinite(nextPitch)) {
+        active = true;
+        AsyncSilentRot.set(currentYaw, currentPitch, this);
+    }
+
+    public void decay(ClientPlayerEntity player, MinecraftClient client) {
+        if (!active || player == null) {
+            stop();
             return;
         }
 
-        currentYaw = nextYaw;
-        currentPitch = nextPitch;
-        active = true;
+        if (player.age == lastUpdateTick) {
+            return;
+        }
+        lastUpdateTick = player.age;
+
+        float realYaw = player.getYaw();
+        float realPitch = MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
+        float gcd = getGcdStep(client);
+
+        float deltaYaw = MathHelper.wrapDegrees(realYaw - currentYaw);
+        float deltaPitch = realPitch - currentPitch;
+
+        if (Math.abs(deltaYaw) <= gcd && Math.abs(deltaPitch) <= gcd) {
+            stop();
+            return;
+        }
+
+        float stepYaw = Math.round(deltaYaw / gcd) * gcd;
+        int pitchSteps = Math.round(deltaPitch / gcd);
+        int maxUp = (int) Math.floor((90.0f - currentPitch) / gcd);
+        int maxDown = (int) Math.ceil((-90.0f - currentPitch) / gcd);
+        pitchSteps = Math.max(maxDown, Math.min(maxUp, pitchSteps));
+        float stepPitch = pitchSteps * gcd;
+
+        currentYaw = MathHelper.wrapDegrees(currentYaw + stepYaw);
+        currentPitch = MathHelper.clamp(currentPitch + stepPitch, -90.0f, 90.0f);
 
         AsyncSilentRot.set(currentYaw, currentPitch, this);
     }
@@ -112,6 +156,7 @@ public final class PrestigeSilentAim {
         if (active) {
             active = false;
             targetEntityId = -1;
+            lastUpdateTick = -1;
             AsyncSilentRot.stop(this);
         }
     }

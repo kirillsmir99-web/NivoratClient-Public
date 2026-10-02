@@ -104,9 +104,9 @@ class AutoCartEnhancementTest {
 
     @Test
     void calibrationHudUsesWatermarkDividers() throws Exception {
-        String code = java.nio.file.Files.readString(Path.of("src/main/java/activity/client/module/impl/defense/OcclusionCacheModule.java"));
-        assertTrue(code.contains("UnifiedHudRender.text(\"|\""));
-        assertFalse(code.contains("UnifiedHudRender.text(\"•\""));
+        String code = java.nio.file.Files.readString(Path.of("src/main/java/activity/client/gui/hud/ActivityHudOverlay.java"));
+        assertTrue(code.contains("\" | Калибровка: \""));
+        assertTrue(code.contains("\" | \""));
     }
 
     @Test

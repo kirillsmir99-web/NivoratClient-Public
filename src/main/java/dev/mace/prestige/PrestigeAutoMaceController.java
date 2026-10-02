@@ -14,12 +14,10 @@ import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -31,11 +29,10 @@ public final class PrestigeAutoMaceController {
 
     private int originalSlot = -1;
     private boolean hasAttackedInFall = false;
+    private boolean shieldBrokenInFall = false;
+    private boolean hasEverFallen = false;
     private long lastAttackTime = 0L;
     private Entity currentTarget = null;
-    private long weaponSwitchTime = 0L;
-    private long scheduledAttackTime = 0L;
-    private long restorePendingTime = 0L;
 
     private PrestigeAutoMaceController() {
     }
@@ -48,164 +45,161 @@ public final class PrestigeAutoMaceController {
         return config;
     }
 
-    private long calculateDelay() {
-        if (!config.humanMode) return 0L;
-        double base = config.attackDelayMs;
-        if (config.randomJitter) {
-            double jitter = random.nextGaussian() * 20.0;
-            base += jitter;
-        }
-        return Math.max(120L, Math.min(260L, Math.round(base)));
-    }
-
-    private boolean isCloseToLanding(ClientPlayerEntity player, Entity target) {
-        if (player.fallDistance < config.minFallDistance) return false;
-        double vy = player.getVelocity().y;
-        if (vy > -0.15) return false;
-        Vec3d eye = player.getEyePos();
-        Vec3d targetCenter = target.getBoundingBox().getCenter();
-        double distY = eye.y - targetCenter.y;
-        return distY < 0.95;
-    }
-
     public void tick(MinecraftClient client) {
         if (!config.enabled || client == null || client.player == null || client.world == null || client.currentScreen != null) {
-            reset();
+            if (client != null && client.player != null) {
+                PrestigeSilentAim.getInstance().decay(client.player, client);
+            } else {
+                PrestigeSilentAim.getInstance().stop();
+            }
             return;
         }
 
         ClientPlayerEntity player = client.player;
 
-        if (player.isOnGround()) {
+        boolean onGround = player.isOnGround();
+        if (onGround) {
+            if (hasEverFallen) {
+                hasEverFallen = false;
+                hasAttackedInFall = false;
+                shieldBrokenInFall = false;
+            }
             if (originalSlot != -1 && !config.stayOnMace) {
                 restoreSlot(player);
             }
-            hasAttackedInFall = false;
-            currentTarget = null;
-            weaponSwitchTime = 0L;
-            scheduledAttackTime = 0L;
-            restorePendingTime = 0L;
-            PrestigeSilentAim.getInstance().stop();
-            return;
-        }
-
-        if (restorePendingTime > 0L && System.currentTimeMillis() >= restorePendingTime) {
-            restorePendingTime = 0L;
-            if (!config.stayOnMace) {
-                restoreSlot(player);
+        } else {
+            double vy = player.getVelocity().y;
+            if (vy > 0.1 && hasAttackedInFall) {
+                hasAttackedInFall = false;
+                shieldBrokenInFall = false;
+            }
+            if (!hasEverFallen) {
+                hasEverFallen = true;
+                hasAttackedInFall = false;
+                shieldBrokenInFall = false;
             }
         }
 
         double fallDistance = player.fallDistance;
         double vy = player.getVelocity().y;
-        boolean isFallingDown = vy < -0.08 && !player.isUsingItem();
-        boolean fallReady = isFallingDown && !player.isGliding() && fallDistance >= Math.min(1.2, config.minFallDistance);
-        boolean elytraFalling = isFallingDown && player.isGliding();
+        boolean isFalling = !onGround && vy < -0.1 && !player.isUsingItem();
+        boolean normalFall = isFalling && !player.isGliding() && fallDistance >= 1.2;
+        boolean elytraFall = isFalling && player.isGliding();
 
-        if (!fallReady && !elytraFalling) {
-            return;
+        if (!hasAttackedInFall && hasMaceInHotbar(player) && (normalFall || elytraFall)) {
+            if (config.silentAim) {
+                currentTarget = findTarget(client, player, config.silentAimRange);
+            } else {
+                currentTarget = findCrosshairTarget(client, player, 3.5D);
+            }
         }
 
-        if (!hasMaceInHotbar(player)) {
-            return;
-        }
-
-        currentTarget = findTarget(client, player);
-
-        if (currentTarget == null) {
-            PrestigeSilentAim.getInstance().stop();
-            return;
-        }
-
-        if (config.silentAim) {
-            PrestigeSilentAim.getInstance().track(currentTarget, player, client);
-        }
-
-        if (config.predictSwitch && fallDistance >= config.minFallDistance && distanceTo(player, currentTarget) <= 4.0) {
+        if (config.predictSwitch && hasEverFallen && !hasAttackedInFall && fallDistance >= config.minFallDistance && hasTargetInRange(client, player, 4.0D)) {
             if (config.unequipElytra && player.isGliding()) {
                 unequipElytra(client, player);
             }
-            if (config.autoSwitch && !isHoldingMace(player) && weaponSwitchTime == 0L) {
+            if (config.autoSwitch && !isHoldingMace(player)) {
                 saveOriginalSlot(player);
                 int maceSlot = selectBestMaceSlot(player, fallDistance);
                 if (maceSlot != -1) {
                     setSlot(player, maceSlot);
-                    weaponSwitchTime = System.currentTimeMillis();
-                    scheduledAttackTime = weaponSwitchTime + calculateDelay();
                 }
             }
         }
 
         tryAttack(client, player, fallDistance);
+
+        if (config.silentAim && currentTarget != null && (normalFall || elytraFall) && !hasAttackedInFall) {
+            PrestigeSilentAim.getInstance().track(currentTarget, player, client);
+        } else {
+            PrestigeSilentAim.getInstance().decay(player, client);
+        }
     }
 
     private void tryAttack(MinecraftClient client, ClientPlayerEntity player, double fallDistance) {
-        if (hasAttackedInFall) {
+        if (player.isUsingItem() || player.isOnGround() || player.getVelocity().y > 0.1 || hasAttackedInFall) {
             return;
         }
-
         if (fallDistance < config.minFallDistance) {
             return;
         }
-
         if (currentTarget == null || !isValidTarget(currentTarget, player)) {
             return;
         }
 
-        Box targetBox = currentTarget.getBoundingBox();
-        Vec3d eyePos = player.getEyePos();
-
-        double reach = Math.min(player.getEntityInteractionRange() - 0.05D, 2.95D);
-        if (!canReach(eyePos, targetBox, reach)) {
+        if (!canRaycastTarget(player, currentTarget, 3.0D)) {
             return;
         }
 
-        long now = System.currentTimeMillis();
-        if (config.attackDelayMs > 0 && !config.humanMode && (now - lastAttackTime) < (long) config.attackDelayMs) {
-            return;
-        }
+        boolean targetShielding = config.shieldBreak && isTargetBlocking(currentTarget);
+        if (targetShielding && !shieldBrokenInFall) {
+            int axeSlot = findAxeSlot(player);
+            if (axeSlot != -1) {
+                saveOriginalSlot(player);
+                setSlot(player, axeSlot);
+                executeAttack(client, player, currentTarget);
+                shieldBrokenInFall = true;
 
-        if (config.autoSwitch && !isHoldingMace(player)) {
-            saveOriginalSlot(player);
-            int maceSlot = selectBestMaceSlot(player, fallDistance);
-            if (maceSlot != -1) {
-                setSlot(player, maceSlot);
-                weaponSwitchTime = now;
-                scheduledAttackTime = now + calculateDelay();
+                int maceSlot = selectBestMaceSlot(player, fallDistance);
+                if (maceSlot != -1) {
+                    setSlot(player, maceSlot);
+                    executeAttack(client, player, currentTarget);
+                    hasAttackedInFall = true;
+                    lastAttackTime = System.currentTimeMillis();
+                }
                 return;
             }
         }
 
-        if (isHoldingMace(player)) {
-            if (now >= scheduledAttackTime || isCloseToLanding(player, currentTarget)) {
-                executeAttack(client, player, currentTarget);
-                hasAttackedInFall = true;
-                lastAttackTime = now;
-                if (!config.stayOnMace) {
-                    restorePendingTime = now + (config.humanMode ? calculateDelay() : 0L);
+        long now = System.currentTimeMillis();
+        boolean delayPassed = (now - lastAttackTime) >= (long) config.attackDelayMs;
+
+        if (!isHoldingMace(player)) {
+            saveOriginalSlot(player);
+            if (config.autoSwitch) {
+                int maceSlot = selectBestMaceSlot(player, fallDistance);
+                if (maceSlot != -1) {
+                    setSlot(player, maceSlot);
                 }
             }
+        }
+
+        if (isHoldingMace(player) && delayPassed) {
+            executeAttack(client, player, currentTarget);
+            hasAttackedInFall = true;
+            lastAttackTime = now;
         }
     }
 
     private void executeAttack(MinecraftClient client, ClientPlayerEntity player, Entity target) {
         if (client.interactionManager != null && target != null) {
-            PrestigeSilentAim.getInstance().stop();
             client.interactionManager.attackEntity(player, target);
             player.swingHand(Hand.MAIN_HAND);
         }
     }
 
-    private Entity findTarget(MinecraftClient client, ClientPlayerEntity player) {
+    private boolean canRaycastTarget(ClientPlayerEntity player, Entity target, double reach) {
+        PrestigeSilentAim aim = PrestigeSilentAim.getInstance();
+        float yaw = aim.isActive() ? aim.getYaw() : player.getYaw();
+        float pitch = aim.isActive() ? aim.getPitch() : player.getPitch();
+
+        Vec3d eyePos = player.getEyePos();
+        Vec3d rotVec = player.getRotationVector(pitch, yaw);
+        Vec3d reachEnd = eyePos.add(rotVec.x * reach, rotVec.y * reach, rotVec.z * reach);
+        Box box = target.getBoundingBox().expand(0.08D);
+        return box.contains(eyePos) || box.raycast(eyePos, reachEnd).isPresent();
+    }
+
+    private Entity findTarget(MinecraftClient client, ClientPlayerEntity player, double range) {
         if (client.world == null) return null;
 
         Entity best = null;
-        double bestDistSq = config.silentAimRange * config.silentAimRange;
-        Vec3d eyePos = player.getEyePos();
+        double bestDistSq = range * range;
+        double playerY = player.getY();
 
         for (PlayerEntity otherPlayer : client.world.getPlayers()) {
-            if (isValidTarget(otherPlayer, player)) {
-                double distSq = otherPlayer.squaredDistanceTo(eyePos);
+            if (otherPlayer != player && isValidTarget(otherPlayer, player) && !(otherPlayer.getY() > playerY + 2.0D)) {
+                double distSq = otherPlayer.squaredDistanceTo(player);
                 if (distSq <= bestDistSq) {
                     bestDistSq = distSq;
                     best = otherPlayer;
@@ -214,10 +208,10 @@ public final class PrestigeAutoMaceController {
         }
 
         if (config.targetMobs) {
-            Box searchBox = player.getBoundingBox().expand(config.silentAimRange);
-            List<Entity> mobs = client.world.getOtherEntities(player, searchBox, e -> isValidTarget(e, player));
+            Box searchBox = player.getBoundingBox().expand(range);
+            List<Entity> mobs = client.world.getOtherEntities(player, searchBox, e -> isValidTarget(e, player) && !(e.getY() > playerY + 2.0D));
             for (Entity mob : mobs) {
-                double distSq = mob.squaredDistanceTo(eyePos);
+                double distSq = mob.squaredDistanceTo(player);
                 if (distSq <= bestDistSq) {
                     bestDistSq = distSq;
                     best = mob;
@@ -226,6 +220,46 @@ public final class PrestigeAutoMaceController {
         }
 
         return best;
+    }
+
+    private Entity findCrosshairTarget(MinecraftClient client, ClientPlayerEntity player, double reach) {
+        if (client.world == null) return null;
+
+        Vec3d eyePos = player.getEyePos();
+        Vec3d rotVec = player.getRotationVector(player.getPitch(), player.getYaw());
+        Vec3d reachEnd = eyePos.add(rotVec.x * reach, rotVec.y * reach, rotVec.z * reach);
+
+        Entity best = null;
+        double bestDist = reach;
+
+        for (PlayerEntity other : client.world.getPlayers()) {
+            if (other != player && isValidTarget(other, player)) {
+                Box box = other.getBoundingBox().expand(0.1D);
+                var hit = box.raycast(eyePos, reachEnd);
+                if (box.contains(eyePos)) {
+                    return other;
+                } else if (hit.isPresent()) {
+                    double d = eyePos.distanceTo(hit.get());
+                    if (d < bestDist) {
+                        bestDist = d;
+                        best = other;
+                    }
+                }
+            }
+        }
+
+        return best;
+    }
+
+    private boolean hasTargetInRange(MinecraftClient client, ClientPlayerEntity player, double range) {
+        if (client.world == null) return false;
+        double rangeSq = range * range;
+        for (PlayerEntity other : client.world.getPlayers()) {
+            if (other != player && isValidTarget(other, player) && other.squaredDistanceTo(player) <= rangeSq) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isValidTarget(Entity entity, ClientPlayerEntity player) {
@@ -253,30 +287,6 @@ public final class PrestigeAutoMaceController {
         return false;
     }
 
-    private boolean canReach(Vec3d eyePos, Box targetBox, double reach) {
-        if (targetBox.contains(eyePos)) return true;
-        Vec3d closest = new Vec3d(
-                Math.max(targetBox.minX, Math.min(eyePos.x, targetBox.maxX)),
-                Math.max(targetBox.minY, Math.min(eyePos.y, targetBox.maxY)),
-                Math.max(targetBox.minZ, Math.min(eyePos.z, targetBox.maxZ))
-        );
-        return closest.squaredDistanceTo(eyePos) <= (reach * reach);
-    }
-
-    public static Box getEffectiveBox(Entity target, double factor) {
-        Box box = target.getBoundingBox();
-        if (factor <= 1.0) return box;
-        double centerX = (box.minX + box.maxX) * 0.5;
-        double centerZ = (box.minZ + box.maxZ) * 0.5;
-        double halfWidth = (box.maxX - box.minX) * 0.5 * factor;
-        double halfLength = (box.maxZ - box.minZ) * 0.5 * factor;
-        return new Box(centerX - halfWidth, box.minY, centerZ - halfLength, centerX + halfWidth, box.maxY, centerZ + halfLength);
-    }
-
-    private static double distanceTo(Entity a, Entity b) {
-        return Math.sqrt(a.squaredDistanceTo(b));
-    }
-
     private boolean hasMaceInHotbar(ClientPlayerEntity player) {
         for (int i = 0; i < 9; i++) {
             if (player.getInventory().getStack(i).isOf(Items.MACE)) return true;
@@ -290,24 +300,18 @@ public final class PrestigeAutoMaceController {
 
     public int selectBestMaceSlot(ClientPlayerEntity player, double fallDistance) {
         int bestBreachSlot = -1;
-        int bestBreachLevel = 0;
         int bestDensitySlot = -1;
-        int bestDensityLevel = 0;
         int anyMaceSlot = -1;
 
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (stack.isOf(Items.MACE)) {
                 if (anyMaceSlot == -1) anyMaceSlot = i;
-                int bLevel = getEnchantmentLevel(stack, Enchantments.BREACH);
-                if (bLevel > bestBreachLevel) {
-                    bestBreachLevel = bLevel;
-                    bestBreachSlot = i;
+                if (hasEnchantment(stack, Enchantments.BREACH)) {
+                    if (bestBreachSlot == -1) bestBreachSlot = i;
                 }
-                int dLevel = getEnchantmentLevel(stack, Enchantments.DENSITY);
-                if (dLevel > bestDensityLevel) {
-                    bestDensityLevel = dLevel;
-                    bestDensitySlot = i;
+                if (hasEnchantment(stack, Enchantments.DENSITY)) {
+                    if (bestDensitySlot == -1) bestDensitySlot = i;
                 }
             }
         }
@@ -322,15 +326,14 @@ public final class PrestigeAutoMaceController {
             return anyMaceSlot;
         }
 
-        if (fallDistance >= 2.5 && bestDensitySlot != -1) {
-            return bestDensitySlot;
+        if (fallDistance >= config.densityThreshold) {
+            if (bestBreachSlot != -1) return bestBreachSlot;
+        } else {
+            if (bestDensitySlot != -1) return bestDensitySlot;
         }
-        if (bestBreachSlot != -1) {
-            return bestBreachSlot;
-        }
-        if (bestDensitySlot != -1) {
-            return bestDensitySlot;
-        }
+
+        if (bestBreachSlot != -1) return bestBreachSlot;
+        if (bestDensitySlot != -1) return bestDensitySlot;
         return anyMaceSlot;
     }
 
@@ -338,16 +341,6 @@ public final class PrestigeAutoMaceController {
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (!stack.isEmpty() && (stack.isIn(ItemTags.AXES) || stack.getItem() instanceof AxeItem)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public static int findSwordSlot(ClientPlayerEntity player) {
-        for (int i = 0; i < 9; i++) {
-            ItemStack stack = player.getInventory().getStack(i);
-            if (!stack.isEmpty() && stack.isIn(ItemTags.SWORDS)) {
                 return i;
             }
         }
@@ -367,19 +360,6 @@ public final class PrestigeAutoMaceController {
         return false;
     }
 
-    private static int getEnchantmentLevel(ItemStack stack, net.minecraft.registry.RegistryKey<net.minecraft.enchantment.Enchantment> key) {
-        if (stack == null || stack.isEmpty()) return 0;
-        ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
-        if (ench != null) {
-            for (var entry : ench.getEnchantmentEntries()) {
-                if (entry != null && entry.getKey() != null && entry.getKey().matchesKey(key)) {
-                    return entry.getIntValue();
-                }
-            }
-        }
-        return 0;
-    }
-
     private void saveOriginalSlot(ClientPlayerEntity player) {
         if (originalSlot == -1) {
             originalSlot = player.getInventory().getSelectedSlot();
@@ -388,7 +368,7 @@ public final class PrestigeAutoMaceController {
 
     private void setSlot(ClientPlayerEntity player, int slot) {
         if (slot >= 0 && slot < 9 && player.getInventory().getSelectedSlot() != slot) {
-            net.fabricmc.pack.api.SafeSlotManager.selectSlot(MinecraftClient.getInstance(), slot);
+            player.getInventory().setSelectedSlot(slot);
         }
     }
 
@@ -438,10 +418,9 @@ public final class PrestigeAutoMaceController {
         }
         originalSlot = -1;
         hasAttackedInFall = false;
+        shieldBrokenInFall = false;
+        hasEverFallen = false;
         currentTarget = null;
-        weaponSwitchTime = 0L;
-        scheduledAttackTime = 0L;
-        restorePendingTime = 0L;
         PrestigeSilentAim.getInstance().stop();
     }
 }

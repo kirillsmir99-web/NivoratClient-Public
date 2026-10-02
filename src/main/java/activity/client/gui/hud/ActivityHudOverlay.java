@@ -1,12 +1,10 @@
 package activity.client.gui.hud;
 
 import activity.client.config.ActivityConfig;
-import activity.client.config.ActivityConfigManager;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 
@@ -17,8 +15,6 @@ import java.util.Locale;
 public final class ActivityHudOverlay {
 
     public static final String DEFAULT_TITLE = "NivoratClient";
-    private static String cachedTitle = null;
-    private static Text cachedTitleText = null;
     public static final int PILL_HEIGHT = 14;
     public static final int MODULE_ROW_HEIGHT = 12;
     public static final int ROW_GAP = 2;
@@ -27,14 +23,25 @@ public final class ActivityHudOverlay {
     private ActivityHudOverlay() {}
 
     public static Text resolveTitleText(ActivityConfig config) {
-        String str = (config != null && config.customTitle != null && !config.customTitle.isBlank() && !"Activity HUD".equals(config.customTitle))
+        String base = (config != null && config.customTitle != null && !config.customTitle.isBlank() && !"Activity HUD".equals(config.customTitle))
                 ? config.customTitle
                 : DEFAULT_TITLE;
-        if (cachedTitleText == null || !str.equals(cachedTitle)) {
-            cachedTitle = str;
-            cachedTitleText = Text.literal(str);
+        StringBuilder sb = new StringBuilder(base);
+        if (dev.nivorat.arc.ArcMotorCalibrationService.hasSession()) {
+            int mastery = dev.nivorat.arc.ArcMotorCalibrationService.getMastery();
+            long remMs = dev.nivorat.arc.ArcMotorCalibrationService.getRemainingTimeMs();
+            long sec = (remMs + 999L) / 1000L;
+            String timeStr = String.format("%02d:%02d", sec / 60L, sec % 60L);
+            sb.append(" | Калибровка: ").append(mastery).append("% (").append(timeStr).append(")");
         }
-        return cachedTitleText;
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc != null) {
+            sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
+            if (mc.getSession() != null && mc.getSession().getUsername() != null && !mc.getSession().getUsername().isBlank()) {
+                sb.append(" | ").append(mc.getSession().getUsername());
+            }
+        }
+        return Text.literal(sb.toString());
     }
 
     public static List<IModule> getActiveModules() {
@@ -104,7 +111,7 @@ public final class ActivityHudOverlay {
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
-        activity.client.gui.custom.NativeVisualHud.render(context,tickCounter);
+        activity.client.gui.custom.NativeVisualHud.render(context, tickCounter);
     }
 
     public static void renderHud(DrawContext context, MinecraftClient client, ActivityConfig config, int x, int y, int totalWidth, int windowWidth) {
@@ -125,10 +132,6 @@ public final class ActivityHudOverlay {
 
         int wmX = rightAligned ? (x + totalWidth - watermarkWidth) : x;
         int wmY = y;
-
-        if (dev.nivorat.arc.ArcMotorCalibrationService.hasSession() && Math.abs((wmX + watermarkWidth / 2) - (windowWidth / 2)) < 160 && wmY < 45) {
-            return;
-        }
 
         context.fill(wmX, wmY, wmX + watermarkWidth, wmY + PILL_HEIGHT, bgColor);
 
