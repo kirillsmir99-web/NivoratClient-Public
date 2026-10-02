@@ -79,6 +79,9 @@ public final class VectorStreamController {
     }
 
     private boolean isCooldownActive(long now) {
+        if (VectorStreamConfig.maxSpeed || VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
+            return false;
+        }
         if (cooldownTicks > 0) {
             return true;
         }
@@ -225,7 +228,7 @@ public final class VectorStreamController {
         long now = System.currentTimeMillis();
         if (isCooldownActive(now)) return;
 
-        if (VectorStreamConfig.checkCharge && player.getAttackCooldownProgress(0.0F) < 0.90F) {
+        if (!VectorStreamConfig.maxSpeed && VectorStreamConfig.checkCharge && player.getAttackCooldownProgress(0.0F) < 0.90F) {
             return;
         }
 
@@ -246,6 +249,7 @@ public final class VectorStreamController {
 
         int targetSpearSlot = findSpearSlot(player, curSlot);
         if (targetSpearSlot < 0) {
+            activity.client.diagnostic.DiagnosticEngine.recordAction("auto_spear", "trigger", false, "no_spear_in_hotbar");
             return;
         }
 
@@ -261,8 +265,8 @@ public final class VectorStreamController {
     }
 
     private int getRestoreDelayTicks() {
-        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
-            return 1;
+        if (VectorStreamConfig.maxSpeed || VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
+            return 0;
         }
         if (VectorStreamConfig.maxDelayMs > 0 && VectorStreamConfig.maxDelayMs != 185) {
             if (VectorStreamConfig.maxDelayMs <= 60) return 1;
@@ -271,8 +275,8 @@ public final class VectorStreamController {
             }
         }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
-            if (!VectorStreamConfig.randomDelay) return 2;
-            return ThreadLocalRandom.current().nextInt(100) < 40 ? 1 : 2;
+            if (!VectorStreamConfig.randomDelay) return 1;
+            return ThreadLocalRandom.current().nextInt(100) < 65 ? 1 : 2;
         }
         if (!VectorStreamConfig.randomDelay) return 2;
         int roll = ThreadLocalRandom.current().nextInt(100);
@@ -282,24 +286,27 @@ public final class VectorStreamController {
     }
 
     private int calculateDelay() {
+        if (VectorStreamConfig.maxSpeed) {
+            return 0;
+        }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
             if (!VectorStreamConfig.randomDelay) {
-                return 45;
+                return 0;
             }
-            return (int) GaussianTimingEngine.getDelay(45.0D, 2.0D, 40, 48);
+            return (int) GaussianTimingEngine.getDelay(4.0D, 2.0D, 0, 10);
         }
         if (restoreDelayTicks == 1) {
             if (!VectorStreamConfig.randomDelay) {
-                return 46;
+                return 40;
             }
-            return (int) GaussianTimingEngine.getDelay(46.0D, 2.0D, 41, 48);
+            return (int) GaussianTimingEngine.getDelay(40.0D, 2.0D, 35, 48);
         }
         if (restoreDelayTicks == 2) {
-            double mean = (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) ? 76.0D : 85.0D;
+            double mean = (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) ? 50.0D : 85.0D;
             if (!VectorStreamConfig.randomDelay) {
                 return (int) mean;
             }
-            return (int) GaussianTimingEngine.getDelay(mean, 5.5D, (int) (mean - 10), (int) (mean + 10));
+            return (int) GaussianTimingEngine.getDelay(mean, 4.0D, (int) (mean - 8), (int) (mean + 8));
         }
         if (!VectorStreamConfig.randomDelay) {
             return 125;
@@ -308,11 +315,14 @@ public final class VectorStreamController {
     }
 
     private int getSwitchDelayTicks() {
+        if (VectorStreamConfig.maxSpeed || VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
+            return 0;
+        }
         return 1;
     }
 
     private int getCooldownTicks() {
-        if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
+        if (VectorStreamConfig.maxSpeed || VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) {
             return 0;
         }
         if (VectorStreamConfig.securityMode == VectorStreamConfig.MODE_SEMI_LEGIT) {
@@ -347,7 +357,7 @@ public final class VectorStreamController {
         restoreDelayTicks = getRestoreDelayTicks();
         targetRestoreDelayMs = calculateDelay();
 
-        if (targetRestoreDelayMs <= 0 && restoreDelayTicks <= 0) {
+        if (VectorStreamConfig.maxSpeed || (targetRestoreDelayMs <= 0 && restoreDelayTicks <= 0)) {
             restoreSlot(client);
             clearState();
             cooldownTicks = getCooldownTicks();
@@ -391,11 +401,12 @@ public final class VectorStreamController {
             }
 
             boolean isMiss = false;
-            if (VectorStreamConfig.missChance > 0 && ThreadLocalRandom.current().nextInt(100) < VectorStreamConfig.missChance) {
+            if (!VectorStreamConfig.maxSpeed && VectorStreamConfig.missChance > 0 && ThreadLocalRandom.current().nextInt(100) < VectorStreamConfig.missChance) {
                 isMiss = true;
             }
 
             if (isMiss) {
+                activity.client.diagnostic.DiagnosticEngine.recordAction("auto_spear", "strike", false, "miss_chance_rolled");
                 player.swingHand(Hand.MAIN_HAND);
                 player.resetTicksSinceLastAttack();
                 return;
@@ -431,6 +442,8 @@ public final class VectorStreamController {
                     client.interactionManager.attackEntity(player, target);
                 }
             }
+            client.interactionManager.interactItem(player, Hand.MAIN_HAND);
+            activity.client.diagnostic.DiagnosticEngine.recordAction("auto_spear", "strike", true, "slot=" + spearSlot + " target=" + (target != null ? target.getName().getString() : "none"));
         } catch (Throwable ignored) {
         }
     }
@@ -446,10 +459,10 @@ public final class VectorStreamController {
         long elapsedTicks = clientTickCount - strikeTick;
         boolean differentTick = (clientTickCount > lastSlotChangeTick);
 
-        boolean timeExpired = elapsedMs >= targetRestoreDelayMs || (restoreDelayTicks == 1 && elapsedMs >= VectorStreamConfig.getMinFloor());
+        boolean timeExpired = elapsedMs >= targetRestoreDelayMs || (restoreDelayTicks <= 1 && elapsedMs >= VectorStreamConfig.getMinFloor());
         boolean ticksExpired = elapsedTicks >= restoreDelayTicks;
 
-        if ((timeExpired && ticksExpired && differentTick) || elapsedTicks > 20) {
+        if ((timeExpired && ticksExpired && differentTick) || elapsedTicks > 20 || ((VectorStreamConfig.maxSpeed || VectorStreamConfig.securityMode == VectorStreamConfig.MODE_RAGE) && timeExpired)) {
             restoreSlot(client);
             clearState();
             cooldownTicks = getCooldownTicks();

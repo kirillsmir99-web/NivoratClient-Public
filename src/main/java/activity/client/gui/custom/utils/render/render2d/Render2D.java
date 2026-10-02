@@ -254,7 +254,7 @@ public final class Render2D {
         if (reloadListenerRegistered) {
             return;
         }
-        Identifier identifier = Identifier.of((String)"kimiko", (String)"render2d_msdf_cache");
+        Identifier identifier = Identifier.of((String)"nivorat", (String)"render2d_msdf_cache");
         ResourceLoader.get((ResourceType)ResourceType.CLIENT_RESOURCES).registerReloader(identifier, (ResourceReloader)((SynchronousResourceReloader)resourceManager -> MsdfTextRenderer.clearResourceCaches()));
         reloadListenerRegistered = true;
     }

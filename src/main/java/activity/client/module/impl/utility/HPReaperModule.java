@@ -14,7 +14,6 @@ import activity.client.module.api.NivoratModule;
 import activity.client.module.setting.Setting;
 import activity.client.module.setting.SettingGroup;
 import dev.hpreaper.HealthHudOverlay;
-import dev.hpreaper.HpHudEditorScreen;
 import dev.hpreaper.VitalityConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -39,7 +38,7 @@ public class HPReaperModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.2.0")
                 .icon(ActivityIcon.UTILITY)
                 .keybind(keybind)
@@ -88,21 +87,12 @@ public class HPReaperModule extends NivoratModule {
         registerBoolean("show_difference", Text.literal("Разница HP"), Text.literal("Показывать разницу вашего здоровья и здоровья цели"), SettingGroup.EXTRA, true,
                 () -> ActivityConfigManager.getConfig().hpReaperShowDifference,
                 value -> ActivityConfigManager.getConfig().hpReaperShowDifference = value);
-        registerBoolean("low_health_hearts", Text.literal("HP Focus"), Text.literal("Векторные сердца Kimiko при низком здоровье"), SettingGroup.EXTRA, true,
+        registerBoolean("low_health_hearts", Text.literal("HP Focus"), Text.literal("Векторные сердца Nivorat при низком здоровье"), SettingGroup.EXTRA, true,
                 () -> ActivityConfigManager.getConfig().hpReaperLowHealthHearts,
                 value -> ActivityConfigManager.getConfig().hpReaperLowHealthHearts = value);
         registerInteger("low_health_threshold", Text.literal("Порог HP Focus"), Text.literal("Показывать сердца ниже этого количества HP"), SettingGroup.EXTRA, 1, 40, 1, activity.client.module.setting.NumberUnit.NONE, 8,
                 () -> ActivityConfigManager.getConfig().hpReaperLowHealthThreshold,
                 value -> ActivityConfigManager.getConfig().hpReaperLowHealthThreshold = value);
-        registerAction("open_editor", Text.translatable("activity.setting.utility.open_editor"),
-                Text.translatable("activity.setting.utility.open_editor.desc"), SettingGroup.EXTRA,
-                () -> {
-                    MinecraftClient mc = MinecraftClient.getInstance();
-                    if (mc != null) {
-                        mc.send(() -> mc.setScreen(new HpHudEditorScreen(mc.currentScreen)));
-                    }
-                }
-        );
     }
 
     @Override

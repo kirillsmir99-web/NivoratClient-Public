@@ -15,6 +15,7 @@ public final class ModuleManager {
     private List<Module> registrySnapshot = List.of();
     private List<Module> searchSnapshot;
     private List<Module> displaySnapshot;
+    private int ecosystemRevision = -1;
     private ClickGui gui;
     private ClientSounds sounds;
     private activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule notifications;
@@ -22,6 +23,7 @@ public final class ModuleManager {
     public static ModuleManager get() { return INSTANCE; }
 
     public List<Module> getAll() {
+        checkCompanions();
         List<IModule> sources = ModuleRegistry.getAll();
         if (sources == sourceSnapshot) return registrySnapshot;
         Set<String> ids = new HashSet<>();
@@ -51,9 +53,22 @@ public final class ModuleManager {
 
     public List<Module> forCategory(Category category) {
         if (category == Category.DISPLAY) {
-            if (displaySnapshot == null) displaySnapshot = List.of(VisualMaterial.getInstance(), get(ClickGui.class), get(ClientSounds.class));
+            checkCompanions();
+            if (displaySnapshot == null) {
+                List<Module> display = new ArrayList<>();
+                if (!activity.client.integration.NivoratEcosystem.owns("appearance")) display.add(VisualMaterial.getInstance());
+                if (!activity.client.integration.NivoratEcosystem.owns("menu")) display.add(get(ClickGui.class));
+                if (!activity.client.integration.NivoratEcosystem.owns("sounds")) display.add(get(ClientSounds.class));
+                for (var section : activity.client.integration.NivoratEcosystem.sections()) {
+                    display.add(new activity.client.integration.CompanionSettingsModule(section));
+                }
+                display.add(new activity.client.gui.custom.PresetSettingsModule());
+                display.add(new activity.client.gui.custom.CapabilityLogsModule());
+                displaySnapshot = List.copyOf(display);
+            }
             return displaySnapshot;
         }
+        if (category == Category.PRESETS || category == Category.THEMES || category == Category.ABOUT || category == Category.UTILS) return List.of();
         if (category == Category.PINNED) return activity.client.gui.custom.api.ui.pin.PinManager.getPinnedModules();
         List<Module> all = getAll();
         if (category == Category.VISUALS) return all;
@@ -69,6 +84,15 @@ public final class ModuleManager {
         for (Module module : getAll()) if (module.getName().equalsIgnoreCase(name)) return module;
         for (Module module : forCategory(Category.DISPLAY)) if (module.getName().equalsIgnoreCase(name)) return module;
         return null;
+    }
+
+    private void checkCompanions() {
+        int revision = activity.client.integration.NivoratEcosystem.revision();
+        if (revision == ecosystemRevision) return;
+        ecosystemRevision = revision;
+        displaySnapshot = null;
+        searchSnapshot = null;
+        activity.client.gui.custom.DetailedModuleSearch.invalidate();
     }
 
     public <T> T get(Class<T> type) {

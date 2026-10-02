@@ -276,7 +276,7 @@ public class LegacyConfigMigrationTest {
         assertTrue(Files.exists(marker), "Migration marker file must exist");
         String markerContent = Files.readString(marker);
         assertTrue(markerContent.contains("migration_version=1"));
-        assertTrue(markerContent.contains("client=PulseHUD") || markerContent.contains("client=CooldownHUD") || markerContent.contains("client=NivoratClient"));
+        assertTrue(markerContent.contains("client=NivoratClient") || markerContent.contains("client=CooldownHUD") || markerContent.contains("client=NivoratClient"));
     }
 
     @Test

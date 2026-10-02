@@ -26,7 +26,7 @@ final class MechanicsSmoke {
                 player.setInvulnerable(true);
                 player.setNoGravity(true);
                 player.requestTeleport(-42, 170, 70);
-                for (var entity : client.getServer().getOverworld().iterateEntities()) if (entity instanceof net.minecraft.entity.mob.HostileEntity || entity instanceof net.minecraft.entity.projectile.thrown.EnderPearlEntity) entity.discard();
+                for (var entity : snapshotEntities(client.getServer())) if (entity instanceof net.minecraft.entity.mob.HostileEntity || entity instanceof net.minecraft.entity.projectile.thrown.EnderPearlEntity) entity.discard();
             }).join();
             client.player.setNoGravity(true);
             client.player.setPosition(-42, 170, 70);
@@ -53,7 +53,7 @@ final class MechanicsSmoke {
         if (ticks >= 13 && ticks <= 35) {
             var server = client.getServer();
             server.execute(() -> {
-                for (var entity : server.getOverworld().iterateEntities()) {
+                for (var entity : snapshotEntities(server)) {
                     if (entity instanceof net.minecraft.entity.projectile.thrown.EnderPearlEntity) serverSawPearl.set(true);
                 }
             });
@@ -64,7 +64,7 @@ final class MechanicsSmoke {
             require(!CombatLockManager.isLocked(), "Pearl sequence retained combat lock");
             var server = client.getServer();
             server.execute(() -> {
-                for (var entity : server.getOverworld().iterateEntities()) {
+                for (var entity : snapshotEntities(server)) {
                     if (entity instanceof net.minecraft.entity.projectile.thrown.EnderPearlEntity) entity.discard();
                 }
             });
@@ -82,7 +82,7 @@ final class MechanicsSmoke {
             support = client.player.getBlockPos().add(0, -1, 3);
             var server = client.getServer();
             server.execute(() -> {
-                for (var entity : server.getOverworld().iterateEntities()) {
+                for (var entity : snapshotEntities(server)) {
                     if (entity instanceof net.minecraft.entity.vehicle.TntMinecartEntity) entity.discard();
                 }
                 for (int x=-1; x<=1; x++) for (int z=-3; z<=1; z++) {
@@ -96,13 +96,13 @@ final class MechanicsSmoke {
             setStack(client, 2, new ItemStack(Items.TNT_MINECART));
             cart = (activity.client.module.impl.defense.OcclusionCacheModule) activity.client.module.api.ModuleRegistry.get("auto_cart");
             cart.setEnabled(true);
-            dev.virion.arc.MorrowConfig.legitMode = false;
-            dev.virion.arc.MorrowConfig.autoCamera = false;
-            dev.virion.arc.MorrowConfig.cameraMode = "packet";
-            dev.virion.arc.MorrowConfig.randomDelay = false;
-            dev.virion.arc.MorrowConfig.placementChance = 100;
-            dev.virion.arc.MorrowConfig.maxDistance = 4.5;
-            dev.virion.arc.MorrowConfig.useMainhandCart = true;
+            dev.nivorat.arc.MorrowConfig.legitMode = false;
+            dev.nivorat.arc.MorrowConfig.autoCamera = false;
+            dev.nivorat.arc.MorrowConfig.cameraMode = "packet";
+            dev.nivorat.arc.MorrowConfig.randomDelay = false;
+            dev.nivorat.arc.MorrowConfig.placementChance = 100;
+            dev.nivorat.arc.MorrowConfig.maxDistance = 4.5;
+            dev.nivorat.arc.MorrowConfig.useMainhandCart = true;
             client.player.setYaw(0f);
             client.player.setPitch(30f);
         }
@@ -111,10 +111,10 @@ final class MechanicsSmoke {
                     net.minecraft.util.math.Vec3d.ofCenter(support).add(0, .5, 0),
                     net.minecraft.util.math.Direction.UP, support, false);
             try {
-                var allowed = dev.virion.arc.VirionArcController.class.getDeclaredMethod("canPlaceRail", MinecraftClient.class, net.minecraft.util.math.BlockPos.class);
+                var allowed = dev.nivorat.arc.AutoCartController.class.getDeclaredMethod("canPlaceRail", MinecraftClient.class, net.minecraft.util.math.BlockPos.class);
                 allowed.setAccessible(true);
                 System.out.println("CART_SMOKE_SETUP player="+client.player.getBlockPos()+" support="+support+" rail="+activity.client.module.service.CartStateService.findRailSlot(client.player)+" cart="+activity.client.module.service.CartStateService.findHotbarCart(client.player)+" canPlace="+allowed.invoke(cart.getController(),client,support.up())+" cooldown="+activity.client.module.service.CartStateService.isCartOnCooldown(client.player)+" locks="+CombatLockManager.getLockMask());
-                var begin = dev.virion.arc.VirionArcController.class.getDeclaredMethod("beginPlacementSequence", MinecraftClient.class, int.class);
+                var begin = dev.nivorat.arc.AutoCartController.class.getDeclaredMethod("beginPlacementSequence", MinecraftClient.class, int.class);
                 begin.setAccessible(true);
                 begin.invoke(cart.getController(), client, 20);
             } catch (ReflectiveOperationException ex) {throw new IllegalStateException(ex);}
@@ -123,7 +123,7 @@ final class MechanicsSmoke {
         if (ticks >= 76 && ticks <= 115) {
             var server = client.getServer();
             server.execute(() -> {
-                for (var entity : server.getOverworld().iterateEntities()) {
+                for (var entity : snapshotEntities(server)) {
                     if (entity instanceof net.minecraft.entity.vehicle.TntMinecartEntity) serverSawCart.set(true);
                 }
             });
@@ -226,7 +226,28 @@ final class MechanicsSmoke {
             require(client.player.getInventory().getStack(12).getCount() == 8, "Hotbar operation touched inventory stack");
             require(!CombatLockManager.isLocked(), "Hotbar priority retained lock");
             System.out.println("INVENTORY_LIFECYCLE_SMOKE passed: optional return, leave PEARL, displaced item, multiple stacks, manual cancellation, disable, hotbar priority");
-            VisualSmoke.writeResult(true, "mechanics + inventory lifecycle regression");
+            setStack(client, 2, ItemStack.EMPTY);
+            setStack(client, 12, new ItemStack(Items.ENDER_PEARL, 16));
+        }
+        if (ticks == 310) {
+            require(client.player.getInventory().getStack(12).getCount() == 16, "Inventory mutation source was not synchronized");
+            ClickPearlConfig.searchMode = "inventory";
+            ClickPearlConfig.targetHotbarSlot = 3;
+            ClickPearlConfig.returnPearl = true;
+            ClickPearlConfig.checkCooldown = false;
+            pearl.getController().trigger(client);
+            require(client.currentScreen != null, "Inventory corruption scenario did not open inventory");
+            setStack(client, 2, new ItemStack(Items.STICK));
+        }
+        if (ticks == 330) {
+            require(client.currentScreen == null, "Changed inventory left its managed screen open");
+            require(pearl.getController().getState() == dev.pearl.ClickPearlController.State.IDLE, "Changed inventory did not cancel");
+            require(client.player.getInventory().getStack(2).isOf(Items.STICK), "Changed destination was overwritten");
+            require(client.player.getInventory().getStack(12).getCount() == 16,
+                    "Cancelled operation source=" + client.player.getInventory().getStack(12) + " destination=" + client.player.getInventory().getStack(2));
+            require(!CombatLockManager.isLocked(), "Changed inventory retained combat lock");
+            verifyMaceCobweb(client);
+            VisualSmoke.writeResult(true, "mechanics + inventory lifecycle + inventory mutation cancellation + AutoMace cobweb regression");
             client.scheduleStop();
         }
     }
@@ -234,14 +255,65 @@ final class MechanicsSmoke {
     private static void setStack(MinecraftClient client, int slot, ItemStack stack) {
         client.player.getInventory().setStack(slot, stack);
         var uuid = client.player.getUuid();
-        client.getServer().execute(() -> {
+        ItemStack serverStack = stack.copy();
+        client.getServer().submit(() -> {
             var player = client.getServer().getPlayerManager().getPlayer(uuid);
-            player.getInventory().setStack(slot, stack.copy());
+            player.getInventory().setStack(slot, serverStack);
             player.playerScreenHandler.sendContentUpdates();
-        });
+            return null;
+        }).join();
     }
 
     private static void require(boolean condition, String message) {
         if (!condition) throw new IllegalStateException(message);
+    }
+
+    private static java.util.List<net.minecraft.entity.Entity> snapshotEntities(net.minecraft.server.MinecraftServer server) {
+        var entities = new java.util.ArrayList<net.minecraft.entity.Entity>();
+        server.getOverworld().iterateEntities().forEach(entities::add);
+        return entities;
+    }
+
+    private static void verifyMaceCobweb(MinecraftClient client) {
+        try {
+            var engine = new net.redstone.optimizer.engine.RedstoneTickEngine();
+            var pos = client.player.getBlockPos();
+            var previous = client.world.getBlockState(pos);
+            boolean enabled = net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled;
+            setStack(client, 0, new ItemStack(Items.DIAMOND_SWORD));
+            setStack(client, 1, new ItemStack(Items.MACE));
+            SafeSlotManager.selectSlot(client, 0);
+            net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled = true;
+            client.world.setBlockState(pos, net.minecraft.block.Blocks.COBWEB.getDefaultState());
+            try {
+                var target = new net.minecraft.entity.mob.ZombieEntity(client.world);
+                target.setPosition(client.player.getEntityPos().add(0, 0, 1));
+                var result = engine.onAttackEntity(client.player, client.world, net.minecraft.util.Hand.MAIN_HAND,
+                        target, new net.minecraft.util.hit.EntityHitResult(target));
+                require(result == net.minecraft.util.ActionResult.PASS, "AutoMace consumed a cobweb attack");
+                require(client.player.getInventory().getSelectedSlot() == 0, "AutoMace swapped while in cobweb");
+                require(!CombatLockManager.isLocked(), "Cobweb attack retained a lock");
+                var type = net.redstone.optimizer.engine.RedstoneTickEngine.class;
+                var stage = type.getDeclaredField("state"); stage.setAccessible(true);
+                Object restore = java.util.Arrays.stream(stage.getType().getEnumConstants())
+                        .filter(value -> value.toString().equals("WAITING_RESTORE")).findFirst().orElseThrow();
+                stage.set(engine, restore);
+                var initial = type.getDeclaredField("initialSlot"); initial.setAccessible(true); initial.setInt(engine, 0);
+                var active = type.getDeclaredField("activeMaceSlot"); active.setAccessible(true); active.setInt(engine, 1);
+                SafeSlotManager.selectSlot(client, 1);
+                CombatLockManager.setLock("pvp.mace_active", true);
+                net.redstone.optimizer.engine.RedstoneTickEngine.maceActive = true;
+                engine.tick(client);
+                require(client.player.getInventory().getSelectedSlot() == 0, "Entering cobweb did not restore sword");
+                require(!CombatLockManager.isLocked(), "Entering cobweb retained a mace lock");
+            } finally {
+                engine.reset();
+                client.world.setBlockState(pos, previous);
+                net.redstone.optimizer.config.RedstoneOptimizerConfig.enabled = enabled;
+            }
+            System.out.println("TECHNICAL_SMOKE passed: changed inventory cancellation and AutoMace cobweb suppression/restore");
+        } catch (ReflectiveOperationException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }

@@ -8,7 +8,6 @@ import activity.client.module.api.ModuleMetadata;
 import activity.client.module.api.NivoratModule;
 import activity.client.module.setting.SettingGroup;
 import dev.carthud.CartHudConfig;
-import dev.carthud.CartHudEditorScreen;
 import dev.carthud.CartHudOverlay;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -24,22 +23,13 @@ public class CartHudModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.0.0")
                 .icon(ActivityIcon.UTILITY)
                 .keybind(keybind)
                 .aliases("carthud", "hud", "хад", "картхад", "оверлей", "вагонетки", "редактор", "editor", "позиция")
                 .build();
 
-        registerAction("open_editor", Text.translatable("activity.setting.utility.open_carthud_editor"),
-                Text.translatable("activity.setting.utility.open_carthud_editor.desc"), SettingGroup.EXTRA,
-                () -> {
-                    MinecraftClient mc = MinecraftClient.getInstance();
-                    if (mc != null) {
-                        mc.send(() -> mc.setScreen(new CartHudEditorScreen(mc.currentScreen)));
-                    }
-                }
-        );
 
         registerAction("reset_position", Text.translatable("activity.setting.utility.reset_carthud_pos"),
                 Text.translatable("activity.setting.utility.reset_carthud_pos.desc"), SettingGroup.EXTRA,

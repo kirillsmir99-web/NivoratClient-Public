@@ -110,6 +110,7 @@ implements GuiCapture.Source {
     }
 
     public static float panelX() {
+        if (activity.client.gui.custom.CollectionDrawer.isOpen()) return Math.max(activity.client.gui.custom.CollectionDrawer.width() + 8, (Position.screenWidth() - PANEL_W + activity.client.gui.custom.CollectionDrawer.width()) / 2);
         float curW = panelW();
         float defaultX = Math.max(8.0f, Position.screenWidth() / 2.0f - curW / 2.0f);
         if (customPanelX < 0.0f) {
@@ -139,11 +140,11 @@ implements GuiCapture.Source {
     public static final float HEADER_H = 22.0f;
     public static final float HEADER_OFFSET = 26.0f;
     private static final Category[] MAIN_CATEGORIES = new Category[]{Category.VISUALS,Category.NPOT,Category.CRYSTAL,Category.UHC,Category.SMP,Category.MACE,Category.BEAST,Category.SWORD,Category.AXE,Category.DPOT};
-    private static final Category[] SYSTEM_CATEGORIES = new Category[]{Category.THEMES,Category.DISPLAY,Category.ABOUT};
+    private static final Category[] SYSTEM_CATEGORIES = new Category[]{Category.THEMES,Category.PRESETS,Category.DISPLAY,Category.ABOUT};
     private static final float CAT_COL_TOP = 31.0f;
     private static final float CAT_HEADER_H = 20.0f;
     private static final float CAT_SUB_GAP = 1.0f;
-    private static final float CAT_SUB_ROW_H = 15.0f;
+    private static final float CAT_SUB_ROW_H = 14.0f;
     private static final float CAT_OTHERS_GAP = 8.0f;
     private static final float CAT_OTHER_ROW_H = 17.0f;
     private Category targetCategory = null;
@@ -163,6 +164,8 @@ implements GuiCapture.Source {
     private final BindPopup bindPopup = new BindPopup();
     private final SettingsPopup settingsPopup = new SettingsPopup();
     private final ThemesRenderer themesRenderer = new ThemesRenderer();
+    private final activity.client.gui.custom.PresetRenderer presetRenderer = new activity.client.gui.custom.PresetRenderer();
+    public activity.client.gui.custom.PresetRenderer getPresetRenderer() { return presetRenderer; }
     private float lastAboutResetPosBtnX, lastAboutResetPosBtnY, lastAboutResetPosBtnW, lastAboutResetPosBtnH;
     private float lastAboutResetSidebarBtnX, lastAboutResetSidebarBtnY, lastAboutResetSidebarBtnW, lastAboutResetSidebarBtnH;
     private float lastAboutResetThemeBtnX, lastAboutResetThemeBtnY, lastAboutResetThemeBtnW, lastAboutResetThemeBtnH;
@@ -221,6 +224,61 @@ implements GuiCapture.Source {
     private static float guiCaptureScale;
     private static float guiCaptureBlurMainPx;
     private final Decelerate placeholderAnim = UI.createAnim(200);
+    private final activity.client.capitulation.HoldConfirmation capitulationHold = new activity.client.capitulation.HoldConfirmation(2_000_000_000L);
+    private Screen integrationParent;
+    private String integrationGroup;
+
+    public static float moduleViewportHeight(Category category) {
+        return CONTENT_HEIGHT - HEADER_OFFSET - (category == Category.DISPLAY ? 44.0f : 0.0f);
+    }
+
+    public static Screen integrationScreen(Screen parent, String group) {
+        INSTANCE.integrationParent = parent;
+        INSTANCE.integrationGroup = group;
+        return INSTANCE;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        MinecraftClient client = MinecraftClient.getInstance();
+        boolean eligible = client.currentScreen == this && client.isWindowFocused()
+                && targetCategory == Category.DISPLAY && contentCategory == Category.DISPLAY
+                && screenAnim.canInteract() && !isDraggingPanel && !isDraggingSidebar
+                && !inspector.isOpen() && !bindPopup.isOpen()
+                && !settingsPopup.isVisible()
+                && !activity.client.gui.custom.NativeBindAssignment.isOpen()
+                && panicButtonContains(Position.mouseX(), Position.mouseY());
+        if (capitulationHold.update(System.nanoTime(), eligible)) {
+            activity.client.gui.sound.SoundManager.playSuccess();
+            activity.client.capitulation.CapitulationManager.capitulate(client);
+        }
+    }
+
+    private boolean panicButtonContains(float x, float y) {
+        float left = panelX() + contentXOff() + 7;
+        float top = panelY() + CONTENT_Y_OFFSET + CONTENT_HEIGHT - 29;
+        return x >= left && x <= left + PANEL_W - contentInset() - 14 && y >= top && y <= top + 21;
+    }
+
+    private void renderCapitulation(float x, float y, float width, float alpha) {
+        boolean ru = activity.client.i18n.LocalizationService.isRussianPreferred();
+        float top = y + CONTENT_Y_OFFSET + CONTENT_HEIGHT - 29;
+        float left = x + contentXOff() + 7;
+        float buttonWidth = width - contentInset() - 14;
+        Render2D.rect(left, top, buttonWidth, 21, 6, UI.color(92, 28, 36, 145, alpha));
+        float progress = capitulationHold.progress(System.nanoTime());
+        if (progress > 0) {
+            float eased = progress * progress * (3f - 2f * progress);
+            Render2D.rect(left + 3, top + 17, (buttonWidth - 6) * eased, 2, 1, UI.color(255, 95, 113, 230, alpha));
+            float pulse = .5f + .5f * (float) Math.sin(progress * Math.PI * 4);
+            Render2D.outline(left, top, buttonWidth, 21, 6, .6f, UI.color(255, 95, 113, Math.round(90 + pulse * 100), alpha));
+        }
+        String label = progress > 0 ? (ru ? "Остановка… " : "Stopping… ") + Math.round(progress * 100) + "%" : ru ? "Капитуляция · удерживай 2 секунды" : "Deactivate · hold for 2 seconds";
+        Fonts.MONTSERRAT_MEDIUM.draw(RenderHelper.fitText(Fonts.MONTSERRAT_MEDIUM, label, buttonWidth - 16, 6), left + 8, top + 6, 6, UI.color(255, 225, 230, 245, alpha));
+        String hint = ru ? "Остановить модули и очередь действий до перезапуска" : "Stop modules and pending actions until restart";
+        Fonts.MONTSERRAT_MEDIUM.draw(RenderHelper.fitText(Fonts.MONTSERRAT_MEDIUM, hint, buttonWidth, 5), left, top - 10, 5, UI.color(190, 195, 210, 195, alpha));
+    }
     private float parallaxX;
     private float parallaxY;
     private float lastCameraYaw = Float.NaN;
@@ -280,6 +338,10 @@ implements GuiCapture.Source {
         this.moduleList.warmup();
     }
 
+    public void prepareCollectionDrawer() {
+        this.inspector.close(); this.settingsPopup.close(); this.bindPopup.close(); this.releaseAllDrags(); capitulationHold.cancel();
+    }
+
     public static void closeInto(Screen screen) {
         pendingAfterClose = screen;
         UI uI = INSTANCE;
@@ -314,6 +376,7 @@ implements GuiCapture.Source {
 
 
     public void close() {
+        capitulationHold.cancel();
         WorldGuiCloseAnimation.cancel();
         GuiShatterAnimation.cancel();
         this.screenAnim.snapClosed();
@@ -323,11 +386,15 @@ implements GuiCapture.Source {
         this.search.collapse();
         Sounds.play("gui_close");
         if (MinecraftClient.getInstance().currentScreen == this) {
-            MinecraftClient.getInstance().setScreen(null);
+            Screen parent = integrationParent;
+            integrationParent = null;
+            MinecraftClient.getInstance().setScreen(parent);
         }
     }
 
     public boolean keyPressed(KeyInput input) {
+        capitulationHold.cancel();
+        if (activity.client.gui.custom.CollectionDrawer.isOpen()) { activity.client.gui.custom.CollectionDrawer.screen().keyPressed(input); return true; }
         if (activity.client.gui.custom.NativeBindAssignment.keyPressed(input.key())) return true;
         int n;
         Setting setting;
@@ -358,6 +425,7 @@ implements GuiCapture.Source {
             }
             return true;
         }
+        if (this.contentCategory == Category.PRESETS && this.presetRenderer.keyPressed(input)) return true;
         if (this.contentCategory == Category.THEMES && this.themesRenderer.keyPressed(input)) {
             return true;
         }
@@ -388,6 +456,8 @@ implements GuiCapture.Source {
     }
 
     public void removed() {
+        activity.client.gui.custom.CollectionDrawer.close();
+        capitulationHold.cancel();
         activity.client.gui.custom.NativeBindAssignment.cancel();
         activity.client.gui.custom.VisualSettingsStore.save(); activity.client.config.ActivityConfigManager.save();
         if (!this.screenAnim.isClosing()) {
@@ -424,9 +494,22 @@ implements GuiCapture.Source {
             this.screenAnim.startOpening();
         }
         this.lastNs = System.nanoTime();
+        if (integrationGroup != null) {
+            String group = integrationGroup;
+            integrationGroup = null;
+            Module module = switch (group) {
+                case "appearance" -> VisualMaterial.getInstance();
+                case "menu" -> ModuleManager.get().get(ClickGui.class);
+                case "sounds" -> ModuleManager.get().get(activity.client.gui.custom.api.modules.impl.Utils.ClientSounds.class);
+                default -> null;
+            };
+            if (module != null) openModuleSettings(module);
+        }
     }
 
     public boolean mouseClicked(Click click, boolean doubled) {
+        if (activity.client.gui.custom.AutoCartCalibrationTopPanel.mouseClicked(click)) return true;
+        if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseClicked(click, doubled);
         if (activity.client.gui.custom.NativeBindAssignment.click(Position.mouseX(), Position.mouseY(), click.button())) return true;
         if (this.inspector.captureMouse(click.button())) return true;
         if (this.bindPopup.mouseBind(click.button())) return true;
@@ -493,6 +576,14 @@ implements GuiCapture.Source {
         }
 
 
+        if (click.button() == 0 && this.contentCategory == Category.DISPLAY
+                && !inspector.isOpen() && !bindPopup.isOpen() && !settingsPopup.isVisible()
+                && panicButtonContains(f5, f6)) {
+            capitulationHold.begin(System.nanoTime());
+            Sounds.play("select_category");
+            return true;
+        }
+
         float railX = f3 + 5.0f + sidebarW() + 1.5f;
         float railY = f4 + 5.0f;
         float railH = PANEL_H - 10.0f;
@@ -526,6 +617,7 @@ implements GuiCapture.Source {
         if (this.isModuleView() && this.search.mouseClicked(f5, f6, click.button())) {
             return true;
         }
+        if (this.contentCategory == Category.PRESETS && this.presetRenderer.click(f5, f6, click.button())) return true;
         if (this.contentCategory == Category.THEMES && click.button() == 0 && this.themesRenderer.click(f3, f4, f, f5, f6)) {
             return true;
         }
@@ -540,7 +632,7 @@ implements GuiCapture.Source {
             float f7 = f3 + contentXOff();
             float f8 = f4 + CONTENT_Y_OFFSET + HEADER_OFFSET;
             float f9 = f - contentInset();
-            float f10 = CONTENT_HEIGHT - HEADER_OFFSET;
+            float f10 = moduleViewportHeight(this.contentCategory);
             if (bl) {
                 List<Module> list = this.filteredModules(this.contentCategory);
                 if (this.moduleList.clickOverlays(f5, f6, list, f7, f8, f9)) {
@@ -552,6 +644,24 @@ implements GuiCapture.Source {
                         ModuleListRenderer.CardLayout layout = this.moduleList.getCardLayout(list, i, f7, f8, f9, f10, 1.0f, true);
                         if (layout == null || !layout.visible) continue;
                         if (!layout.containsCard(f5, f6)) continue;
+
+                        if (module instanceof activity.client.gui.custom.PresetSettingsModule) {
+                            this.selectCategoryFromWorkspace(Category.PRESETS);
+                            return true;
+                        }
+                        if (module instanceof activity.client.gui.custom.CapabilityLogsModule logsModule) {
+                            float baseH = this.moduleList.baseCardHeight(module, layout.cardW);
+                            if (f6 > layout.cardY + baseH) {
+                                this.moduleList.clickSettings(module, layout.cardX, layout.cardY, layout.cardW, f5, f6, click.button());
+                            } else {
+                                logsModule.copyLogsToClipboard();
+                            }
+                            return true;
+                        }
+                        if (module instanceof activity.client.integration.CompanionSettingsModule companion) {
+                            activity.client.integration.NivoratEcosystem.open(companion.group(), this);
+                            return true;
+                        }
 
                         float baseH = this.moduleList.baseCardHeight(module, layout.cardW);
                         if (f6 > layout.cardY + baseH) {
@@ -653,6 +763,7 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         if (activity.client.gui.custom.NativeBindAssignment.isOpen()) return true;
         if (!this.screenAnim.canInteract()) {
             return true;
@@ -681,13 +792,15 @@ implements GuiCapture.Source {
         if (d >= (double)f4 && d <= (double)(f4 + f6) && d2 >= (double)f5 && d2 <= (double)(f5 + f7)) {
             if (this.contentCategory == Category.THEMES) {
                 this.themesRenderer.scroll(verticalAmount, f7);
+            } else if (this.contentCategory == Category.PRESETS) {
+                this.presetRenderer.scroll(verticalAmount);
             } else if (this.contentCategory == Category.ABOUT) {
 
             } else {
                 float f8 = f3 + CONTENT_Y_OFFSET + HEADER_OFFSET;
                 float f9 = f - contentInset();
                 if (!this.moduleList.scrollOverlays((float)d, (float)d2, verticalAmount, this.filteredModules(this.contentCategory), f4, f8, f9)) {
-                    this.moduleList.scroll(verticalAmount, f7 - HEADER_OFFSET);
+                    this.moduleList.scroll(verticalAmount, moduleViewportHeight(this.contentCategory));
                 }
             }
             return true;
@@ -703,6 +816,7 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseReleased(Click click) {
+        if (click.button() == 0) capitulationHold.cancel();
         if (this.screenAnim.isClosing()) {
             return true;
         }
@@ -724,6 +838,7 @@ implements GuiCapture.Source {
     }
 
     public boolean charTyped(CharInput input) {
+        if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().charTyped(input);
         if (activity.client.gui.custom.NativeBindAssignment.isOpen()) return true;
         if (this.screenAnim.isClosing()) {
             return true;
@@ -733,6 +848,7 @@ implements GuiCapture.Source {
                 return true;
             }
         }
+        if (this.contentCategory == Category.PRESETS && this.presetRenderer.charTyped(input)) return true;
         if (this.contentCategory == Category.THEMES && this.themesRenderer.charTyped(input)) {
             return true;
         }
@@ -1102,6 +1218,7 @@ implements GuiCapture.Source {
         this.moduleList.finishTransition();
         this.themesRenderer.finishTransition();
         this.contentCategory = category;
+        if (category == Category.PRESETS) this.presetRenderer.open();
         if (category == Category.THEMES) {
             this.themesRenderer.open(false);
         }
@@ -1380,15 +1497,16 @@ implements GuiCapture.Source {
     }
 
     public static String categoryIconPath(Category category) {
-        if (category == null) return "kimiko:textures/icons/modules.png";
+        if (category == null) return "nivorat:textures/icons/modules.png";
         return switch (category) {
-            case PINNED -> "kimiko:textures/icons/pinned.png";
-            case VISUALS -> "kimiko:textures/icons/visuals.png";
-            case DISPLAY -> "kimiko:textures/icons/interface.png";
-            case UTILS -> "kimiko:textures/icons/utils.png";
-            case THEMES -> "kimiko:textures/icons/themes.png";
-            case ABOUT -> "kimiko:textures/icons/modules.png";
-            default -> "kimiko:textures/icons/modules.png";
+            case PINNED -> "nivorat:textures/icons/pinned.png";
+            case VISUALS -> "nivorat:textures/icons/visuals.png";
+            case DISPLAY -> "nivorat:textures/icons/interface.png";
+            case UTILS -> "nivorat:textures/icons/utils.png";
+            case THEMES -> "nivorat:textures/icons/themes.png";
+            case PRESETS -> "nivorat:textures/icons/utils.png";
+            case ABOUT -> "nivorat:textures/icons/modules.png";
+            default -> "nivorat:textures/icons/modules.png";
         };
     }
 
@@ -1465,6 +1583,13 @@ implements GuiCapture.Source {
     }
 
     @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        super.render(context, mouseX, mouseY, delta);
+        activity.client.gui.custom.ChatHudLayout.render(context);
+        activity.client.gui.custom.AutoCartCalibrationTopPanel.render(context, mouseX, mouseY);
+    }
+
+    @Override
     protected void renderScreen(DrawContext drawContext, int n, int n2, float f) {
         if (isDraggingPanel) {
             if (MinecraftClient.getInstance().getWindow() != null &&
@@ -1487,7 +1612,8 @@ implements GuiCapture.Source {
     private boolean isModuleView() {
         return this.contentCategory != null
             && this.contentCategory != Category.THEMES
-            && this.contentCategory != Category.ABOUT;
+            && this.contentCategory != Category.ABOUT
+            && this.contentCategory != Category.PRESETS;
     }
 
     private static String savedStartCategoryName = null;
@@ -1680,6 +1806,8 @@ implements GuiCapture.Source {
         if (f14 > 0.01f && this.contentCategory != null) {
             if (this.contentCategory == Category.THEMES) {
                 this.themesRenderer.render(drawContext, f9, f10, PANEL_W, f14, f15, f12);
+            } else if (this.contentCategory == Category.PRESETS) {
+                this.presetRenderer.render(drawContext, f9 + contentXOff(), f10 + CONTENT_Y_OFFSET, PANEL_W - contentInset(), CONTENT_HEIGHT, f14);
             } else if (this.contentCategory == Category.ABOUT) {
                 this.renderAboutCategory(drawContext, f9, f10, PANEL_W, f14, f15, f12);
             } else {
@@ -1692,10 +1820,12 @@ implements GuiCapture.Source {
                         this.renderNoResults(f9, f10, PANEL_W, f14);
                     }
                 }
+                if (this.contentCategory == Category.DISPLAY) renderCapitulation(f9, f10, PANEL_W, f14);
             }
         }
         float f16 = this.modulesHeaderAnim.getOutput().floatValue();
-        boolean bl4 = bl = this.contentCategory != null && this.contentCategory != Category.THEMES && this.contentCategory != Category.ABOUT;
+        boolean bl4 = bl = this.contentCategory != null && this.contentCategory != Category.THEMES && this.contentCategory != Category.ABOUT
+            && this.contentCategory != Category.PRESETS;
         if (bl && f6 > 0.01f && f16 > 0.004f) {
             f = f9 + contentXOff();
             float f17 = f10 + CONTENT_Y_OFFSET;
@@ -1752,10 +1882,11 @@ implements GuiCapture.Source {
             }
         }
         if(UI.isOpen()&&!UI.guiCaptureActive()&&!this.bindPopup.isVisible()&&!this.settingsPopup.isVisible()&&!this.themesRenderer.getEditor().isOpen()){
-            if(this.inspector.isOpen())this.inspector.renderExplanation(drawContext, f6);else if(this.isModuleView())this.moduleList.renderExplanation(drawContext, f6);
+            if(!activity.client.gui.custom.CollectionDrawer.isOpen()) { if(this.inspector.isOpen())this.inspector.renderExplanation(drawContext, f6);else if(this.isModuleView())this.moduleList.renderExplanation(drawContext, f6); }
         }
         activity.client.gui.custom.NativeBindAssignment.render(drawContext, f6);
         drawContext.getMatrices().popMatrix();
+        activity.client.gui.custom.CollectionDrawer.render(drawContext, (int) Position.mouseX(), (int) Position.mouseY(), 0);
         if (this.themesRenderer.getEditor().isOpen()) {
             this.themesRenderer.getEditor().renderOverlays(drawContext, f6);
         }
@@ -1861,7 +1992,7 @@ implements GuiCapture.Source {
         float f6 = f2 + contentXOff();
         float f7 = f3 + CONTENT_Y_OFFSET + HEADER_OFFSET;
         float f8 = f - contentInset();
-        float f9 = CONTENT_HEIGHT - HEADER_OFFSET;
+        float f9 = moduleViewportHeight(this.contentCategory);
         if (f4 < f6 || f4 > f6 + f8 || f5 < f7 || f5 > f7 + f9) {
             return null;
         }
@@ -1955,7 +2086,7 @@ implements GuiCapture.Source {
             (activity.client.gui.custom.VisualText.language().equals("ru") ? "Киты: быстрый доступ к PVP функциям" : "Kits: quick access to PvP tools"),
             (activity.client.gui.custom.VisualText.language().equals("ru") ? "Настройки: управление текущими модулями" : "Settings: control your modules"),
             (activity.client.gui.custom.VisualText.language().equals("ru") ? "Темы: твои цвета и материалы" : "Themes: your colors and materials"),
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "Разработчик: kt1xW (@virionDEV)" : "Developer: kt1xW (@virionDEV)"),
+            (activity.client.gui.custom.VisualText.language().equals("ru") ? "Разработчик: Nivorat" : "Developer: Nivorat"),
             (activity.client.gui.custom.VisualText.language().equals("ru") ? "Сделано для удобной игры" : "Made for comfortable gameplay")
         };
         float curF = card2Y + 26.0f;

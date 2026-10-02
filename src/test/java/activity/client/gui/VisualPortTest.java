@@ -32,15 +32,20 @@ class VisualPortTest {
     }
     @Test void kitMembershipMatchesPvpUse() {
         assertTrue(PvpKit.CRYSTAL.matchesId("auto_anchor"));
-        assertTrue(PvpKit.CRYSTAL.matchesId("cart_refill"));
+        assertFalse(PvpKit.CRYSTAL.matchesId("cart_refill"));
         assertFalse(PvpKit.SWORD.matchesId("auto_anchor"));
         assertTrue(PvpKit.MACE.matchesId("auto_stun_slam"));
         assertTrue(PvpKit.MACE.matchesId("auto_mace"));
         assertFalse(PvpKit.BEAST.matchesId("auto_mace"));
-        assertTrue(PvpKit.SMP.matchesId("water_drop"));
-        for (PvpKit kit : PvpKit.values()) assertTrue(kit.matchesId("click_pearl"));
+        assertFalse(PvpKit.SMP.matchesId("water_drop"));
+        assertTrue(PvpKit.SMP.matchesId("click_pearl"));
+        assertTrue(PvpKit.MACE.matchesId("click_pearl"));
+        assertFalse(PvpKit.NETHERITE_POT.matchesId("click_pearl"));
+        assertFalse(PvpKit.UHC.matchesId("click_pearl"));
+        assertFalse(PvpKit.MACE.matchesId("auto_shieldbreaker"));
+        assertFalse(PvpKit.BEAST.matchesId("auto_tool"));
     }
-    @Test void allKimikoPresetsExistAndPaletteCannotBeMutated() {
+    @Test void allNivoratPresetsExistAndPaletteCannotBeMutated() {
         assertEquals(20, ThemePreset.values().length);
         assertEquals(ThemePreset.CLIENT, ThemePreset.fromId("unknown"));
         assertEquals(ThemePreset.NIVORA, ThemePreset.fromId("NIVORA"));

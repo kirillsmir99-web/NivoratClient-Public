@@ -14,8 +14,16 @@ import activity.client.gui.custom.utils.render.post.guimotionblur.GuiMotionBlurR
 @Mixin(net.minecraft.client.render.GameRenderer.class)
 public abstract class GameRendererMixin {
  @Shadow @Final private MinecraftClient client;
+    @Inject(method="render", at=@At("HEAD"), require = 0)
+    private void nv_renderHead(RenderTickCounter deltaTracker, boolean tick, CallbackInfo ci) {
+        activity.client.diagnostic.DiagnosticEngine.onFrame();
+    }
+
     @Inject(method="render", at={@At(value="INVOKE", target="Lnet/minecraft/client/gui/render/GuiRenderer;method_70890(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", shift=At.Shift.BEFORE)}, require = 0)
     private void nv_preGuiRender(RenderTickCounter deltaTracker, boolean tick, CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         if (this.client == null || this.client.player == null || this.client.world == null) {
             return;
         }
@@ -26,6 +34,9 @@ public abstract class GameRendererMixin {
 
     @Inject(method="render", at={@At(value="INVOKE", target="Lnet/minecraft/client/gui/render/GuiRenderer;method_70890(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", shift=At.Shift.AFTER)}, require = 0)
     private void nv_postGuiRender(RenderTickCounter deltaTracker, boolean tick, CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         if (GuiLayerBlurRenderer.captureActiveThisFrame()) {
             UI.dropPendingBlurs();
             if (GuiCapture.active()) {

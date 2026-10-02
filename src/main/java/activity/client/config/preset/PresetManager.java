@@ -127,6 +127,7 @@ public final class PresetManager {
 
     public static synchronized Preset createPreset(String name, ActivityConfig config) {
         String cleanName = validatePresetName(name);
+        if (hasPresetNamed(cleanName)) throw new IllegalArgumentException("Пресет с таким названием уже существует");
         JsonObject snapshot = PresetSerializer.extractSettingsSnapshot(config != null ? config : ActivityConfigManager.getConfig());
 
         Preset preset = Preset.createCustom(cleanName, snapshot);
@@ -164,10 +165,13 @@ public final class PresetManager {
         String finalName = imported.getName();
         if (hasPresetNamed(finalName)) {
             int counter = 1;
-            while (hasPresetNamed(finalName + " (" + counter + ")")) {
-                counter++;
-            }
-            finalName = finalName + " (" + counter + ")";
+            String suffix;
+            String candidate;
+            do {
+                suffix = " (" + counter++ + ")";
+                candidate = finalName.substring(0, Math.min(finalName.length(), 32 - suffix.length())) + suffix;
+            } while (hasPresetNamed(candidate));
+            finalName = candidate;
         }
 
         Preset newPreset = Preset.createCustom(finalName, imported.getSettings());
@@ -181,12 +185,15 @@ public final class PresetManager {
             return false;
         }
         ensureInitialized();
+        Preset deleting = getPresetById(presetId);
+        ActivityConfig activeConfig = ActivityConfigManager.getConfig();
+        boolean wasActive = deleting != null && activeConfig != null && (deleting.getId().equalsIgnoreCase(activeConfig.activeProfile) || deleting.getName().equalsIgnoreCase(activeConfig.activeProfile));
         boolean removed = customPresets.removeIf(p -> p.getId().equalsIgnoreCase(presetId));
         if (removed) {
             saveAll();
 
             ActivityConfig cfg = ActivityConfigManager.getConfig();
-            if (cfg != null && (presetId.equalsIgnoreCase(cfg.activeProfile) || !hasPresetNamed(cfg.activeProfile))) {
+            if (cfg != null && wasActive) {
                 cfg.activeProfile = Preset.DEFAULT_PRESET_ID;
                 ActivityConfigManager.markDirty();
                 ActivityConfigManager.save();
@@ -373,7 +380,7 @@ public final class PresetManager {
                 }
             }
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[PulseHUD] Failed to load custom presets from {}: {}", targetToRead, e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to load custom presets from {}: {}", targetToRead, e.getMessage());
         }
     }
 
@@ -426,7 +433,7 @@ public final class PresetManager {
             } catch (Throwable ignored) {
             }
         } catch (IOException e) {
-            ActivityClient.LOGGER.debug("[PulseHUD] Failed to save custom presets: {}", e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to save custom presets: {}", e.getMessage());
         }
     }
 

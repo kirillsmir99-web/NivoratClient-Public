@@ -25,6 +25,9 @@ implements GuiRenderStateLayerAccessor {
 
     @Inject(method="applyBlur", at={@At(value="HEAD")}, cancellable=true, require = 0)
     private void nv_mergeDuplicateBlurMark(CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         if (this.blurLayer != Integer.MAX_VALUE) {
             this.blurLayer = this.rootLayers.size() - 1;
             UI.requestVanillaBlurAtSplit();

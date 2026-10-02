@@ -64,7 +64,7 @@ extends Module {
 
     public static void notify(String string, long l) {
         NotificationsModule notificationsModule;
-        if (ConfigManager.isLoading()) {
+        if (ConfigManager.isLoading() || activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return;
         }
         NotificationsModule notificationsModule2 = notificationsModule = instance != null ? instance : ModuleManager.get().get(NotificationsModule.class);
@@ -165,6 +165,7 @@ extends Module {
     }
 
     public void renderHud(DrawContext graphics) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         boolean bl;
         Pending pending;
         long l = System.currentTimeMillis();
@@ -264,10 +265,16 @@ extends Module {
         this.notifs.clear();
         this.pending.clear();
         this.example = null;
+        this.lastMessage.clear();
+        java.util.Arrays.fill(this.frameNotif, null);
+    }
+
+    public static void stop() {
+        if (instance != null) instance.onDisable();
     }
 
     public void onModuleToggle(Module module,boolean enabled) {
-        if (ConfigManager.isLoading()) {
+        if (ConfigManager.isLoading() || activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return;
         }
 

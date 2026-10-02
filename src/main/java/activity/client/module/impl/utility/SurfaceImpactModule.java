@@ -25,11 +25,11 @@ public class SurfaceImpactModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.0.0")
                 .icon(ActivityIcon.UTILITY)
                 .keybind(keybind)
-                .aliases("waterdrop", "water_drop", "water", "вода", "дроп", "водный дроп", "mlg", "млг", "ведро", "bucket", "падение", "fall", "виндчардж", "windcharge", "снег", "паутина", "сноп", "save", "сейв")
+                .aliases("waterdrop", "water_drop", "water", "вода", "дроп", "водный дроп", "mlg", "млг", "ведро", "bucket", "падение", "fall", "виндчардж", "windcharge", "снег", "паутина", "сноп", "save", "сейв", "autosave", "auto_save", "auto save", "автосейв", "авто сейв", "авто-сейв")
                 .build();
 
         registerEnum("mode", Text.translatable("activity.setting.utility.water_drop_mode"),

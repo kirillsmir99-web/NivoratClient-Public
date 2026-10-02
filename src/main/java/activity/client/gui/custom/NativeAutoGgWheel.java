@@ -12,7 +12,7 @@ import net.minecraft.client.gui.DrawContext;
 import java.util.List;
 
 public final class NativeAutoGgWheel {
-    private static final String FOOTER = "@virionDEV";
+    private static final String FOOTER = "Nivorat";
     private static final float FOOTER_Y = 169f;
 
     private NativeAutoGgWheel() {}

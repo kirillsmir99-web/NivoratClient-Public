@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public class ActivityClient implements ClientModInitializer {
     public static final String MOD_ID = "activity";
-    public static final Logger LOGGER = LoggerFactory.getLogger("PulseHUD");
+    public static final Logger LOGGER = LoggerFactory.getLogger("NivoratClient");
 
     public static KeyBinding openCooldownHudKey;
     public static KeyBinding openMenuKey;
@@ -32,6 +32,7 @@ public class ActivityClient implements ClientModInitializer {
         activity.client.gui.font.FontManager.init();
         activity.client.gui.sound.ActivitySoundEvents.register();
         activity.client.gui.custom.utils.sounds.SoundManager.init();
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> activity.client.integration.NivoratEcosystem.discover());
 
 
 

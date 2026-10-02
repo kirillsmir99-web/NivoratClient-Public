@@ -34,19 +34,19 @@ public class Stage14WatermarkAndPresetsTest {
         JsonObject json = new Gson().fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), JsonObject.class);
 
         assertTrue(json.has("activity.about.telegram_watermark"));
-        assertEquals("@virionDEV", json.get("activity.about.telegram_watermark").getAsString());
+        assertEquals("Nivorat", json.get("activity.about.telegram_watermark").getAsString());
 
         assertTrue(json.has("activity.about.val_telegram"));
-        assertEquals("@virionDEV", json.get("activity.about.val_telegram").getAsString());
+        assertEquals("Nivorat", json.get("activity.about.val_telegram").getAsString());
 
         assertTrue(json.has("activity.project.telegram"));
-        assertEquals("@virionDEV", json.get("activity.project.telegram").getAsString());
+        assertEquals("Nivorat", json.get("activity.project.telegram").getAsString());
 
         assertTrue(json.has("activity.watermark.version"));
         assertEquals(packagedVersion(), json.get("activity.watermark.version").getAsString());
 
         assertTrue(json.has("activity.watermark.footer"));
-        assertTrue(json.get("activity.watermark.footer").getAsString().contains("@virionDEV"));
+        assertTrue(json.get("activity.watermark.footer").getAsString().contains("Nivorat"));
     }
 
     @Test
@@ -56,10 +56,10 @@ public class Stage14WatermarkAndPresetsTest {
         JsonObject json = new Gson().fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), JsonObject.class);
 
         assertTrue(json.has("activity.about.telegram_watermark"));
-        assertEquals("@virionDEV", json.get("activity.about.telegram_watermark").getAsString());
+        assertEquals("Nivorat", json.get("activity.about.telegram_watermark").getAsString());
 
         assertTrue(json.has("activity.about.val_telegram"));
-        assertEquals("@virionDEV", json.get("activity.about.val_telegram").getAsString());
+        assertEquals("Nivorat", json.get("activity.about.val_telegram").getAsString());
 
         assertTrue(json.has("activity.watermark.version"));
         assertEquals(packagedVersion(), json.get("activity.watermark.version").getAsString());

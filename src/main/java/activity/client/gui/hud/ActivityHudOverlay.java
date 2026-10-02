@@ -16,7 +16,7 @@ import java.util.Locale;
 
 public final class ActivityHudOverlay {
 
-    public static final String DEFAULT_TITLE = "PulseHUD";
+    public static final String DEFAULT_TITLE = "NivoratClient";
     private static String cachedTitle = null;
     private static Text cachedTitleText = null;
     public static final int PILL_HEIGHT = 14;
@@ -125,6 +125,10 @@ public final class ActivityHudOverlay {
 
         int wmX = rightAligned ? (x + totalWidth - watermarkWidth) : x;
         int wmY = y;
+
+        if (dev.nivorat.arc.ArcMotorCalibrationService.hasSession() && Math.abs((wmX + watermarkWidth / 2) - (windowWidth / 2)) < 160 && wmY < 45) {
+            return;
+        }
 
         context.fill(wmX, wmY, wmX + watermarkWidth, wmY + PILL_HEIGHT, bgColor);
 

@@ -54,6 +54,20 @@ public class ActivityConfig {
     public boolean autoMaceLegitMode = true;
     public double autoMaceMissChance = 10.0;
     public boolean autoMaceRandomDelay = true;
+    public String autoMaceEngineMode = "test_mode";
+    public double autoMaceMinFallDistance = 1.25;
+    public boolean autoMaceAutoSwitch = true;
+    public boolean autoMaceSilentAim = true;
+    public double autoMaceSilentAimRange = 4.0;
+    public boolean autoMaceMovementFix = true;
+    public boolean autoMaceStunSlam = true;
+    public double autoMaceHitboxExpand = 1.5;
+    public boolean autoMaceTargetPlayers = true;
+    public boolean autoMaceTargetMobs = true;
+    public boolean autoMaceStayOnMace = false;
+    public double autoMaceAttackDelayMs = 60.0;
+    public boolean autoMaceHumanMode = true;
+    public boolean autoMaceRandomJitter = true;
 
     public boolean autoSpearEnabled = true;
     public Keybind autoSpearKeybind = new Keybind();
@@ -83,6 +97,7 @@ public class ActivityConfig {
     public String autoStunSlamMode = "full_auto";
     public double autoStunSlamDistance = 2.85;
     public double autoStunSlamChance = 100.0;
+    public String autoStunSlamEngineMode = "test_mode";
     public double autoStunSlamAirTimeSec = 0.1;
     public double autoStunSlamAxeDelayMs = 0.0;
     public double autoStunSlamMaceDelayMs = 0.0;
@@ -95,6 +110,7 @@ public class ActivityConfig {
     public Keybind autoPearlCatchActionKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
     public Keybind autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
     public Keybind autoPearlCatchThrowKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+    public Keybind autoPearlCatchAsyncKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
     public String autoPearlCatchMode = "semi_auto";
     public String autoPearlCatchDirection = "vertical";
     public double autoPearlCatchThrowDelay = 2.0;
@@ -138,6 +154,9 @@ public class ActivityConfig {
 
     public boolean autoCartEnabled = true;
     public Keybind autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
+    public Keybind autoCartMacroKeybind = new Keybind();
+    public double autoCartMacroDrawTicks = 6.0;
+    public String autoCartMode = "classic";
     public String autoCartPreset = "medium";
     public double autoCartPlacementChance = 100.0;
     public double autoCartMaxDistance = 4.4;
@@ -159,7 +178,7 @@ public class ActivityConfig {
     public double autoCartCameraCurve = 40.0;
     public double autoCartCameraRandomness = 35.0;
     public boolean autoCartCameraMouseGcd = true;
-    public boolean autoCartNeuralAim = true;
+    public boolean autoCartAdaptiveAim = true;
     public boolean autoCartAutonomousPlacement = true;
 
     public boolean autoAnchorEnabled = true;
@@ -541,6 +560,20 @@ public class ActivityConfig {
         this.autoMaceLegitMode = true;
         this.autoMaceMissChance = 10.0;
         this.autoMaceRandomDelay = true;
+        this.autoMaceEngineMode = "test_mode";
+        this.autoMaceMinFallDistance = 1.25;
+        this.autoMaceAutoSwitch = true;
+        this.autoMaceSilentAim = true;
+        this.autoMaceSilentAimRange = 4.0;
+        this.autoMaceMovementFix = true;
+        this.autoMaceStunSlam = true;
+        this.autoMaceHitboxExpand = 1.5;
+        this.autoMaceTargetPlayers = true;
+        this.autoMaceTargetMobs = true;
+        this.autoMaceStayOnMace = false;
+        this.autoMaceAttackDelayMs = 60.0;
+        this.autoMaceHumanMode = true;
+        this.autoMaceRandomJitter = true;
 
         this.autoSpearEnabled = true;
         this.autoSpearKeybind.clear();
@@ -576,12 +609,14 @@ public class ActivityConfig {
         this.autoStunSlamRestoreDelayMs = 50.0;
         this.autoStunSlamRandomDelay = false;
         this.autoStunSlamLegitMode = true;
+        this.autoStunSlamEngineMode = "test_mode";
 
         this.autoPearlCatchEnabled = true;
         this.autoPearlCatchKeybind = new Keybind();
         this.autoPearlCatchActionKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
         this.autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
         this.autoPearlCatchThrowKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+        this.autoPearlCatchAsyncKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
         this.autoPearlCatchMode = "semi_auto";
         this.autoPearlCatchDirection = "vertical";
         this.autoPearlCatchThrowDelay = 2.0;
@@ -628,6 +663,9 @@ public class ActivityConfig {
 
         this.autoCartEnabled = true;
         this.autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
+        this.autoCartMacroKeybind = new Keybind();
+        this.autoCartMacroDrawTicks = 6.0;
+        this.autoCartMode = "classic";
         this.autoCartPreset = "medium";
         this.autoCartPlacementChance = 100.0;
         this.autoCartMaxDistance = 4.4;
@@ -649,7 +687,7 @@ public class ActivityConfig {
         this.autoCartCameraCurve = 40.0;
         this.autoCartCameraRandomness = 35.0;
         this.autoCartCameraMouseGcd = true;
-        this.autoCartNeuralAim = true;
+        this.autoCartAdaptiveAim = true;
         this.autoCartAutonomousPlacement = true;
 
         this.autoAnchorEnabled = true;
@@ -870,6 +908,7 @@ public class ActivityConfig {
         if (this.autoStunSlamKeybind == null) this.autoStunSlamKeybind = new Keybind();
         if (this.autoTotemKeybind == null) this.autoTotemKeybind = new Keybind();
         if (this.autoCartKeybind == null) this.autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
+        if (this.autoCartMacroKeybind == null) this.autoCartMacroKeybind = new Keybind();
         if (this.autoAnchorKeybind == null) this.autoAnchorKeybind = new Keybind();
         if (this.cartRefillKeybind == null) this.cartRefillKeybind = new Keybind();
         if (this.hpReaperKeybind == null) this.hpReaperKeybind = new Keybind();
@@ -943,6 +982,16 @@ public class ActivityConfig {
             }
         }
 
+        if (!"our_old".equals(this.autoMaceEngineMode) && !"test_mode".equals(this.autoMaceEngineMode)) {
+            this.autoMaceEngineMode = "test_mode";
+        }
+        this.autoMaceMinFallDistance = clampSanitize(this.autoMaceMinFallDistance, 0.5, 5.0, 1.25);
+        this.autoMaceSilentAimRange = clampSanitize(this.autoMaceSilentAimRange, 2.0, 20.0, 4.0);
+        this.autoMaceHitboxExpand = clampSanitize(this.autoMaceHitboxExpand, 1.0, 5.0, 1.5);
+        this.autoMaceAttackDelayMs = clampSanitize(this.autoMaceAttackDelayMs, 0.0, 500.0, 60.0);
+        if (!"our_old".equals(this.autoStunSlamEngineMode) && !"test_mode".equals(this.autoStunSlamEngineMode)) {
+            this.autoStunSlamEngineMode = "test_mode";
+        }
         this.autoMaceRestoreDelayMs = clampSanitize(this.autoMaceRestoreDelayMs, 30.0, 300.0, 90.0);
         this.autoMaceMissChance = clampSanitize(this.autoMaceMissChance, 0.0, 50.0, 10.0);
         this.autoSpearRestoreDelayMs = clampSanitize(this.autoSpearRestoreDelayMs, 0.0, 500.0, 185.0);
@@ -977,6 +1026,7 @@ public class ActivityConfig {
         this.autoTotemChance = clampSanitize(this.autoTotemChance, 10.0, 100.0, 100.0);
 
         this.autoCartPlacementChance = clampSanitize(this.autoCartPlacementChance, 0.0, 100.0, 100.0);
+        this.autoCartMacroDrawTicks = Math.rint(clampSanitize(this.autoCartMacroDrawTicks, 3.0, 20.0, 6.0));
         this.autoCartMaxDistance = clampSanitize(this.autoCartMaxDistance, 1.5, 4.5, 4.4);
         this.autoCartMinDelayMs = clampSanitize(this.autoCartMinDelayMs, 10.0, 200.0, 70.0);
         this.autoCartMaxDelayMs = clampSanitize(this.autoCartMaxDelayMs, 10.0, 300.0, 110.0);
@@ -1039,9 +1089,9 @@ public class ActivityConfig {
         else if ("Только топор".equals(this.autoMaceSourceMode) || "axe_only".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "axe_only";
         else this.autoMaceSourceMode = "sword_and_axe";
 
-        if ("Умный выбор".equals(this.autoMaceEnchantMode) || "smart".equals(this.autoMaceEnchantMode)) this.autoMaceEnchantMode = "smart";
-        else if ("Только Пробивание".equals(this.autoMaceEnchantMode) || "breach_only".equals(this.autoMaceEnchantMode)) this.autoMaceEnchantMode = "breach_only";
-        else if ("Только Плотность".equals(this.autoMaceEnchantMode) || "density_only".equals(this.autoMaceEnchantMode)) this.autoMaceEnchantMode = "density_only";
+        if ("Автомат".equals(this.autoMaceEnchantMode) || "Умный выбор".equals(this.autoMaceEnchantMode) || "Auto".equalsIgnoreCase(this.autoMaceEnchantMode) || "smart".equals(this.autoMaceEnchantMode)) this.autoMaceEnchantMode = "smart";
+        else if ("Пробитие".equals(this.autoMaceEnchantMode) || "Только Пробивание".equals(this.autoMaceEnchantMode) || "Breach".equalsIgnoreCase(this.autoMaceEnchantMode) || "breach_only".equals(this.autoMaceEnchantMode)) this.autoMaceEnchantMode = "breach_only";
+        else if ("Плотность".equals(this.autoMaceEnchantMode) || "Только Плотность".equals(this.autoMaceEnchantMode) || "Density".equalsIgnoreCase(this.autoMaceEnchantMode) || "density_only".equals(this.autoMaceEnchantMode)) this.autoMaceEnchantMode = "density_only";
         else this.autoMaceEnchantMode = "smart";
 
         if ("Удар мечом".equals(this.autoMaceMissBehavior) || "sword_hit".equals(this.autoMaceMissBehavior)) this.autoMaceMissBehavior = "sword_hit";
@@ -1069,7 +1119,7 @@ public class ActivityConfig {
         else this.autoStunSlamMode = "full_auto";
 
         if ("Полный авто".equals(this.autoPearlCatchMode) || "full_auto".equals(this.autoPearlCatchMode)) this.autoPearlCatchMode = "full_auto";
-        else if ("Полу-авто".equals(this.autoPearlCatchMode) || "semi_auto".equals(this.autoPearlCatchMode)) this.autoPearlCatchMode = "semi_auto";
+        else if ("Полу-авто".equals(this.autoPearlCatchMode) || "semi_auto".equals(this.autoPearlCatchMode) || "Асинк".equals(this.autoPearlCatchMode) || "async".equals(this.autoPearlCatchMode) || "async_locator".equals(this.autoPearlCatchMode)) this.autoPearlCatchMode = "semi_auto";
         else this.autoPearlCatchMode = "semi_auto";
 
         if ("Горизонтальный".equals(this.autoPearlCatchDirection) || "horizontal".equals(this.autoPearlCatchDirection)) this.autoPearlCatchDirection = "horizontal";
@@ -1341,6 +1391,20 @@ public class ActivityConfig {
         entry.settings.put("restore_delay", this.autoMaceRestoreDelayMs);
         entry.settings.put("miss_chance", this.autoMaceMissChance);
         entry.settings.put("random_delay", this.autoMaceRandomDelay);
+        entry.settings.put("engine_mode", this.autoMaceEngineMode);
+        entry.settings.put("min_fall_distance", this.autoMaceMinFallDistance);
+        entry.settings.put("auto_switch", this.autoMaceAutoSwitch);
+        entry.settings.put("silent_aim", this.autoMaceSilentAim);
+        entry.settings.put("silent_aim_range", this.autoMaceSilentAimRange);
+        entry.settings.put("movement_fix", this.autoMaceMovementFix);
+        entry.settings.put("stun_slam", this.autoMaceStunSlam);
+        entry.settings.put("hitbox_expand", this.autoMaceHitboxExpand);
+        entry.settings.put("target_players", this.autoMaceTargetPlayers);
+        entry.settings.put("target_mobs", this.autoMaceTargetMobs);
+        entry.settings.put("stay_on_mace", this.autoMaceStayOnMace);
+        entry.settings.put("attack_delay", this.autoMaceAttackDelayMs);
+        entry.settings.put("human_mode", this.autoMaceHumanMode);
+        entry.settings.put("random_jitter", this.autoMaceRandomJitter);
         entry.settings.put("legit_mode", this.autoMaceLegitMode);
     }
 
@@ -1380,6 +1444,7 @@ public class ActivityConfig {
         entry.settings.put("restore_delay", this.autoStunSlamRestoreDelayMs);
         entry.settings.put("random_delay", this.autoStunSlamRandomDelay);
         entry.settings.put("legit_mode", this.autoStunSlamLegitMode);
+        entry.settings.put("engine_mode", this.autoStunSlamEngineMode);
     }
 
     private void populatePearlCatchSettings(ModuleConfigEntry entry) {
@@ -1389,6 +1454,7 @@ public class ActivityConfig {
         entry.settings.put("action_keybind", this.autoPearlCatchActionKeybind);
         entry.settings.put("horizontal_keybind", this.autoPearlCatchHorizontalKeybind);
         entry.settings.put("throw_keybind", this.autoPearlCatchThrowKeybind);
+        entry.settings.put("async_keybind", this.autoPearlCatchAsyncKeybind);
         entry.settings.put("throw_delay", this.autoPearlCatchThrowDelay);
         entry.settings.put("restore_slot", this.autoPearlCatchRestoreSlot);
         entry.settings.put("restore_camera", this.autoPearlCatchRestoreCamera);
@@ -1419,6 +1485,9 @@ public class ActivityConfig {
 
     private void populateCartSettings(ModuleConfigEntry entry) {
         if (entry == null) return;
+        entry.settings.put("macro_keybind", this.autoCartMacroKeybind);
+        entry.settings.put("macro_draw_ticks", this.autoCartMacroDrawTicks);
+        entry.settings.put("cart_mode", this.autoCartMode);
         entry.settings.put("preset", this.autoCartPreset);
         entry.settings.put("placement_chance", this.autoCartPlacementChance);
         entry.settings.put("max_distance", this.autoCartMaxDistance);
@@ -1439,7 +1508,7 @@ public class ActivityConfig {
         entry.settings.put("camera_curve", this.autoCartCameraCurve);
         entry.settings.put("camera_randomness", this.autoCartCameraRandomness);
         entry.settings.put("camera_mouse_gcd", this.autoCartCameraMouseGcd);
-        entry.settings.put("neural_aim", this.autoCartNeuralAim);
+        entry.settings.put("adaptive_aim", this.autoCartAdaptiveAim);
         entry.settings.put("autonomous_placement", this.autoCartAutonomousPlacement);
     }
 
@@ -1655,6 +1724,20 @@ public class ActivityConfig {
                 this.autoMaceMissChance = getSettingDouble(mace.settings, "miss_chance", this.autoMaceMissChance);
                 this.autoMaceRandomDelay = getSettingBoolean(mace.settings, "random_delay", this.autoMaceRandomDelay);
                 this.autoMaceLegitMode = getSettingBoolean(mace.settings, "legit_mode", this.autoMaceLegitMode);
+                this.autoMaceEngineMode = getSettingString(mace.settings, "engine_mode", this.autoMaceEngineMode);
+                this.autoMaceMinFallDistance = getSettingDouble(mace.settings, "min_fall_distance", this.autoMaceMinFallDistance);
+                this.autoMaceAutoSwitch = getSettingBoolean(mace.settings, "auto_switch", this.autoMaceAutoSwitch);
+                this.autoMaceSilentAim = getSettingBoolean(mace.settings, "silent_aim", this.autoMaceSilentAim);
+                this.autoMaceSilentAimRange = getSettingDouble(mace.settings, "silent_aim_range", this.autoMaceSilentAimRange);
+                this.autoMaceMovementFix = getSettingBoolean(mace.settings, "movement_fix", this.autoMaceMovementFix);
+                this.autoMaceStunSlam = getSettingBoolean(mace.settings, "stun_slam", this.autoMaceStunSlam);
+                this.autoMaceHitboxExpand = getSettingDouble(mace.settings, "hitbox_expand", this.autoMaceHitboxExpand);
+                this.autoMaceTargetPlayers = getSettingBoolean(mace.settings, "target_players", this.autoMaceTargetPlayers);
+                this.autoMaceTargetMobs = getSettingBoolean(mace.settings, "target_mobs", this.autoMaceTargetMobs);
+                this.autoMaceStayOnMace = getSettingBoolean(mace.settings, "stay_on_mace", this.autoMaceStayOnMace);
+                this.autoMaceAttackDelayMs = getSettingDouble(mace.settings, "attack_delay", this.autoMaceAttackDelayMs);
+                this.autoMaceHumanMode = getSettingBoolean(mace.settings, "human_mode", this.autoMaceHumanMode);
+                this.autoMaceRandomJitter = getSettingBoolean(mace.settings, "random_jitter", this.autoMaceRandomJitter);
             }
         }
         ModuleConfigEntry spear = getModuleEntry("auto_spear");
@@ -1718,6 +1801,8 @@ public class ActivityConfig {
                 if (horKb != null) this.autoPearlCatchHorizontalKeybind.copyFrom(horKb);
                 Keybind thrKb = getSettingKeybind(pearlCatch.settings, "throw_keybind", null);
                 if (thrKb != null) this.autoPearlCatchThrowKeybind.copyFrom(thrKb);
+                Keybind asyKb = getSettingKeybind(pearlCatch.settings, "async_keybind", null);
+                if (asyKb != null) this.autoPearlCatchAsyncKeybind.copyFrom(asyKb);
                 this.autoPearlCatchThrowDelay = getSettingDouble(pearlCatch.settings, "throw_delay", this.autoPearlCatchThrowDelay);
                 this.autoPearlCatchRestoreSlot = getSettingBoolean(pearlCatch.settings, "restore_slot", this.autoPearlCatchRestoreSlot);
                 this.autoPearlCatchRestoreCamera = getSettingBoolean(pearlCatch.settings, "restore_camera", this.autoPearlCatchRestoreCamera);
@@ -1754,7 +1839,11 @@ public class ActivityConfig {
             this.autoCartEnabled = cart.enabled;
             if (cart.keybind != null) this.autoCartKeybind.copyFrom(cart.keybind);
             if (cart.settings != null && !cart.settings.isEmpty()) {
+                this.autoCartMode = getSettingString(cart.settings, "cart_mode", this.autoCartMode);
                 this.autoCartPreset = getSettingString(cart.settings, "preset", this.autoCartPreset);
+                Keybind macroBind = getSettingKeybind(cart.settings, "macro_keybind", null);
+                if (macroBind != null) this.autoCartMacroKeybind.copyFrom(macroBind);
+                this.autoCartMacroDrawTicks = getSettingDouble(cart.settings, "macro_draw_ticks", this.autoCartMacroDrawTicks);
                 this.autoCartPlacementChance = getSettingDouble(cart.settings, "placement_chance", this.autoCartPlacementChance);
                 this.autoCartMaxDistance = getSettingDouble(cart.settings, "max_distance", this.autoCartMaxDistance);
                 this.autoCartMinDelayMs = getSettingDouble(cart.settings, "min_delay", this.autoCartMinDelayMs);
@@ -1775,7 +1864,7 @@ public class ActivityConfig {
                 this.autoCartCameraCurve = getSettingDouble(cart.settings, "camera_curve", this.autoCartCameraCurve);
                 this.autoCartCameraRandomness = getSettingDouble(cart.settings, "camera_randomness", this.autoCartCameraRandomness);
                 this.autoCartCameraMouseGcd = getSettingBoolean(cart.settings, "camera_mouse_gcd", this.autoCartCameraMouseGcd);
-                this.autoCartNeuralAim = getSettingBoolean(cart.settings, "neural_aim", this.autoCartNeuralAim);
+                this.autoCartAdaptiveAim = getSettingBoolean(cart.settings, "adaptive_aim", this.autoCartAdaptiveAim);
                 this.autoCartAutonomousPlacement = getSettingBoolean(cart.settings, "autonomous_placement", this.autoCartAutonomousPlacement);
             }
         }
@@ -1962,6 +2051,21 @@ public class ActivityConfig {
         copy.autoMaceLegitMode = this.autoMaceLegitMode;
         copy.autoMaceMissChance = this.autoMaceMissChance;
         copy.autoMaceRandomDelay = this.autoMaceRandomDelay;
+        copy.autoMaceEngineMode = this.autoMaceEngineMode;
+        copy.autoMaceMinFallDistance = this.autoMaceMinFallDistance;
+        copy.autoMaceAutoSwitch = this.autoMaceAutoSwitch;
+        copy.autoMaceSilentAim = this.autoMaceSilentAim;
+        copy.autoMaceSilentAimRange = this.autoMaceSilentAimRange;
+        copy.autoMaceMovementFix = this.autoMaceMovementFix;
+        copy.autoMaceStunSlam = this.autoMaceStunSlam;
+        copy.autoMaceHitboxExpand = this.autoMaceHitboxExpand;
+        copy.autoMaceTargetPlayers = this.autoMaceTargetPlayers;
+        copy.autoMaceTargetMobs = this.autoMaceTargetMobs;
+        copy.autoMaceStayOnMace = this.autoMaceStayOnMace;
+        copy.autoMaceAttackDelayMs = this.autoMaceAttackDelayMs;
+        copy.autoMaceHumanMode = this.autoMaceHumanMode;
+        copy.autoMaceRandomJitter = this.autoMaceRandomJitter;
+        copy.autoStunSlamEngineMode = this.autoStunSlamEngineMode;
 
         copy.autoSpearEnabled = this.autoSpearEnabled;
         copy.autoSpearKeybind.copyFrom(this.autoSpearKeybind);
@@ -2003,6 +2107,7 @@ public class ActivityConfig {
         copy.autoPearlCatchActionKeybind.copyFrom(this.autoPearlCatchActionKeybind);
         copy.autoPearlCatchHorizontalKeybind.copyFrom(this.autoPearlCatchHorizontalKeybind);
         copy.autoPearlCatchThrowKeybind.copyFrom(this.autoPearlCatchThrowKeybind);
+        copy.autoPearlCatchAsyncKeybind.copyFrom(this.autoPearlCatchAsyncKeybind);
         copy.autoPearlCatchMode = this.autoPearlCatchMode;
         copy.autoPearlCatchDirection = this.autoPearlCatchDirection;
         copy.autoPearlCatchThrowDelay = this.autoPearlCatchThrowDelay;
@@ -2034,6 +2139,9 @@ public class ActivityConfig {
 
         copy.autoCartEnabled = this.autoCartEnabled;
         copy.autoCartKeybind.copyFrom(this.autoCartKeybind);
+        copy.autoCartMacroKeybind.copyFrom(this.autoCartMacroKeybind);
+        copy.autoCartMacroDrawTicks = this.autoCartMacroDrawTicks;
+        copy.autoCartMode = this.autoCartMode;
         copy.autoCartPreset = this.autoCartPreset;
         copy.autoCartPlacementChance = this.autoCartPlacementChance;
         copy.autoCartMaxDistance = this.autoCartMaxDistance;
@@ -2055,7 +2163,7 @@ public class ActivityConfig {
         copy.autoCartCameraCurve = this.autoCartCameraCurve;
         copy.autoCartCameraRandomness = this.autoCartCameraRandomness;
         copy.autoCartCameraMouseGcd = this.autoCartCameraMouseGcd;
-        copy.autoCartNeuralAim = this.autoCartNeuralAim;
+        copy.autoCartAdaptiveAim = this.autoCartAdaptiveAim;
         copy.autoCartAutonomousPlacement = this.autoCartAutonomousPlacement;
 
         copy.autoAnchorEnabled = this.autoAnchorEnabled;
@@ -2264,6 +2372,21 @@ public class ActivityConfig {
                Objects.equals(this.autoMaceSourceMode, that.autoMaceSourceMode) &&
                Objects.equals(this.autoMaceEnchantMode, that.autoMaceEnchantMode) &&
                Objects.equals(this.autoMaceMissBehavior, that.autoMaceMissBehavior) &&
+               Objects.equals(this.autoMaceEngineMode, that.autoMaceEngineMode) &&
+               Double.compare(this.autoMaceMinFallDistance, that.autoMaceMinFallDistance) == 0 &&
+               this.autoMaceAutoSwitch == that.autoMaceAutoSwitch &&
+               this.autoMaceSilentAim == that.autoMaceSilentAim &&
+               Double.compare(this.autoMaceSilentAimRange, that.autoMaceSilentAimRange) == 0 &&
+               this.autoMaceMovementFix == that.autoMaceMovementFix &&
+               this.autoMaceStunSlam == that.autoMaceStunSlam &&
+               Double.compare(this.autoMaceHitboxExpand, that.autoMaceHitboxExpand) == 0 &&
+               this.autoMaceTargetPlayers == that.autoMaceTargetPlayers &&
+               this.autoMaceTargetMobs == that.autoMaceTargetMobs &&
+               this.autoMaceStayOnMace == that.autoMaceStayOnMace &&
+               Double.compare(this.autoMaceAttackDelayMs, that.autoMaceAttackDelayMs) == 0 &&
+               this.autoMaceHumanMode == that.autoMaceHumanMode &&
+               this.autoMaceRandomJitter == that.autoMaceRandomJitter &&
+               Objects.equals(this.autoStunSlamEngineMode, that.autoStunSlamEngineMode) &&
 
                this.autoSpearEnabled == that.autoSpearEnabled &&
                this.autoSpearRandomDelay == that.autoSpearRandomDelay &&
@@ -2314,6 +2437,7 @@ public class ActivityConfig {
                 Objects.equals(this.autoPearlCatchActionKeybind, that.autoPearlCatchActionKeybind) &&
                 Objects.equals(this.autoPearlCatchHorizontalKeybind, that.autoPearlCatchHorizontalKeybind) &&
                 Objects.equals(this.autoPearlCatchThrowKeybind, that.autoPearlCatchThrowKeybind) &&
+                Objects.equals(this.autoPearlCatchAsyncKeybind, that.autoPearlCatchAsyncKeybind) &&
                 Objects.equals(this.autoPearlCatchMode, that.autoPearlCatchMode) &&
                 Objects.equals(this.autoPearlCatchDirection, that.autoPearlCatchDirection) &&
 
@@ -2346,6 +2470,7 @@ public class ActivityConfig {
                 Double.compare(this.autoCartRestoreDelay, that.autoCartRestoreDelay) == 0 &&
                 this.autoCartUseMainHand == that.autoCartUseMainHand &&
                 Objects.equals(this.autoCartKeybind, that.autoCartKeybind) &&
+                Objects.equals(this.autoCartMode, that.autoCartMode) &&
                 Objects.equals(this.autoCartPreset, that.autoCartPreset) &&
                 Objects.equals(this.autoCartCameraMode, that.autoCartCameraMode) &&
                 this.autoCartAutoCamera == that.autoCartAutoCamera &&
@@ -2355,7 +2480,7 @@ public class ActivityConfig {
                 Double.compare(this.autoCartCameraCurve, that.autoCartCameraCurve) == 0 &&
                 Double.compare(this.autoCartCameraRandomness, that.autoCartCameraRandomness) == 0 &&
                 this.autoCartCameraMouseGcd == that.autoCartCameraMouseGcd &&
-                this.autoCartNeuralAim == that.autoCartNeuralAim &&
+                this.autoCartAdaptiveAim == that.autoCartAdaptiveAim &&
                 this.autoCartAutonomousPlacement == that.autoCartAutonomousPlacement &&
 
                 this.autoAnchorEnabled == that.autoAnchorEnabled &&
@@ -2544,7 +2669,7 @@ public class ActivityConfig {
             menuKeybind,
             menuCommand,
 
-            autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay,
+            autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay, autoMaceEngineMode, autoMaceMinFallDistance, autoMaceAutoSwitch, autoMaceSilentAim, autoMaceSilentAimRange, autoMaceMovementFix, autoMaceStunSlam, autoMaceHitboxExpand, autoMaceTargetPlayers, autoMaceTargetMobs, autoMaceStayOnMace, autoMaceAttackDelayMs, autoMaceHumanMode, autoMaceRandomJitter, autoStunSlamEngineMode,
             autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay, autoSpearMaxSpeed, autoSpearCheckCharge,
             autoShieldbreakerEnabled, autoShieldbreakerKeybind, autoShieldbreakerMode, autoShieldbreakerDistance, autoShieldbreakerChance,
             autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerReactionDelaySec, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode,
@@ -2552,14 +2677,14 @@ public class ActivityConfig {
         );
         result = 31 * result + Objects.hash(
             autoStunSlamAirTimeSec, autoStunSlamAxeDelayMs, autoStunSlamMaceDelayMs, autoStunSlamRestoreDelayMs, autoStunSlamRandomDelay, autoStunSlamLegitMode,
-            autoPearlCatchEnabled, autoPearlCatchKeybind, autoPearlCatchActionKeybind, autoPearlCatchHorizontalKeybind, autoPearlCatchThrowKeybind,
+            autoPearlCatchEnabled, autoPearlCatchKeybind, autoPearlCatchActionKeybind, autoPearlCatchHorizontalKeybind, autoPearlCatchThrowKeybind, autoPearlCatchAsyncKeybind,
             autoPearlCatchMode, autoPearlCatchDirection, autoPearlCatchThrowDelay, autoPearlCatchRestoreSlot,
             autoPearlCatchRestoreCamera, autoPearlCatchRotationTimeMs, autoPearlCatchLegitMode, autoPearlCatchHorizontalOffset, autoPearlCatchRandomDelay, autoPearlCatchRandomSpreadMs,
 
             autoTotemEnabled, autoTotemKeybind, autoTotemMode, autoTotemTriggerHearts, autoTotemRestoreHearts, autoTotemCrystalTriggerHearts, autoTotemCrystalRestoreHearts, autoTotemChance, autoTotemReturnItem, autoTotemReturnOnPop,
             autoCartEnabled, autoCartKeybind, autoCartPreset, autoCartPlacementChance, autoCartMaxDistance, autoCartMinDelayMs, autoCartMaxDelayMs,
             autoCartAllowSelfCart, autoCartAllowPitPlacement, autoCartRandomDelay, autoCartRailDelay, autoCartCartDelay, autoCartRestoreDelay, autoCartLegitMode, autoCartUseMainHand,
-            autoCartCameraMode, autoCartAutoCamera, autoCartCameraSmoothness, autoCartCameraReturn, autoCartCameraReturnSmoothness, autoCartCameraCurve, autoCartCameraRandomness, autoCartCameraMouseGcd, autoCartNeuralAim, autoCartAutonomousPlacement,
+            autoCartCameraMode, autoCartAutoCamera, autoCartCameraSmoothness, autoCartCameraReturn, autoCartCameraReturnSmoothness, autoCartCameraCurve, autoCartCameraRandomness, autoCartCameraMouseGcd, autoCartAdaptiveAim, autoCartAutonomousPlacement,
             autoAnchorEnabled, autoAnchorKeybind, autoAnchorMode, autoAnchorPreset, autoAnchorPresetDouble, autoAnchorDoubleDelay, autoAnchorDoubleAutoExplode, autoAnchorDoubleChain, autoAnchorAutoExplode, autoAnchorAutoReturn, autoAnchorChargeDelay, autoAnchorExplodeDelay, autoAnchorChance, autoAnchorTargetCharges, autoAnchorLegitMode,
             cartRefillEnabled, cartRefillKeybind, cartRefillDelayTicks, cartRefillChance, cartRefillAutoClose, cartRefillRandomDelay, cartRefillRandomSpreadTicks, cartRefillLegitMode
         );

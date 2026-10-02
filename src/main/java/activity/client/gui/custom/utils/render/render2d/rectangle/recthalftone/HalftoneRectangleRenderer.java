@@ -71,7 +71,7 @@ implements AutoCloseable {
     }
 
     private static Identifier id(String string) {
-        return Identifier.of((String)"kimiko", (String)string);
+        return Identifier.of((String)"nivorat", (String)string);
     }
 
     public void enqueue(BuiltHalftoneRectangle builtHalftoneRectangle) {

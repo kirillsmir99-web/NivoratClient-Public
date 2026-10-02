@@ -27,7 +27,7 @@ public class RaycastPredictorModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.0.0")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)
@@ -64,12 +64,13 @@ public class RaycastPredictorModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoPearlCatchThrowKeybind.copyFrom(kb);
+                        c.autoPearlCatchAsyncKeybind.copyFrom(kb);
                         ActivityConfigManager.markDirty();
                     }
                 }
         ).onPress(client -> {
             if (isEnabled()) {
-                controller.trigger(client, RaycastPredictorController.Mode.VERTICAL);
+                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
             }
         }).visibleWhen(modeSetting, "semi_auto");
 
@@ -227,7 +228,7 @@ public class RaycastPredictorModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(modeSetting, "full_auto");
+        );
     }
 
     public RaycastPredictorController getController() {
@@ -236,19 +237,34 @@ public class RaycastPredictorModule extends NivoratModule {
 
     public void trigger(MinecraftClient client) {
         if (isEnabled()) {
-            controller.trigger(client, RaycastPredictorController.Mode.VERTICAL);
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
+                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
+            } else {
+                controller.trigger(client, RaycastPredictorController.Mode.VERTICAL);
+            }
         }
     }
 
     public void trigger(MinecraftClient client, RaycastPredictorController.Mode mode) {
         if (isEnabled()) {
-            controller.trigger(client, mode);
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
+                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
+            } else {
+                controller.trigger(client, mode);
+            }
         }
     }
 
     public void triggerHorizontal(MinecraftClient client) {
         if (isEnabled()) {
-            controller.trigger(client, RaycastPredictorController.Mode.HORIZONTAL);
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
+                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
+            } else {
+                controller.trigger(client, RaycastPredictorController.Mode.HORIZONTAL);
+            }
         }
     }
 
@@ -266,18 +282,25 @@ public class RaycastPredictorModule extends NivoratModule {
         }
         if (!enabled) {
             controller.reset();
+            dev.raycast.async.AsyncLocatorController.getInstance().reset();
         }
     }
 
     @Override
     public void onDisable() {
         controller.reset();
+        dev.raycast.async.AsyncLocatorController.getInstance().reset();
     }
 
     @Override
     public void onTick(MinecraftClient client) {
         if (isEnabled()) {
-            controller.onTick(client);
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
+                dev.raycast.async.AsyncLocatorController.getInstance().tick(client);
+            } else {
+                controller.onTick(client);
+            }
         }
     }
 

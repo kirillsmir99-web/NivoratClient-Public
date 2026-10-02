@@ -110,7 +110,7 @@ public abstract class AbstractModule implements IModule {
                     .displayName(name)
                     .description(description)
                     .category(category)
-                    .author("kt1xW")
+                    .author("Nivorat")
                     .version("1.0.0")
                     .keybind(keybind)
                     .build();

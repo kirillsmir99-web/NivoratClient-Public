@@ -30,6 +30,9 @@ allprojects {
                     if(p.hasProperty('lowFps'))jvmArgs '-Dvisual.smoke.lowfps=true'
                     if(p.hasProperty('tooltipSmoke'))jvmArgs '-Dvisual.smoke.tooltip=true'
                     if(p.hasProperty('mechanicsSmoke'))jvmArgs '-Dvisual.smoke.mechanics=true'
+                    if(p.hasProperty('autoCartSmoke'))jvmArgs '-Dvisual.smoke.autoCart=true'
+                    if(p.hasProperty('ecosystemSmoke'))jvmArgs '-Dvisual.smoke.ecosystem=true'
+                    if(p.hasProperty('presetSmoke'))jvmArgs '-Dvisual.smoke.presets=true'
                     if(p.hasProperty('revisionSmoke'))jvmArgs '-Dvisual.smoke.revision=true'
                     if(p.hasProperty('pearlCatchSmoke'))jvmArgs '-Dvisual.smoke.pearlCatch=true'
                     jvmArgs '-Dvisual.smoke.output=' + p.file('build/public-visual-smoke/captures').absolutePath

@@ -117,11 +117,11 @@ public class ModuleUXStage6Test {
         assertEquals("test_module", meta.getId());
         assertEquals("Test Module", meta.getDisplayName().getString());
         assertEquals("Test description", meta.getDescription().getString());
-        assertEquals("kt1xW", meta.getAuthor());
+        assertEquals("Nivorat", meta.getAuthor());
         assertEquals("1.0.0", meta.getVersion());
         assertEquals("2026-09-16", meta.getLastUpdated());
         assertEquals(ModuleCategory.DEFENSE, meta.getCategory());
-        assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
+        assertEquals("", meta.getTelegramUrl());
         assertEquals(ActivityIcon.DEFENSE, meta.getIcon());
         assertSame(kb, meta.getKeybind());
         assertTrue(meta.hasKeybind());
@@ -151,7 +151,7 @@ public class ModuleUXStage6Test {
             assertNotNull(meta.getVersion());
             assertTrue(meta.getVersion().matches("\\d+\\.\\d+\\.\\d+"), "Version should be semver: " + meta.getVersion());
             assertEquals("2026-09-16", meta.getLastUpdated());
-            assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
+            assertEquals("", meta.getTelegramUrl());
             assertNotNull(meta.getCategory());
             assertNotNull(meta.getIcon());
         }
@@ -229,8 +229,8 @@ public class ModuleUXStage6Test {
         assertEquals("auto_stun_slam", sheet.getModuleId());
         assertNotNull(sheet.getMetadata());
         assertEquals("auto_stun_slam", sheet.getMetadata().getId());
-        assertEquals("kt1xW", sheet.getMetadata().getAuthor());
-        assertEquals("https://t.me/virionDEV", sheet.getMetadata().getTelegramUrl());
+        assertEquals("Nivorat", sheet.getMetadata().getAuthor());
+        assertEquals("", sheet.getMetadata().getTelegramUrl());
 
         assertFalse(sheet.isClosed());
         assertTrue(sheet.shouldCloseOnClickOutside());
@@ -244,15 +244,15 @@ public class ModuleUXStage6Test {
     void testTelegramAliasInModuleMetadata() {
         ModuleMetadata meta = ModuleMetadata.builder("test_tg")
                 .displayName(Text.literal("TG Test"))
-                .telegram("https://t.me/virionDEV")
+                .telegram("")
                 .build();
-        assertEquals("https://t.me/virionDEV", meta.getTelegram());
-        assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
+        assertEquals("", meta.getTelegram());
+        assertEquals("", meta.getTelegramUrl());
 
         IModule mace = ModuleRegistry.get("auto_mace");
         assertNotNull(mace);
         assertNotNull(mace.getMetadata().getTelegram());
-        assertEquals("https://t.me/virionDEV", mace.getMetadata().getTelegram());
+        assertEquals("", mace.getMetadata().getTelegram());
     }
 
     @Test
@@ -286,7 +286,7 @@ public class ModuleUXStage6Test {
             assertNull(view.getParentScreen());
             assertNotNull(view.getMetadata());
             assertEquals("auto_mace", view.getMetadata().getId());
-            assertEquals("https://t.me/virionDEV", view.getMetadata().getTelegram());
+            assertEquals("", view.getMetadata().getTelegram());
             assertNotNull(view.getOverlayManager());
             assertNotNull(view.getModalManager());
 

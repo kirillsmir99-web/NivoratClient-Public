@@ -145,6 +145,6 @@ public final class SoundManager {
     }
 
     private static SoundEvent sound(String string) {
-        return SoundEvent.of((Identifier)Identifier.of((String)"kimiko", (String)string));
+        return SoundEvent.of((Identifier)Identifier.of((String)"nivorat", (String)string));
     }
 }

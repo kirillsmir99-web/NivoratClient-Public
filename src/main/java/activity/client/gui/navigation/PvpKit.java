@@ -5,15 +5,15 @@ import java.util.Locale;
 
 public enum PvpKit {
     ALL("Все", "All", ""),
-    NETHERITE_POT("НПОТ", "Netherite Pot", "totem pearl reaper shield tool gg cooldown"),
-    CRYSTAL("КПВП", "Crystal", "anchor cart totem pearl reaper gg cooldown"),
-    UHC("УХК", "UHC", "shield tool totem reaper gg cooldown"),
-    SMP("СМП", "SMP", "mace spear stun pearl totem cart anchor shield tool reaper gg cooldown water"),
-    MACE("МЕЙСЫ", "Mace", "mace stun spear pearl totem shield reaper gg cooldown water"),
-    BEAST("БИСТЫ", "Beast", "reaper gg tool"),
-    SWORD("OP", "OP", "tool reaper totem gg cooldown"),
-    AXE("ТОПОРЫ", "Axe", "shield tool totem reaper gg cooldown"),
-    DIAMOND_POT("ДПОТ", "Diamond Pot", "pearl totem reaper tool gg cooldown");
+    NETHERITE_POT("НПОТ", "Netherite Pot", "auto_totem hp_reaper auto_gg cooldown_hud"),
+    CRYSTAL("КПВП", "Crystal", "click_pearl auto_totem auto_anchor hp_reaper cooldown_hud auto_gg"),
+    UHC("УХК", "UHC", "auto_shieldbreaker auto_gg cooldown_hud auto_tool"),
+    SMP("СМП", "SMP", "auto_shieldbreaker click_pearl auto_totem hp_reaper auto_tool auto_gg cooldown_hud"),
+    MACE("МЕЙСЫ", "Mace", "auto_mace auto_spear auto_stun_slam auto_pearl_catch click_pearl auto_totem hp_reaper auto_gg cooldown_hud"),
+    BEAST("БИСТЫ", "Beast", "auto_gg hp_reaper"),
+    SWORD("OP", "OP", "click_pearl hp_reaper cooldown_hud auto_gg"),
+    AXE("ТОПОРЫ", "Axe", "auto_shieldbreaker auto_tool auto_gg hp_reaper cooldown_hud"),
+    DIAMOND_POT("ДПОТ", "Diamond Pot", "hp_reaper auto_gg cooldown_hud");
 
     public static final int FIRST_TAB_INDEX = 6;
     private final String russianName;
@@ -33,8 +33,7 @@ public enum PvpKit {
         if (id == null) return false;
         if (this == ALL) return true;
         String normalized = id.toLowerCase(Locale.ROOT);
-        if (normalized.equals("click_pearl")) return true;
-        for (String key : keywords) if (normalized.contains(key)) return true;
+        for (String key : keywords) if (normalized.equals(key)) return true;
         return false;
     }
 }

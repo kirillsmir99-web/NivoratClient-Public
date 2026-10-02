@@ -69,7 +69,7 @@ public final class NativeBindAssignment {
         float x = (Position.screenWidth() - 260f) / 2f;
         float y = (Position.screenHeight() - 110f) / 2f;
         Render2D.rect(0, 0, Position.screenWidth(), Position.screenHeight(), 0, 0x77000000);
-        Render2D.rect(x, y, 260, 110, 9, 0xff151720);
+        CustomRender.panel(context, x, y, 260, 110, 10, alpha);
         Render2D.outline(x, y, 260, 110, 9, .7f, ClientAccent.accentSoft(190));
         Fonts.MONTSERRAT_MEDIUM.draw(ru ? "Этот бинд уже занят" : "This binding is already used", x + 14, y + 12, 9, -1);
         Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(candidate.format() + " · " + conflict, 232, 7), x + 14, y + 33, 7, 0xffd9dfe9);

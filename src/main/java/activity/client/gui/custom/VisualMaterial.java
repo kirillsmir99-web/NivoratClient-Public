@@ -44,7 +44,7 @@ public final class VisualMaterial extends Module {
     private final int[] rainbowPalette = new int[9];
 
     private final SeparatorSetting rectLayout = this.register(new SeparatorSetting("Материал"));
-    public final ModeSetting rectStyle = this.register(new ModeSetting("Стиль", "Стиль оформления материала интерфейса.", STYLE_MONOLITH, STYLE_MONOLITH, STYLE_SHARDS));
+    public final ModeSetting rectStyle = this.register(new ModeSetting("Стиль", "Стиль оформления материала интерфейса.", STYLE_SHARDS, STYLE_MONOLITH, STYLE_SHARDS));
     public final NumberSetting mosaicScale = this.register(new NumberSetting("Размер осколков", "Масштаб панелей: чем выше значение, тем крупнее осколки.", 1.0, 0.4, 2.5, 0.05).visibleWhen(this::isMosaicStyle));
     public final NumberSetting mosaicMorph = this.register(new NumberSetting("Деформация", "Амплитуда медленного изменения формы осколков.", 0.4, 0.0, 1.0, 0.05).visibleWhen(this::isMosaicStyle));
     public final NumberSetting mosaicSpeed = this.register(new NumberSetting("Скорость", "Скорость плавного движения осколков.", 0.7, 0.1, 3.0, 0.05).visibleWhen(this::isMosaicStyle));

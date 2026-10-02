@@ -64,7 +64,7 @@ public final class CartHudOverlay {
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
-        if (context == null || !CartHudConfig.enabled) {
+        if (context == null || !CartHudConfig.enabled || activity.client.gui.custom.ChatHudLayout.isLayoutScreen()) {
             return;
         }
         if (isCartRefillActive()) {

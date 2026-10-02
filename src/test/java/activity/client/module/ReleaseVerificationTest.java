@@ -129,7 +129,7 @@ public class ReleaseVerificationTest {
         JsonObject root = JsonParser.parseReader(new InputStreamReader(is, StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals("activity", root.get("id").getAsString(), "Mod ID must be activity");
         String modName = root.get("name").getAsString();
-        assertTrue("PulseHUD".equals(modName) || "CooldownHUD".equals(modName) || "NivoratClient".equals(modName), "Mod Name must be PulseHUD, CooldownHUD or NivoratClient");
+        assertTrue("NivoratClient".equals(modName) || "CooldownHUD".equals(modName) || "NivoratClient".equals(modName), "Mod Name must be NivoratClient, CooldownHUD or NivoratClient");
 
         JsonObject depends = root.getAsJsonObject("depends");
         assertNotNull(depends, "depends section must exist");
@@ -224,14 +224,14 @@ public class ReleaseVerificationTest {
     @Test
     @DisplayName("Clean Install: only pinned ClientSpoofer is nested and all module classes are present")
     void testCleanInstallMonolithicJarStructure() throws Exception {
-        Path jarPath = Path.of("build", "libs", "PulseHUD.jar");
+        Path jarPath = Path.of("build", "libs", "NivoratClient.jar");
         if (!Files.exists(jarPath)) {
             jarPath = Path.of("build", "libs", "CooldownHUD.jar");
         }
         if (!Files.exists(jarPath)) {
             jarPath = Path.of("build", "libs", "NivoratClient.jar");
         }
-        Assumptions.assumeTrue(Files.exists(jarPath), "PulseHUD.jar, CooldownHUD.jar or NivoratClient.jar must exist in build/libs/ to verify structure");
+        Assumptions.assumeTrue(Files.exists(jarPath), "NivoratClient.jar, CooldownHUD.jar or NivoratClient.jar must exist in build/libs/ to verify structure");
 
         try (ZipFile zip = new ZipFile(jarPath.toFile())) {
             long nestedJars = zip.stream().filter(e -> e.getName().endsWith(".jar")).count();
@@ -654,10 +654,10 @@ public class ReleaseVerificationTest {
 
         ModuleMetadata meta = sheet.getMetadata();
         assertEquals(moduleId, meta.getId());
-        assertEquals("kt1xW", meta.getAuthor());
+        assertEquals("Nivorat", meta.getAuthor());
         assertNotNull(meta.getVersion());
         assertTrue(meta.getVersion().matches("\\d+\\.\\d+\\.\\d+"), "Version must be semver: " + meta.getVersion());
-        assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
+        assertEquals("", meta.getTelegramUrl());
         assertNotNull(meta.getIcon(), "Icon for " + moduleId + " must not be null");
 
         assertFalse(sheet.isClosed());

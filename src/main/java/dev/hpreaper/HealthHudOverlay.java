@@ -371,7 +371,7 @@ public final class HealthHudOverlay {
             if (showsDifference(mode, activity.client.config.ActivityConfigManager.getConfig().hpReaperShowDifference) && targetText != null && diffText != null)
                 drawNumber(diffText, tx + 3, y + 4, diffColor);
             var target = client.player == null ? null : getActiveTarget(client.player, System.nanoTime());
-            KimikoHealthVisual.armor(context, mode == DisplayMode.TARGET_HEALTH ? target : client.player, x, y - 21);
+            NivoratHealthVisual.armor(context, mode == DisplayMode.TARGET_HEALTH ? target : client.player, x, y - 21);
         }
     }
     private static float drawValue(String text, float x, float y, int color, int heartColor) {
@@ -391,6 +391,7 @@ public final class HealthHudOverlay {
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         try {
             if (context == null || VitalityConfig.displayMode == DisplayMode.DISABLED) {
                 return;
@@ -464,7 +465,8 @@ public final class HealthHudOverlay {
                 displayTargetHp = -1.0F;
             }
 
-            KimikoHealthVisual.lowHealth(context, client);
+            if (activity.client.gui.custom.ChatHudLayout.isLayoutScreen()) return;
+            NivoratHealthVisual.lowHealth(context, client);
             if (VitalityConfig.displayMode == DisplayMode.TARGET_HEALTH && targetText == null) {
                 return;
             }

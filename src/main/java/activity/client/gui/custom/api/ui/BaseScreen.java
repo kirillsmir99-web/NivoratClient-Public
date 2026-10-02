@@ -50,7 +50,7 @@ extends Screen {
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
     }
 
-    public final void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
         activity.client.gui.custom.CustomRender.enter(context);
         this.renderScreen(context, mouseX, mouseY, deltaTicks);
         activity.client.gui.custom.CustomRender.leave();

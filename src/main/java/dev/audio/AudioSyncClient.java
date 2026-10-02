@@ -48,12 +48,14 @@ public final class AudioSyncClient implements ClientModInitializer {
     }
 
     public static void tick(MinecraftClient client) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         if (active != null) {
             active.handleTick(client);
         }
     }
 
     public void handleTick(MinecraftClient client) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         if (client == null) return;
         if (isInGracePeriod()) {
             localDiedThisRound = false;
@@ -100,6 +102,7 @@ public final class AudioSyncClient implements ClientModInitializer {
     }
 
     public static void sendPhraseDirect(String phrase) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         if (phrase == null || phrase.isBlank()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         if (client != null && client.player != null && client.player.networkHandler != null) {

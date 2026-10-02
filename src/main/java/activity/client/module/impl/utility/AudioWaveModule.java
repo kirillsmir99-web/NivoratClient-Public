@@ -37,7 +37,7 @@ public class AudioWaveModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.0.3")
                 .icon(ActivityIcon.UTILITY)
                 .keybind(keybind)
@@ -145,7 +145,7 @@ public class AudioWaveModule extends NivoratModule {
                 }
         );
         registerAction("edit_phrases", Text.literal("Список фраз"), Text.literal("Добавить, изменить, удалить или отметить избранные фразы"), SettingGroup.EXTRA,
-                () -> { var mc = MinecraftClient.getInstance(); mc.send(() -> mc.setScreen(new activity.client.gui.custom.NativeCollectionScreen(mc.currentScreen, activity.client.gui.custom.NativeCollectionScreen.Kind.GG))); });
+                () -> { var mc = MinecraftClient.getInstance(); mc.send(() -> activity.client.gui.custom.CollectionDrawer.open(activity.client.gui.custom.NativeCollectionScreen.Kind.GG)); });
     }
 
     @Override

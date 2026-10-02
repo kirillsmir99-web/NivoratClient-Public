@@ -28,43 +28,43 @@ public final class GaussianTimingEngine {
     }
 
     public static long getCombatSwapDelay() {
-        return getDelay(35.0D, 7.0D, 20L, 60L);
+        return getDelay(135.0D, 20.0D, 115L, 190L);
     }
 
     public static long getReactionDelay() {
-        return getDelay(35.0D, 7.0D, 20L, 55L);
+        return getDelay(160.0D, 30.0D, 120L, 240L);
     }
 
     public static long getFastSwapDelay() {
-        return getDelay(32.0D, 6.0D, 18L, 50L);
+        return getDelay(140.0D, 22.0D, 120L, 200L);
     }
 
     public static long getFastReactionDelay() {
-        return getDelay(35.0D, 7.0D, 20L, 55L);
+        return getDelay(150.0D, 25.0D, 110L, 220L);
     }
 
     public static long getRefillOpenDelay() {
-        return getDelay(28.0D, 5.0D, 15L, 45L);
+        return getDelay(105.0D, 22.0D, 75L, 160L);
     }
 
     public static long getRefillSwapDelay() {
-        return getDelay(30.0D, 6.0D, 18L, 48L);
+        return getDelay(115.0D, 25.0D, 80L, 175L);
     }
 
     public static long getRefillCloseDelay() {
-        return getDelay(25.0D, 5.0D, 15L, 40L);
+        return getDelay(95.0D, 20.0D, 65L, 150L);
     }
 
     public static long getShieldBreakerSwitchDelay() {
-        return getDelay(30.0D, 6.0D, 15L, 50L);
+        return getDelay(180.0D, 35.0D, 140L, 260L);
     }
 
     public static long getShieldBreakerRestoreDelay() {
-        return getDelay(28.0D, 5.0D, 15L, 45L);
+        return getDelay(95.0D, 18.0D, 70L, 140L);
     }
 
     public static long getMaceSwapDelay() {
-        return getDelay(28.0D, 5.0D, 15L, 45L);
+        return getDelay(145.0D, 25.0D, 120L, 220L);
     }
 
     public static long getChatDelay() {

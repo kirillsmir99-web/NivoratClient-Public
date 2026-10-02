@@ -13,8 +13,8 @@ import activity.client.gui.custom.api.config.ConfigManager;
 
 public final class LocalizationManager {
     public enum Language {
-        RU("ru", "RU", "assets/kimiko/lang/ru_ru.json"),
-        EN("en", "EN", "assets/kimiko/lang/en_us.json");
+        RU("ru", "RU", "assets/nivorat/lang/ru_ru.json"),
+        EN("en", "EN", "assets/nivorat/lang/en_us.json");
 
         private final String code;
         private final String label;

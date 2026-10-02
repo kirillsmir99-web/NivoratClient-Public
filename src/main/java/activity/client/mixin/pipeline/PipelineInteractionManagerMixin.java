@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import dev.mesh.ModelMeshEngine;
-import dev.virion.arc.ArcMotorCalibrationService;
+import dev.nivorat.arc.ArcMotorCalibrationService;
 
 @Mixin(ClientPlayerInteractionManager.class)
 public abstract class PipelineInteractionManagerMixin {

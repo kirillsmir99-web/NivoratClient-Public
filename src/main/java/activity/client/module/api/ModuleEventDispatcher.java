@@ -71,11 +71,11 @@ public final class ModuleEventDispatcher {
         HudElementRegistry.addLast(Identifier.of("activity", "modules_hud"), ModuleEventDispatcher::onRenderHud);
 
         net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.START_MAIN.register(context -> {
-            if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) return;
+            if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null) {
                 dev.raycast.RaycastPredictorController.getInstance().onRender(client);
-                dev.virion.arc.VirionArcController.onRender(client);
+                dev.nivorat.arc.AutoCartController.onRender(client);
             }
         });
 
@@ -98,7 +98,7 @@ public final class ModuleEventDispatcher {
 
         for (IModule module : all) {
             if (module == null) continue;
-            boolean isCartCalibrating = (module instanceof activity.client.module.impl.defense.OcclusionCacheModule && dev.virion.arc.ArcMotorCalibrationService.isActive());
+            boolean isCartCalibrating = (module instanceof activity.client.module.impl.defense.OcclusionCacheModule && dev.nivorat.arc.ArcMotorCalibrationService.isActive());
             if (!module.isEnabled() && !isCartCalibrating) continue;
 
             if (supportsTick(module)) {
@@ -123,8 +123,7 @@ public final class ModuleEventDispatcher {
         boolean sessionChanged = client == null || client.world != sessionWorld || client.player != sessionPlayer;
         boolean blocked = client == null || client.player == null || client.world == null
                 || !client.player.isAlive() || client.player.isSpectator() || client.currentScreen != null
-                || activity.client.capitulation.CapitulationManager.isCapitulated()
-                || activity.client.security.RemoteLockService.isLocked();
+                || activity.client.capitulation.CapitulationManager.isCapitulated();
         if (sessionChanged || (blocked && !suspended)) {
             for (IModule module : ModuleRegistry.getAll()) {
                 if (!sessionChanged && module.isEnabled() && module.canTickWhileScreenOpen(client)) continue;
@@ -148,7 +147,7 @@ public final class ModuleEventDispatcher {
             try { module.onCleanupTick(client); }
             catch (Throwable error) { ModuleDiagnostics.report(module.getId(), "cleanup", error); }
         }
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return;
         }
 
@@ -190,6 +189,10 @@ public final class ModuleEventDispatcher {
 
         IModule[] modules = activeTickModules;
         for (int i = 0; i < modules.length; i++) {
+            if (!modules[i].isEnabled()
+                    && !(modules[i] instanceof activity.client.module.impl.defense.OcclusionCacheModule
+                    && dev.nivorat.arc.ArcMotorCalibrationService.isActive())) continue;
+            if (client.currentScreen != null && !modules[i].canTickWhileScreenOpen(client)) continue;
             try {
                 modules[i].onClientTick(client);
             } catch (Throwable error) { ModuleDiagnostics.report(modules[i].getId(), "tick", error); }
@@ -198,7 +201,7 @@ public final class ModuleEventDispatcher {
 
     public static ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         try {
-            if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
+            if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
                 return ActionResult.PASS;
             }
 

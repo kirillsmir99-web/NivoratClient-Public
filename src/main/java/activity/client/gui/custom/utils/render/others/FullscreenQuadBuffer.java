@@ -36,7 +36,7 @@ public final class FullscreenQuadBuffer {
             block13: {
                 BuiltBuffer builtBuffer = FullscreenQuadBuffer.buildFullscreenQuad(bufferAllocator);
                 try {
-                    gpuBuffer = buffer = gpuDevice.createBuffer(() -> "kimiko:fullscreen_quad", 32, builtBuffer.getBuffer());
+                    gpuBuffer = buffer = gpuDevice.createBuffer(() -> "nivorat:fullscreen_quad", 32, builtBuffer.getBuffer());
                     if (builtBuffer == null) break block13;
                 }
                 catch (Throwable throwable) {

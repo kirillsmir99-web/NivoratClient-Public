@@ -4,7 +4,12 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "PipelineInteractionManagerMixin",
-    "PipelineInteractionManagerAccessor"
+    "PipelineInteractionManagerAccessor",
+    "AsyncInputMoveAccessor",
+    "AsyncInteractMixin",
+    "AsyncKeyboardInputMixin",
+    "AsyncPlayerMoveMixin",
+    "AsyncMinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 0

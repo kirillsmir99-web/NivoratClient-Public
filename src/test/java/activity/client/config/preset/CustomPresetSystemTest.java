@@ -12,6 +12,20 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CustomPresetSystemTest {
+    @Test void deletingAnotherPresetKeepsActiveId() {
+        var active = PresetManager.createPreset("Active", new ActivityConfig());
+        var other = PresetManager.createPreset("Other", new ActivityConfig());
+        ActivityConfigManager.getConfig().activeProfile = active.getId();
+        PresetManager.deletePreset(other.getId());
+        assertEquals(active.getId(), ActivityConfigManager.getConfig().activeProfile);
+    }
+    @Test void duplicateNamesStayWithinLimit() {
+        String name = "X".repeat(32);
+        PresetManager.createPreset(name, new ActivityConfig());
+        var added = PresetManager.addOrOverwriteImported(Preset.createCustom(name, new JsonObject()), false);
+        assertTrue(added.getName().length() <= 32);
+        assertNotEquals(name, added.getName());
+    }
 
     @BeforeEach
     void setUp() {

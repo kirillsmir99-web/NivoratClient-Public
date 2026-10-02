@@ -1,6 +1,6 @@
-# Native Kimiko visual port
+# Native Nivorat visual port
 
-The active screen is `activity.client.gui.custom.api.ui.UI.INSTANCE`, built from the original Kimiko UI source. The earlier replacement `KimikoScreen` and `KimikoInspector` have been removed. No legacy ActivityScreen pages are composed into the native screen.
+The active screen is `activity.client.gui.custom.api.ui.UI.INSTANCE`, built from the original Nivorat UI source. The earlier replacement `NivoratScreen` and `NivoratInspector` have been removed. No legacy ActivityScreen pages are composed into the native screen.
 
 ## Scope
 
@@ -18,18 +18,18 @@ Visual settings: config/nc-visual.json. Custom themes: nc-visual/themes under th
 - utils/render: original GPU renderer, fonts and post-processing.
 - utils/sounds: original local sound resources and controls.
 - mixin: Minecraft rendering and chat integration.
-- assets/kimiko: original shaders, fonts, sounds and visual resources.
+- assets/nivorat: original shaders, fonts, sounds and visual resources.
 
 ## Verification
 
 713 JUnit tests passed, zero failures/errors. Isolated Minecraft 1.21.11 creative-world smoke completed: All, Mace, current AutoMace inspector, themes, Nivora palette, settings, full theme editor, About, ClickGui, search, collapsed sidebar, chat and closing animation. Captures: build/visual-smoke/captures/screenshots. Logs: build/native-visual-world-smoke.log and build/native-visual-build.log. Notification regression: five identical messages produce one bounded, wrapped card above the hotbar; notifications are hidden while native ClickGUI is open. Only the public edition is delivered. Visual-setting persistence is debounced and uses an atomic file replacement. This does not establish FPS measurements or exhaustive compatibility with third-party modpacks.
 
-The donor trees were read only in this work. The second donor matches docs/visual-donor-hashes.json. Kimiko has concurrently changed since that historical snapshot; its observed current state is recorded separately in docs/visual-donor-observation-20261001.json. docs/custom-render-sources.json records source and target hashes; adaptation includes namespace changes, current-module bridges, and removal of donor network/gameplay dependencies.
+The donor trees were read only in this work. The second donor matches docs/visual-donor-hashes.json. Nivorat has concurrently changed since that historical snapshot; its observed current state is recorded separately in docs/visual-donor-observation-20261001.json. docs/custom-render-sources.json records source and target hashes; adaptation includes namespace changes, current-module bridges, and removal of donor network/gameplay dependencies.
 
 ## Installed artifact
 
-Public PulseHUD.jar installed as VortexHUD.jar in the authorized ElyPrism instance 1.21.11 TEST V2 NC. Current SHA-256: FC1933C8475EB6870B06BC7CEB1CA80239026B1EAFED2CE2761D2D4FBA0E96E7. Previous JAR: backup/launcher-visual-polish-20261001/VortexHUD-before-polish.jar. PUBLIC only. The built JAR completed isolated game smoke; the full third-party modpack test stopped in Fabric runtime remapping before Minecraft loaded. Restart the user instance to load the update.
+Public NivoratClient.jar installed as VortexHUD.jar in the authorized ElyPrism instance 1.21.11 TEST V2 NC. Current SHA-256: FC1933C8475EB6870B06BC7CEB1CA80239026B1EAFED2CE2761D2D4FBA0E96E7. Previous JAR: backup/launcher-visual-polish-20261001/VortexHUD-before-polish.jar. PUBLIC only. The built JAR completed isolated game smoke; the full third-party modpack test stopped in Fabric runtime remapping before Minecraft loaded. Restart the user instance to load the update.
 
 ## 2026-10-01 visual polish
 
-See [Visual polish analysis](VISUAL_POLISH_ANALYSIS.md) for live localization, search caching, tooltips, updated kit icons, the GG glass-sector fixes and the Kimiko list-based Cooldown HUD. The current PUBLIC artifact was loaded from its remapped archive in the isolated creative-world smoke (20 views); source classes were excluded from the launch classpath.
+See [Visual polish analysis](VISUAL_POLISH_ANALYSIS.md) for live localization, search caching, tooltips, updated kit icons, the GG glass-sector fixes and the Nivorat list-based Cooldown HUD. The current PUBLIC artifact was loaded from its remapped archive in the isolated creative-world smoke (20 views); source classes were excluded from the launch classpath.

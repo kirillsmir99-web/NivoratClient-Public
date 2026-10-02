@@ -314,10 +314,10 @@ public final class AudioWaveRadialScreen extends Screen {
 
         if (click.button() == 0 && isTelegramHovered(virtMx, virtMy, cx, cy)) {
             try {
-                net.minecraft.util.Util.getOperatingSystem().open("https://t.me/virionDEV");
+                activity.client.gui.tab.AboutTab.openUrl(activity.client.gui.tab.AboutTab.URL_TELEGRAM, null);
             } catch (Throwable t) {
                 if (client != null && client.keyboard != null) {
-                    client.keyboard.setClipboard("https://t.me/virionDEV");
+                    client.keyboard.setClipboard("");
                 }
             }
             SoundManager.playClick();

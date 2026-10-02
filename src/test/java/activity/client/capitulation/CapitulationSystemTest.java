@@ -33,6 +33,16 @@ public class CapitulationSystemTest {
     }
 
     @Test
+    void cancelledTasksCannotRunAfterTheirDeadline() {
+        var ran = new java.util.concurrent.atomic.AtomicBoolean();
+        net.fabricmc.pack.api.TickBoundScheduler.runAfterTicks(2, () -> ran.set(true));
+        CapitulationManager.capitulate(null);
+        for (int i = 0; i < 5; i++) net.fabricmc.pack.api.TickBoundScheduler.onTick(null);
+        assertFalse(ran.get());
+        assertFalse(net.fabricmc.pack.api.CombatLockManager.isLocked());
+    }
+
+    @Test
     @DisplayName("Capitulation disables all modules in memory and purges dispatchers")
     void testCapitulationDeactivatesAllModules() {
 
@@ -105,5 +115,19 @@ public class CapitulationSystemTest {
         assertTrue(activity.client.gui.search.SearchController.search("mace", 5).isEmpty());
 
         assertTrue(activity.client.config.ActivityConfigManager.getConfig().menuKeybind.isUnbound());
+    }
+
+    @Test
+    @DisplayName("Capitulation completely purges diagnostic and telemetry logs")
+    void testDiagnosticPurgeOnCapitulation() {
+        activity.client.diagnostic.DiagnosticEngine.recordAction("click_pearl", "trigger", true, "slot=1");
+        activity.client.diagnostic.DiagnosticEngine.recordError("combat", "execute", new RuntimeException("err"));
+        assertFalse(activity.client.diagnostic.DiagnosticEngine.getActionHistory().isEmpty());
+
+        CapitulationManager.capitulate(null);
+
+        assertFalse(activity.client.diagnostic.DiagnosticEngine.isActive(), "DiagnosticEngine must be deactivated");
+        assertTrue(activity.client.diagnostic.DiagnosticEngine.getActionHistory().isEmpty(), "Action history must be purged");
+        assertTrue(activity.client.diagnostic.DiagnosticEngine.getErrorHistory().isEmpty(), "Error history must be purged");
     }
 }

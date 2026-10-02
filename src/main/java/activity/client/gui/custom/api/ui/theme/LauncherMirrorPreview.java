@@ -99,7 +99,7 @@ public final class LauncherMirrorPreview {
         Render2D.rect(miniX + miniSidebarW, miniY + 2.0f, 0.6f, miniH - 4.0f, 0.3f, rgba(255, 255, 255, 12.0f * alpha));
 
 
-        Render2D.image("kimiko:textures/logo.png", miniX + 4.0f, miniY + 4.0f, 7.0f, 7.0f, rgba(255, 255, 255, 255.0f * alpha));
+        Render2D.image("nivorat:textures/logo.png", miniX + 4.0f, miniY + 4.0f, 7.0f, 7.0f, rgba(255, 255, 255, 255.0f * alpha));
         Fonts.SMALL_PIXEL.msdf("NV", miniX + 13.0f, miniY + 4.5f, 5.5f, rgba(255, 255, 255, 240.0f * alpha));
 
 

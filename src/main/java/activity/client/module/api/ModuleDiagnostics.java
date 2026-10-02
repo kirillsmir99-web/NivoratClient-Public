@@ -15,6 +15,7 @@ public final class ModuleDiagnostics {
         long now = System.nanoTime();
         if (failure.logged && now - failure.last < INTERVAL_NS) { failure.suppressed++; return; }
         activity.client.ActivityClient.LOGGER.error("Module {} failed in {} ({} repeated errors suppressed)", module, phase, failure.suppressed, error);
+        activity.client.diagnostic.DiagnosticEngine.recordError(module, phase, error);
         failure.logged = true;
         failure.last = now;
         failure.suppressed = 0;

@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class ParticlePhysicsController {
     private static final int MIN_AXE_DURABILITY = 4;
-    private static final double MAX_COMBAT_REACH = 4.2D;
+    private static final double MAX_COMBAT_REACH = 2.95D;
 
     private ClientPlayerEntity owner;
     private World ownerWorld;
@@ -212,7 +212,7 @@ public final class ParticlePhysicsController {
             case WAITING_MACE_STRIKE -> {
                 if (timer > 0 && --timer > 0) return;
                 LivingEntity target = getTarget(client);
-                double maxReach = Math.min(3.8D, Math.max(3.2D, ParticlePhysicsConfig.triggerDistance + 0.6D));
+                double maxReach = Math.min(client.player.getEntityInteractionRange() - 0.05D, ParticlePhysicsConfig.triggerDistance);
                 if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                     executeAutoStrikeMace(client);
                 } else if (timer <= 0) {
@@ -338,13 +338,8 @@ public final class ParticlePhysicsController {
         }
 
         selectSlot(client, axeSlot);
-        int axeDelay = getAxeDelayTicks();
-        if (axeDelay <= 0) {
-            executeAutoStrikeAxe(client);
-        } else {
-            stage = Stage.WAITING_AXE_STRIKE;
-            timer = axeDelay;
-        }
+        stage = Stage.WAITING_AXE_STRIKE;
+        timer = Math.max(2, getAxeDelayTicks());
     }
 
     private void executeAutoStrikeAxe(MinecraftClient client) {
@@ -369,14 +364,8 @@ public final class ParticlePhysicsController {
             client.player.swingHand(Hand.MAIN_HAND);
 
             if (maceSlot >= 0) {
-                int maceDelay = getMaceDelayTicks();
-                if (maceDelay <= 0 && ParticlePhysicsConfig.mode != ParticlePhysicsConfig.MODE_SEMI_AUTO) {
-                    selectSlot(client, maceSlot);
-                    executeAutoStrikeMace(client);
-                } else {
-                    stage = ParticlePhysicsConfig.mode == ParticlePhysicsConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
-                    timer = Math.max(1, maceDelay);
-                }
+                stage = ParticlePhysicsConfig.mode == ParticlePhysicsConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
+                timer = Math.max(2, getMaceDelayTicks());
             } else {
                 stage = Stage.WAITING_RESTORE;
                 timer = Math.max(1, getRestoreDelayTicks());
@@ -390,7 +379,7 @@ public final class ParticlePhysicsController {
     private void executeAutoStrikeMace(MinecraftClient client) {
         try {
             LivingEntity target = getTarget(client);
-            double maxReach = Math.min(3.8D, Math.max(3.2D, ParticlePhysicsConfig.triggerDistance + 0.6D));
+            double maxReach = Math.min(client.player.getEntityInteractionRange() - 0.05D, ParticlePhysicsConfig.triggerDistance);
             if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                 if (client.player.getInventory().getSelectedSlot() != maceSlot) {
                     selectSlot(client, maceSlot);
@@ -421,15 +410,30 @@ public final class ParticlePhysicsController {
     }
 
     private int getAxeDelayTicks() {
-        return GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.axeDelayMs, ParticlePhysicsConfig.randomDelay);
+        if (ParticlePhysicsConfig.legitMode) {
+            long delayMs = GaussianTimingEngine.getShieldBreakerSwitchDelay();
+            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+        }
+        int ticks = GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.axeDelayMs, ParticlePhysicsConfig.randomDelay);
+        return Math.max(1, ticks);
     }
 
     private int getMaceDelayTicks() {
-        return GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.maceDelayMs, ParticlePhysicsConfig.randomDelay);
+        if (ParticlePhysicsConfig.legitMode) {
+            long delayMs = GaussianTimingEngine.getMaceSwapDelay();
+            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+        }
+        int ticks = GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.maceDelayMs, ParticlePhysicsConfig.randomDelay);
+        return Math.max(1, ticks);
     }
 
     private int getRestoreDelayTicks() {
-        return GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.restoreDelayMs, ParticlePhysicsConfig.randomDelay);
+        if (ParticlePhysicsConfig.legitMode) {
+            long delayMs = GaussianTimingEngine.getShieldBreakerRestoreDelay();
+            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+        }
+        int ticks = GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.restoreDelayMs, ParticlePhysicsConfig.randomDelay);
+        return Math.max(1, ticks);
     }
 
     private boolean isAirborneConditionMet(ClientPlayerEntity player) {

@@ -108,7 +108,7 @@ public final class GuiMotionBlurRenderer {
     }
 
     private static Identifier id(String string) {
-        return Identifier.of((String)"kimiko", (String)string);
+        return Identifier.of((String)"nivorat", (String)string);
     }
 
     private static void closeBuffer(GpuBuffer gpuBuffer) {
@@ -123,7 +123,7 @@ public final class GuiMotionBlurRenderer {
         }
         int n11 = Math.max(0, n6 - (n2 + n4));
         GuiMotionBlurRenderer.writeCompositeUniform(commandEncoder, f, f2, n5, n6, fArray, n7, n8, n9, n10, f3, f4, f5);
-        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_motion_blur_composite", gpuTextureView, OptionalInt.empty(), null, OptionalDouble.empty());){
+        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_motion_blur_composite", gpuTextureView, OptionalInt.empty(), null, OptionalDouble.empty());){
             renderPass.setPipeline(COMPOSITE_PIPELINE);
             renderPass.setVertexBuffer(0, fullscreenVertexBuffer);
             renderPass.enableScissor(n, n11, n3, n4);
@@ -155,15 +155,15 @@ public final class GuiMotionBlurRenderer {
             }
             if (maskVertexBuffer == null || maskVertexBuffer.isClosed() || maskVertexBuffer.size() < (long)MASK_VERTEX_BYTES) {
                 GuiMotionBlurRenderer.closeBuffer(maskVertexBuffer);
-                maskVertexBuffer = gpuDevice.createBuffer(() -> "kimiko:gui_motion_blur_mask_vertices", 40, (long)MASK_VERTEX_BYTES);
+                maskVertexBuffer = gpuDevice.createBuffer(() -> "nivorat:gui_motion_blur_mask_vertices", 40, (long)MASK_VERTEX_BYTES);
             }
             if (blurUniformBuffer == null || blurUniformBuffer.isClosed() || blurUniformBuffer.size() < 16L) {
                 GuiMotionBlurRenderer.closeBuffer(blurUniformBuffer);
-                blurUniformBuffer = gpuDevice.createBuffer(() -> "kimiko:gui_motion_blur_uniform", 136, 16L);
+                blurUniformBuffer = gpuDevice.createBuffer(() -> "nivorat:gui_motion_blur_uniform", 136, 16L);
             }
             if (compositeUniformBuffer == null || compositeUniformBuffer.isClosed() || compositeUniformBuffer.size() < 80L) {
                 GuiMotionBlurRenderer.closeBuffer(compositeUniformBuffer);
-                compositeUniformBuffer = gpuDevice.createBuffer(() -> "kimiko:gui_motion_blur_composite_uniform", 136, 80L);
+                compositeUniformBuffer = gpuDevice.createBuffer(() -> "nivorat:gui_motion_blur_composite_uniform", 136, 80L);
             }
             GuiMotionBlurRenderer.ensureTargets(gpuDevice, n, n2, f);
             return fullscreenVertexBuffer != null && maskVertexBuffer != null && blurUniformBuffer != null && compositeUniformBuffer != null && sceneCopyTextureView != null && backgroundCopyTextureView != null && remoteBackgroundCopyTextureView != null && maskTarget != null && horizontalTarget != null && verticalTarget != null && backgroundHorizontalTarget != null && backgroundVerticalTarget != null;
@@ -438,7 +438,7 @@ public final class GuiMotionBlurRenderer {
             byteBuffer.position(0);
             commandEncoder.writeToBuffer(blurUniformBuffer.slice(0L, 16L), byteBuffer);
         }
-        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_motion_blur_gaussian", simpleFramebuffer.getColorAttachmentView(), OptionalInt.empty(), null, OptionalDouble.empty())) {
+        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_motion_blur_gaussian", simpleFramebuffer.getColorAttachmentView(), OptionalInt.empty(), null, OptionalDouble.empty())) {
             renderPass.setPipeline(BLUR_PIPELINE);
             renderPass.setVertexBuffer(0, fullscreenVertexBuffer);
             int n5 = Math.max(0, simpleFramebuffer.textureHeight - (n2 + n4));
@@ -454,11 +454,11 @@ public final class GuiMotionBlurRenderer {
             return;
         }
         GuiMotionBlurRenderer.closeTargets();
-        sceneCopyTexture = gpuDevice.createTexture(() -> "kimiko:gui_motion_blur_scene_copy", 5, TextureFormat.RGBA8, n, n2, 1, 1);
+        sceneCopyTexture = gpuDevice.createTexture(() -> "nivorat:gui_motion_blur_scene_copy", 5, TextureFormat.RGBA8, n, n2, 1, 1);
         sceneCopyTextureView = gpuDevice.createTextureView(sceneCopyTexture);
-        backgroundCopyTexture = gpuDevice.createTexture(() -> "kimiko:gui_motion_blur_background_copy", 5, TextureFormat.RGBA8, n, n2, 1, 1);
+        backgroundCopyTexture = gpuDevice.createTexture(() -> "nivorat:gui_motion_blur_background_copy", 5, TextureFormat.RGBA8, n, n2, 1, 1);
         backgroundCopyTextureView = gpuDevice.createTextureView(backgroundCopyTexture);
-        remoteBackgroundCopyTexture = gpuDevice.createTexture(() -> "kimiko:gui_motion_blur_remote_background_copy", 5, TextureFormat.RGBA8, n, n2, 1, 1);
+        remoteBackgroundCopyTexture = gpuDevice.createTexture(() -> "nivorat:gui_motion_blur_remote_background_copy", 5, TextureFormat.RGBA8, n, n2, 1, 1);
         remoteBackgroundCopyTextureView = gpuDevice.createTextureView(remoteBackgroundCopyTexture);
         maskTarget = new SimpleFramebuffer("nv_gui_motion_blur_mask", n, n2, false);
         horizontalTarget = new SimpleFramebuffer("nv_gui_motion_blur_scene_h", n, n2, false);
@@ -540,7 +540,7 @@ public final class GuiMotionBlurRenderer {
                 commandEncoder.writeToBuffer(maskVertexBuffer.slice(0L, (long)byteBuffer.remaining()), byteBuffer);
             }
         }
-        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_motion_blur_mask", maskTarget.getColorAttachmentView(), OptionalInt.of(0), null, OptionalDouble.empty())) {
+        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_motion_blur_mask", maskTarget.getColorAttachmentView(), OptionalInt.of(0), null, OptionalDouble.empty())) {
             if (n4 > 0) {
                 renderPass.setPipeline(bl ? MASK_REPLACE_PIPELINE : MASK_PIPELINE);
                 renderPass.setVertexBuffer(0, maskVertexBuffer);

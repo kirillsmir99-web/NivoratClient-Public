@@ -100,7 +100,7 @@ public class UtilityModulesMigrationTest {
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("display_mode"));
         assertNotNull(mod.getSetting("target_filter"));
-        assertNotNull(mod.getSetting("open_editor"));
+        assertNull(mod.getSetting("open_editor"));
 
         assertTrue(hpMod.hasCustomSection(), "HPReaperModule must provide custom section");
 
@@ -361,7 +361,7 @@ public class UtilityModulesMigrationTest {
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        assertNotNull(mod.getSetting("open_editor"));
+        assertNull(mod.getSetting("open_editor"));
         assertNotNull(mod.getSetting("reset_position"));
 
         config.cartHudCustomX = 250;

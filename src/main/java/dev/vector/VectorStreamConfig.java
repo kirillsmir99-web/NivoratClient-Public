@@ -27,7 +27,7 @@ public final class VectorStreamConfig {
         if (maxSpeed || maxDelayMs <= 0) return 0;
         return switch (securityMode) {
             case MODE_SEMI_LEGIT -> Math.min(25, maxDelayMs);
-            case MODE_RAGE -> 25;
+            case MODE_RAGE -> 0;
             default -> Math.min(35, maxDelayMs);
         };
     }

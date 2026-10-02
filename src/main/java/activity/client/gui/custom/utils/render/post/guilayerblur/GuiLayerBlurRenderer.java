@@ -143,7 +143,7 @@ public final class GuiLayerBlurRenderer {
     }
 
     private static Identifier id(String string) {
-        return Identifier.of((String)"kimiko", (String)string);
+        return Identifier.of((String)"nivorat", (String)string);
     }
 
     private static SimpleFramebuffer destroy(SimpleFramebuffer simpleFramebuffer) {
@@ -170,7 +170,7 @@ public final class GuiLayerBlurRenderer {
             return false;
         }
         commandEncoder.writeToBuffer(shardVertexBuffer.slice(0L, (long)shardVertexData.remaining()), shardVertexData);
-        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_capture_shards", tempH.getColorAttachmentView(), OptionalInt.of(0));){
+        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_capture_shards", tempH.getColorAttachmentView(), OptionalInt.of(0));){
             renderPass.setPipeline(shardPipeline);
             renderPass.setVertexBuffer(0, shardVertexBuffer);
             renderPass.bindTexture("uGui", gpuTextureView, RenderSampler.linear());
@@ -210,14 +210,14 @@ public final class GuiLayerBlurRenderer {
             }
             CommandEncoder commandEncoder = RenderSystem.getDevice().createCommandEncoder();
             if (bl) {
-                renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_capture_clear", guiFbo.getColorAttachmentView(), OptionalInt.of(0), guiFbo.getDepthAttachmentView(), OptionalDouble.of(1.0));
+                renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_capture_clear", guiFbo.getColorAttachmentView(), OptionalInt.of(0), guiFbo.getDepthAttachmentView(), OptionalDouble.of(1.0));
                 if (renderPass != null) {
                     renderPass.close();
                 }
                 captureActive = true;
             }
             if (bl2 && GuiLayerBlurRenderer.ensureRemoteFbo(framebuffer.textureWidth, framebuffer.textureHeight)) {
-                renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_share_clear", remoteFbo.getColorAttachmentView(), OptionalInt.of(0), remoteFbo.getDepthAttachmentView(), OptionalDouble.of(1.0));
+                renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_share_clear", remoteFbo.getColorAttachmentView(), OptionalInt.of(0), remoteFbo.getDepthAttachmentView(), OptionalDouble.of(1.0));
                 if (renderPass != null) {
                     renderPass.close();
                 }
@@ -307,7 +307,7 @@ public final class GuiLayerBlurRenderer {
                     GuiLayerBlurRenderer.gaussianPass(commandEncoder, tempV.getColorAttachmentView(), tempH, 0.0f, f7 / (float)n2);
                 }
                 GuiLayerBlurRenderer.writeCompositeUniform(commandEncoder, 1.0f, 1.0f);
-                try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_capture_shard_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty());){
+                try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_capture_shard_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty());){
                     renderPass.setPipeline(compositePipeline);
                     renderPass.bindTexture("uGui", tempH.getColorAttachmentView(), RenderSampler.linear());
                     renderPass.setUniform("CompositeData", compositeUniform);
@@ -328,7 +328,7 @@ public final class GuiLayerBlurRenderer {
                 float f9 = f8 > 1.0E-4f ? 1.0f / f8 : 1.0f;
                 GuiLayerBlurRenderer.writeCompositeUniform(commandEncoder, f9, WorldGuiCloseAnimation.alpha());
                 GuiLayerBlurRenderer.writeWorldQuadUniform(commandEncoder, matrix4f2, n, n2, 1.0f);
-                try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_capture_composite_world", framebuffer.getColorAttachmentView(), OptionalInt.empty(), framebuffer.getDepthAttachmentView(), OptionalDouble.empty());){
+                try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_capture_composite_world", framebuffer.getColorAttachmentView(), OptionalInt.empty(), framebuffer.getDepthAttachmentView(), OptionalDouble.empty());){
                     renderPass.setPipeline(worldCompositePipeline);
                     renderPass.bindTexture("uGui", gpuTextureView, RenderSampler.linear());
                     renderPass.setUniform("CompositeData", compositeUniform);
@@ -339,7 +339,7 @@ public final class GuiLayerBlurRenderer {
             }
             f3 = f > 1.0E-4f ? 1.0f / f : 1.0f;
             GuiLayerBlurRenderer.writeCompositeUniform(commandEncoder, f3, 1.0f);
-            try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_capture_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty());){
+            try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_capture_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty());){
                 renderPass.setPipeline(compositePipeline);
                 renderPass.bindTexture("uGui", gpuTextureView, RenderSampler.linear());
                 renderPass.setUniform("CompositeData", compositeUniform);
@@ -378,7 +378,7 @@ public final class GuiLayerBlurRenderer {
                 }
                 if (handDepthCopy == null) {
                     GpuDevice gpuDevice = RenderSystem.getDevice();
-                    handDepthCopy = gpuDevice.createTexture(() -> "kimiko:gui_share_hand_depth", 5, TextureFormat.DEPTH32, framebuffer.textureWidth, framebuffer.textureHeight, 1, 1);
+                    handDepthCopy = gpuDevice.createTexture(() -> "nivorat:gui_share_hand_depth", 5, TextureFormat.DEPTH32, framebuffer.textureWidth, framebuffer.textureHeight, 1, 1);
                     handDepthCopyView = gpuDevice.createTextureView(handDepthCopy);
                 }
                 RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(framebuffer.getDepthAttachment(), handDepthCopy, 0, 0, 0, 0, 0, framebuffer.textureWidth, framebuffer.textureHeight);
@@ -415,7 +415,7 @@ public final class GuiLayerBlurRenderer {
             }
             CommandEncoder commandEncoder = RenderSystem.getDevice().createCommandEncoder();
             GuiLayerBlurRenderer.writeCompositeUniform(commandEncoder, 1.0f, 1.0f);
-            try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_share_popup_backdrop", sceneSnapshot.getColorAttachmentView(), OptionalInt.empty());){
+            try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_share_popup_backdrop", sceneSnapshot.getColorAttachmentView(), OptionalInt.empty());){
                 renderPass.setPipeline(compositePipeline);
                 renderPass.bindTexture("uGui", remoteFbo.getColorAttachmentView(), RenderSampler.linear());
                 renderPass.setUniform("CompositeData", compositeUniform);
@@ -517,7 +517,7 @@ public final class GuiLayerBlurRenderer {
             byteBuffer.position(0);
             commandEncoder.writeToBuffer(blurUniform.slice(0L, 16L), byteBuffer);
         }
-        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_capture_gaussian", simpleFramebuffer.getColorAttachmentView(), OptionalInt.of(0))) {
+        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_capture_gaussian", simpleFramebuffer.getColorAttachmentView(), OptionalInt.of(0))) {
             renderPass.setPipeline(blurPipeline);
             renderPass.bindTexture("uInput", gpuTextureView, RenderSampler.linear());
             renderPass.setUniform("BlurData", blurUniform);
@@ -569,7 +569,7 @@ public final class GuiLayerBlurRenderer {
             }
             if (preCompositeColor == null) {
                 GpuDevice gpuDevice = RenderSystem.getDevice();
-                preCompositeColor = gpuDevice.createTexture(() -> "kimiko:gui_share_scene_before", 5, TextureFormat.RGBA8, framebuffer.textureWidth, framebuffer.textureHeight, 1, 1);
+                preCompositeColor = gpuDevice.createTexture(() -> "nivorat:gui_share_scene_before", 5, TextureFormat.RGBA8, framebuffer.textureWidth, framebuffer.textureHeight, 1, 1);
                 preCompositeColorView = gpuDevice.createTextureView(preCompositeColor);
             }
             RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(framebuffer.getColorAttachment(), preCompositeColor, 0, 0, 0, 0, 0, framebuffer.textureWidth, framebuffer.textureHeight);
@@ -620,7 +620,7 @@ public final class GuiLayerBlurRenderer {
 
     private static void drawRemoteQuad(CommandEncoder commandEncoder, Framebuffer framebuffer, boolean bl) {
         if (bl) {
-            try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_share_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty());){
+            try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_share_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty());){
                 renderPass.setPipeline(worldOccludedPipeline);
                 renderPass.bindTexture("uGui", remoteFbo.getColorAttachmentView(), RenderSampler.linear());
                 renderPass.bindTexture("uDepth", worldDepthCopyView, RenderSampler.nearest());
@@ -630,7 +630,7 @@ public final class GuiLayerBlurRenderer {
                 renderPass.draw(0, 6);
             }
         }
-        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "kimiko:gui_share_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty(), framebuffer.getDepthAttachmentView(), OptionalDouble.empty());){
+        try (RenderPass renderPass = commandEncoder.createRenderPass(() -> "nivorat:gui_share_composite", framebuffer.getColorAttachmentView(), OptionalInt.empty(), framebuffer.getDepthAttachmentView(), OptionalDouble.empty());){
             renderPass.setPipeline(worldCompositePipeline);
             renderPass.bindTexture("uGui", remoteFbo.getColorAttachmentView(), RenderSampler.linear());
             renderPass.setUniform("CompositeData", compositeUniform);
@@ -693,25 +693,25 @@ public final class GuiLayerBlurRenderer {
             slotBlitPipeline = RenderPipelines.register((RenderPipeline)RenderPipeline.builder((RenderPipeline.Snippet[])new RenderPipeline.Snippet[0]).withLocation(SLOT_BLIT_PIPELINE_ID).withVertexShader(FULLSCREEN).withFragmentShader(SLOT_BLIT_SHADER).withVertexFormat(VertexFormats.EMPTY, VertexFormat.DrawMode.TRIANGLES).withSampler("uGui").withUniform("SlotBlitData", UniformType.UNIFORM_BUFFER).withBlend(new BlendFunction(SourceFactor.ONE, DestFactor.ONE_MINUS_SRC_ALPHA)).withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).withDepthWrite(false).withCull(false).build());
         }
         if (shardVertexBuffer == null) {
-            shardVertexBuffer = RenderSystem.getDevice().createBuffer(() -> "kimiko:guilayerblur_shard_vertices", 40, 44352L);
+            shardVertexBuffer = RenderSystem.getDevice().createBuffer(() -> "nivorat:guilayerblur_shard_vertices", 40, 44352L);
         }
         if (shardVertexData == null) {
             shardVertexData = ByteBuffer.allocateDirect(44352).order(ByteOrder.nativeOrder());
         }
         if (blurUniform == null) {
-            blurUniform = RenderSystem.getDevice().createBuffer(() -> "kimiko:guilayerblur_blur_uniform", 136, 16L);
+            blurUniform = RenderSystem.getDevice().createBuffer(() -> "nivorat:guilayerblur_blur_uniform", 136, 16L);
         }
         if (compositeUniform == null) {
-            compositeUniform = RenderSystem.getDevice().createBuffer(() -> "kimiko:guilayerblur_composite_uniform", 136, 16L);
+            compositeUniform = RenderSystem.getDevice().createBuffer(() -> "nivorat:guilayerblur_composite_uniform", 136, 16L);
         }
         if (worldQuadUniform == null) {
-            worldQuadUniform = RenderSystem.getDevice().createBuffer(() -> "kimiko:guilayerblur_world_quad_uniform", 136, 96L);
+            worldQuadUniform = RenderSystem.getDevice().createBuffer(() -> "nivorat:guilayerblur_world_quad_uniform", 136, 96L);
         }
         if (worldSlotsUniform == null) {
-            worldSlotsUniform = RenderSystem.getDevice().createBuffer(() -> "kimiko:guilayerblur_world_warp_uniform", 136, 512L);
+            worldSlotsUniform = RenderSystem.getDevice().createBuffer(() -> "nivorat:guilayerblur_world_warp_uniform", 136, 512L);
         }
         if (slotBlitUniform == null) {
-            slotBlitUniform = RenderSystem.getDevice().createBuffer(() -> "kimiko:guilayerblur_slot_blit_uniform", 136, 64L);
+            slotBlitUniform = RenderSystem.getDevice().createBuffer(() -> "nivorat:guilayerblur_slot_blit_uniform", 136, 64L);
         }
         return blurPipeline != null && compositePipeline != null && worldCompositePipeline != null && worldBackdropPipeline != null && shardPipeline != null && worldSlotsPipeline != null && slotBlitPipeline != null && blurUniform != null && compositeUniform != null && worldQuadUniform != null && shardVertexBuffer != null && shardVertexData != null && worldSlotsUniform != null && slotBlitUniform != null;
     }

@@ -102,6 +102,6 @@ public class AutoShieldbreakerAndCartCooldownTest {
 
     @Test
     void testActivityHudOverlayConstants() {
-        assertEquals("PulseHUD", ActivityHudOverlay.DEFAULT_TITLE);
+        assertEquals("NivoratClient", ActivityHudOverlay.DEFAULT_TITLE);
     }
 }

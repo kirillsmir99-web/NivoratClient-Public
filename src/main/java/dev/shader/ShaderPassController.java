@@ -277,11 +277,21 @@ public final class ShaderPassController {
     }
 
     private int getSwitchDelayTicks() {
-        return GaussianTimingEngine.sampleActionTicks(ShaderPassConfig.switchDelayMs, ShaderPassConfig.randomDelay);
+        if (ShaderPassConfig.legitMode) {
+            long delayMs = GaussianTimingEngine.getShieldBreakerSwitchDelay();
+            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+        }
+        int ticks = GaussianTimingEngine.sampleActionTicks(ShaderPassConfig.switchDelayMs, ShaderPassConfig.randomDelay);
+        return Math.max(1, ticks);
     }
 
     private int getRestoreDelayTicks() {
-        return GaussianTimingEngine.sampleActionTicks(ShaderPassConfig.restoreDelayMs, ShaderPassConfig.randomDelay);
+        if (ShaderPassConfig.legitMode) {
+            long delayMs = GaussianTimingEngine.getShieldBreakerRestoreDelay();
+            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+        }
+        int ticks = GaussianTimingEngine.sampleActionTicks(ShaderPassConfig.restoreDelayMs, ShaderPassConfig.randomDelay);
+        return Math.max(1, ticks);
     }
 
     private boolean isPlayerBusy(ClientPlayerEntity player) {

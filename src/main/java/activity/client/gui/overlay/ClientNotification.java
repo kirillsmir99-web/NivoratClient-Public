@@ -10,6 +10,10 @@ public final class ClientNotification {
     private ClientNotification() {}
 
     public static void show(Text text) {
-        if(text!=null)activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.notify((text.getContent() instanceof net.minecraft.text.TranslatableTextContent t ? activity.client.i18n.LocalizationService.get(t.getKey(),text.getString()) : text.getString()),3000);
+        show(text, 3000L);
+    }
+
+    public static void show(Text text, long durationMs) {
+        if(text!=null)activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.notify((text.getContent() instanceof net.minecraft.text.TranslatableTextContent t ? activity.client.i18n.LocalizationService.get(t.getKey(),text.getString()) : text.getString()), durationMs);
     }
 }

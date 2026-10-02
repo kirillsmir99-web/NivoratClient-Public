@@ -118,13 +118,28 @@ public class DualKeybindsIntegrationTest {
         assertTrue(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, 0));
         assertTrue(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_CONTROL),
                 "Keybind without Ctrl must still trigger when Ctrl is held (e.g. sprinting)");
-        assertFalse(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_SHIFT));
-        assertFalse(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_ALT));
+        assertTrue(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_SHIFT));
+        assertTrue(tabWithoutCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_ALT));
 
         Keybind tabWithCtrl = new Keybind(GLFW.GLFW_KEY_TAB, true, false, false);
         assertFalse(tabWithCtrl.matchesKey(GLFW.GLFW_KEY_TAB, 0));
         assertTrue(tabWithCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_CONTROL));
-        assertFalse(tabWithCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT));
+        assertTrue(tabWithCtrl.matchesKey(GLFW.GLFW_KEY_TAB, GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_SHIFT));
+        assertTrue(tabWithCtrl.takesPriorityOver(tabWithoutCtrl, GLFW.GLFW_MOD_CONTROL));
+        assertFalse(tabWithCtrl.takesPriorityOver(tabWithoutCtrl, GLFW.GLFW_MOD_SHIFT));
+        assertFalse(tabWithoutCtrl.takesPriorityOver(tabWithCtrl, GLFW.GLFW_MOD_CONTROL));
+    }
+
+    @Test
+    void mouseBindingsWorkWhileMovingAndPreferExplicitChords() {
+        Keybind plain = new Keybind();
+        plain.setMouseButton(4, 0);
+        Keybind chord = new Keybind();
+        chord.setMouseButton(4, GLFW.GLFW_MOD_SHIFT);
+        assertTrue(plain.matchesButton(4, GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL));
+        assertTrue(chord.takesPriorityOver(plain, GLFW.GLFW_MOD_SHIFT));
+        assertFalse(chord.takesPriorityOver(plain, 0));
+        assertFalse(plain.matchesButton(3, GLFW.GLFW_MOD_SHIFT));
     }
 
     @Test

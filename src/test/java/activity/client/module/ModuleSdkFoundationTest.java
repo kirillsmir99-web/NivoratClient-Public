@@ -81,8 +81,8 @@ public class ModuleSdkFoundationTest {
                 .build();
 
         assertEquals("test_module", meta.getId());
-        assertEquals("kt1xW", meta.getAuthor());
-        assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
+        assertEquals("Nivorat", meta.getAuthor());
+        assertEquals("", meta.getTelegramUrl());
         assertEquals("1.0.0", meta.getVersion());
         assertEquals("2026-09-16", meta.getLastUpdated());
         assertEquals("[-]", meta.getKeybindDisplay());
@@ -368,7 +368,7 @@ public class ModuleSdkFoundationTest {
         assertNotNull(cfg);
         if (cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound()) {
             String menuConflict = KeybindManager.findConflict(cfg.menuKeybind, "some_random_module");
-            assertEquals("PulseHUD: Меню", menuConflict, "Keybind matching client menu must be detected as conflict");
+            assertEquals("NivoratClient: Меню", menuConflict, "Keybind matching client menu must be detected as conflict");
         }
     }
 }

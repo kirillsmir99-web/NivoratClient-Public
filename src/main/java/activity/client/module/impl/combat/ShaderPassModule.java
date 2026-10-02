@@ -31,7 +31,7 @@ public class ShaderPassModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.4.2")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)

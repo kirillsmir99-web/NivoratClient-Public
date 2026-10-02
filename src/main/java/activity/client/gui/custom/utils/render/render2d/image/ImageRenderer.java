@@ -99,7 +99,7 @@ implements AutoCloseable {
     }
 
     private static Identifier id(String string) {
-        return Identifier.of((String)"kimiko", (String)string);
+        return Identifier.of((String)"nivorat", (String)string);
     }
 
     public void enqueue(BuiltImage builtImage) {
@@ -340,7 +340,7 @@ implements AutoCloseable {
         if (!((String)object).contains(".")) {
             object = (String)object + ".png";
         }
-        return Identifier.of((String)"kimiko", (String)object);
+        return Identifier.of((String)"nivorat", (String)object);
     }
 
     private int usedUniformBytes() {

@@ -45,11 +45,11 @@ public final class ActivityConfigManager {
     }
 
     private static Path resolveConfigPath() {
-        Path pulsePath = resolveConfigDir().resolve("pulsehud.json");
-        if (Files.exists(pulsePath)) return pulsePath;
+        Path clientPath = resolveConfigDir().resolve("nivoratclient.json");
+        if (Files.exists(clientPath)) return clientPath;
         Path cooldownPath = resolveConfigDir().resolve("cooldownhud.json");
         if (Files.exists(cooldownPath)) return cooldownPath;
-        return pulsePath;
+        return clientPath;
     }
 
     private static Path resolveLegacyConfigPath() {
@@ -166,7 +166,7 @@ public final class ActivityConfigManager {
             save();
             return true;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[PulseHUD] Failed to parse imported preset: {}", e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to parse imported preset: {}", e.getMessage());
             return false;
         }
     }
@@ -264,7 +264,7 @@ public final class ActivityConfigManager {
             cleanLegacyFiles();
             return currentConfig;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[PulseHUD] Failed to parse configuration at {}: {}", configPath, e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to parse configuration at {}: {}", configPath, e.getMessage());
             handleCorruptedConfig(e);
             cleanLegacyFiles();
             return currentConfig;
@@ -335,7 +335,7 @@ public final class ActivityConfigManager {
             manualDirty = false;
             return true;
         } catch (IOException e) {
-            ActivityClient.LOGGER.debug("[PulseHUD] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
+            ActivityClient.LOGGER.debug("[NivoratClient] Failed to save configuration to {}: {}", CONFIG_PATH, e.getMessage());
             return false;
         }
     }
@@ -385,6 +385,5 @@ public final class ActivityConfigManager {
         currentConfig.menuKeybind = new activity.client.module.keybind.Keybind();
         savedSnapshot = null;
         manualDirty = false;
-        cleanLegacyFiles();
     }
 }

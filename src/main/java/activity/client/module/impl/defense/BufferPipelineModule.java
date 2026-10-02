@@ -24,7 +24,7 @@ public class BufferPipelineModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.0.3")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)

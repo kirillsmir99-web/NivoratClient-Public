@@ -2098,7 +2098,7 @@
     "src\\main\\java\\dev\\sunder\\SunderController.java": "847fbd235f280bf6c75dec238ecfb42c69a4ba30bc333ec1a15eebc1b51cb398",
     "src\\main\\java\\dev\\virion\\arc\\ArcCameraInterpolator.java": "2a42011d5521affb4fc4ded959cd7680e4ab7d796b28638a34b7722a47f2fa1b",
     "src\\main\\java\\dev\\virion\\arc\\MorrowConfig.java": "ad32aaf034912f9ea9390ad23a24e065457a7dae8757f2a0e0376e9a76139131",
-    "src\\main\\java\\dev\\virion\\arc\\VirionArcController.java": "5e49b4e94a56aa4fdfcfa9ed151c35e43d14a5b703ca1aaec515e37a46ec7ce8",
+    "src\\main\\java\\dev\\virion\\arc\\AutoCartController.java": "5e49b4e94a56aa4fdfcfa9ed151c35e43d14a5b703ca1aaec515e37a46ec7ce8",
     "src\\main\\java\\net\\fabricmc\\pack\\api\\ActionTransaction.java": "53246f735e47ec803d8510f53a8a4fc0ed717c458c51fef4e331905055189ded",
     "src\\main\\java\\net\\fabricmc\\pack\\api\\ActionTransactionManager.java": "15761e43fe6dd4e9b8991f7bc8d86d47e782b51a4c999a893f9df76d07060223",
     "src\\main\\java\\net\\fabricmc\\pack\\api\\BiometricRotationEngine.java": "03f77f1c4d53d6a401d43a5cedd8513ca15231438f9defa8f504393996da61b7",

@@ -1,0 +1,424 @@
+{
+    "bell": {
+        "sounds": [
+            "nivorat:hit_sounds/bell"
+        ]
+    },
+    "skeet": {
+        "sounds": [
+            "nivorat:hit_sounds/skeet"
+        ]
+    },
+    "pop": {
+        "sounds": [
+            "nivorat:hit_sounds/pop"
+        ]
+    },
+    "neverlose": {
+        "sounds": [
+            "nivorat:hit_sounds/neverlose"
+        ]
+    },
+    "rust": {
+        "sounds": [
+            "nivorat:hit_sounds/rust"
+        ]
+    },
+    "bubble": {
+        "sounds": [
+            "nivorat:hit_sounds/bubble"
+        ]
+    },
+    "click": {
+        "sounds": [
+            "nivorat:hit_sounds/click"
+        ]
+    },
+    "cod": {
+        "sounds": [
+            "nivorat:hit_sounds/cod"
+        ]
+    },
+    "welcome": {
+        "sounds": [
+            "nivorat:other/notification/notif"
+        ]
+    },
+    "notification": {
+        "sounds": [
+            "nivorat:other/notification/notif"
+        ]
+    },
+    "notification_low": {
+        "sounds": [
+            "nivorat:other/notification/low"
+        ]
+    },
+    "player_ping": {
+        "sounds": [
+            "nivorat:other/notification/playerping"
+        ]
+    },
+    "low": {
+        "sounds": [
+            "nivorat:other/notification/low"
+        ]
+    },
+    "notif": {
+        "sounds": [
+            "nivorat:other/notification/notif"
+        ]
+    },
+    "playerping": {
+        "sounds": [
+            "nivorat:other/notification/playerping"
+        ]
+    },
+    "command_error": {
+        "sounds": [
+            "nivorat:chat/command-error"
+        ]
+    },
+    "entity.ribbit.ambient": {
+        "sounds": [
+            "nivorat:entity/ribbit_ambient1",
+            "nivorat:entity/ribbit_ambient2",
+            "nivorat:entity/ribbit_ambient3",
+            "nivorat:entity/ribbit_ambient4",
+            "nivorat:entity/ribbit_ambient5"
+        ]
+    },
+    "entity.ribbit.step": {
+        "sounds": [
+            "nivorat:entity/ribbit_step1",
+            "nivorat:entity/ribbit_step2"
+        ]
+    },
+    "entity.ribbit.hurt": {
+        "sounds": [
+            "nivorat:entity/ribbit_hurt1",
+            "nivorat:entity/ribbit_hurt2",
+            "nivorat:entity/ribbit_hurt3"
+        ]
+    },
+    "entity.ribbit.death": {
+        "sounds": [
+            "nivorat:entity/ribbit_death1",
+            "nivorat:entity/ribbit_death2"
+        ]
+    },
+    "ribbit_ambient1": {
+        "sounds": [
+            "nivorat:entity/ribbit_ambient1"
+        ]
+    },
+    "ribbit_ambient2": {
+        "sounds": [
+            "nivorat:entity/ribbit_ambient2"
+        ]
+    },
+    "ribbit_ambient3": {
+        "sounds": [
+            "nivorat:entity/ribbit_ambient3"
+        ]
+    },
+    "ribbit_ambient4": {
+        "sounds": [
+            "nivorat:entity/ribbit_ambient4"
+        ]
+    },
+    "ribbit_ambient5": {
+        "sounds": [
+            "nivorat:entity/ribbit_ambient5"
+        ]
+    },
+    "ribbit_death1": {
+        "sounds": [
+            "nivorat:entity/ribbit_death1"
+        ]
+    },
+    "ribbit_death2": {
+        "sounds": [
+            "nivorat:entity/ribbit_death2"
+        ]
+    },
+    "ribbit_hurt1": {
+        "sounds": [
+            "nivorat:entity/ribbit_hurt1"
+        ]
+    },
+    "ribbit_hurt2": {
+        "sounds": [
+            "nivorat:entity/ribbit_hurt2"
+        ]
+    },
+    "ribbit_hurt3": {
+        "sounds": [
+            "nivorat:entity/ribbit_hurt3"
+        ]
+    },
+    "ribbit_step1": {
+        "sounds": [
+            "nivorat:entity/ribbit_step1"
+        ]
+    },
+    "ribbit_step2": {
+        "sounds": [
+            "nivorat:entity/ribbit_step2"
+        ]
+    },
+    "frag_effect_echo_main": {
+        "sounds": [
+            "nivorat:charmsfxpack/echocharmmain"
+        ]
+    },
+    "frag_effect_knock_main": {
+        "sounds": [
+            "nivorat:charmsfxpack/knockcharmmain"
+        ]
+    },
+    "frag_effect_pulse": {
+        "sounds": [
+            "nivorat:charmsfxpack/pulsecharmdistant0",
+            "nivorat:charmsfxpack/pulsecharmdistant1",
+            "nivorat:charmsfxpack/pulsecharmdistant2",
+            "nivorat:charmsfxpack/pulsecharmdistant3",
+            "nivorat:charmsfxpack/pulsecharmdistant4"
+        ]
+    },
+    "frag_effect_sparks_collision": {
+        "sounds": [
+            "nivorat:charmsfxpack/sparkscollisionneared"
+        ]
+    },
+    "launcher_open": {
+        "sounds": [
+            "nivorat:themes/launcher/open"
+        ]
+    },
+    "launcher_close": {
+        "sounds": [
+            "nivorat:themes/launcher/close"
+        ]
+    },
+    "launcher_toggle_on": {
+        "sounds": [
+            "nivorat:themes/launcher/toggle_on"
+        ]
+    },
+    "launcher_toggle_off": {
+        "sounds": [
+            "nivorat:themes/launcher/toggle_off"
+        ]
+    },
+    "launcher_slider": {
+        "sounds": [
+            "nivorat:themes/launcher/slider_tick"
+        ]
+    },
+    "launcher_category": {
+        "sounds": [
+            "nivorat:themes/launcher/category_expand"
+        ]
+    },
+    "launcher_button": {
+        "sounds": [
+            "nivorat:themes/launcher/button"
+        ]
+    },
+    "launcher_dropdown_open": {
+        "sounds": [
+            "nivorat:themes/launcher/dropdown_open"
+        ]
+    },
+    "launcher_dropdown_close": {
+        "sounds": [
+            "nivorat:themes/launcher/dropdown_close"
+        ]
+    },
+    "serene_open": {
+        "sounds": [
+            "nivorat:themes/serene/open"
+        ]
+    },
+    "serene_close": {
+        "sounds": [
+            "nivorat:themes/serene/close"
+        ]
+    },
+    "serene_toggle_on": {
+        "sounds": [
+            "nivorat:themes/serene/toggle_on"
+        ]
+    },
+    "serene_toggle_off": {
+        "sounds": [
+            "nivorat:themes/serene/toggle_off"
+        ]
+    },
+    "serene_slider": {
+        "sounds": [
+            "nivorat:themes/serene/slider_tick"
+        ]
+    },
+    "serene_category": {
+        "sounds": [
+            "nivorat:themes/serene/category_expand"
+        ]
+    },
+    "serene_button": {
+        "sounds": [
+            "nivorat:themes/serene/button_primary"
+        ]
+    },
+    "serene_pin": {
+        "sounds": [
+            "nivorat:themes/serene/pin"
+        ]
+    },
+    "serene_unpin": {
+        "sounds": [
+            "nivorat:themes/serene/unpin"
+        ]
+    },
+    "serene_dropdown_open": {
+        "sounds": [
+            "nivorat:themes/serene/dropdown_open"
+        ]
+    },
+    "serene_dropdown_close": {
+        "sounds": [
+            "nivorat:themes/serene/dropdown_close"
+        ]
+    },
+    "bubble_open": {
+        "sounds": [
+            "nivorat:themes/bubble/open"
+        ]
+    },
+    "bubble_close": {
+        "sounds": [
+            "nivorat:themes/bubble/close"
+        ]
+    },
+    "bubble_toggle_on": {
+        "sounds": [
+            "nivorat:themes/bubble/toggle_on"
+        ]
+    },
+    "bubble_toggle_off": {
+        "sounds": [
+            "nivorat:themes/bubble/toggle_off"
+        ]
+    },
+    "bubble_slider": {
+        "sounds": [
+            "nivorat:themes/bubble/slider_tick"
+        ]
+    },
+    "bubble_category": {
+        "sounds": [
+            "nivorat:themes/bubble/category_expand"
+        ]
+    },
+    "bubble_button": {
+        "sounds": [
+            "nivorat:themes/bubble/button"
+        ]
+    },
+    "cyber_open": {
+        "sounds": [
+            "nivorat:themes/cyber/open"
+        ]
+    },
+    "cyber_close": {
+        "sounds": [
+            "nivorat:themes/cyber/close"
+        ]
+    },
+    "cyber_toggle_on": {
+        "sounds": [
+            "nivorat:themes/cyber/toggle_on"
+        ]
+    },
+    "cyber_toggle_off": {
+        "sounds": [
+            "nivorat:themes/cyber/toggle_off"
+        ]
+    },
+    "cyber_slider": {
+        "sounds": [
+            "nivorat:themes/cyber/slider_tick"
+        ]
+    },
+    "cyber_category": {
+        "sounds": [
+            "nivorat:themes/cyber/category_expand"
+        ]
+    },
+    "cyber_button": {
+        "sounds": [
+            "nivorat:themes/cyber/button"
+        ]
+    },
+    "nv_glass_button": {
+        "sounds": [
+            "nivorat:nv_glass/button"
+        ]
+    },
+    "nv_glass_slider": {
+        "sounds": [
+            "nivorat:nv_glass/slider"
+        ]
+    },
+    "nv_glass_category": {
+        "sounds": [
+            "nivorat:nv_glass/category"
+        ]
+    },
+    "nv_glass_open": {
+        "sounds": [
+            "nivorat:nv_glass/open"
+        ]
+    },
+    "nv_glass_close": {
+        "sounds": [
+            "nivorat:nv_glass/close"
+        ]
+    },
+    "nv_glass_toggle_on": {
+        "sounds": [
+            "nivorat:nv_glass/toggle_on"
+        ]
+    },
+    "nv_glass_toggle_off": {
+        "sounds": [
+            "nivorat:nv_glass/toggle_off"
+        ]
+    },
+    "nv_glass_dropdown_open": {
+        "sounds": [
+            "nivorat:nv_glass/dropdown_open"
+        ]
+    },
+    "nv_glass_dropdown_close": {
+        "sounds": [
+            "nivorat:nv_glass/dropdown_close"
+        ]
+    },
+    "nv_glass_pin": {
+        "sounds": [
+            "nivorat:nv_glass/pin"
+        ]
+    },
+    "nv_glass_unpin": {
+        "sounds": [
+            "nivorat:nv_glass/unpin"
+        ]
+    },
+    "nv_tactical": {
+        "sounds": [
+            "nivorat:hit_sounds/nv_tactical"
+        ]
+    }
+}

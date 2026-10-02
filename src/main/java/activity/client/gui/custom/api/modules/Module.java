@@ -11,8 +11,8 @@ public class Module implements activity.client.gui.custom.IMinecraft {
  public Module(String name,String description,Category category){this.name=name;this.description=description;this.category=category;delegate=null;}
  public Module(IModule delegate){this.name=delegate.getId();this.description=activity.client.gui.custom.VisualText.moduleDescription(delegate);this.category=Category.VISUALS;this.delegate=delegate;settings.addAll(activity.client.gui.custom.SettingsBridge.models(delegate));}
  public <T extends Setting> T register(T setting){settings.add(setting);setting.setChangeListener(activity.client.gui.custom.api.config.ConfigManager::markDirty);return setting;}
- public String getName(){return name;} public String getDisplayName(){return delegate==null?activity.client.gui.custom.api.localization.Lang.translateSetting(name):activity.client.gui.custom.VisualText.moduleName(delegate);}
- public String getDescription(){return delegate==null?description:activity.client.gui.custom.VisualText.moduleDescription(delegate);}
+ public String getName(){return name;} public String getId(){return delegate!=null?delegate.getId():name;} public String getDisplayName(){return delegate==null?activity.client.gui.custom.api.localization.Lang.translateModule(name,activity.client.gui.custom.api.localization.Lang.translateSetting(name)):activity.client.gui.custom.VisualText.moduleName(delegate);}
+ public String getDescription(){return delegate==null?activity.client.gui.custom.api.localization.Lang.translateModuleDesc(name,description):activity.client.gui.custom.VisualText.moduleDescription(delegate);}
  public Category getCategory(){return category;}public Settings getSettings(){return settings;}
  public boolean defaultEnabled(){return true;}public boolean isEnabled(){return delegate==null?enabled:delegate.isEnabled();}
  public void setEnabled(boolean value){if(delegate==null)enabled=value;else{delegate.setEnabled(value);delegate.saveToConfig(activity.client.config.ActivityConfigManager.getConfig());activity.client.config.ActivityConfigManager.markDirty();}}

@@ -120,7 +120,7 @@ public final class ModuleListRenderer {
         float f12 = ModuleListRenderer.colW(f11);
         float f13 = f9 + CARD_PAD;
         float f14 = f13 + f12 + CARD_GAP;
-        float f15 = UI.CONTENT_HEIGHT - HEADER_OFFSET;
+        float f15 = UI.moduleViewportHeight(category);
 
         float f16 = 1.0f - (float) Math.exp(-f6 * 14.0f);
         this.scroll += (this.scrollTarget - this.scroll) * f16;
@@ -295,13 +295,14 @@ public final class ModuleListRenderer {
 
                 int accentA = ClientAccent.gradientA(230.0f * currentAct * finalAlpha);
                 int accentB = ClientAccent.gradientB(230.0f * currentAct * finalAlpha);
+                float cardBaseAlpha = ((finalCardBg >>> 24) & 0xFF) / 255.0f;
 
                 BuiltGlass cardGlass = new BuiltGlass(
                     cardX, cardY, colW, CARD_H,
                     CARD_RADIUS, CARD_RADIUS, CARD_RADIUS, CARD_RADIUS,
                     finalCardBg, finalAlpha,
                     25.0f, accentA,
-                    0.85f, true,
+                    cardBaseAlpha, true,
                     0.25f + 0.35f * currentAct,
                     0.10f, 0.5f, 0.0f
                 ).withBlurRadius(14.0f)

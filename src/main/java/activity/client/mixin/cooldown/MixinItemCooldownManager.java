@@ -20,6 +20,7 @@ public class MixinItemCooldownManager {
 
     @Inject(method = "set(Lnet/minecraft/util/Identifier;I)V", at = @At("HEAD"))
     private void onSetCooldownId(Identifier id, int duration, CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         try {
             if (id != null && isLocalManager()) {
                 CooldownTrackerService.onCooldownGroupSet(id, duration);
@@ -29,6 +30,7 @@ public class MixinItemCooldownManager {
 
     @Inject(method = "remove(Lnet/minecraft/util/Identifier;)V", at = @At("HEAD"))
     private void onRemoveCooldownId(Identifier id, CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         try {
             if (id != null && isLocalManager()) {
                 CooldownTrackerService.onCooldownGroupRemoved(id);

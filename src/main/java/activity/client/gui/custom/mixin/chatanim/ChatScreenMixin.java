@@ -24,6 +24,9 @@ public abstract class ChatScreenMixin {
 
     @Unique
     private float nv_chatAnimCalculateDisplacement() {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return 0.0f;
+        }
         ModConfig config = ModConfig.getConfig();
         if (!activity.client.config.ActivityConfigManager.getConfig().animationsEnabled || !config.enableTextFieldAnimation) {
             return 0.0f;

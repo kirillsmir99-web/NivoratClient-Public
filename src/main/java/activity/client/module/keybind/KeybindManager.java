@@ -21,6 +21,7 @@ public final class KeybindManager {
     public record BoundSecondary(IModule module, KeybindSetting setting, String stateKey) {}
 
     private static final Map<String, Boolean> KEY_STATES = new ConcurrentHashMap<>();
+    private static final java.util.Set<String> dispatchedSecondaries = ConcurrentHashMap.newKeySet();
     private static volatile BoundPrimary[] boundPrimaries = new BoundPrimary[0];
     private static volatile BoundSecondary[] boundSecondaries = new BoundSecondary[0];
     private static volatile boolean dispatcherManaged = false;
@@ -48,6 +49,7 @@ public final class KeybindManager {
             boundPrimaries = new BoundPrimary[0];
             boundSecondaries = new BoundSecondary[0];
             KEY_STATES.clear();
+            dispatchedSecondaries.clear();
             return;
         }
 
@@ -80,22 +82,26 @@ public final class KeybindManager {
         boundPrimaries = new BoundPrimary[0];
         boundSecondaries = new BoundSecondary[0];
         KEY_STATES.clear();
+        dispatchedSecondaries.clear();
     }
 
     public static void handleTick(MinecraftClient client) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || activity.client.security.RemoteLockService.isLocked()) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             KEY_STATES.clear();
+            dispatchedSecondaries.clear();
             return;
         }
 
         if (client == null || client.player == null) {
             KEY_STATES.clear();
+            dispatchedSecondaries.clear();
             return;
         }
 
         Window window = client.getWindow();
         if (window == null || window.getHandle() == 0L) {
             KEY_STATES.clear();
+            dispatchedSecondaries.clear();
             return;
         }
 
@@ -111,8 +117,11 @@ public final class KeybindManager {
                 || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
         boolean alt = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_ALT)
                 || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_ALT);
+        int modifiers = (ctrl ? GLFW.GLFW_MOD_CONTROL : 0)
+                | (shift ? GLFW.GLFW_MOD_SHIFT : 0) | (alt ? GLFW.GLFW_MOD_ALT : 0);
 
         if (client.currentScreen != null) {
+            dispatchedSecondaries.clear();
             for (int i = 0; i < primaries.length; i++) {
                 BoundPrimary bp = primaries[i];
                 boolean isDown = bp.keybind().matchesWindow(window, ctrl, shift, alt);
@@ -134,8 +143,14 @@ public final class KeybindManager {
             boolean isDown = bp.keybind().matchesWindow(window, ctrl, shift, alt);
             boolean wasDown = KEY_STATES.getOrDefault(bp.stateKey(), Boolean.FALSE);
 
+            if (client.currentScreen != null) {
+                KEY_STATES.put(bp.stateKey(), isDown);
+                continue;
+            }
+
             if (isDown && !wasDown) {
                 KEY_STATES.put(bp.stateKey(), Boolean.TRUE);
+                if (hasMoreSpecificBinding(bp.keybind(), modifiers, primaries, secondaries)) continue;
                 onPrimaryKeyPressed(bp.module());
             } else if (!isDown && wasDown) {
                 KEY_STATES.put(bp.stateKey(), Boolean.FALSE);
@@ -150,14 +165,35 @@ public final class KeybindManager {
             boolean isDown = sec.matchesWindow(window, ctrl, shift, alt);
             boolean wasDown = KEY_STATES.getOrDefault(bs.stateKey(), Boolean.FALSE);
 
+            if (client.currentScreen != null) {
+                KEY_STATES.put(bs.stateKey(), isDown);
+                dispatchedSecondaries.remove(bs.stateKey());
+                continue;
+            }
+
             if (isDown && !wasDown) {
                 KEY_STATES.put(bs.stateKey(), Boolean.TRUE);
+                if (hasMoreSpecificBinding(sec, modifiers, primaries, secondaries)) continue;
+                dispatchedSecondaries.add(bs.stateKey());
                 bs.setting().triggerPress(client);
             } else if (!isDown && wasDown) {
                 KEY_STATES.put(bs.stateKey(), Boolean.FALSE);
-                bs.setting().triggerRelease(client);
+                if (dispatchedSecondaries.remove(bs.stateKey())) bs.setting().triggerRelease(client);
             }
         }
+    }
+
+    private static boolean hasMoreSpecificBinding(Keybind binding, int modifiers,
+                                                   BoundPrimary[] primaries, BoundSecondary[] secondaries) {
+        for (BoundPrimary primary : primaries) {
+            if (primary.keybind().takesPriorityOver(binding, modifiers)) return true;
+        }
+        for (BoundSecondary secondary : secondaries) {
+            if (!secondary.module().isEnabled()) continue;
+            Keybind other = secondary.setting().get();
+            if (other != null && other.takesPriorityOver(binding, modifiers)) return true;
+        }
+        return false;
     }
 
     public static void suppressKey(String stateKey) {
@@ -215,7 +251,7 @@ public final class KeybindManager {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound()) {
             if (targetKeybind.equals(config.menuKeybind) && !"client_menu".equalsIgnoreCase(excludeModuleId)) {
-                return "PulseHUD: Меню";
+                return "NivoratClient: Меню";
             }
         }
 
@@ -258,7 +294,7 @@ public final class KeybindManager {
         ActivityConfig config = ActivityConfigManager.getConfig();
         if (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound()) {
             if (config.menuKeybind != currentKeybind && targetKeybind.equals(config.menuKeybind)) {
-                return "PulseHUD: Меню";
+                return "NivoratClient: Меню";
             }
         }
 

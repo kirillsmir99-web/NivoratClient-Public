@@ -290,12 +290,12 @@
 ### MODULE: AutoCart
 - **SOURCE REPOSITORY**: `SingleMods/AutoCart/source`
 - **VERSION**: `2.1.2`
-- **ENTRYPOINT**: `dev.virion.arc.VirionArcClient`
+- **ENTRYPOINT**: `dev.nivorat.arc.VirionArcClient`
 - **MAIN CLASSES**:
-  - `dev.virion.arc.VirionArcClient`
-  - `dev.virion.arc.VirionArcController` (баллистический и рейкаст-контроллер установки)
-  - `dev.virion.arc.MorrowConfig`
-  - `dev.virion.arc.MorrowScreen`
+  - `dev.nivorat.arc.VirionArcClient`
+  - `dev.nivorat.arc.AutoCartController` (баллистический и рейкаст-контроллер установки)
+  - `dev.nivorat.arc.MorrowConfig`
+  - `dev.nivorat.arc.MorrowScreen`
   - `net.fabricmc.pack.api.*`
 - **CONFIG**:
   - Класс: `MorrowConfig`
@@ -678,7 +678,7 @@
 ### 2.2 Коллизии пакетов (Package Collisions)
 - Пакет `net.fabricmc.pack.api` и субпакет `net.fabricmc.pack.api.setting` присутствуют одновременно в:
   `AutoAnchor`, `AutoCart`, `AutoGG`, `AutoMace`, `AutoShieldbreaker`, `AutoSpear`, `AutoStunSlime`, `AutoTool`, `AutoTotem`, `CartRefill`.
-- Все модули имеют уникальные собственные пакеты для своей специфической логики (`net.redstone.optimizer`, `dev.momentum`, `dev.nivora`, `dev.sunder`, `dev.autototem`, `dev.virion.arc`, `dev.luminance`, `dev.storage`, `dev.hpreaper`, `ru.elarion.autotool`, `ru.elarion.autogg`, `dev.carthud`).
+- Все модули имеют уникальные собственные пакеты для своей специфической логики (`net.redstone.optimizer`, `dev.momentum`, `dev.nivora`, `dev.sunder`, `dev.autototem`, `dev.nivorat.arc`, `dev.luminance`, `dev.storage`, `dev.hpreaper`, `ru.elarion.autotool`, `ru.elarion.autogg`, `dev.carthud`).
 
 ### 2.3 Коллизии миксинов (Mixin Collisions)
 - Имена конфигураций и классов миксинов строго изолированы и префиксированы (`activity.`):
@@ -739,7 +739,7 @@
 2. **Инвентарные алгоритмы**:
    - `AutoTotemController`: логика поиска тотемов и пакеты свапа в слот 45 (offhand).
    - `AutoToolEngine`: алгоритм расчета скорости ломания блоков и проверка прочности `durabilityThreshold`.
-   - `VirionArcController`: баллистический расчет траектории и проверка твердости опоры под рельсы.
+   - `AutoCartController`: баллистический расчет траектории и проверка твердости опоры под рельсы.
    - `AnchorController`: цикл зарядки светокамнем и проверка безопасного предмета детонации.
 3. **Миксины**:
    - `ClientPlayerInteractionManagerMixin` и `ClientPlayNetworkHandlerMixin` — точки инъекции должны оставаться неизменными для точности перехвата.

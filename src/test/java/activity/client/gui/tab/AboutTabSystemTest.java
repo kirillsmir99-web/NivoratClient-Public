@@ -39,12 +39,12 @@ public class AboutTabSystemTest {
 
     @Test
     void testAboutTabHeaderConstantsAndMetadata() {
-        assertEquals("PulseHUD", AboutTab.CLIENT_NAME);
+        assertEquals("NivoratClient", AboutTab.CLIENT_NAME);
         assertEquals("v1.0.0", AboutTab.CLIENT_VERSION);
-        assertEquals("kt1xW", AboutTab.DEVELOPER);
-        assertEquals("@virionDEV", AboutTab.WATERMARK);
+        assertEquals("Nivorat", AboutTab.DEVELOPER);
+        assertEquals("Nivorat", AboutTab.WATERMARK);
 
-        assertEquals("https://t.me/virionDEV", AboutTab.URL_TELEGRAM);
+        assertEquals("", AboutTab.URL_TELEGRAM);
         assertEquals("https://www.donationalerts.com/r/nivorat", AboutTab.URL_DONATE);
         assertEquals("https://www.youtube.com/@Nivorat", AboutTab.URL_YOUTUBE);
         assertEquals("https://www.tiktok.com/@nivorat", AboutTab.URL_TIKTOK);
@@ -130,7 +130,10 @@ public class AboutTabSystemTest {
         AboutTab.URL_OPENER = openedUrl::set;
 
         AboutTab.openUrl(AboutTab.URL_TELEGRAM, null);
-        assertEquals(AboutTab.URL_TELEGRAM, openedUrl.get());
+        assertNull(openedUrl.get());
+
+        AboutTab.openUrl(AboutTab.URL_YOUTUBE, null);
+        assertEquals(AboutTab.URL_YOUTUBE, openedUrl.get());
 
         AboutTab.openUrl(AboutTab.URL_DONATE, null);
         assertEquals(AboutTab.URL_DONATE, openedUrl.get());
@@ -181,7 +184,7 @@ public class AboutTabSystemTest {
             Text.literal("Скопировать ссылку"),
             () -> actionExecuted.set(true)
         );
-        toast.setUrl("https://t.me/virionDEV");
+        toast.setUrl("");
 
         assertNotNull(toast.getActionButton());
         assertEquals(ActivityButton.Variant.PRIMARY, toast.getActionButton().getVariant());

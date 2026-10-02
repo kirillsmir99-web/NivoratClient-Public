@@ -33,7 +33,7 @@ public class VectorStreamModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("2.1.0")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)

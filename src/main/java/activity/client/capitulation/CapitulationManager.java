@@ -26,6 +26,18 @@ public final class CapitulationManager {
         if (capitulated) return;
         capitulated = true;
 
+        TickBoundScheduler.clear();
+        for (IModule module : ModuleRegistry.getAll()) {
+            try { module.onSuspend(client); }
+            catch (Throwable error) { activity.client.module.api.ModuleDiagnostics.report(module.getId(), "stop", error); }
+        }
+        dev.nivorat.arc.ArcMotorCalibrationService.stop();
+        net.fabricmc.pack.api.CombatLockManager.reset();
+        net.fabricmc.pack.api.SafeSlotManager.reset();
+        dev.raycast.async.AsyncSilentRot.forceStop();
+        activity.client.integration.NivoratEcosystem.stopCompanions();
+        activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.stop();
+
         try {
             if (client != null && client.currentScreen != null) {
                 client.setScreen(null);
@@ -65,26 +77,26 @@ public final class CapitulationManager {
         } catch (Throwable ignored) {}
 
         try {
+            activity.client.diagnostic.DiagnosticEngine.purgeForCapitulation();
             activity.client.gui.search.SearchController.clearForCapitulation();
             activity.client.config.ActivityConfigManager.purgeForCapitulation();
         } catch (Throwable ignored) {}
 
         try {
             if (client != null && client.keyboard != null) {
-                String clip = client.keyboard.getClipboard();
-                if (clip != null && (clip.contains("activity") || clip.contains("nivorat") || clip.contains("autoMace") || clip.contains("autoTotem") || clip.contains("cartHud"))) {
-                    client.keyboard.setClipboard("");
-                }
+                client.keyboard.setClipboard("");
             }
         } catch (Throwable ignored) {}
 
         try {
+            System.gc();
             System.gc();
         } catch (Throwable ignored) {}
     }
 
     public static synchronized void resetForTesting() {
         capitulated = false;
+        activity.client.diagnostic.DiagnosticEngine.resetForTesting();
         activity.client.gui.search.SearchController.resetForTesting();
         ModuleEventDispatcher.updateActiveModules();
         KeybindManager.rebuildBoundKeybinds();

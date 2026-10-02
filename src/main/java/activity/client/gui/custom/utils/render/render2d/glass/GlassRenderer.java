@@ -82,7 +82,7 @@ implements AutoCloseable {
     }
 
     private static Identifier id(String string) {
-        return Identifier.of((String)"kimiko", (String)string);
+        return Identifier.of((String)"nivorat", (String)string);
     }
 
     public void enqueue(BuiltGlass builtGlass) {
@@ -96,7 +96,9 @@ implements AutoCloseable {
         try {
             VisualMaterial iface = VisualMaterial.getInstance();
             float material = iface == null ? 0.0f : iface.getStyleTransition();
-            if (!builtGlass.mosaicEnabled() && material > 0.001f) {
+            if (builtGlass.liveEdgeProfile() == 1 || builtGlass.liveEdgeProfile() == 2) {
+                builtGlass = builtGlass.withMosaic(false, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.85f);
+            } else if (!builtGlass.mosaicEnabled() && material > 0.001f && builtGlass.liveEdgeProfile() == 0) {
                 builtGlass = builtGlass.withMosaic(true, material, iface.mosaicScale.getFloat(), iface.mosaicSpeed.getFloat(), iface.mosaicSeam.getFloat(), iface.mosaicBevel.getFloat(), iface.mosaicCellGlow.getFloat(), iface.mosaicMorph.getFloat(), iface.textReadability.getFloat());
             }
             BuiltGlass builtGlass2 = this.normalize(builtGlass);

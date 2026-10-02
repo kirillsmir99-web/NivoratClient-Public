@@ -43,8 +43,8 @@ processResources {
         into 'META-INF/jars'
     }
 
-    exclude 'assets/kimiko/fonts/sf-pro/**'
-    exclude 'assets/kimiko/fonts/monsterat/*-italic.*'
+    exclude 'assets/nivorat/fonts/sf-pro/**'
+    exclude 'assets/nivorat/fonts/monsterat/*-italic.*'
 
 	inputs.property "version", project.version
 
@@ -65,16 +65,15 @@ java {
 jar {
 	manifest {
 		attributes(
-			"Specification-Title": "PulseHUD",
+			"Specification-Title": "NivoratClient",
 			"Specification-Version": project.version,
-			"Implementation-Title": "PulseHUD",
+			"Implementation-Title": "NivoratClient",
 			"Implementation-Version": project.version
 		)
 	}
 }
 
-boolean isDev = (project.hasProperty("devEdition") && project.property("devEdition").toString().equalsIgnoreCase("true")) ||
-		gradle.startParameter.taskNames.any { it.toLowerCase().contains("dev") }
+boolean isDev = false
 
 def editionResourcesDir = layout.buildDirectory.dir("generated/edition-resources")
 sourceSets.main.resources.srcDir(editionResourcesDir)
@@ -101,10 +100,4 @@ processResources.dependsOn("generateEditionResource", "verifyClientSpoofer")
 
 remapJar {
 	archiveFileName = isDev ? "${project.archives_base_name}-Dev.jar" : "${project.archives_base_name}.jar"
-}
-
-tasks.register("buildDev") {
-	group = "build"
-	description = "Assembles Developer Edition without embedding credentials"
-	dependsOn "build"
 }

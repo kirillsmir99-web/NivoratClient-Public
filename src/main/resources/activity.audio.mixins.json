@@ -3,7 +3,8 @@
   "package": "activity.client.mixin.audio",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "AudioNetworkHandlerMixin"
+    "AudioNetworkHandlerMixin",
+    "ClientCommonNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 0

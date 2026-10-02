@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PaletteShaderContractTest {
     @Test void glassUniformArrayAndJavaSlotsHaveTheSameStd140Layout() throws Exception {
-        try (var stream = getClass().getResourceAsStream("/assets/kimiko/shaders/ui/glass/glass.fsh")) {
+        try (var stream = getClass().getResourceAsStream("/assets/nivorat/shaders/ui/glass/glass.fsh")) {
             assertNotNull(stream);
             String shader = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
             var array = Pattern.compile("vec4 pal\\[(\\d+)\\]").matcher(shader);

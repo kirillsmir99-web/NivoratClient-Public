@@ -46,7 +46,7 @@ public interface IModule {
 
     default String getAuthor() {
         ModuleMetadata meta = getMetadata();
-        return meta != null ? meta.getAuthor() : "kt1xW";
+        return meta != null ? meta.getAuthor() : "Nivorat";
     }
 
     default ModuleMetadata getMetadata() {

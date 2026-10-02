@@ -30,7 +30,7 @@ public class ClickPearlModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("1.0.0")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)

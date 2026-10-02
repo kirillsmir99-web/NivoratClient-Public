@@ -105,7 +105,7 @@ public final class Keybind {
         boolean altDown = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
 
         if (this.ctrl && !ctrlDown) return false;
-        return (isShiftKey() || this.shift == shiftDown) && (isAltKey() || this.alt == altDown);
+        return (!this.shift || shiftDown) && (!this.alt || altDown);
     }
 
     public boolean matchesButton(int button, int modifiers) {
@@ -117,7 +117,7 @@ public final class Keybind {
         boolean altDown = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
 
         if (this.ctrl && !ctrlDown) return false;
-        return this.shift == shiftDown && this.alt == altDown;
+        return (!this.shift || shiftDown) && (!this.alt || altDown);
     }
 
     public boolean matchesKeyInput(KeyInput input) {
@@ -128,7 +128,7 @@ public final class Keybind {
     public boolean matchesWindow(Window window, boolean ctrlDown, boolean shiftDown, boolean altDown) {
         if (isUnbound() || window == null || window.getHandle() == 0L) return false;
         if (this.ctrl && !ctrlDown) return false;
-        if ((!isShiftKey() && this.shift != shiftDown) || (!isAltKey() && this.alt != altDown)) return false;
+        if ((this.shift && !shiftDown) || (this.alt && !altDown)) return false;
 
         if (isMouseButton()) {
             int button = getMouseButton();
@@ -200,8 +200,14 @@ public final class Keybind {
         return sb.toString();
     }
 
-    private boolean isShiftKey() { return keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT; }
-    private boolean isAltKey() { return keyCode == GLFW.GLFW_KEY_LEFT_ALT || keyCode == GLFW.GLFW_KEY_RIGHT_ALT; }
+    public int modifierCount() {
+        return (ctrl ? 1 : 0) + (shift ? 1 : 0) + (alt ? 1 : 0);
+    }
+
+    public boolean takesPriorityOver(Keybind other, int modifiers) {
+        if (other == null || keyCode != other.keyCode || modifierCount() <= other.modifierCount()) return false;
+        return isMouseButton() ? matchesButton(getMouseButton(), modifiers) : matchesKey(keyCode, modifiers);
+    }
 
     public Text getDisplayText() {
         if (isUnbound()) {

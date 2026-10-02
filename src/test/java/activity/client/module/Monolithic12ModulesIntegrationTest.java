@@ -89,11 +89,11 @@ public class Monolithic12ModulesIntegrationTest {
             assertEquals(id, meta.getId());
             assertNotNull(meta.getDisplayName());
             assertNotNull(meta.getDescription());
-            assertEquals("kt1xW", meta.getAuthor());
+            assertEquals("Nivorat", meta.getAuthor());
             assertNotNull(meta.getVersion());
             assertTrue(meta.getVersion().matches("\\d+\\.\\d+\\.\\d+"), "Version should be semver: " + meta.getVersion());
             assertEquals("2026-09-16", meta.getLastUpdated());
-            assertEquals("https://t.me/virionDEV", meta.getTelegramUrl());
+            assertEquals("", meta.getTelegramUrl());
             assertNotNull(meta.getIcon());
         }
     }

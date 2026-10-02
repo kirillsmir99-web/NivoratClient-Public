@@ -7,8 +7,8 @@ import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleMetadata;
 import activity.client.module.api.NivoratModule;
 import activity.client.module.setting.SettingGroup;
-import dev.virion.arc.MorrowConfig;
-import dev.virion.arc.VirionArcController;
+import dev.nivorat.arc.MorrowConfig;
+import dev.nivorat.arc.AutoCartController;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
@@ -18,8 +18,7 @@ import java.util.List;
 
 public class OcclusionCacheModule extends NivoratModule {
     public static final String ID = "auto_cart";
-    private final VirionArcController controller = new VirionArcController();
-    private boolean resetCalibrationPending = false;
+    private final AutoCartController controller = new AutoCartController();
 
     public OcclusionCacheModule() {
         super(ID, Text.translatable("activity.module.auto_cart.name"), Text.translatable("activity.module.auto_cart.desc"), ModuleCategory.DEFENSE);
@@ -28,12 +27,42 @@ public class OcclusionCacheModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("2.1.2")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)
                 .aliases("autocart", "cart", "вагонетка", "вагонетки", "автовагонетка", "авто-вагонетка", "автокарт", "авто-карт", "подрыв вагонеток", "подрыв", "тнт", "tnt", "delay", "задержка", "дистанция", "distance", "яма", "pit", "рельсы", "rails", "камера", "camera", "автокамера", "плавная камера")
                 .build();
+
+        java.util.function.BooleanSupplier isClassic = () -> {
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            return c == null || !"beta_neural".equalsIgnoreCase(c.autoCartMode);
+        };
+        java.util.function.BooleanSupplier isBetaNeural = () -> {
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            return c != null && "beta_neural".equalsIgnoreCase(c.autoCartMode);
+        };
+        java.util.concurrent.atomic.AtomicBoolean expertSettingsExpanded = new java.util.concurrent.atomic.AtomicBoolean(false);
+        java.util.function.BooleanSupplier isProfileSettingVisible = () -> isClassic.getAsBoolean() || expertSettingsExpanded.get();
+
+        registerEnum("cart_mode", Text.translatable("activity.setting.defense.cart_mode"),
+                Text.translatable("activity.setting.defense.cart_mode.desc"), SettingGroup.GENERAL,
+                List.of("classic", "beta_neural"), "classic",
+                opt -> Text.translatable("activity.dropdown.cart_mode." + opt),
+                opt -> Text.translatable("activity.dropdown.cart_mode." + opt + ".desc"),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoCartMode != null ? c.autoCartMode : "classic";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoCartMode = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
 
         registerEnum("preset", Text.translatable("activity.setting.defense.cart_preset"),
                 Text.translatable("activity.setting.defense.cart_preset.desc"), SettingGroup.GENERAL,
@@ -83,7 +112,7 @@ public class OcclusionCacheModule extends NivoratModule {
                             camCurve = 45.0;
                             camRand = 40.0;
                         } else if ("learned".equalsIgnoreCase(val)) {
-                            dev.virion.arc.ArcNeuralMotorProfile prof = dev.virion.arc.ArcNeuralMotorProfile.getInstance();
+                            dev.nivorat.arc.ArcMotionProfile prof = dev.nivorat.arc.ArcMotionProfile.getInstance();
                             minD = prof.getLearnedMinDelayMs();
                             maxD = prof.getLearnedMaxDelayMs();
                             chance = 100.0;
@@ -142,7 +171,29 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isClassic);
+
+        registerKeybind("macro_keybind", Text.translatable("activity.setting.defense.cart_macro"),
+                Text.translatable("activity.setting.defense.cart_macro.desc"), SettingGroup.GENERAL,
+                new activity.client.module.keybind.Keybind(),
+                () -> ActivityConfigManager.getConfig().autoCartMacroKeybind,
+                value -> {
+                    ActivityConfigManager.getConfig().autoCartMacroKeybind.copyFrom(value);
+                    ActivityConfigManager.markDirty();
+                }).onPress(client -> {
+                    int drawTicks = dev.nivorat.arc.ArcMotionProfile.getInstance().sampleMacroDrawTicks((int) ActivityConfigManager.getConfig().autoCartMacroDrawTicks);
+                    if (!controller.startMacro(client, drawTicks)) {
+                        activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.cart_macro_unavailable"));
+                    }
+                });
+        registerNumber("macro_draw_ticks", Text.translatable("activity.setting.defense.cart_macro_draw"),
+                Text.translatable("activity.setting.defense.cart_macro_draw.desc"), SettingGroup.GENERAL,
+                3.0, 20.0, 1.0, "", true, 6.0,
+                () -> ActivityConfigManager.getConfig().autoCartMacroDrawTicks,
+                value -> {
+                    ActivityConfigManager.getConfig().autoCartMacroDrawTicks = value;
+                    ActivityConfigManager.markDirty();
+                });
 
         registerNumber("placement_chance", Text.translatable("activity.setting.defense.cart_chance"),
                 Text.translatable("activity.setting.defense.cart_chance.desc"), SettingGroup.BEHAVIOR,
@@ -159,7 +210,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerNumber("max_distance", Text.translatable("activity.setting.defense.max_distance"),
                 Text.translatable("activity.setting.defense.max_distance.desc"), SettingGroup.BEHAVIOR,
@@ -176,7 +227,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerNumber("min_delay", Text.translatable("activity.setting.defense.min_delay"),
                 Text.translatable("activity.setting.defense.min_delay.desc"), SettingGroup.BEHAVIOR,
@@ -193,7 +244,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerNumber("max_delay", Text.translatable("activity.setting.defense.max_delay"),
                 Text.translatable("activity.setting.defense.max_delay.desc"), SettingGroup.BEHAVIOR,
@@ -210,7 +261,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerBoolean("random_delay", Text.translatable("activity.setting.defense.random_delay"),
                 Text.translatable("activity.setting.defense.random_delay.desc"), SettingGroup.BEHAVIOR,
@@ -227,7 +278,25 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
+
+        registerBoolean("expert_settings", Text.literal("Параметры профиля"),
+                Text.literal("Отображать детальные параметры наведения камеры и моторики"),
+                SettingGroup.BEHAVIOR,
+                false,
+                expertSettingsExpanded::get,
+                expertSettingsExpanded::set
+        ).visibleWhen(isBetaNeural);
+
+        java.util.function.Supplier<String> getCameraModeVal = () -> {
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            return c != null && c.autoCartCameraMode != null ? c.autoCartCameraMode : "auto";
+        };
+        java.util.function.BooleanSupplier isCameraSmoothAim = () -> {
+            String m = getCameraModeVal.get();
+            return !"off".equalsIgnoreCase(m) && !"packet".equalsIgnoreCase(m);
+        };
+        java.util.function.BooleanSupplier isCameraVisible = isProfileSettingVisible;
 
         registerEnum("camera_mode", Text.translatable("activity.setting.defense.cart_camera_mode"),
                 Text.translatable("activity.setting.defense.cart_camera_mode.desc"), SettingGroup.BEHAVIOR,
@@ -247,7 +316,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isCameraVisible);
 
         registerNumber("camera_smoothness", Text.translatable("activity.setting.defense.cart_camera_smoothness"),
                 Text.translatable("activity.setting.defense.cart_camera_smoothness.desc"), SettingGroup.BEHAVIOR,
@@ -264,7 +333,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(() -> isCameraVisible.getAsBoolean() && isCameraSmoothAim.getAsBoolean());
 
         registerBoolean("camera_return", Text.translatable("activity.setting.defense.cart_camera_return"),
                 Text.translatable("activity.setting.defense.cart_camera_return.desc"), SettingGroup.BEHAVIOR,
@@ -281,7 +350,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(() -> isCameraVisible.getAsBoolean() && isCameraSmoothAim.getAsBoolean());
 
         registerNumber("camera_return_smoothness", Text.translatable("activity.setting.defense.cart_camera_return_smoothness"),
                 Text.translatable("activity.setting.defense.cart_camera_return_smoothness.desc"), SettingGroup.BEHAVIOR,
@@ -298,7 +367,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(() -> isCameraVisible.getAsBoolean() && isCameraSmoothAim.getAsBoolean() && ActivityConfigManager.getConfig() != null && ActivityConfigManager.getConfig().autoCartCameraReturn);
 
         registerNumber("camera_curve", Text.translatable("activity.setting.defense.cart_camera_curve"),
                 Text.translatable("activity.setting.defense.cart_camera_curve.desc"), SettingGroup.BEHAVIOR,
@@ -315,7 +384,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(() -> isProfileSettingVisible.getAsBoolean() && isCameraSmoothAim.getAsBoolean());
 
         registerNumber("camera_randomness", Text.translatable("activity.setting.defense.cart_camera_randomness"),
                 Text.translatable("activity.setting.defense.cart_camera_randomness.desc"), SettingGroup.BEHAVIOR,
@@ -332,7 +401,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(() -> isProfileSettingVisible.getAsBoolean() && isCameraSmoothAim.getAsBoolean());
 
         registerBoolean("camera_mouse_gcd", Text.translatable("activity.setting.defense.cart_camera_mouse_gcd"),
                 Text.translatable("activity.setting.defense.cart_camera_mouse_gcd.desc"), SettingGroup.BEHAVIOR,
@@ -349,7 +418,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isCameraVisible);
 
         registerBoolean("autonomous_placement", Text.translatable("activity.setting.defense.autonomous_placement"),
                 Text.translatable("activity.setting.defense.autonomous_placement.desc"), SettingGroup.BEHAVIOR,
@@ -366,7 +435,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerBoolean("allow_self_cart", Text.translatable("activity.setting.defense.allow_self_cart"),
                 Text.translatable("activity.setting.defense.allow_self_cart.desc"), SettingGroup.EXTRA,
@@ -383,7 +452,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerBoolean("allow_pit_placement", Text.translatable("activity.setting.defense.allow_pit_placement"),
                 Text.translatable("activity.setting.defense.allow_pit_placement.desc"), SettingGroup.EXTRA,
@@ -400,7 +469,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerBoolean("use_mainhand_cart", Text.translatable("activity.setting.defense.use_mainhand_cart"),
                 Text.translatable("activity.setting.defense.use_mainhand_cart.desc"), SettingGroup.EXTRA,
@@ -417,7 +486,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isProfileSettingVisible);
 
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
@@ -434,54 +503,47 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isClassic);
 
-        registerBoolean("neural_aim", Text.translatable("activity.setting.defense.neural_aim"),
-                Text.translatable("activity.setting.defense.neural_aim.desc"), SettingGroup.ADVANCED,
+        registerBoolean("adaptive_aim", Text.translatable("activity.setting.defense.adaptive_aim"),
+                Text.translatable("activity.setting.defense.adaptive_aim.desc"), SettingGroup.ADVANCED,
                 true,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoCartNeuralAim;
+                    return c != null && c.autoCartAdaptiveAim;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
-                        c.autoCartNeuralAim = val;
+                        c.autoCartAdaptiveAim = val;
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }
                 }
-        );
+        ).visibleWhen(isBetaNeural);
 
-        registerBoolean("motor_calibration", Text.translatable("activity.setting.defense.motor_calibration"),
+        registerAction("motor_calibration", Text.translatable("activity.setting.defense.motor_calibration"),
                 Text.translatable("activity.setting.defense.motor_calibration.desc"), SettingGroup.ADVANCED,
-                false,
-                () -> dev.virion.arc.ArcMotorCalibrationService.isActive(),
-                val -> {
-                    if (val) {
-                        dev.virion.arc.ArcMotorCalibrationService.start();
-                    } else {
-                        dev.virion.arc.ArcMotorCalibrationService.stop();
+                () -> {
+                    activity.client.gui.custom.AutoCartCalibrationTopPanel.toggle();
+                    MinecraftClient mc = MinecraftClient.getInstance();
+                    if (mc != null && mc.currentScreen != activity.client.gui.custom.api.ui.UI.INSTANCE) {
+                        mc.send(() -> mc.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE));
                     }
                 }
-        );
+        ).visibleWhen(isBetaNeural);
 
-        registerBoolean("reset_calibration", Text.translatable("activity.setting.defense.reset_calibration"),
-                Text.translatable("activity.setting.defense.reset_calibration.desc"), SettingGroup.ADVANCED,
-                false,
-                () -> resetCalibrationPending,
-                val -> {
-                    resetCalibrationPending = val;
-                    if (val) {
-                        dev.virion.arc.ArcNeuralMotorProfile.getInstance().resetCalibration();
-                        activity.client.gui.overlay.ClientNotification.show(Text.translatable("activity.toast.calibration_reset"));
-                    }
-                }
-        );
+        registerBoolean("adaptive_learning", Text.translatable("activity.setting.defense.adaptive_learning"),
+                Text.translatable("activity.setting.defense.adaptive_learning.desc"), SettingGroup.ADVANCED,
+                true, () -> dev.nivorat.arc.ArcMotionProfile.getInstance().isAdaptiveLearning(),
+                value -> dev.nivorat.arc.ArcMotionProfile.getInstance().setAdaptiveLearning(value)
+        ).visibleWhen(isBetaNeural);
     }
 
     private void syncControllerConfig(ActivityConfig c) {
         if (c == null) return;
+        boolean isNeural = "beta_neural".equalsIgnoreCase(c.autoCartMode);
+        MorrowConfig.cartMode = isNeural ? MorrowConfig.MODE_BETA_NEURAL : MorrowConfig.MODE_CLASSIC;
         MorrowConfig.placementChance = (int) Math.round(c.autoCartPlacementChance);
         MorrowConfig.maxDistance = c.autoCartMaxDistance;
         MorrowConfig.minDelayMs = (int) Math.round(c.autoCartMinDelayMs);
@@ -491,16 +553,29 @@ public class OcclusionCacheModule extends NivoratModule {
         MorrowConfig.useMainhandCart = c.autoCartUseMainHand;
         MorrowConfig.randomDelay = c.autoCartRandomDelay;
         MorrowConfig.legitMode = c.autoCartLegitMode;
-        MorrowConfig.cameraMode = c.autoCartCameraMode != null ? c.autoCartCameraMode : "auto";
-        MorrowConfig.autoCamera = c.autoCartAutoCamera;
-        MorrowConfig.cameraSmoothnessMs = (int) Math.round(c.autoCartCameraSmoothness);
-        MorrowConfig.cameraReturn = c.autoCartCameraReturn;
-        MorrowConfig.cameraReturnSmoothnessMs = (int) Math.round(c.autoCartCameraReturnSmoothness);
-        MorrowConfig.cameraCurve = (int) Math.round(c.autoCartCameraCurve);
-        MorrowConfig.cameraRandomness = (int) Math.round(c.autoCartCameraRandomness);
-        MorrowConfig.cameraMouseGcd = c.autoCartCameraMouseGcd;
-        MorrowConfig.neuralAim = c.autoCartNeuralAim;
         MorrowConfig.autonomousPlacement = c.autoCartAutonomousPlacement;
+
+        if (isNeural) {
+            MorrowConfig.adaptiveAim = c.autoCartAdaptiveAim;
+            MorrowConfig.cameraMode = c.autoCartCameraMode != null ? c.autoCartCameraMode : "auto";
+            MorrowConfig.autoCamera = c.autoCartAutoCamera && !"off".equalsIgnoreCase(MorrowConfig.cameraMode);
+            MorrowConfig.cameraSmoothnessMs = (int) Math.round(c.autoCartCameraSmoothness);
+            MorrowConfig.cameraReturn = c.autoCartCameraReturn;
+            MorrowConfig.cameraReturnSmoothnessMs = (int) Math.round(c.autoCartCameraReturnSmoothness);
+            MorrowConfig.cameraCurve = (int) Math.round(c.autoCartCameraCurve);
+            MorrowConfig.cameraRandomness = (int) Math.round(c.autoCartCameraRandomness);
+            MorrowConfig.cameraMouseGcd = c.autoCartCameraMouseGcd;
+        } else {
+            MorrowConfig.adaptiveAim = false;
+            MorrowConfig.cameraMode = c.autoCartCameraMode != null ? c.autoCartCameraMode : "packet";
+            MorrowConfig.autoCamera = c.autoCartAutoCamera && !"off".equalsIgnoreCase(MorrowConfig.cameraMode);
+            MorrowConfig.cameraSmoothnessMs = (int) Math.round(c.autoCartCameraSmoothness);
+            MorrowConfig.cameraReturn = c.autoCartCameraReturn;
+            MorrowConfig.cameraReturnSmoothnessMs = (int) Math.round(c.autoCartCameraReturnSmoothness);
+            MorrowConfig.cameraCurve = (int) Math.round(c.autoCartCameraCurve);
+            MorrowConfig.cameraRandomness = (int) Math.round(c.autoCartCameraRandomness);
+            MorrowConfig.cameraMouseGcd = c.autoCartCameraMouseGcd;
+        }
 
         if ("safe".equals(c.autoCartPreset)) {
             MorrowConfig.preset = MorrowConfig.PRESET_SAFE;
@@ -515,7 +590,7 @@ public class OcclusionCacheModule extends NivoratModule {
         }
     }
 
-    public VirionArcController getController() {
+    public AutoCartController getController() {
         return controller;
     }
 
@@ -540,14 +615,14 @@ public class OcclusionCacheModule extends NivoratModule {
 
     @Override
     public void onTick(MinecraftClient client) {
-        if (isEnabled() || dev.virion.arc.ArcMotorCalibrationService.isActive()) {
+        if (isEnabled() || dev.nivorat.arc.ArcMotorCalibrationService.isActive()) {
             controller.tick(client);
         }
     }
 
     @Override
     public void onRenderHud(DrawContext context, RenderTickCounter tickCounter) {
-        if (!dev.virion.arc.ArcMotorCalibrationService.isActive() || context == null) {
+        if (!dev.nivorat.arc.ArcMotorCalibrationService.hasSession() || context == null) {
             return;
         }
         renderCalibrationHud(context);
@@ -555,46 +630,83 @@ public class OcclusionCacheModule extends NivoratModule {
 
     private void renderCalibrationHud(DrawContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.textRenderer == null) return;
+        if (client == null) return;
 
-        long remainingMs = dev.virion.arc.ArcMotorCalibrationService.getRemainingTimeMs();
+        boolean paused = dev.nivorat.arc.ArcMotorCalibrationService.isPaused();
+        long remainingMs = dev.nivorat.arc.ArcMotorCalibrationService.getRemainingTimeMs();
         long totalSec = (remainingMs + 999L) / 1000L;
         long min = totalSec / 60L;
         long sec = totalSec % 60L;
         String timeStr = String.format("%02d:%02d", min, sec);
 
-        int detonated = dev.virion.arc.ArcMotorCalibrationService.getManualDetonationsCount();
-        int progress = dev.virion.arc.ArcMotorCalibrationService.getProgress();
+        int detonated = dev.nivorat.arc.ArcMotorCalibrationService.getManualDetonationsCount();
+        int progress = dev.nivorat.arc.ArcMotorCalibrationService.getMastery();
 
-        String hudText = String.format("[КАЛИБРОВКА AUTOCART]  %s  |  Подрывов: %d  |  Моторика: %d%%", timeStr, detonated, progress);
+        String titleText = paused ? "КАЛИБРОВКА ПРИОСТАНОВЛЕНА" : "КАЛИБРОВКА МОТОРИКИ";
+        String statsText = detonated + " взр";
+        String pctText = progress + "%";
 
-        int textW = client.textRenderer.getWidth(hudText);
-        int padX = 8;
-        int padY = 4;
-        int boxW = textW + padX * 2;
-        int boxH = client.textRenderer.fontHeight + padY * 2;
-        int boxX = (context.getScaledWindowWidth() - boxW) / 2;
-        int boxY = 6;
+        float iconSize = 8f;
+        float fontSize = activity.client.gui.custom.UnifiedHudRender.FONT_SIZE;
+        float smallFontSize = 7f;
 
-        context.fill(boxX, boxY, boxX + boxW, boxY + boxH, 0xD00A0D14);
-        context.fill(boxX, boxY, boxX + boxW, boxY + 1, 0x503EA4E8);
-        context.fill(boxX, boxY + boxH - 1, boxX + boxW, boxY + boxH, 0x503EA4E8);
-        context.fill(boxX, boxY + 1, boxX + 1, boxY + boxH - 1, 0x503EA4E8);
-        context.fill(boxX + boxW - 1, boxY + 1, boxX + boxW, boxY + boxH - 1, 0x503EA4E8);
+        float titleW = activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.width(titleText, fontSize);
+        float timeW = activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.width(timeStr, fontSize);
+        float statsW = activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.width(statsText, smallFontSize);
+        float pctW = activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.width(pctText, smallFontSize);
 
-        int barW = (int) Math.round((boxW - 2) * (progress / 100.0));
-        if (barW > 0) {
-            context.fill(boxX + 1, boxY + boxH - 2, boxX + 1 + barW, boxY + boxH - 1, 0xFF3EA4E8);
+        float padX = 10f;
+        float contentW = padX + iconSize + 5f + titleW + 8f + 4f + 8f + iconSize + 4f + timeW + 8f + 4f + 8f + statsW + 8f + pctW + padX;
+        float boxW = Math.max(220f, contentW);
+        float boxH = 24f;
+
+        float boxX = (context.getScaledWindowWidth() - boxW) * 0.5f;
+        float boxY = 8f;
+
+        try (var frame = activity.client.gui.custom.UnifiedHudRender.beginNative(context)) {
+            activity.client.gui.custom.UnifiedHudRender.card(boxX, boxY, boxW, boxH);
+
+            float cx = boxX + padX;
+            float textY = boxY + 5.5f;
+
+            activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.SPEED, cx + 0.5f, textY + 0.5f, iconSize, 0xee11131b);
+            activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.SPEED, cx, textY, iconSize, activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(250));
+            cx += iconSize + 5f;
+
+            activity.client.gui.custom.UnifiedHudRender.text(titleText, cx + 0.5f, textY + 0.5f, 0xee11131b);
+            activity.client.gui.custom.UnifiedHudRender.text(titleText, cx, textY, 0xffedf0f6);
+            cx += titleW + 8f;
+
+            activity.client.gui.custom.UnifiedHudRender.text("|", cx, textY, 0x809ba7b8);
+            cx += 8f;
+
+            activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.ANIMATION, cx + 0.5f, textY + 0.5f, 7.5f, 0xee11131b);
+            activity.client.gui.custom.utils.render.fonts.Fonts.NV.msdf(activity.client.gui.custom.utils.render.fonts.NvIcons.ANIMATION, cx, textY, 7.5f, 0xffaeb8cc);
+            cx += 9f;
+            activity.client.gui.custom.UnifiedHudRender.text(timeStr, cx + 0.5f, textY + 0.5f, 0xee11131b);
+            activity.client.gui.custom.UnifiedHudRender.text(timeStr, cx, textY, activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(255));
+            cx += timeW + 8f;
+
+            activity.client.gui.custom.UnifiedHudRender.text("|", cx, textY, 0x809ba7b8);
+            cx += 8f;
+
+            activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.draw(statsText, cx + 0.5f, textY + 0.5f, smallFontSize, 0xee11131b);
+            activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.draw(statsText, cx, textY, smallFontSize, 0xffd5dbe5);
+
+            activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.draw(pctText, boxX + boxW - padX - pctW + 0.5f, textY + 0.5f, smallFontSize, 0xee11131b);
+            activity.client.gui.custom.utils.render.fonts.Fonts.MONTSERRAT_MEDIUM.draw(pctText, boxX + boxW - padX - pctW, textY, smallFontSize, activity.client.gui.custom.api.ui.theme.ClientAccent.accentBright(240));
+
+            activity.client.gui.custom.UnifiedHudRender.progress(boxX + 8f, boxY + boxH - 3.5f, boxW - 16f, progress / 100.0f);
         }
-
-        context.drawTextWithShadow(client.textRenderer, Text.literal(hudText), boxX + padX, boxY + padY, 0xFFFFFFFF);
     }
 
     public void activateLearnedPreset() {
         ActivityConfig c = ActivityConfigManager.getConfig();
         if (c != null) {
+            c.autoCartMode = "beta_neural";
             c.autoCartPreset = "learned";
-            dev.virion.arc.ArcNeuralMotorProfile prof = dev.virion.arc.ArcNeuralMotorProfile.getInstance();
+            updateEnumSetting("cart_mode", "beta_neural");
+            dev.nivorat.arc.ArcMotionProfile prof = dev.nivorat.arc.ArcMotionProfile.getInstance();
             double minD = prof.getLearnedMinDelayMs();
             double maxD = prof.getLearnedMaxDelayMs();
             double chance = 100.0;

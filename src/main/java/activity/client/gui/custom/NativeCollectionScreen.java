@@ -29,13 +29,19 @@ public final class NativeCollectionScreen extends Screen {
     private boolean typing = true;
     private int editing = -1;
     private int scroll;
-    private float x() { return (Position.screenWidth() - 320) / 2; }
-    private float y() { return Math.max(8, (Position.screenHeight() - 280) / 2); }
+    private final boolean drawer;
+    private final long opened = System.nanoTime();
+    private float width() { return drawer ? 202 : 320; }
+    private float x() { float progress = Math.clamp((System.nanoTime() - opened) / 180_000_000f, 0f, 1f); return drawer ? activity.client.gui.custom.api.ui.UI.panelX() - width() - 8 + (1 - progress) * 12 : (Position.screenWidth() - width()) / 2; }
+    private float y() { return drawer ? activity.client.gui.custom.api.ui.UI.panelY() : Math.max(8, (Position.screenHeight() - 280) / 2); }
     private boolean ru() { return activity.client.i18n.LocalizationService.isRussianPreferred(); }
 
     public NativeCollectionScreen(Screen parent, Kind kind) {
+        this(parent, kind, false);
+    }
+    NativeCollectionScreen(Screen parent, Kind kind, boolean drawer) {
         super(Text.literal(kind == Kind.GG ? "Auto GG" : "Cooldown"));
-        this.parent = parent; this.kind = kind;
+        this.parent = parent; this.kind = kind; this.drawer = drawer;
     }
     @Override protected void init() {
         if (kind == Kind.COOLDOWN) {
@@ -108,17 +114,17 @@ public final class NativeCollectionScreen extends Screen {
     @Override public boolean mouseClicked(Click click, boolean doubled) {
         if (click.button() != 0) return true;
         float mx = Position.mouseX() - x(), my = Position.mouseY() - y();
-        if (mx >= 288 && my >= 8 && my <= 30) { close(); return true; }
-        typing = mx >= 12 && mx <= (kind == Kind.GG ? 252 : 308) && my >= 48 && my <= 72;
-        if (kind == Kind.GG && mx >= 260 && mx <= 308 && my >= 48 && my <= 72) { submit(); return true; }
-        if (my >= 92 && my < 252 && mx >= 12 && mx <= 308) {
+        if (mx >= width() - 32 && mx <= width() - 8 && my >= 8 && my <= 30) { close(); return true; }
+        typing = mx >= 12 && mx <= width() - (kind == Kind.GG ? 68 : 12) && my >= 48 && my <= 72;
+        if (kind == Kind.GG && mx >= width() - 60 && mx <= width() - 12 && my >= 48 && my <= 72) { submit(); return true; }
+        if (my >= 92 && my < 252 && mx >= 12 && mx <= width() - 12) {
             int index = scroll + (int) ((my - 92) / 20);
             if (index >= visible.size()) return true;
             var choice = visible.get(index);
             if (kind == Kind.COOLDOWN) { CooldownSelections.toggle(choice.key); refresh(); }
             else {
                 var cfg = AudioSyncClient.CONFIG;
-                if (mx >= 285 && cfg.phrases.size() > 1) { cfg.phrases.remove(index); editing = -1; query = ""; }
+                if (mx >= width() - 35 && cfg.phrases.size() > 1) { cfg.phrases.remove(index); editing = -1; query = ""; }
                 else if (mx < 36) { if (!cfg.favorites.remove(choice.key)) cfg.favorites.add(choice.key); }
                 else { editing = index; query = choice.label; typing = true; }
                 saveGG();
@@ -133,31 +139,32 @@ public final class NativeCollectionScreen extends Screen {
     @Override public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         try (var frame = UnifiedHudRender.beginNative(context)) {
             float x = x(), y = y();
-            CustomRender.panel(context, x, y, 320, 280, 10, 1);
+            CustomRender.panel(context, x, y, width(), 280, 10, 1);
             Fonts.MONTSERRAT_MEDIUM.draw(kind == Kind.GG ? "Auto GG" : "Cooldown", x + 12, y + 12, 10, -1);
-            Fonts.NV.msdf(NvIcons.CLOSE, x + 296, y + 14, 8, 0xffccd4e3);
-            Fonts.MONTSERRAT_MEDIUM.draw(kind == Kind.GG ? (ru() ? "Фразы • избранные отправляются по умолчанию" : "Phrases • favorites are sent by default")
-                    : (ru() ? "Предметы и переименованные предметы хотбара" : "Items and renamed hotbar items"), x + 12, y + 31, 6, 0xffb7c0d1);
-            Render2D.rect(x + 12, y + 48, kind == Kind.GG ? 240 : 296, 24, 5, 0xff181c28);
-            Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(query.isEmpty() ? (kind == Kind.GG ? (ru() ? "Введите фразу…" : "Enter a phrase…") : (ru() ? "Название или ID предмета…" : "Item name or ID…")) : query, 220, 7), x + 20, y + 56, 7, query.isEmpty() ? 0xff929fb6 : -1);
+            Fonts.NV.msdf(NvIcons.CLOSE, x + width() - 24, y + 14, 8, 0xffccd4e3);
+            Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(kind == Kind.GG ? (ru() ? "Избранные отправляются по умолчанию" : "Favorites are sent by default")
+                    : (ru() ? "Предметы и имена хотбара" : "Items and hotbar names"), width() - 24, 6), x + 12, y + 31, 6, 0xffb7c0d1);
+            Render2D.rect(x + 12, y + 48, width() - (kind == Kind.GG ? 80 : 24), 24, 5, 0xff181c28);
+            Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(query.isEmpty() ? (kind == Kind.GG ? (ru() ? "Введите фразу…" : "Enter a phrase…") : (ru() ? "Название или ID предмета…" : "Item name or ID…")) : query, width() - (kind == Kind.GG ? 96 : 40), 7), x + 20, y + 56, 7, query.isEmpty() ? 0xff929fb6 : -1);
             if (kind == Kind.GG) {
-                Render2D.rect(x + 260, y + 48, 48, 24, 5, ClientAccent.accent(220));
-                Fonts.NV.msdf(editing < 0 ? NvIcons.ADD : NvIcons.CHECK, x + 280, y + 56, 8, -1);
+                Render2D.rect(x + width() - 60, y + 48, 48, 24, 5, ClientAccent.accent(220));
+                Fonts.NV.msdf(editing < 0 ? NvIcons.ADD : NvIcons.CHECK, x + width() - 40, y + 56, 8, -1);
             }
             var selected = kind == Kind.COOLDOWN ? CooldownSelections.values() : AudioSyncClient.CONFIG.favorites;
             for (int row = 0; row < 8 && scroll + row < visible.size(); row++) {
                 Choice choice = visible.get(scroll + row);
                 float rowY = y + 92 + row * 20;
                 boolean chosen = selected.contains(choice.key);
-                Render2D.rect(x + 12, rowY, 296, 18, 4, chosen ? ClientAccent.accent(65) : 0x991b202c);
+                Render2D.rect(x + 12, rowY, width() - 24, 18, 4, chosen ? ClientAccent.accent(65) : 0x991b202c);
                 Fonts.NV.msdf(chosen ? NvIcons.CHECK : NvIcons.PINNED, x + 20, rowY + 5, 7, chosen ? ClientAccent.accentBright(255) : 0xff7e8ca4);
-                Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(choice.label, 240, 7), x + 38, rowY + 5, 7, 0xffe2e7f1);
-                if (kind == Kind.GG) Fonts.NV.msdf(NvIcons.DELETE, x + 292, rowY + 5, 7, 0xffc4a6b4);
+                Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(choice.label, width() - (kind == Kind.GG ? 78 : 50), 7), x + 38, rowY + 5, 7, 0xffe2e7f1);
+                if (kind == Kind.GG) Fonts.NV.msdf(NvIcons.DELETE, x + width() - 28, rowY + 5, 7, 0xffc4a6b4);
             }
-            Fonts.MONTSERRAT_MEDIUM.draw(kind == Kind.GG ? AudioSyncClient.CONFIG.phrases.size() + " / " + AudioSyncConfig.MAX_PHRASES
-                    : (ru() ? "Только реальные кулдауны игры или сервера" : "Only actual game or server cooldowns"), x + 12, y + 262, 6, 0xffa5aec0);
+            Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(kind == Kind.GG ? AudioSyncClient.CONFIG.phrases.size() + " / " + AudioSyncConfig.MAX_PHRASES
+                    : (ru() ? "Только реальные кулдауны игры или сервера" : "Only actual game or server cooldowns"), width() - 24, 6), x + 12, y + 262, 6, 0xffa5aec0);
         }
     }
-    @Override public void close() { if (kind == Kind.GG) saveGG(); client.setScreen(parent); }
+    void persist() { if (kind == Kind.GG) saveGG(); }
+    @Override public void close() { if (drawer) CollectionDrawer.close(); else { persist(); client.setScreen(parent); } }
     @Override public boolean shouldPause() { return false; }
 }

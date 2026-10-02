@@ -113,6 +113,9 @@ public final class VisualSmoke implements ClientModInitializer {
                     if(Boolean.getBoolean("visual.smoke.revision")) {client.setScreen(null); stage=501; ticks=0; return;}
                     if(Boolean.getBoolean("visual.smoke.pearlCatch")) {client.setScreen(null); stage=502; ticks=0; return;}
                     if(Boolean.getBoolean("visual.smoke.mechanics")) {client.setScreen(null); stage=500; ticks=0; return;}
+                    if(Boolean.getBoolean("visual.smoke.autoCart")) {client.setScreen(null); stage=503; ticks=0; return;}
+                    if(Boolean.getBoolean("visual.smoke.ecosystem")) {client.setScreen(null); stage=504; ticks=0; return;}
+                    if(Boolean.getBoolean("visual.smoke.presets")) {client.setScreen(null); stage=505; ticks=0; return;}
                     verifyInventory(client);verifyNativeText();screen = activity.client.gui.custom.api.ui.UI.INSTANCE;
                     client.setScreen(screen);
                     screen.setSelectedTab(PvpKit.ALL.tabIndex());
@@ -123,6 +126,9 @@ public final class VisualSmoke implements ClientModInitializer {
                 if(stage==500) {MechanicsSmoke.tick(client);return;}
                 if(stage==501) {RevisionSmoke.tick(client);return;}
                 if(stage==502) {PearlCatchSmoke.tick(client);return;}
+                if(stage==503) {AutoCartSmoke.tick(client);return;}
+                if(stage==504) {EcosystemSmoke.tick(client);return;}
+                if(stage==505) {PresetSmoke.tick(client);return;}
                 if(stage==21||stage==22){
                     var field=screen.getClass().getDeclaredField("moduleList");field.setAccessible(true);
                     var renderer=(activity.client.gui.custom.api.ui.module.ModuleListRenderer)field.get(screen);

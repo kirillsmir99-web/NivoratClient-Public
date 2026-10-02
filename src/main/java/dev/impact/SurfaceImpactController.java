@@ -4,6 +4,7 @@ import net.fabricmc.pack.api.SafeSlotManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.projectile.AbstractWindChargeEntity;
@@ -98,6 +99,27 @@ public final class SurfaceImpactController {
 
     public void cleanup() { if (cleanupPending) reset(); }
 
+    private void openInventoryScreen(MinecraftClient client, ClientPlayerEntity player) {
+        if (client != null && player != null && client.currentScreen == null) {
+            try {
+                client.setScreen(new InventoryScreen(player));
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    private void closeInventoryScreen(MinecraftClient client) {
+        if (client != null && client.currentScreen != null) {
+            try {
+                client.currentScreen.close();
+            } catch (Throwable ignored) {}
+            client.setScreen(null);
+        }
+    }
+
+    public boolean ownsInventoryScreen(MinecraftClient client) {
+        return client != null && client.currentScreen instanceof InventoryScreen && (swappedFromInventory || state != State.IDLE);
+    }
+
     public void reset() {
         MinecraftClient client = MinecraftClient.getInstance();
         boolean sameSession = client != null && client.player != null
@@ -109,6 +131,7 @@ public final class SurfaceImpactController {
             }
             if (sameSession && client.interactionManager != null) {
                 try {
+                    openInventoryScreen(client, client.player);
                     client.interactionManager.clickSlot(
                             client.player.playerScreenHandler.syncId,
                             sourceInvSlot,
@@ -116,6 +139,7 @@ public final class SurfaceImpactController {
                             SlotActionType.SWAP,
                             client.player
                     );
+                    closeInventoryScreen(client);
                 } catch (Throwable ignored) {}
             }
         }
@@ -440,7 +464,7 @@ public final class SurfaceImpactController {
         }
 
         if (SurfaceImpactConfig.mode == 1) {
-            if (distToGround < 8.5) {
+            if (distToGround < 4.0) {
                 return;
             }
 
@@ -460,25 +484,30 @@ public final class SurfaceImpactController {
                 return;
             }
 
+            int currentSelected = player.getInventory().getSelectedSlot();
             if (originalSlot < 0) {
-                originalSlot = currentSlot;
+                originalSlot = currentSelected;
             }
             sourceInvSlot = selectedInvSlot;
-            targetHotbarIndex = SurfaceImpactConfig.getTargetHotbarIndex();
+            targetHotbarIndex = currentSelected;
             activeDropType = selectedType;
+            selectedDropSlot = currentSelected;
             swappedFromInventory = true;
 
-            client.interactionManager.clickSlot(
-                    player.playerScreenHandler.syncId,
-                    sourceInvSlot,
-                    targetHotbarIndex,
-                    SlotActionType.SWAP,
-                    player
-            );
-            selectedDropSlot = targetHotbarIndex;
-            SafeSlotManager.selectSlot(client, selectedDropSlot);
+            openInventoryScreen(client, player);
+            try {
+                client.interactionManager.clickSlot(
+                        player.playerScreenHandler.syncId,
+                        sourceInvSlot,
+                        targetHotbarIndex,
+                        SlotActionType.SWAP,
+                        player
+                );
+            } catch (Throwable ignored) {}
+            closeInventoryScreen(client);
+
             state = State.PREPARED;
-            actionTimeMs = now + getRandomMs(60, 12, 40, 85);
+            actionTimeMs = now + getRandomMs(40, 10, 25, 60);
         }
     }
 
@@ -772,7 +801,7 @@ public final class SurfaceImpactController {
     }
 
     private void startSwitchBack() {
-        if (SurfaceImpactConfig.switchBack && originalSlot >= 0 && originalSlot < 9) {
+        if (swappedFromInventory || (SurfaceImpactConfig.switchBack && originalSlot >= 0 && originalSlot < 9)) {
             state = State.SWITCHING_BACK;
             actionTimeMs = System.currentTimeMillis() + getRandomMs(SurfaceImpactConfig.switchDelayMs, 20.0, 30L, 300L);
         } else {
@@ -785,7 +814,20 @@ public final class SurfaceImpactController {
             return;
         }
 
-        if (originalSlot >= 0 && originalSlot < 9) {
+        if (swappedFromInventory && sourceInvSlot >= 9 && targetHotbarIndex >= 0) {
+            openInventoryScreen(client, player);
+            try {
+                client.interactionManager.clickSlot(
+                        player.playerScreenHandler.syncId,
+                        sourceInvSlot,
+                        targetHotbarIndex,
+                        SlotActionType.SWAP,
+                        player
+                );
+            } catch (Throwable ignored) {}
+            closeInventoryScreen(client);
+            swappedFromInventory = false;
+        } else if (originalSlot >= 0 && originalSlot < 9) {
             SafeSlotManager.selectSlot(client, originalSlot);
         }
         reset();

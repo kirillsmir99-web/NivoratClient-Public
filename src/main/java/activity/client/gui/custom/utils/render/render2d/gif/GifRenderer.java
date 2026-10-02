@@ -254,7 +254,7 @@ public final class GifRenderer {
                 RenderSystem.getDevice().createCommandEncoder().writeToTexture(gpuTexture, nativeImage);
                 GpuTextureView gpuTextureView = RenderSystem.getDevice().createTextureView(gpuTexture);
                 nativeImage.close();
-                Identifier identifier = Identifier.of("kimiko", "gif/frame_" + frameId);
+                Identifier identifier = Identifier.of("nivorat", "gif/frame_" + frameId);
                 MinecraftClient.getInstance().getTextureManager().registerTexture(identifier, new GifFrameTexture(gpuTexture, gpuTextureView, n3, n4));
                 this.frames.add(identifier.toString());
                 this.frameDelays.add(this.rawDelays.get(n));

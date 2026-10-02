@@ -22,7 +22,7 @@ public class ChunkBufferModule extends NivoratModule {
                 .displayName(name)
                 .description(description)
                 .category(category)
-                .author("kt1xW")
+                .author("Nivorat")
                 .version("2.4.1")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)

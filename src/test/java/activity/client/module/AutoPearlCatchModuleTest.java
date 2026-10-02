@@ -106,6 +106,12 @@ public class AutoPearlCatchModuleTest {
         assertEquals(GLFW.GLFW_KEY_C, horKb.get().getKeyCode());
         assertFalse(horKb.isVisible(), "horizontal_keybind must be hidden in semi_auto mode");
 
+        modeSetting.set("full_auto");
+        assertFalse(throwKb.isVisible(), "throw_keybind must be hidden in full_auto mode");
+        assertTrue(actionKb.isVisible(), "action_keybind must be visible in full_auto mode");
+        assertTrue(horKb.isVisible(), "horizontal_keybind must be visible in full_auto mode");
+        modeSetting.set("semi_auto");
+
         NumberSetting throwDelay = (NumberSetting) module.getSetting("throw_delay");
         assertNotNull(throwDelay);
         assertEquals(2.0, throwDelay.get().doubleValue(), 0.001);
@@ -373,5 +379,44 @@ public class AutoPearlCatchModuleTest {
                 "PEARL_CATCH lock must not be set when TOTEM lock is active");
 
         CombatLockManager.setLock(CombatLockManager.TOTEM, false);
+    }
+
+    @Test
+    @DisplayName("AsyncLocatorController, AsyncSilentRot, and AsyncMath integration")
+    void testAsyncLocatorControllerIntegration() {
+        dev.raycast.async.AsyncSilentRot.forceStop();
+        assertFalse(dev.raycast.async.AsyncSilentRot.on());
+        assertFalse(dev.raycast.async.AsyncSilentRot.moving());
+
+        Object holder = new Object();
+        dev.raycast.async.AsyncSilentRot.set(45.0f, -30.0f, holder);
+        assertTrue(dev.raycast.async.AsyncSilentRot.on());
+        assertEquals(45.0f, dev.raycast.async.AsyncSilentRot.yaw(), 0.001f);
+        assertEquals(-30.0f, dev.raycast.async.AsyncSilentRot.pitch(), 0.001f);
+
+        dev.raycast.async.AsyncSilentRot.beginMove(180.0f);
+        assertTrue(dev.raycast.async.AsyncSilentRot.moving());
+        assertEquals(180.0f, dev.raycast.async.AsyncSilentRot.real(), 0.001f);
+        dev.raycast.async.AsyncSilentRot.endMove();
+        assertFalse(dev.raycast.async.AsyncSilentRot.moving());
+
+        dev.raycast.async.AsyncSilentRot.stop(holder);
+        assertFalse(dev.raycast.async.AsyncSilentRot.on());
+
+        net.minecraft.util.math.Vec3d dir = dev.raycast.async.AsyncMath.getDirection(0.0f, 0.0f);
+        assertEquals(0.0, dir.x, 0.001);
+        assertEquals(1.0, dir.z, 0.001);
+
+        dev.raycast.async.AsyncRot rot = dev.raycast.async.AsyncMath.getRotation(new net.minecraft.util.math.Vec3d(0.0, 0.0, 1.0));
+        assertEquals(0.0, rot.yaw(), 0.001);
+        assertEquals(0.0, rot.pitch(), 0.001);
+
+        dev.raycast.async.AsyncLocatorController controller = dev.raycast.async.AsyncLocatorController.getInstance();
+        assertNotNull(controller);
+        controller.reset();
+        assertFalse(controller.isActive());
+        assertEquals(0, controller.getState());
+        controller.trigger();
+        assertFalse(controller.isActive());
     }
 }

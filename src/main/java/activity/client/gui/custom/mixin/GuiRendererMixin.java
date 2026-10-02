@@ -79,6 +79,9 @@ public abstract class GuiRendererMixin {
 
     @Inject(method = "render(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", at = @At("HEAD"), require = 0)
     private void nv_beginBlurFrame(CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         BlurFramebuffer.getInstance().beginGuiFrame();
         GlassRenderer.getInstance().beginGuiFrame();
         ShapeRenderer.getInstance().beginGuiFrame();
@@ -104,6 +107,9 @@ public abstract class GuiRendererMixin {
 
     @Inject(method = "prepare()V", at = @At("HEAD"), require = 0)
     private void nv_preparePendingBlurResources(CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         ClientSplits.update();
         BlurFramebuffer.getInstance().preparePending();
         GlowRenderer.getInstance().preparePending();
@@ -111,6 +117,9 @@ public abstract class GuiRendererMixin {
 
     @Inject(method = "prepare()V", at = @At("RETURN"), require = 0)
     private void nv_prepareRenderUniforms(CallbackInfo ci) {
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
+            return;
+        }
         BlurFramebuffer.getInstance().prepareBuffers();
         GlassRenderer.getInstance().prepareBuffers();
         ShapeRenderer.getInstance().prepareBuffers();

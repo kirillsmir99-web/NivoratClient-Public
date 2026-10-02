@@ -26,7 +26,8 @@ public final class SettingsBridge {
                 m.setFormatter(value -> s.formatValue(value.doubleValue()));
                 m.setChangeListener(() -> { s.set((double)m.getValue()); save(module); }); model = m;
             } else if (source instanceof EnumSetting s) {
-                var m = new activity.client.gui.custom.api.modules.settings.impl.SelectSetting(name,desc).value(s.getOptions().toArray(String[]::new)).selected(s.get());
+                var opts = "preset".equals(s.getId()) ? s.getOptions().stream().filter(o -> !"learned".equalsIgnoreCase(o)).toArray(String[]::new) : s.getOptions().toArray(String[]::new);
+                var m = new activity.client.gui.custom.api.modules.settings.impl.SelectSetting(name,desc).value(opts).selected(s.get());
                 m.setLabelProvider(option -> VisualText.resolve(s.getOptionName(option)));
                 m.setChangeListener(() -> { s.set(m.getSelected()); save(module); }); model = m;
             } else if (source instanceof StringSetting s) {

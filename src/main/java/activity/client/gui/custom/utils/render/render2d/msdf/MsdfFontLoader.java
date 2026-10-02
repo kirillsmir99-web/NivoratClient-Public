@@ -20,8 +20,8 @@ final class MsdfFontLoader {
     }
 
     static MsdfFont load(String string) {
-        Identifier identifier = Identifier.of("kimiko", string + ".json");
-        Identifier identifier2 = Identifier.of("kimiko", string + ".png");
+        Identifier identifier = Identifier.of("nivorat", string + ".json");
+        Identifier identifier2 = Identifier.of("nivorat", string + ".png");
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
         try {
             minecraftClient.getTextureManager().registerTexture(identifier2, (ReloadableTexture)new ResourceTexture(identifier2));

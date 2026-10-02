@@ -996,11 +996,11 @@ public class ActivityScreen extends Screen {
                 this.currentScrollContainer.renderTooltips(context, this.textRenderer, mouseX, mouseY);
             }
 
-            int textW = this.textRenderer.getWidth("ТГ канал автора модов - @virionDEV");
+            int textW = this.textRenderer.getWidth("ТГ канал автора модов - Nivorat");
             int footerX = Math.clamp(layout.windowX + layout.windowWidth / 2, textW / 2 + 4, Math.max(textW / 2 + 4, this.width - textW / 2 - 4));
             int footerY = Math.min(layout.windowY + layout.windowHeight + 4, this.height - this.textRenderer.fontHeight - 2);
             int footerColor = ActivityColors.scaleAlpha(ActivityColors.TEXT_MUTED, alphaFactor);
-            context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("ТГ канал автора модов - @virionDEV"), footerX, footerY, footerColor);
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("ТГ канал автора модов - Nivorat"), footerX, footerY, footerColor);
         } finally {
             context.getMatrices().popMatrix();
         }
