@@ -8,10 +8,8 @@ public final class PrestigeAutoMaceConfig {
     public boolean randomJitter = true;
     public double densityThreshold = 7.0;
     public double swordMaceChance = 0.0;
-    public double stunSlamLead = 4.0;
     public boolean targetPlayers = true;
     public boolean targetMobs = true;
-    public boolean stunSlam = true;
     public boolean autoSwitch = true;
     public boolean predictSwitch = false;
     public boolean unequipElytra = false;
@@ -32,10 +30,8 @@ public final class PrestigeAutoMaceConfig {
         this.randomJitter = true;
         this.densityThreshold = 7.0;
         this.swordMaceChance = 0.0;
-        this.stunSlamLead = 4.0;
         this.targetPlayers = true;
         this.targetMobs = true;
-        this.stunSlam = true;
         this.autoSwitch = true;
         this.predictSwitch = false;
         this.unequipElytra = false;

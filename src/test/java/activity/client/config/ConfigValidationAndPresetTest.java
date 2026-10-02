@@ -706,15 +706,15 @@ public class ConfigValidationAndPresetTest {
         setting.set(Double.NEGATIVE_INFINITY);
         assertEquals(100.0, setting.get(), "-Infinity must not corrupt NumberSetting value");
 
-        activity.client.module.api.IModule mace = activity.client.module.api.ModuleRegistry.get("auto_mace");
-        assertNotNull(mace);
-        activity.client.module.setting.Setting<?> delaySetting = mace.getSetting("restore_delay");
+        activity.client.module.api.IModule breaker = activity.client.module.api.ModuleRegistry.get("auto_shieldbreaker");
+        assertNotNull(breaker);
+        activity.client.module.setting.Setting<?> delaySetting = breaker.getSetting("restore_delay");
         assertTrue(delaySetting instanceof activity.client.module.setting.NumberSetting);
-        activity.client.module.setting.NumberSetting maceDelay = (activity.client.module.setting.NumberSetting) delaySetting;
+        activity.client.module.setting.NumberSetting breakerDelay = (activity.client.module.setting.NumberSetting) delaySetting;
 
-        maceDelay.set(Double.NaN);
-        assertEquals(maceDelay.getDefaultValue(), maceDelay.get());
-        assertFalse(Double.isNaN(maceDelay.get()));
+        breakerDelay.set(Double.NaN);
+        assertEquals(breakerDelay.getDefaultValue(), breakerDelay.get());
+        assertFalse(Double.isNaN(breakerDelay.get()));
     }
 
     @Test

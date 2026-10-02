@@ -271,13 +271,13 @@ public class SearchControllerTest {
 
     @Test
     void testRussianSettingNamesSearch() {
-        List<SearchController.SearchResult> sourceMode = SearchController.search("Оружие в руке", 5);
-        assertFalse(sourceMode.isEmpty());
-        assertEquals("source_mode", sourceMode.get(0).entry().settingId());
+        List<SearchController.SearchResult> swapType = SearchController.search("Тип Swap", 5);
+        assertFalse(swapType.isEmpty());
+        assertEquals("swap_type", swapType.get(0).entry().settingId());
 
-        List<SearchController.SearchResult> enchantMode = SearchController.search("Режим чар булавы", 5);
-        assertFalse(enchantMode.isEmpty());
-        assertEquals("enchant_mode", enchantMode.get(0).entry().settingId());
+        List<SearchController.SearchResult> slamPreset = SearchController.search("Пресет логики", 5);
+        assertFalse(slamPreset.isEmpty());
+        assertEquals("preset", slamPreset.get(0).entry().settingId());
 
         List<SearchController.SearchResult> missChance = SearchController.search("Шанс промаха", 5);
         assertFalse(missChance.isEmpty());

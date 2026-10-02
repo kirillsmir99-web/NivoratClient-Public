@@ -31,13 +31,11 @@ public final class PrestigeAutoMaceController {
 
     private int originalSlot = -1;
     private boolean hasAttackedInFall = false;
-    private boolean stunSlamTriggered = false;
     private long lastAttackTime = 0L;
     private Entity currentTarget = null;
     private long weaponSwitchTime = 0L;
     private long scheduledAttackTime = 0L;
     private long restorePendingTime = 0L;
-    private boolean isAxeStage = false;
 
     private PrestigeAutoMaceController() {
     }
@@ -83,12 +81,10 @@ public final class PrestigeAutoMaceController {
                 restoreSlot(player);
             }
             hasAttackedInFall = false;
-            stunSlamTriggered = false;
             currentTarget = null;
             weaponSwitchTime = 0L;
             scheduledAttackTime = 0L;
             restorePendingTime = 0L;
-            isAxeStage = false;
             PrestigeSilentAim.getInstance().stop();
             return;
         }
@@ -167,36 +163,6 @@ public final class PrestigeAutoMaceController {
         long now = System.currentTimeMillis();
         if (config.attackDelayMs > 0 && !config.humanMode && (now - lastAttackTime) < (long) config.attackDelayMs) {
             return;
-        }
-
-        if (config.stunSlam && isTargetBlocking(currentTarget) && !stunSlamTriggered) {
-            int axeSlot = findAxeSlot(player);
-            if (axeSlot != -1) {
-                if (player.getInventory().getSelectedSlot() != axeSlot) {
-                    saveOriginalSlot(player);
-                    setSlot(player, axeSlot);
-                    weaponSwitchTime = now;
-                    scheduledAttackTime = now + calculateDelay();
-                    isAxeStage = true;
-                    return;
-                }
-
-                if (isAxeStage) {
-                    if (now >= scheduledAttackTime || isCloseToLanding(player, currentTarget)) {
-                        executeAttack(client, player, currentTarget);
-                        stunSlamTriggered = true;
-                        isAxeStage = false;
-                        weaponSwitchTime = now;
-                        scheduledAttackTime = now + calculateDelay();
-
-                        int maceSlot = selectBestMaceSlot(player, fallDistance);
-                        if (maceSlot != -1) {
-                            setSlot(player, maceSlot);
-                        }
-                    }
-                    return;
-                }
-            }
         }
 
         if (config.autoSwitch && !isHoldingMace(player)) {
@@ -474,12 +440,10 @@ public final class PrestigeAutoMaceController {
         }
         originalSlot = -1;
         hasAttackedInFall = false;
-        stunSlamTriggered = false;
         currentTarget = null;
         weaponSwitchTime = 0L;
         scheduledAttackTime = 0L;
         restorePendingTime = 0L;
-        isAxeStage = false;
         PrestigeSilentAim.getInstance().stop();
     }
 }

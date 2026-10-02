@@ -35,16 +35,17 @@ public class AutoStunSlamIntegrationTest {
         ActivityConfig config = ActivityConfigManager.getConfig();
         assertNotNull(config);
 
+        assertEquals("old", config.autoStunSlamPreset, "Default preset must be old");
         assertEquals(100.0, config.autoStunSlamChance, 0.001, "Default chance must be 100%");
         assertEquals(2.85, config.autoStunSlamDistance, 0.001, "Default distance must be 2.85");
-        assertEquals(0.1, config.autoStunSlamAirTimeSec, 0.001, "Default air time must be 0.1s");
+        assertEquals(0.05, config.autoStunSlamAirTimeSec, 0.001, "Default air time must be 0.05s");
         assertEquals(0.0, config.autoStunSlamAxeDelayMs, 0.001, "Default axe delay must be 0ms");
         assertEquals(0.0, config.autoStunSlamMaceDelayMs, 0.001, "Default mace delay must be 0ms");
         assertEquals(50.0, config.autoStunSlamRestoreDelayMs, 0.001, "Default restore delay must be 50ms");
 
         assertEquals(100, ParticlePhysicsConfig.chance);
         assertEquals(2.85, ParticlePhysicsConfig.triggerDistance, 0.001);
-        assertEquals(0.1, ParticlePhysicsConfig.airTimeSec, 0.001);
+        assertEquals(0.05, ParticlePhysicsConfig.airTimeSec, 0.001);
         assertEquals(0, ParticlePhysicsConfig.axeDelayMs);
         assertEquals(0, ParticlePhysicsConfig.maceDelayMs);
         assertEquals(50, ParticlePhysicsConfig.restoreDelayMs);

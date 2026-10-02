@@ -1,16 +1,16 @@
 package dev.particle;
 
 import net.fabricmc.pack.api.CombatRaytraceGuard;
-import net.fabricmc.pack.api.GaussianTimingEngine;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.decoration.ArmorStandEntity;
+import net.minecraft.entity.passive.BatEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -22,16 +22,12 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.lwjgl.glfw.GLFW;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class ParticlePhysicsController {
     private static final int MIN_AXE_DURABILITY = 4;
-    private static final double MAX_COMBAT_REACH = 2.95D;
 
     private ClientPlayerEntity owner;
     private World ownerWorld;
@@ -63,7 +59,7 @@ public final class ParticlePhysicsController {
 
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         try {
-            if (world == null || !world.isClient() || !(entity instanceof net.minecraft.entity.LivingEntity target)) {
+            if (world == null || !world.isClient() || !(entity instanceof LivingEntity target)) {
                 return ActionResult.PASS;
             }
 
@@ -80,7 +76,7 @@ public final class ParticlePhysicsController {
                 if (isTarget && hand == Hand.MAIN_HAND && client.player.getInventory().getSelectedSlot() == axeSlot) {
                     if (maceSlot >= 0) {
                         stage = Stage.SEMI_SELECT_MACE;
-                        timer = getMaceDelayTicks();
+                        timer = 1;
                     } else {
                         stage = Stage.WAITING_RESTORE;
                         timer = Math.max(1, getRestoreDelayTicks());
@@ -91,8 +87,12 @@ public final class ParticlePhysicsController {
 
             if (stage == Stage.SEMI_AWAIT_MACE_HIT || stage == Stage.WAITING_MACE_STRIKE) {
                 if (isTarget && hand == Hand.MAIN_HAND && client.player.getInventory().getSelectedSlot() == maceSlot) {
-                    stage = Stage.WAITING_RESTORE;
-                    timer = Math.max(1, getRestoreDelayTicks());
+                    if (ParticlePhysicsConfig.stayOnWeapon) {
+                        finishCombo(1);
+                    } else {
+                        stage = Stage.WAITING_RESTORE;
+                        timer = Math.max(1, getRestoreDelayTicks());
+                    }
                 }
                 return ActionResult.PASS;
             }
@@ -160,12 +160,12 @@ public final class ParticlePhysicsController {
                     return;
                 }
                 selectSlot(client, axeSlot);
-                int axeDelay = getAxeDelayTicks();
-                if (axeDelay <= 0) {
+                long axeDelay = getAxeDelayMs();
+                if (axeDelay <= 15L) {
                     executeAutoStrikeAxe(client);
                 } else {
                     stage = Stage.WAITING_AXE_STRIKE;
-                    timer = axeDelay;
+                    timer = (int) Math.max(1, axeDelay / 50L);
                 }
             }
             case WAITING_AXE_STRIKE -> {
@@ -186,12 +186,12 @@ public final class ParticlePhysicsController {
                     return;
                 }
                 selectSlot(client, maceSlot);
-                int maceDelay = getMaceDelayTicks();
-                if (maceDelay <= 0) {
+                long maceDelay = getMaceDelayMs();
+                if (maceDelay <= 15L) {
                     executeAutoStrikeMace(client);
                 } else {
                     stage = Stage.WAITING_MACE_STRIKE;
-                    timer = maceDelay;
+                    timer = (int) Math.max(1, maceDelay / 50L);
                 }
             }
             case SELECT_MACE -> {
@@ -201,21 +201,24 @@ public final class ParticlePhysicsController {
                     return;
                 }
                 selectSlot(client, maceSlot);
-                int maceDelay = getMaceDelayTicks();
-                if (maceDelay <= 0) {
+                long maceDelay = getMaceDelayMs();
+                if (maceDelay <= 15L) {
                     executeAutoStrikeMace(client);
                 } else {
                     stage = Stage.WAITING_MACE_STRIKE;
-                    timer = maceDelay;
+                    timer = (int) Math.max(1, maceDelay / 50L);
                 }
             }
             case WAITING_MACE_STRIKE -> {
-                if (timer > 0 && --timer > 0) return;
+                if (timer > 0) {
+                    timer--;
+                    if (timer > 0) return;
+                }
                 LivingEntity target = getTarget(client);
                 double maxReach = Math.min(client.player.getEntityInteractionRange() - 0.05D, ParticlePhysicsConfig.triggerDistance);
                 if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                     executeAutoStrikeMace(client);
-                } else if (timer <= 0) {
+                } else {
                     restoreInitialSlot(client);
                     finishCombo(1);
                 }
@@ -226,9 +229,7 @@ public final class ParticlePhysicsController {
                 timer = 30;
             }
             case SEMI_AWAIT_AXE_HIT -> {
-                if (timer > 0) {
-                    timer--;
-                } else {
+                if (--timer <= 0) {
                     restoreInitialSlot(client);
                     finishCombo(2);
                     return;
@@ -238,6 +239,9 @@ public final class ParticlePhysicsController {
                     restoreInitialSlot(client);
                     finishCombo(2);
                     return;
+                }
+                if (client.options.attackKey.isPressed()) {
+                    executeAutoStrikeAxe(client);
                 }
             }
             case SEMI_SELECT_MACE -> {
@@ -294,7 +298,7 @@ public final class ParticlePhysicsController {
 
         int foundMace = findMaceHotbarSlot(client.player);
         int foundAxe = findAxeHotbarSlot(client.player);
-        if (foundAxe < 0) {
+        if (foundAxe < 0 || foundMace < 0) {
             return;
         }
 
@@ -332,14 +336,14 @@ public final class ParticlePhysicsController {
             return;
         }
 
-        if (initialSlot == axeSlot) {
-            executeAutoStrikeAxe(client);
-            return;
-        }
-
         selectSlot(client, axeSlot);
-        stage = Stage.WAITING_AXE_STRIKE;
-        timer = Math.max(2, getAxeDelayTicks());
+        long axeDelay = getAxeDelayMs();
+        if (axeDelay <= 15L) {
+            executeAutoStrikeAxe(client);
+        } else {
+            stage = Stage.WAITING_AXE_STRIKE;
+            timer = (int) Math.max(1, axeDelay / 50L);
+        }
     }
 
     private void executeAutoStrikeAxe(MinecraftClient client) {
@@ -355,17 +359,23 @@ public final class ParticlePhysicsController {
                 selectSlot(client, axeSlot);
             }
 
-            if (!client.player.getMainHandStack().isIn(ItemTags.AXES)) {
-                restoreInitialSlot(client);
-                finishCombo(1);
-                return;
-            }
             client.interactionManager.attackEntity(client.player, target);
             client.player.swingHand(Hand.MAIN_HAND);
 
             if (maceSlot >= 0) {
-                stage = ParticlePhysicsConfig.mode == ParticlePhysicsConfig.MODE_SEMI_AUTO ? Stage.SEMI_SELECT_MACE : Stage.WAITING_MACE_SWAP;
-                timer = Math.max(2, getMaceDelayTicks());
+                selectSlot(client, maceSlot);
+                if (ParticlePhysicsConfig.mode == ParticlePhysicsConfig.MODE_SEMI_AUTO) {
+                    stage = Stage.SEMI_SELECT_MACE;
+                    timer = 1;
+                } else {
+                    long maceDelay = getMaceDelayMs();
+                    if (maceDelay <= 15L) {
+                        executeAutoStrikeMace(client);
+                    } else {
+                        stage = Stage.WAITING_MACE_STRIKE;
+                        timer = (int) Math.max(1, maceDelay / 50L);
+                    }
+                }
             } else {
                 stage = Stage.WAITING_RESTORE;
                 timer = Math.max(1, getRestoreDelayTicks());
@@ -384,16 +394,10 @@ public final class ParticlePhysicsController {
                 if (client.player.getInventory().getSelectedSlot() != maceSlot) {
                     selectSlot(client, maceSlot);
                 }
-                if (!client.player.getMainHandStack().isOf(Items.MACE)) {
-                    restoreInitialSlot(client);
-                    finishCombo(1);
-                    return;
-                }
                 client.interactionManager.attackEntity(client.player, target);
                 client.player.swingHand(Hand.MAIN_HAND);
 
-                if (ParticlePhysicsConfig.mode == ParticlePhysicsConfig.MODE_SEMI_AUTO) {
-                    restoreInitialSlot(client);
+                if (ParticlePhysicsConfig.stayOnWeapon) {
                     finishCombo(1);
                 } else {
                     stage = Stage.WAITING_RESTORE;
@@ -409,37 +413,37 @@ public final class ParticlePhysicsController {
         }
     }
 
-    private int getAxeDelayTicks() {
-        if (ParticlePhysicsConfig.legitMode) {
-            long delayMs = GaussianTimingEngine.getShieldBreakerSwitchDelay();
-            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+    private long getAxeDelayMs() {
+        long base = ParticlePhysicsConfig.axeDelayMs;
+        if (ParticlePhysicsConfig.randomDelay) {
+            long jitter = (long) (ThreadLocalRandom.current().nextDouble() * Math.max(1.0D, ParticlePhysicsConfig.axeJitterMs));
+            base += jitter;
         }
-        int ticks = GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.axeDelayMs, ParticlePhysicsConfig.randomDelay);
-        return Math.max(1, ticks);
+        return base;
     }
 
-    private int getMaceDelayTicks() {
-        if (ParticlePhysicsConfig.legitMode) {
-            long delayMs = GaussianTimingEngine.getMaceSwapDelay();
-            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+    private long getMaceDelayMs() {
+        long base = ParticlePhysicsConfig.maceDelayMs;
+        if (ParticlePhysicsConfig.randomDelay) {
+            long jitter = (long) (ThreadLocalRandom.current().nextDouble() * Math.max(1.0D, ParticlePhysicsConfig.maceJitterMs));
+            base += jitter;
         }
-        int ticks = GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.maceDelayMs, ParticlePhysicsConfig.randomDelay);
-        return Math.max(1, ticks);
+        return base;
     }
 
     private int getRestoreDelayTicks() {
-        if (ParticlePhysicsConfig.legitMode) {
-            long delayMs = GaussianTimingEngine.getShieldBreakerRestoreDelay();
-            return Math.max(2, (int) Math.round(delayMs / 50.0D));
+        long delayMs = ParticlePhysicsConfig.restoreDelayMs;
+        if (ParticlePhysicsConfig.randomDelay) {
+            delayMs += (long) (ThreadLocalRandom.current().nextDouble() * 20.0D);
         }
-        int ticks = GaussianTimingEngine.sampleActionTicks(ParticlePhysicsConfig.restoreDelayMs, ParticlePhysicsConfig.randomDelay);
-        return Math.max(1, ticks);
+        return Math.max(1, (int) Math.round(delayMs / 50.0D));
     }
 
     private boolean isAirborneConditionMet(ClientPlayerEntity player) {
         if (player == null) return false;
         if (ParticlePhysicsConfig.airTimeSec <= 0.05D) {
-            return !player.isTouchingWater() && !player.isClimbing() && !player.hasVehicle();
+            return !player.isTouchingWater() && !player.isClimbing() && !player.hasVehicle()
+                    && (!player.isOnGround() || player.getVelocity().y != 0.0);
         }
         if (player.isOnGround() || player.isTouchingWater() || player.isClimbing() || player.hasVehicle()) {
             return false;
@@ -480,6 +484,9 @@ public final class ParticlePhysicsController {
         if (target == null || target == client.player || !target.isAlive() || target.isSpectator()) {
             return false;
         }
+        if (target instanceof ArmorStandEntity || target instanceof BatEntity) {
+            return false;
+        }
         if (!isTargetShielding(target)) {
             return false;
         }
@@ -497,7 +504,7 @@ public final class ParticlePhysicsController {
 
         Box searchBox = client.player.getBoundingBox().expand(maxDist + 1.0D);
         for (LivingEntity entity : client.world.getEntitiesByClass(LivingEntity.class, searchBox, e -> isValidTarget(client, e))) {
-            Box box = entity.getBoundingBox();
+            Box box = entity.getBoundingBox().expand(0.1D);
             var hit = box.raycast(eyePos, reachEnd);
             if (hit.isPresent()) {
                 double dSq = eyePos.squaredDistanceTo(hit.get());
@@ -507,8 +514,17 @@ public final class ParticlePhysicsController {
                         best = entity;
                     }
                 }
+            } else {
+                double dist = entity.squaredDistanceTo(eyePos);
+                if (dist <= maxDist * maxDist && dist < closestDistSq) {
+                    if (CombatRaytraceGuard.hasLineOfSight(client.player, entity)) {
+                        closestDistSq = dist;
+                        best = entity;
+                    }
+                }
             }
         }
+
         return best;
     }
 
@@ -525,21 +541,23 @@ public final class ParticlePhysicsController {
         }
 
         if (client.crosshairTarget instanceof EntityHitResult ehr && ehr.getEntity() == target) {
-            return eyePos.squaredDistanceTo(ehr.getPos()) <= cappedReach * cappedReach;
+            return eyePos.squaredDistanceTo(ehr.getPos()) <= (cappedReach + 0.5D) * (cappedReach + 0.5D);
         }
 
         Vec3d lookVec = client.player.getRotationVec(1.0F);
         Vec3d reachEnd = eyePos.add(lookVec.multiply(cappedReach));
-        Box box = target.getBoundingBox();
+        Box box = target.getBoundingBox().expand(0.2D);
         var hit = box.raycast(eyePos, reachEnd);
+
         if (hit.isPresent()) {
-            return eyePos.squaredDistanceTo(hit.get()) <= cappedReach * cappedReach;
+            return eyePos.squaredDistanceTo(hit.get()) <= (cappedReach + 0.3D) * (cappedReach + 0.3D);
         }
 
-        double dx = Math.max(box.minX - eyePos.x, Math.max(0.0, eyePos.x - box.maxX));
-        double dy = Math.max(box.minY - eyePos.y, Math.max(0.0, eyePos.y - box.maxY));
-        double dz = Math.max(box.minZ - eyePos.z, Math.max(0.0, eyePos.z - box.maxZ));
+        double dx = Math.max(box.minX - eyePos.x, Math.max(0.0D, eyePos.x - box.maxX));
+        double dy = Math.max(box.minY - eyePos.y, Math.max(0.0D, eyePos.y - box.maxY));
+        double dz = Math.max(box.minZ - eyePos.z, Math.max(0.0D, eyePos.z - box.maxZ));
         double distSq = dx * dx + dy * dy + dz * dz;
+
         return distSq <= cappedReach * cappedReach;
     }
 
@@ -547,41 +565,41 @@ public final class ParticlePhysicsController {
         if (player == null) return -1;
         int bestSlot = -1;
         int bestScore = -1;
+
         for (int slot = 0; slot < 9; slot++) {
             ItemStack stack = player.getInventory().getStack(slot);
-            if (!stack.isOf(Items.MACE)) {
-                continue;
-            }
-            int score = 1;
-            ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
-            if (ench != null) {
-                for (var entry : ench.getEnchantmentEntries()) {
-                    boolean isDensity = entry.getKey().matchesKey(Enchantments.DENSITY);
-                    boolean isBreach = entry.getKey().matchesKey(Enchantments.BREACH);
-                    int lvl = entry.getIntValue();
+            if (stack.isOf(Items.MACE)) {
+                int score = 1;
+                ItemEnchantmentsComponent ench = stack.get(DataComponentTypes.ENCHANTMENTS);
+                if (ench != null) {
+                    for (var entry : ench.getEnchantmentEntries()) {
+                        boolean isDensity = entry.getKey().matchesKey(Enchantments.DENSITY);
+                        boolean isBreach = entry.getKey().matchesKey(Enchantments.BREACH);
+                        int lvl = entry.getIntValue();
 
-                    if (ParticlePhysicsConfig.enchantPreference == ParticlePhysicsConfig.ENCHANT_DENSITY) {
-                        if (isDensity) score += 2000 * lvl;
-                        if (isBreach) score += 10 * lvl;
-                    } else if (ParticlePhysicsConfig.enchantPreference == ParticlePhysicsConfig.ENCHANT_BREACH) {
-                        if (isBreach) score += 2000 * lvl;
-                        if (isDensity) score += 10 * lvl;
-                    } else {
-                        if (isDensity) {
-                            score += (airTicks > 0 ? 25 : 15) * lvl;
+                        if (ParticlePhysicsConfig.enchantPreference == ParticlePhysicsConfig.ENCHANT_DENSITY) {
+                            if (isDensity) score += 2000 * lvl;
+                            if (isBreach) score += 10 * lvl;
+                        } else if (ParticlePhysicsConfig.enchantPreference == ParticlePhysicsConfig.ENCHANT_BREACH) {
+                            if (isBreach) score += 2000 * lvl;
+                            if (isDensity) score += 10 * lvl;
+                        } else {
+                            if (isDensity) {
+                                score += (airTicks > 0 ? 25 : 15) * lvl;
+                            }
+                            if (isBreach) {
+                                score += (airTicks == 0 ? 16 : 8) * lvl;
+                            }
                         }
-                        if (isBreach) {
-                            score += (airTicks == 0 ? 16 : 8) * lvl;
+                        if (entry.getKey().matchesKey(Enchantments.WIND_BURST)) {
+                            score += 5 * lvl;
                         }
-                    }
-                    if (entry.getKey().matchesKey(Enchantments.WIND_BURST)) {
-                        score += 5 * lvl;
                     }
                 }
-            }
-            if (score > bestScore) {
-                bestScore = score;
-                bestSlot = slot;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestSlot = slot;
+                }
             }
         }
         return bestSlot;
@@ -606,20 +624,21 @@ public final class ParticlePhysicsController {
     }
 
     private boolean isHandledWeapon(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) return false;
-        return stack.isIn(ItemTags.SWORDS) || stack.isIn(ItemTags.AXES) || stack.isOf(Items.TRIDENT) || stack.isOf(Items.MACE);
+        return stack != null && !stack.isEmpty() && (stack.isIn(ItemTags.SWORDS)
+                || stack.isIn(ItemTags.AXES)
+                || stack.isOf(Items.TRIDENT)
+                || stack.isOf(Items.MACE));
     }
 
     private void selectSlot(MinecraftClient client, int slot) {
-        if (client.player == null || slot < 0 || slot >= 9) return;
-        SafeSlotManager.selectSlot(client, slot);
+        if (client != null && client.player != null && slot >= 0 && slot < 9) {
+            SafeSlotManager.selectSlot(client, slot);
+        }
     }
 
     private void restoreInitialSlot(MinecraftClient client) {
-        if (client != null && client.player == owner && client.world == ownerWorld && owner != null
-                && initialSlot >= 0 && initialSlot < 9) {
-            int selected = owner.getInventory().getSelectedSlot();
-            if (selected == axeSlot || selected == maceSlot) SafeSlotManager.restoreSlot(client, initialSlot);
+        if (client != null && client.player != null && initialSlot >= 0 && initialSlot < 9 && !ParticlePhysicsConfig.stayOnWeapon) {
+            selectSlot(client, initialSlot);
         }
     }
 
@@ -641,7 +660,27 @@ public final class ParticlePhysicsController {
     }
 
     private boolean isTargetShielding(LivingEntity target) {
-        return activity.client.module.service.TargetCacheService.isTargetShielding(target);
+        if (target == null || !target.isAlive()) return false;
+        if (target.isBlocking()) return true;
+        if (target.isUsingItem()) {
+            ItemStack active = target.getActiveItem();
+            if (active != null && !active.isEmpty() && (active.getItem() instanceof ShieldItem || active.isOf(Items.SHIELD))) {
+                return true;
+            }
+        }
+        ItemStack offhand = target.getOffHandStack();
+        if (offhand != null && !offhand.isEmpty() && (offhand.getItem() instanceof ShieldItem || offhand.isOf(Items.SHIELD))) {
+            if (target.isUsingItem() || target.isSneaking() || target.isBlocking()) {
+                return true;
+            }
+        }
+        ItemStack mainhand = target.getMainHandStack();
+        if (mainhand != null && !mainhand.isEmpty() && (mainhand.getItem() instanceof ShieldItem || mainhand.isOf(Items.SHIELD))) {
+            if (target.isUsingItem() || target.isSneaking() || target.isBlocking()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void reset() {
@@ -661,7 +700,6 @@ public final class ParticlePhysicsController {
         timer = 0;
         comboLifetimeTicks = 0;
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.sunder_active", false);
-        System.clearProperty("pvp.sunder_active");
     }
 
     private void finishCombo() {

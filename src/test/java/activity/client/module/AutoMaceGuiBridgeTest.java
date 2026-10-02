@@ -33,58 +33,28 @@ public class AutoMaceGuiBridgeTest {
         assertNotNull(mod, "AutoMace module must be registered");
 
         ActivityConfig config = ActivityConfigManager.getConfig();
-        assertEquals("test_mode", config.autoMaceEngineMode, "Default engine mode must be test_mode");
+        assertEquals("old", config.autoMaceSwapType, "Default swap type must be old");
 
         var models = SettingsBridge.models(mod);
         assertFalse(models.isEmpty(), "SettingsBridge must produce setting models for AutoMace");
+        assertEquals(1, models.size(), "AutoMace must have ONLY the swap_type setting in GUI");
 
-        var engineModeModel = models.stream()
-                .filter(m -> "Режим движка".equals(m.getName()) || "Engine Mode".equals(m.getName()))
+        var swapTypeModel = models.stream()
+                .filter(m -> "Тип Swap".equals(m.getName()) || "Swap Type".equals(m.getName()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(engineModeModel, "engine_mode setting must exist in GUI models");
-        assertTrue(engineModeModel.isVisible(), "engine_mode must always be visible in GUI");
+        assertNotNull(swapTypeModel, "swap_type setting must exist in GUI models");
+        assertTrue(swapTypeModel.isVisible(), "swap_type must always be visible in GUI");
 
-        var autoSwitch = mod.getSetting("auto_switch");
-        assertNotNull(autoSwitch);
-        assertTrue(autoSwitch.isVisible(), "auto_switch must be visible in test_mode");
+        EnumSetting swapSetting = (EnumSetting) mod.getSetting("swap_type");
+        assertNotNull(swapSetting);
+        assertEquals("old", swapSetting.get());
 
-        var attackDelay = mod.getSetting("attack_delay");
-        assertNotNull(attackDelay);
-        assertTrue(attackDelay.isVisible(), "attack_delay must be visible in test_mode");
+        swapSetting.set("new");
+        assertEquals("new", config.autoMaceSwapType);
 
-        var humanMode = mod.getSetting("human_mode");
-        assertNotNull(humanMode);
-        assertTrue(humanMode.isVisible(), "human_mode must be visible in test_mode");
-
-        var randomJitter = mod.getSetting("random_jitter");
-        assertNotNull(randomJitter);
-        assertTrue(randomJitter.isVisible(), "random_jitter must be visible in test_mode");
-
-        var sourceMode = mod.getSetting("source_mode");
-        assertNotNull(sourceMode);
-        assertFalse(sourceMode.isVisible(), "source_mode must be hidden in test_mode");
-
-        EnumSetting engineSetting = (EnumSetting) mod.getSetting("engine_mode");
-        assertNotNull(engineSetting);
-        engineSetting.set("our_old");
-
-        assertFalse(autoSwitch.isVisible(), "auto_switch must be hidden in our_old");
-        assertFalse(attackDelay.isVisible(), "attack_delay must be hidden in our_old");
-        assertFalse(humanMode.isVisible(), "human_mode must be hidden in our_old");
-        assertFalse(randomJitter.isVisible(), "random_jitter must be hidden in our_old");
-        assertTrue(sourceMode.isVisible(), "source_mode must be visible in our_old");
-
-        engineSetting.set("test_mode");
-        assertTrue(autoSwitch.isVisible(), "auto_switch must be visible again in test_mode");
-        assertTrue(attackDelay.isVisible(), "attack_delay must be visible again in test_mode");
-        assertTrue(humanMode.isVisible(), "human_mode must be visible again in test_mode");
-        assertTrue(randomJitter.isVisible(), "random_jitter must be visible again in test_mode");
-        assertFalse(sourceMode.isVisible(), "source_mode must be hidden again in test_mode");
-
-        assertEquals(60.0, dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().attackDelayMs);
-        assertTrue(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().humanMode);
-        assertTrue(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().randomJitter);
+        swapSetting.set("old");
+        assertEquals("old", config.autoMaceSwapType);
     }
 
     @Test

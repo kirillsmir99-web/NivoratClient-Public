@@ -317,8 +317,12 @@ public class ModuleSdkFoundationTest {
 
         ActivityConfig.ModuleConfigEntry maceEntry = config.modules.get("auto_mace");
         assertNotNull(maceEntry);
-        assertTrue(maceEntry.settings.containsKey("source_mode"));
-        assertTrue(maceEntry.settings.containsKey("restore_delay"));
+        assertTrue(maceEntry.settings.containsKey("swap_type"));
+
+        ActivityConfig.ModuleConfigEntry spearEntry = config.modules.get("auto_spear");
+        assertNotNull(spearEntry);
+        assertTrue(spearEntry.settings.containsKey("security_mode"));
+        assertTrue(spearEntry.settings.containsKey("restore_delay"));
     }
 
     @Test

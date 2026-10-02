@@ -84,55 +84,23 @@ public class CombatModulesMigrationTest {
 
         assertEquals(-1, mod.getKeybind().getKeyCode());
 
-        assertNotNull(mod.getSetting("source_mode"));
-        assertNotNull(mod.getSetting("enchant_mode"));
-        assertNotNull(mod.getSetting("miss_behavior"));
-        assertNotNull(mod.getSetting("restore_delay"));
-        assertNotNull(mod.getSetting("miss_chance"));
-        assertNotNull(mod.getSetting("random_delay"));
-        assertNotNull(mod.getSetting("legit_mode"));
+        assertNotNull(mod.getSetting("swap_type"));
+        assertEquals(1, mod.getSettings().size());
 
-        BooleanSetting randSetting = (BooleanSetting) mod.getSetting("random_delay");
-        assertTrue(config.autoMaceRandomDelay);
-        assertTrue(RedstoneOptimizerConfig.randomDelay);
-        randSetting.set(false);
-        assertFalse(config.autoMaceRandomDelay);
-        assertFalse(RedstoneOptimizerConfig.randomDelay);
-        assertEquals(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
-        randSetting.set(true);
-        assertTrue(config.autoMaceRandomDelay);
-        assertTrue(RedstoneOptimizerConfig.randomDelay);
+        EnumSetting swapSetting = (EnumSetting) mod.getSetting("swap_type");
+        assertEquals(List.of("old", "new"), swapSetting.getOptions());
+        assertEquals("old", swapSetting.get());
+        assertEquals("old", config.autoMaceSwapType);
 
-        EnumSetting missSetting = (EnumSetting) mod.getSetting("miss_behavior");
-        assertEquals(List.of("sword_hit", "empty_swap"), missSetting.getOptions());
+        swapSetting.set("new");
+        assertEquals("new", config.autoMaceSwapType);
+        assertTrue(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().enabled);
+        assertFalse(RedstoneOptimizerConfig.enabled);
 
-        missSetting.set("empty_swap");
-        assertEquals("empty_swap", config.autoMaceMissBehavior);
-        assertEquals(RedstoneOptimizerConfig.MISS_EMPTY_SWAP, RedstoneOptimizerConfig.missBehavior);
-
-        missSetting.set("sword_hit");
-        assertEquals("sword_hit", config.autoMaceMissBehavior);
-        assertEquals(RedstoneOptimizerConfig.MISS_SWORD_HIT, RedstoneOptimizerConfig.missBehavior);
-
-        EnumSetting sourceSetting = (EnumSetting) mod.getSetting("source_mode");
-        sourceSetting.set("sword_only");
-        assertEquals(RedstoneOptimizerConfig.MODE_SWORD_ONLY, RedstoneOptimizerConfig.sourceMode);
-
-        sourceSetting.set("axe_only");
-        assertEquals(RedstoneOptimizerConfig.MODE_AXE_ONLY, RedstoneOptimizerConfig.sourceMode);
-
-        sourceSetting.set("sword_and_axe");
-        assertEquals(RedstoneOptimizerConfig.MODE_SWORD_AND_AXE, RedstoneOptimizerConfig.sourceMode);
-
-        NumberSetting delaySetting = (NumberSetting) mod.getSetting("restore_delay");
-        delaySetting.set(120.0);
-        assertEquals(120, RedstoneOptimizerConfig.restoreDelayMs);
-
-        BooleanSetting legitSetting = (BooleanSetting) mod.getSetting("legit_mode");
-        legitSetting.set(false);
-        assertFalse(RedstoneOptimizerConfig.legitMode);
-        legitSetting.set(true);
-        assertTrue(RedstoneOptimizerConfig.legitMode);
+        swapSetting.set("old");
+        assertEquals("old", config.autoMaceSwapType);
+        assertFalse(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().enabled);
+        assertTrue(RedstoneOptimizerConfig.enabled);
     }
 
     @Test
