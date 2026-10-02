@@ -12,6 +12,9 @@ public final class AsyncSilentRot {
     }
 
     public static void set(float yaw, float pitch, Object who) {
+        if (Float.isNaN(yaw) || Float.isInfinite(yaw) || Float.isNaN(pitch) || Float.isInfinite(pitch)) {
+            return;
+        }
         y = yaw;
         p = pitch;
         active = true;

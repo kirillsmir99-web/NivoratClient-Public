@@ -1444,6 +1444,15 @@ public class ActivityConfig {
         entry.settings.put("auto_switch", this.autoMaceAutoSwitch);
         entry.settings.put("silent_aim", this.autoMaceSilentAim);
         entry.settings.put("silent_aim_range", this.autoMaceSilentAimRange);
+        entry.settings.put("movement_fix", this.autoMaceMovementFix);
+        entry.settings.put("hitbox_expand", this.autoMaceHitboxExpand);
+        entry.settings.put("target_players", this.autoMaceTargetPlayers);
+        entry.settings.put("target_mobs", this.autoMaceTargetMobs);
+        entry.settings.put("stay_on_mace", this.autoMaceStayOnMace);
+        entry.settings.put("attack_delay", this.autoMaceAttackDelayMs);
+        entry.settings.put("human_mode", this.autoMaceHumanMode);
+        entry.settings.put("random_jitter", this.autoMaceRandomJitter);
+        entry.settings.put("legit_mode", this.autoMaceLegitMode);
     }
 
     private void populateSpearSettings(ModuleConfigEntry entry) {
@@ -1784,6 +1793,15 @@ public class ActivityConfig {
                 this.autoMaceAutoSwitch = getSettingBoolean(mace.settings, "auto_switch", this.autoMaceAutoSwitch);
                 this.autoMaceSilentAim = getSettingBoolean(mace.settings, "silent_aim", this.autoMaceSilentAim);
                 this.autoMaceSilentAimRange = getSettingDouble(mace.settings, "silent_aim_range", this.autoMaceSilentAimRange);
+                this.autoMaceMovementFix = getSettingBoolean(mace.settings, "movement_fix", this.autoMaceMovementFix);
+                this.autoMaceHitboxExpand = getSettingDouble(mace.settings, "hitbox_expand", this.autoMaceHitboxExpand);
+                this.autoMaceTargetPlayers = getSettingBoolean(mace.settings, "target_players", this.autoMaceTargetPlayers);
+                this.autoMaceTargetMobs = getSettingBoolean(mace.settings, "target_mobs", this.autoMaceTargetMobs);
+                this.autoMaceStayOnMace = getSettingBoolean(mace.settings, "stay_on_mace", this.autoMaceStayOnMace);
+                this.autoMaceAttackDelayMs = getSettingDouble(mace.settings, "attack_delay", this.autoMaceAttackDelayMs);
+                this.autoMaceHumanMode = getSettingBoolean(mace.settings, "human_mode", this.autoMaceHumanMode);
+                this.autoMaceRandomJitter = getSettingBoolean(mace.settings, "random_jitter", this.autoMaceRandomJitter);
+                this.autoMaceLegitMode = getSettingBoolean(mace.settings, "legit_mode", this.autoMaceLegitMode);
             }
         }
         ModuleConfigEntry spear = getModuleEntry("auto_spear");

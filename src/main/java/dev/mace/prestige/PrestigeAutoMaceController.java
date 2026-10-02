@@ -152,7 +152,7 @@ public final class PrestigeAutoMaceController {
             return;
         }
 
-        Box targetBox = getEffectiveBox(currentTarget, config.hitbox ? config.hitboxExpand : 1.0);
+        Box targetBox = currentTarget.getBoundingBox();
         Vec3d eyePos = player.getEyePos();
 
         double reach = Math.min(player.getEntityInteractionRange() - 0.05D, 2.95D);
@@ -190,6 +190,7 @@ public final class PrestigeAutoMaceController {
 
     private void executeAttack(MinecraftClient client, ClientPlayerEntity player, Entity target) {
         if (client.interactionManager != null && target != null) {
+            PrestigeSilentAim.getInstance().stop();
             client.interactionManager.attackEntity(player, target);
             player.swingHand(Hand.MAIN_HAND);
         }
@@ -387,10 +388,7 @@ public final class PrestigeAutoMaceController {
 
     private void setSlot(ClientPlayerEntity player, int slot) {
         if (slot >= 0 && slot < 9 && player.getInventory().getSelectedSlot() != slot) {
-            player.getInventory().setSelectedSlot(slot);
-            if (player.networkHandler != null) {
-                player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(slot));
-            }
+            net.fabricmc.pack.api.SafeSlotManager.selectSlot(MinecraftClient.getInstance(), slot);
         }
     }
 

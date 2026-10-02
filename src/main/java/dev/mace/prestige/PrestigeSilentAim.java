@@ -71,12 +71,19 @@ public final class PrestigeSilentAim {
         double dz = targetCenter.z - eyePos.z;
         double distHoriz = Math.sqrt(dx * dx + dz * dz);
 
+        if (distHoriz < 0.0001D) {
+            return;
+        }
+
         float targetYaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
         float targetPitch = (float) (-Math.toDegrees(Math.atan2(dy, distHoriz)));
+        if (Float.isNaN(targetYaw) || Float.isNaN(targetPitch) || Float.isInfinite(targetYaw) || Float.isInfinite(targetPitch)) {
+            return;
+        }
         targetPitch = MathHelper.clamp(targetPitch, -90.0f, 90.0f);
 
-        float startYaw = active ? currentYaw : player.getYaw();
-        float startPitch = active ? currentPitch : MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
+        float startYaw = active && !Float.isNaN(currentYaw) ? currentYaw : player.getYaw();
+        float startPitch = active && !Float.isNaN(currentPitch) ? currentPitch : MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
 
         float deltaYaw = MathHelper.wrapDegrees(targetYaw - startYaw);
         float stepYaw = Math.round(deltaYaw / gcd) * gcd;
@@ -87,8 +94,15 @@ public final class PrestigeSilentAim {
         int maxDown = (int) Math.ceil((-90.0f - startPitch) / gcd);
         pitchSteps = Math.max(maxDown, Math.min(maxUp, pitchSteps));
 
-        currentYaw = startYaw + stepYaw;
-        currentPitch = MathHelper.clamp(startPitch + pitchSteps * gcd, -90.0f, 90.0f);
+        float nextYaw = MathHelper.wrapDegrees(startYaw + stepYaw);
+        float nextPitch = MathHelper.clamp(startPitch + pitchSteps * gcd, -90.0f, 90.0f);
+
+        if (Float.isNaN(nextYaw) || Float.isNaN(nextPitch) || Float.isInfinite(nextYaw) || Float.isInfinite(nextPitch)) {
+            return;
+        }
+
+        currentYaw = nextYaw;
+        currentPitch = nextPitch;
         active = true;
 
         AsyncSilentRot.set(currentYaw, currentPitch, this);

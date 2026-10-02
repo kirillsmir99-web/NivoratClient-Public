@@ -68,10 +68,12 @@ public abstract class AsyncPlayerMoveMixin {
             AsyncSilentRot.beginMove(this.async$my);
             float wy = AsyncSilentRot.yaw();
             float wp = AsyncSilentRot.pitch();
-            p.setYaw(wy);
-            p.setPitch(wp);
-            p.lastYaw = wy;
-            p.lastPitch = wp;
+            if (!Float.isNaN(wy) && !Float.isNaN(wp) && !Float.isInfinite(wy) && !Float.isInfinite(wp)) {
+                p.setYaw(wy);
+                p.setPitch(wp);
+                p.lastYaw = wy;
+                p.lastPitch = wp;
+            }
         }
     }
 
@@ -108,10 +110,12 @@ public abstract class AsyncPlayerMoveMixin {
             this.async$save = true;
             float wy = AsyncSilentRot.yaw();
             float wp = AsyncSilentRot.pitch();
-            p.setYaw(wy);
-            p.setPitch(wp);
-            p.lastYaw = wy;
-            p.lastPitch = wp;
+            if (!Float.isNaN(wy) && !Float.isNaN(wp) && !Float.isInfinite(wy) && !Float.isInfinite(wp)) {
+                p.setYaw(wy);
+                p.setPitch(wp);
+                p.lastYaw = wy;
+                p.lastPitch = wp;
+            }
         }
     }
 

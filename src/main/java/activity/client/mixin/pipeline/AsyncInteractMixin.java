@@ -35,10 +35,12 @@ public abstract class AsyncInteractMixin {
             this.async$use = true;
             float wy = AsyncSilentRot.yaw();
             float wp = AsyncSilentRot.pitch();
-            player.setYaw(wy);
-            player.setPitch(wp);
-            player.lastYaw = wy;
-            player.lastPitch = wp;
+            if (!Float.isNaN(wy) && !Float.isNaN(wp) && !Float.isInfinite(wy) && !Float.isInfinite(wp)) {
+                player.setYaw(wy);
+                player.setPitch(wp);
+                player.lastYaw = wy;
+                player.lastPitch = wp;
+            }
         }
     }
 
@@ -64,10 +66,12 @@ public abstract class AsyncInteractMixin {
             this.async$use = true;
             float wy = AsyncSilentRot.yaw();
             float wp = AsyncSilentRot.pitch();
-            player.setYaw(wy);
-            player.setPitch(wp);
-            player.lastYaw = wy;
-            player.lastPitch = wp;
+            if (!Float.isNaN(wy) && !Float.isNaN(wp) && !Float.isInfinite(wy) && !Float.isInfinite(wp)) {
+                player.setYaw(wy);
+                player.setPitch(wp);
+                player.lastYaw = wy;
+                player.lastPitch = wp;
+            }
         }
     }
 

@@ -270,35 +270,6 @@ public final class RedstoneTickEngine {
             }
 
             if (state == State.IDLE) {
-                if (!RedstoneOptimizerConfig.enabled || client.currentScreen != null || !player.isAlive() || player.isSpectator() || player.isGliding() || inCobweb || cooldownTicks > 0) {
-                    return;
-                }
-
-                if (!player.isOnGround() && !player.verticalCollision && !player.isTouchingWater() && !player.isClimbing()) {
-                    double vy = player.getVelocity().y;
-                    double fallDistance = player.fallDistance;
-                    boolean isFallingDown = vy < -0.05 && !player.isUsingItem();
-                    boolean fallReady = isFallingDown && (fallDistance >= 0.5 || airTicks >= 2 || vy < -0.15);
-
-                    if (fallReady && !hasAttackedInFall) {
-                        Entity target = findAutonomousTarget(client, player);
-                        if (target instanceof LivingEntity livingTarget && canReach(player, livingTarget, 3.8D)) {
-                            int curSlot = player.getInventory().getSelectedSlot();
-                            boolean isHighFallDensity = (fallDistance >= 2.0 || airTicks >= 6);
-                            int maceSlot = findBestMaceSlot(player, curSlot, isHighFallDensity);
-                            if (maceSlot == -1 && isMace(player.getInventory().getStack(curSlot))) {
-                                maceSlot = curSlot;
-                            }
-
-                            if (maceSlot != -1) {
-                                performAutonomousAttack(client, player, livingTarget, curSlot, maceSlot);
-                                return;
-                            }
-                        }
-                    }
-                } else {
-                    hasAttackedInFall = false;
-                }
                 return;
             }
 
@@ -345,8 +316,15 @@ public final class RedstoneTickEngine {
         activeMaceSlot = maceSlot;
         targetEntityId = -1;
 
-        long fastDelay = net.fabricmc.pack.api.GaussianTimingEngine.getMaceSwapDelay();
-        targetHoldDurationMs = Math.max(120L, Math.min(260L, fastDelay));
+        if (RedstoneOptimizerConfig.randomDelay) {
+            int minDelay = Math.min(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
+            int maxDelay = Math.max(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
+            double mean = (minDelay + maxDelay) / 2.0;
+            double stdDev = Math.max(2.0, (maxDelay - minDelay) / 4.0);
+            targetHoldDurationMs = getHumanGaussianDelay(mean, stdDev, minDelay, maxDelay);
+        } else {
+            targetHoldDurationMs = RedstoneOptimizerConfig.restoreDelayMs;
+        }
 
         swapStartTick = clientTick;
         ticksSinceAttack = 0;
@@ -367,8 +345,15 @@ public final class RedstoneTickEngine {
         activeMaceSlot = maceSlot;
         targetEntityId = target.getId();
 
-        long fastDelaySwap = net.fabricmc.pack.api.GaussianTimingEngine.getMaceSwapDelay();
-        targetHoldDurationMs = Math.max(120L, Math.min(260L, fastDelaySwap));
+        if (RedstoneOptimizerConfig.randomDelay) {
+            int minDelay = Math.min(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
+            int maxDelay = Math.max(RedstoneOptimizerConfig.restoreDelayMs, RedstoneOptimizerConfig.randomMaxRestoreDelayMs);
+            double mean = (minDelay + maxDelay) / 2.0;
+            double stdDev = Math.max(2.0, (maxDelay - minDelay) / 4.0);
+            targetHoldDurationMs = getHumanGaussianDelay(mean, stdDev, minDelay, maxDelay);
+        } else {
+            targetHoldDurationMs = RedstoneOptimizerConfig.restoreDelayMs;
+        }
 
         swapStartTick = clientTick;
         ticksSinceAttack = 0;
