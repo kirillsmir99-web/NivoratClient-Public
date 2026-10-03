@@ -125,6 +125,9 @@ public class CombatModulesMigrationTest {
         sourceSetting.set("sword_and_axe");
         assertEquals(RedstoneOptimizerConfig.MODE_SWORD_AND_AXE, RedstoneOptimizerConfig.sourceMode);
 
+        sourceSetting.set("any");
+        assertEquals(RedstoneOptimizerConfig.MODE_ANY, RedstoneOptimizerConfig.sourceMode);
+
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("restore_delay");
         delaySetting.set(120.0);
         assertEquals(120, RedstoneOptimizerConfig.restoreDelayMs);

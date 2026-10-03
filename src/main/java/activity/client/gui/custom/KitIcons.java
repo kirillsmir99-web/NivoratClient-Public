@@ -14,9 +14,10 @@ public final class KitIcons {
             case MACE -> 5;case BEAST -> 6;case SWORD -> 7;case AXE -> 8;case DPOT -> 9;
             default -> -1;
         };
-        if(slot<0){Fonts.NV.msdf(NvIcons.forCategory(category),x,y,size,color);return;}
-        if(category==Category.UHC||category==Category.BEAST||category==Category.CRYSTAL||category==Category.SWORD)color=(color&0xff000000)|0xffffff;
-        if(category==Category.CRYSTAL||category==Category.UHC||category==Category.SWORD){x-=1f;y-=1f;size+=2f;}
-        Render2D.imageUv(ATLAS,x,y,size,size,0f,0f,slot/10f,0f,(slot+1)/10f,1f,color);
+        if (slot < 0) {
+            Fonts.NV.msdf(NvIcons.forCategory(category), x, y, size, color);
+            return;
+        }
+        Render2D.imageUv(ATLAS, x, y, size, size, 0.0f, 0.0f, (float) slot / 10.0f, 0.0f, (float) (slot + 1) / 10.0f, 1.0f, color);
     }
 }

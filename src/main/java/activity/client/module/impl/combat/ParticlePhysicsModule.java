@@ -15,6 +15,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.World;
+import dev.mace.prestige.PrestigeAutoMaceConfig;
+import dev.mace.prestige.PrestigeAutoMaceController;
 import net.redstone.optimizer.config.RedstoneOptimizerConfig;
 import net.redstone.optimizer.engine.RedstoneTickEngine;
 
@@ -58,7 +60,7 @@ public class ParticlePhysicsModule extends NivoratModule {
 
         registerEnum("source_mode", Text.translatable("activity.setting.combat.source_mode"),
                 Text.translatable("activity.setting.combat.source_mode.desc"), SettingGroup.GENERAL,
-                List.of("sword_and_axe", "sword_only", "axe_only"), "sword_and_axe",
+                List.of("any", "sword_and_axe", "sword_only", "axe_only"), "sword_and_axe",
                 opt -> Text.translatable("activity.dropdown.source." + opt),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -181,6 +183,8 @@ public class ParticlePhysicsModule extends NivoratModule {
 
     private void syncEngineConfig(ActivityConfig c) {
         if (c == null) return;
+        boolean isNew = "new".equals(c.autoMaceSwapType);
+
         RedstoneOptimizerConfig.enabled = c.autoMaceEnabled;
         RedstoneOptimizerConfig.restoreDelayMs = (int) c.autoMaceRestoreDelayMs;
         RedstoneOptimizerConfig.randomDelay = c.autoMaceRandomDelay;
@@ -198,7 +202,9 @@ public class ParticlePhysicsModule extends NivoratModule {
         } else {
             RedstoneOptimizerConfig.enchantMode = RedstoneOptimizerConfig.ENCHANT_SMART;
         }
-        if ("sword_only".equals(c.autoMaceSourceMode)) {
+        if ("any".equals(c.autoMaceSourceMode)) {
+            RedstoneOptimizerConfig.sourceMode = RedstoneOptimizerConfig.MODE_ANY;
+        } else if ("sword_only".equals(c.autoMaceSourceMode)) {
             RedstoneOptimizerConfig.sourceMode = RedstoneOptimizerConfig.MODE_SWORD_ONLY;
         } else if ("axe_only".equals(c.autoMaceSourceMode)) {
             RedstoneOptimizerConfig.sourceMode = RedstoneOptimizerConfig.MODE_AXE_ONLY;
@@ -210,6 +216,21 @@ public class ParticlePhysicsModule extends NivoratModule {
         } else {
             RedstoneOptimizerConfig.missBehavior = RedstoneOptimizerConfig.MISS_SWORD_HIT;
         }
+
+        PrestigeAutoMaceConfig pc = PrestigeAutoMaceController.getInstance().getConfig();
+        pc.enabled = c.autoMaceEnabled && isNew;
+        pc.sourceMode = c.autoMaceSourceMode;
+        pc.enchantMode = c.autoMaceEnchantMode;
+        pc.minFallDistance = 1.25;
+        pc.attackDelayMs = 0.0;
+        pc.autoSwitch = true;
+        pc.predictSwitch = true;
+        pc.shieldBreak = false;
+        pc.stayOnMace = false;
+        pc.targetPlayers = true;
+        pc.targetMobs = false;
+        pc.silentAim = false;
+        pc.movementFix = false;
     }
 
     @Override
@@ -220,26 +241,35 @@ public class ParticlePhysicsModule extends NivoratModule {
             c.autoMaceEnabled = enabled;
             ActivityConfigManager.markDirty();
         }
-        RedstoneOptimizerConfig.enabled = enabled;
+        syncEngineConfig(c);
     }
 
     @Override
     public void onDisable() {
         engine.reset();
+        PrestigeAutoMaceController.getInstance().reset();
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.mace_active", false);
     }
 
     @Override
     public void onTick(MinecraftClient client) {
         if (isEnabled()) {
-            engine.tick(client);
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            if (c != null && "new".equals(c.autoMaceSwapType)) {
+                PrestigeAutoMaceController.getInstance().tick(client);
+            } else {
+                engine.tick(client);
+            }
         }
     }
 
     @Override
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (isEnabled()) {
-            return engine.onAttackEntity(player, world, hand, entity, hitResult);
+            ActivityConfig c = ActivityConfigManager.getConfig();
+            if (c == null || !"new".equals(c.autoMaceSwapType)) {
+                return engine.onAttackEntity(player, world, hand, entity, hitResult);
+            }
         }
         return ActionResult.PASS;
     }

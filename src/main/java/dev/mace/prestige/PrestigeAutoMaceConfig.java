@@ -23,6 +23,7 @@ public final class PrestigeAutoMaceConfig {
     public boolean hitbox = false;
     public double hitboxExpand = 1.0;
     public String enchantMode = "smart";
+    public String sourceMode = "sword_and_axe";
 
     public void resetDefaults() {
         this.enabled = true;

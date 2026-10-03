@@ -1158,7 +1158,8 @@ public class ActivityConfig {
         this.hudPadding = clampSanitize(this.hudPadding, 0.0, 64.0, 8.0);
         this.maxCacheEntries = clampSanitize(this.maxCacheEntries, 16.0, 2048.0, 256.0);
 
-        if ("Меч и топор".equals(this.autoMaceSourceMode) || "sword_and_axe".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "sword_and_axe";
+        if ("Любой предмет".equals(this.autoMaceSourceMode) || "any".equals(this.autoMaceSourceMode) || "Any".equalsIgnoreCase(this.autoMaceSourceMode)) this.autoMaceSourceMode = "any";
+        else if ("Меч и топор".equals(this.autoMaceSourceMode) || "sword_and_axe".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "sword_and_axe";
         else if ("Только меч".equals(this.autoMaceSourceMode) || "sword_only".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "sword_only";
         else if ("Только топор".equals(this.autoMaceSourceMode) || "axe_only".equals(this.autoMaceSourceMode)) this.autoMaceSourceMode = "axe_only";
         else this.autoMaceSourceMode = "sword_and_axe";

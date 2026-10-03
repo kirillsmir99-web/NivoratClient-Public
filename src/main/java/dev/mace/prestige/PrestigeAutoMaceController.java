@@ -106,7 +106,7 @@ public final class PrestigeAutoMaceController {
             if (config.unequipElytra && player.isGliding()) {
                 unequipElytra(client, player);
             }
-            if (config.autoSwitch && !isHoldingMace(player)) {
+            if (config.autoSwitch && !isHoldingMace(player) && isAllowedSource(player.getMainHandStack())) {
                 saveOriginalSlot(player);
                 int maceSlot = selectBestMaceSlot(player, fallDistance);
                 if (maceSlot != -1) {
@@ -167,6 +167,9 @@ public final class PrestigeAutoMaceController {
         boolean delayPassed = (now - lastAttackTime) >= (long) config.attackDelayMs;
 
         if (!isHoldingMace(player)) {
+            if (!isAllowedSource(player.getMainHandStack())) {
+                return;
+            }
             saveOriginalSlot(player);
             if (config.autoSwitch) {
                 int maceSlot = selectBestMaceSlot(player, fallDistance);
@@ -325,6 +328,27 @@ public final class PrestigeAutoMaceController {
 
     private boolean isHoldingMace(ClientPlayerEntity player) {
         return player.getMainHandStack().isOf(Items.MACE);
+    }
+
+    private boolean isAllowedSource(ItemStack stack) {
+        if ("any".equals(config.sourceMode)) {
+            return true;
+        }
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        if (stack.isOf(Items.MACE)) {
+            return true;
+        }
+        boolean isSword = stack.isIn(ItemTags.SWORDS);
+        boolean isAxe = stack.isIn(ItemTags.AXES);
+        if ("sword_only".equals(config.sourceMode)) {
+            return isSword;
+        }
+        if ("axe_only".equals(config.sourceMode)) {
+            return isAxe;
+        }
+        return isSword || isAxe;
     }
 
     public int selectBestMaceSlot(ClientPlayerEntity player, double fallDistance) {

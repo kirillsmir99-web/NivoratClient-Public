@@ -13,15 +13,15 @@ public record BuiltImage(String texture, float x, float y, float size, float rad
     }
 
     public BuiltImage(String string, float f, float f2, float f3, float f4) {
-        this(string, f, f2, f3, f4, f4, f4, f4, 0.0f, -1, -1, -1, -1, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false);
+        this(string, f, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1, -1, -1, -1, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, Math.max(0.0f, f3), Math.max(0.0f, f4), false);
     }
 
     public BuiltImage(String string, float f, float f2, float f3, float f4, int n) {
-        this(string, f, f2, f3, f4, f4, f4, f4, 0.0f, n, n, n, n, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false);
+        this(string, f, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, n, n, n, n, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, Math.max(0.0f, f3), Math.max(0.0f, f4), false);
     }
 
     public BuiltImage(String string, float f, float f2, float f3, float f4, int n, int n2, int n3, int n4) {
-        this(string, f, f2, f3, f4, f4, f4, f4, 0.0f, n, n2, n3, n4, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false);
+        this(string, f, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, n, n2, n3, n4, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, Math.max(0.0f, f3), Math.max(0.0f, f4), false);
     }
 
     public boolean visible() {

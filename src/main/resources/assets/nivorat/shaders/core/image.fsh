@@ -30,7 +30,10 @@ void main() {
     vec4 bottomLeft = params[base + 5];
 
     vec2 coord = clamp(FragCoord, vec2(0.0), vec2(1.0));
-    float shapeAlpha = ralpha(max(sizeSmooth.xy, vec2(1.0)), coord, radius, sizeSmooth.z);
+    float shapeAlpha = 1.0;
+    if (radius.x > 0.0 || radius.y > 0.0 || radius.z > 0.0 || radius.w > 0.0 || sizeSmooth.z > 0.001) {
+        shapeAlpha = ralpha(max(sizeSmooth.xy, vec2(1.0)), coord, radius, sizeSmooth.z);
+    }
     vec4 textureColor = texture(Sampler0, TexCoord);
     vec4 color = textureColor * imageColor(coord, topLeft, topRight, bottomRight, bottomLeft);
     color.a *= shapeAlpha;

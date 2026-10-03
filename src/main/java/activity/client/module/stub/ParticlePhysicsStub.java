@@ -10,7 +10,7 @@ public class ParticlePhysicsStub extends AbstractModuleStub {
     public static final String ID = "auto_mace";
 
     public static final String DEFAULT_SOURCE_MODE = "sword_and_axe";
-    public static final java.util.Set<String> ALLOWED_SOURCE_MODES = java.util.Set.of("sword_and_axe", "sword_only", "axe_only");
+    public static final java.util.Set<String> ALLOWED_SOURCE_MODES = java.util.Set.of("any", "sword_and_axe", "sword_only", "axe_only");
 
     public String sourceMode = DEFAULT_SOURCE_MODE;
     public String enchantMode = "smart";

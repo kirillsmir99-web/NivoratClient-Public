@@ -34,11 +34,13 @@ public class Stage13FixPassTest {
         assertTrue(ParticlePhysicsStub.ALLOWED_SOURCE_MODES.contains("sword_and_axe"));
         assertTrue(ParticlePhysicsStub.ALLOWED_SOURCE_MODES.contains("sword_only"));
         assertTrue(ParticlePhysicsStub.ALLOWED_SOURCE_MODES.contains("axe_only"));
-        assertEquals(3, ParticlePhysicsStub.ALLOWED_SOURCE_MODES.size());
+        assertTrue(ParticlePhysicsStub.ALLOWED_SOURCE_MODES.contains("any"));
+        assertEquals(4, ParticlePhysicsStub.ALLOWED_SOURCE_MODES.size());
     }
 
     @Test
     void testSanitizeSourceMode() {
+        assertEquals("any", ParticlePhysicsStub.sanitizeSourceMode("any"));
         assertEquals("sword_and_axe", ParticlePhysicsStub.sanitizeSourceMode("sword_and_axe"));
         assertEquals("sword_only", ParticlePhysicsStub.sanitizeSourceMode("sword_only"));
         assertEquals("axe_only", ParticlePhysicsStub.sanitizeSourceMode("axe_only"));

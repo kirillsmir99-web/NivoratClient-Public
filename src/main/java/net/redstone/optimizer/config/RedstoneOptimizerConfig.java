@@ -4,6 +4,7 @@ public final class RedstoneOptimizerConfig {
     public static final int MODE_SWORD_ONLY = 0;
     public static final int MODE_AXE_ONLY = 1;
     public static final int MODE_SWORD_AND_AXE = 2;
+    public static final int MODE_ANY = 3;
 
     public static final int ENCHANT_SMART = 0;
     public static final int ENCHANT_BREACH_ONLY = 1;

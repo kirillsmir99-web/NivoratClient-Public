@@ -455,6 +455,9 @@ public final class RedstoneTickEngine {
     }
 
     private boolean isAllowedSourceItem(ItemStack stack) {
+        if (RedstoneOptimizerConfig.sourceMode == RedstoneOptimizerConfig.MODE_ANY) {
+            return true;
+        }
         if (stack == null || stack.isEmpty()) {
             return false;
         }

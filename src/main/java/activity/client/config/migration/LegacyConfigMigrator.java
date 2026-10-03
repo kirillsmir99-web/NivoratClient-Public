@@ -311,7 +311,9 @@ public final class LegacyConfigMigrator {
 
         String sourceModeStr = data.getString("source_mode", "sourceMode");
         if (sourceModeStr != null) {
-            if ("0".equals(sourceModeStr) || "sword_only".equalsIgnoreCase(sourceModeStr)) {
+            if ("3".equals(sourceModeStr) || "any".equalsIgnoreCase(sourceModeStr)) {
+                config.autoMaceSourceMode = "any";
+            } else if ("0".equals(sourceModeStr) || "sword_only".equalsIgnoreCase(sourceModeStr)) {
                 config.autoMaceSourceMode = "sword_only";
             } else if ("1".equals(sourceModeStr) || "axe_only".equalsIgnoreCase(sourceModeStr)) {
                 config.autoMaceSourceMode = "axe_only";
