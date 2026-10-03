@@ -27,18 +27,30 @@ public final class ActivityHudOverlay {
                 ? config.customTitle
                 : DEFAULT_TITLE;
         StringBuilder sb = new StringBuilder(base);
+        MinecraftClient mc = MinecraftClient.getInstance();
         if (dev.nivorat.arc.ArcMotorCalibrationService.hasSession()) {
             int mastery = dev.nivorat.arc.ArcMotorCalibrationService.getMastery();
             long remMs = dev.nivorat.arc.ArcMotorCalibrationService.getRemainingTimeMs();
             long sec = (remMs + 999L) / 1000L;
             String timeStr = String.format("%02d:%02d", sec / 60L, sec % 60L);
-            sb.append(" | Калибровка: ").append(mastery).append("% (").append(timeStr).append(")");
-        }
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc != null) {
-            sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
-            if (mc.getSession() != null && mc.getSession().getUsername() != null && !mc.getSession().getUsername().isBlank()) {
-                sb.append(" | ").append(mc.getSession().getUsername());
+            long cycle = (System.currentTimeMillis() / 2500L) % 3;
+            if (cycle == 0) {
+                sb.append(" | Калибровка: ").append(mastery).append("%");
+                if (mc != null) sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
+            } else if (cycle == 1) {
+                sb.append(" | Калибровка: ").append(timeStr);
+                if (mc != null && mc.getSession() != null && mc.getSession().getUsername() != null && !mc.getSession().getUsername().isBlank()) {
+                    sb.append(" | ").append(mc.getSession().getUsername());
+                }
+            } else {
+                sb.append(" | Калибровка: ").append(mastery).append("% (").append(timeStr).append(")");
+            }
+        } else {
+            if (mc != null) {
+                sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
+                if (mc.getSession() != null && mc.getSession().getUsername() != null && !mc.getSession().getUsername().isBlank()) {
+                    sb.append(" | ").append(mc.getSession().getUsername());
+                }
             }
         }
         return Text.literal(sb.toString());

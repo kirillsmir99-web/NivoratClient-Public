@@ -12,7 +12,7 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 public final class CombatRaytraceGuard {
-    public static final double MAX_COMBAT_REACH = 2.85D;
+    public static final double MAX_COMBAT_REACH = 3.25D;
     public static final double MAX_BLOCK_REACH = 4.20D;
 
     private static volatile boolean dispatcherManaged = false;

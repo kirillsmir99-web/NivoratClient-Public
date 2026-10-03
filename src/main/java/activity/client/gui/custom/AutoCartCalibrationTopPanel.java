@@ -20,6 +20,7 @@ import java.util.List;
 
 public final class AutoCartCalibrationTopPanel {
     private static float currentSlideY = -70f;
+    private static float currentHeight = 50f;
     private static long lastRenderNs = 0L;
     private static boolean confirmReset = false;
     private static boolean manuallyOpened = false;
@@ -61,8 +62,10 @@ public final class AutoCartCalibrationTopPanel {
         float dt = lastRenderNs > 0L ? (float) ((now - lastRenderNs) / 1_000_000_000.0) : 0.016f;
         lastRenderNs = now;
 
-        float width = 380f;
-        float height = 50f;
+        float targetHeight = session ? 30f : 50f;
+        currentHeight += (targetHeight - currentHeight) * MathHelper.clamp(dt * 10f, 0.05f, 1.0f);
+        float height = currentHeight;
+        float width = session ? Math.min(320f, (inGui ? UI.panelW() : Position.screenWidth() - 20f)) : 380f;
         float x;
         float targetY;
 
@@ -70,7 +73,7 @@ public final class AutoCartCalibrationTopPanel {
             float px = UI.panelX();
             float py = UI.panelY();
             float pw = UI.panelW();
-            width = Math.min(380f, pw);
+            width = Math.min(width, pw);
             x = px + pw - width;
             if (py >= height + 6f) {
                 targetY = shouldShow ? (py - height - 3f) : (py - height - 25f);
@@ -100,8 +103,15 @@ public final class AutoCartCalibrationTopPanel {
 
         try (var frame = UnifiedHudRender.beginNative(context)) {
             CustomRender.panel(context, x, y, width, height, 6, 1);
-            Render2D.glow(new BuiltGlow(x, y, width, height, new float[]{6f, 6f, 6f, 6f}, ClientAccent.accent(255), 0.22f, 4f, 1f));
-            Render2D.outline(x, y, width, height, 6f, 0.7f, ClientAccent.accent(175));
+            int orangeAccent = 0xFFFFA020;
+            int orangeGlow = 0xFFFF7700;
+            Render2D.glow(new BuiltGlow(x, y, width, height, new float[]{6f, 6f, 6f, 6f}, orangeGlow, 0.28f, 5f, 1f));
+            Render2D.outline(x, y, width, height, 6f, 0.85f, orangeAccent);
+
+            float scanW = Math.min(50f, width * 0.25f);
+            float scanPos = (float) ((System.currentTimeMillis() % 2000L) / 2000.0);
+            float scanX = x + 10f + (width - 20f - scanW) * (float) (0.5 + 0.5 * Math.sin(scanPos * Math.PI * 2));
+            Render2D.rect(scanX, y, scanW, 1.8f, 1f, orangeAccent);
 
             float badgeW = Fonts.MONTSERRAT_MEDIUM.width(state.getTitle(), 7f) + 12f;
             Render2D.rect(x + 10f, y + 8f, badgeW, 14f, 4f, (0x33 << 24) | (state.getColorRgba() & 0x00FFFFFF));
@@ -111,39 +121,42 @@ public final class AutoCartCalibrationTopPanel {
             String masteryText = mastery + "%";
             Fonts.MONTSERRAT_MEDIUM.draw(masteryText, x + 16f + badgeW + 68f, y + 11.5f, 7.5f, ClientAccent.accentBright(255));
 
-            float pillY = y + 8f;
-            renderDurationPill(x + 172f, pillY, 30f, 14f, "1 мин", currentDurationMins == 1, !session, mouseX, mouseY);
-            renderDurationPill(x + 205f, pillY, 30f, 14f, "2 мин", currentDurationMins == 2, !session, mouseX, mouseY);
-            renderDurationPill(x + 238f, pillY, 30f, 14f, "5 мин", currentDurationMins == 5, !session, mouseX, mouseY);
-
-            if (session) {
-                Fonts.NV.msdf(NvIcons.ANIMATION, x + width - 110f, y + 11f, 8f, 0xff8fa0b5);
-                Fonts.MONTSERRAT_MEDIUM.draw(timerStr, x + width - 98f, y + 11.5f, 7.5f, 0xffffffff);
-            } else if (profile.isCalibrated()) {
-                String confText = Math.round(confidence * 100f) + "%";
-                Fonts.MONTSERRAT_MEDIUM.draw(confText, x + width - 70f, y + 11.5f, 7.5f, 0xff8fa0b5);
-            }
-
             renderCloseButton(x + width - 20f, y + 8f, 14f, 14f, mouseX, mouseY);
 
-            Render2D.rect(x + 10f, y + 25f, width - 20f, 3f, 1.5f, 0xff1e2330);
-            Render2D.rect(x + 10f, y + 25f, (width - 20f) * (mastery / 100.0f), 3f, 1.5f, ClientAccent.accent(235));
-
-            List<String> hints = profile.getMissingDataHints();
-            String hintText;
             if (session) {
-                hintText = hints.isEmpty() ? "Профиль моторики формируется" : hints.get(0);
-            } else if (profile.isCalibrated()) {
-                hintText = "Сэмплов: " + profile.getSampleCount();
-            } else {
-                hintText = currentDurationMins + "-мин калибровка";
-            }
-            Fonts.MONTSERRAT_MEDIUM.draw(hintText, x + 12f, y + 34f, 6.5f, 0xff8e9eb3);
+                float btnY = y + 8f;
+                Fonts.NV.msdf(NvIcons.ANIMATION, x + width - 200f, y + 11f, 8f, 0xff8fa0b5);
+                Fonts.MONTSERRAT_MEDIUM.draw(timerStr, x + width - 188f, y + 11.5f, 7.5f, 0xffffffff);
 
-            renderButton(x + width - 180f, y + 31f, 40f, 14f, "Старт", !session && mc.player != null, mouseX, mouseY);
-            renderButton(x + width - 136f, y + 31f, 40f, 14f, profile.isCalibrationPaused() ? "Пуск" : "Пауза", session, mouseX, mouseY);
-            renderButton(x + width - 92f, y + 31f, 40f, 14f, "Готово", session && profile.isReadyToFinish(), mouseX, mouseY);
-            renderButton(x + width - 48f, y + 31f, 40f, 14f, confirmReset ? "Да?" : "Сброс", !session, mouseX, mouseY);
+                renderButton(x + width - 136f, btnY, 40f, 14f, profile.isCalibrationPaused() ? "Пуск" : "Пауза", true, mouseX, mouseY);
+                renderButton(x + width - 92f, btnY, 40f, 14f, "Готово", profile.isReadyToFinish(), mouseX, mouseY);
+
+                float barY = y + height - 3.5f;
+                Render2D.rect(x + 10f, barY, width - 20f, 2f, 1f, 0xff1e2330);
+                Render2D.rect(x + 10f, barY, (width - 20f) * (mastery / 100.0f), 2f, 1f, orangeAccent);
+            } else {
+                float pillY = y + 8f;
+                renderDurationPill(x + 172f, pillY, 30f, 14f, "1 мин", currentDurationMins == 1, true, mouseX, mouseY);
+                renderDurationPill(x + 205f, pillY, 30f, 14f, "2 мин", currentDurationMins == 2, true, mouseX, mouseY);
+                renderDurationPill(x + 238f, pillY, 30f, 14f, "5 мин", currentDurationMins == 5, true, mouseX, mouseY);
+
+                if (profile.isCalibrated()) {
+                    String confText = Math.round(confidence * 100f) + "%";
+                    Fonts.MONTSERRAT_MEDIUM.draw(confText, x + width - 70f, y + 11.5f, 7.5f, 0xff8fa0b5);
+                }
+
+                Render2D.rect(x + 10f, y + 25f, width - 20f, 3f, 1.5f, 0xff1e2330);
+                Render2D.rect(x + 10f, y + 25f, (width - 20f) * (mastery / 100.0f), 3f, 1.5f, orangeAccent);
+
+                List<String> hints = profile.getMissingDataHints();
+                String hintText = profile.isCalibrated() ? ("Сэмплов: " + profile.getSampleCount()) : (currentDurationMins + "-мин калибровка");
+                Fonts.MONTSERRAT_MEDIUM.draw(hintText, x + 12f, y + 34f, 6.5f, 0xff8e9eb3);
+
+                renderButton(x + width - 180f, y + 31f, 40f, 14f, "Старт", mc.player != null, mouseX, mouseY);
+                renderButton(x + width - 136f, y + 31f, 40f, 14f, "Пауза", false, mouseX, mouseY);
+                renderButton(x + width - 92f, y + 31f, 40f, 14f, "Готово", false, mouseX, mouseY);
+                renderButton(x + width - 48f, y + 31f, 40f, 14f, confirmReset ? "Да?" : "Сброс", true, mouseX, mouseY);
+            }
         }
     }
 
@@ -182,11 +195,13 @@ public final class AutoCartCalibrationTopPanel {
         boolean inGui = mc.currentScreen == UI.INSTANCE;
         if (!inGui) return false;
 
-        float width = 380f;
-        float height = 50f;
+        float height = currentHeight;
+        ArcMotionProfile profile = ArcMotionProfile.getInstance();
+        boolean session = ArcMotorCalibrationService.hasSession();
+        float width = session ? Math.min(320f, (inGui ? UI.panelW() : Position.screenWidth() - 20f)) : 380f;
         float px = UI.panelX();
         float pw = UI.panelW();
-        width = Math.min(380f, pw);
+        width = Math.min(width, pw);
         float x = px + pw - width;
         float y = currentSlideY;
 
@@ -196,9 +211,6 @@ public final class AutoCartCalibrationTopPanel {
         if (mx < x || mx > x + width || my < y || my > y + height) {
             return false;
         }
-
-        ArcMotionProfile profile = ArcMotionProfile.getInstance();
-        boolean session = ArcMotorCalibrationService.hasSession();
 
         if (checkHit(x + width - 20f, y + 8f, 14f, 14f, mx, my)) {
             close();
@@ -235,7 +247,8 @@ public final class AutoCartCalibrationTopPanel {
             }
         }
 
-        if (checkHit(x + width - 136f, y + 31f, 40f, 14f, mx, my)) {
+        float pauseY = session ? (y + 8f) : (y + 31f);
+        if (checkHit(x + width - 136f, pauseY, 40f, 14f, mx, my)) {
             if (session) {
                 if (profile.isCalibrationPaused()) {
                     ArcMotorCalibrationService.resume();
@@ -249,7 +262,8 @@ public final class AutoCartCalibrationTopPanel {
             }
         }
 
-        if (checkHit(x + width - 92f, y + 31f, 40f, 14f, mx, my)) {
+        float readyY = session ? (y + 8f) : (y + 31f);
+        if (checkHit(x + width - 92f, readyY, 40f, 14f, mx, my)) {
             if (session && profile.isReadyToFinish()) {
                 ArcMotorCalibrationService.finish();
                 SoundManager.playSuccess();

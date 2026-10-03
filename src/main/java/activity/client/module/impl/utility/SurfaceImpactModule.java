@@ -34,12 +34,12 @@ public class SurfaceImpactModule extends NivoratModule {
 
         registerEnum("mode", Text.translatable("activity.setting.utility.water_drop_mode"),
                 Text.translatable("activity.setting.utility.water_drop_mode.desc"), SettingGroup.GENERAL,
-                List.of("hotbar", "inventory"), "hotbar",
+                List.of("inventory", "hotbar"), "inventory",
                 opt -> Text.translatable("activity.dropdown.water_drop_mode." + opt),
                 opt -> Text.translatable("activity.dropdown.water_drop_mode." + opt + ".desc"),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.waterDropMode : "hotbar";
+                    return c != null ? c.waterDropMode : "inventory";
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -278,10 +278,10 @@ public class SurfaceImpactModule extends NivoratModule {
 
         registerBoolean("enable_wind_charge", Text.translatable("activity.setting.utility.enable_wind_charge"),
                 Text.translatable("activity.setting.utility.enable_wind_charge.desc"), SettingGroup.ADVANCED,
-                true,
+                false,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c == null || c.waterDropEnableWindCharge;
+                    return c != null && c.waterDropEnableWindCharge;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -446,7 +446,16 @@ public class SurfaceImpactModule extends NivoratModule {
     }
 
     @Override
+    public void onSuspend(MinecraftClient client) {
+        if (controller.isBusy()) {
+            controller.reset();
+        }
+    }
+
+    @Override
     public void onCleanupTick(MinecraftClient client) { controller.cleanup(); }
+    @Override
+    public boolean canTickWhileScreenOpen(MinecraftClient client) { return controller.ownsInventoryScreen(client); }
 
     @Override
     public void onTick(MinecraftClient client) {

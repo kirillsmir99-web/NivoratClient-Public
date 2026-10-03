@@ -322,8 +322,8 @@ public class DefenseModulesMigrationTest {
         assertEquals("safe", config.autoCartPreset);
         assertEquals(MorrowConfig.PRESET_SAFE, MorrowConfig.preset);
         assertTrue(config.autoCartLegitMode);
-        assertEquals(85.0, config.autoCartMinDelayMs, 0.001);
-        assertEquals(120.0, config.autoCartMaxDelayMs, 0.001);
+        assertEquals(95.0, config.autoCartMinDelayMs, 0.001);
+        assertEquals(135.0, config.autoCartMaxDelayMs, 0.001);
         assertEquals("auto", config.autoCartCameraMode);
         assertEquals("auto", MorrowConfig.cameraMode);
         assertTrue(config.autoCartAutoCamera);

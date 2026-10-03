@@ -2,7 +2,7 @@ package dev.impact;
 
 public final class SurfaceImpactConfig {
     public static boolean enabled = true;
-    public static int mode = 0;
+    public static int mode = 1;
     public static int fallThreshold = 4;
     public static boolean pickupWater = true;
     public static boolean switchBack = true;
@@ -19,7 +19,7 @@ public final class SurfaceImpactConfig {
     public static boolean netherAdapter = true;
 
     public static boolean enableWater = true;
-    public static boolean enableWindCharge = true;
+    public static boolean enableWindCharge = false;
     public static boolean enableHayBlock = true;
     public static boolean enableSlimeBlock = true;
     public static boolean enableCobweb = true;

@@ -277,12 +277,9 @@ public class CartRefillControllerTest {
         MinecraftClient client = allocateMockClient();
         Screen chestScreen = allocateMockContainerScreen();
         client.currentScreen = chestScreen;
-
-        // When container is open, controller must stay IDLE and openedByRefill false
         assertEquals(OcclusionCacheController.State.IDLE, controller.getState());
         assertFalse(controller.isOpenedByRefill());
 
-        // In WAITING_SWAP, if manual screen is open (openedByRefill == false), finishRefill resets to IDLE
         controller.setStateForTest(OcclusionCacheController.State.WAITING_SWAP, 0, false);
         controller.finishRefill(client);
         assertEquals(OcclusionCacheController.State.IDLE, controller.getState());

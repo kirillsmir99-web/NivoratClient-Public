@@ -145,6 +145,12 @@ public final class RaycastPredictorController {
         if (client.player.getItemCooldownManager().isCoolingDown(Items.WIND_CHARGE.getDefaultStack())) {
             return;
         }
+        if (dev.pearl.ClickPearlController.getInstance().getState() != dev.pearl.ClickPearlController.State.IDLE) {
+            return;
+        }
+        if (System.currentTimeMillis() - dev.impact.SurfaceImpactController.getGlobalLastPearlTime() < 2500L) {
+            return;
+        }
 
         pearlInOffhand = isOffhandItem(client.player, Items.ENDER_PEARL);
         pearlSlot = pearlInOffhand ? -1 : findHotbarItem(client.player, Items.ENDER_PEARL);
@@ -310,6 +316,7 @@ public final class RaycastPredictorController {
             Hand hand = pearlInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
             ActionResult res = client.interactionManager.interactItem(client.player, hand);
             swingIfNeeded(client.player, hand, res);
+            dev.impact.SurfaceImpactController.recordPearlThrown();
 
             if (!res.isAccepted()) {
                 holdTicksRemaining = 2;
@@ -373,6 +380,7 @@ public final class RaycastPredictorController {
             }
 
             Hand hand = windInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+            if (client.player.getItemCooldownManager().isCoolingDown(Items.WIND_CHARGE.getDefaultStack())) { reset(); return; }
             if (!readyItem(client, hand, Items.WIND_CHARGE)) { reset(); return; }
             ActionResult res = client.interactionManager.interactItem(client.player, hand);
             swingIfNeeded(client.player, hand, res);

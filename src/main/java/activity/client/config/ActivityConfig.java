@@ -54,8 +54,8 @@ public class ActivityConfig {
     public boolean autoMaceLegitMode = true;
     public double autoMaceMissChance = 10.0;
     public boolean autoMaceRandomDelay = true;
-    public String autoMaceSwapType = "old";
-    public String autoMaceEngineMode = "old";
+    public String autoMaceSwapType = "new";
+    public String autoMaceEngineMode = "new";
     public double autoMaceMinFallDistance = 1.25;
     public boolean autoMaceAutoSwitch = true;
     public boolean autoMaceSilentAim = true;
@@ -95,12 +95,14 @@ public class ActivityConfig {
 
     public boolean autoStunSlamEnabled = true;
     public Keybind autoStunSlamKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_M, true, true, false);
-    public String autoStunSlamPreset = "old";
-    public String autoStunSlamEngineMode = "old";
+    public String autoStunSlamPreset = "new";
+    public String autoStunSlamEngineMode = "new";
     public String autoStunSlamMode = "full_auto";
     public double autoStunSlamDistance = 2.85;
     public double autoStunSlamChance = 100.0;
-    public double autoStunSlamAirTimeSec = 0.05;
+    public String autoStunSlamAirCondition = "blocks";
+    public double autoStunSlamMinFall = 3.0;
+    public double autoStunSlamAirTimeSec = 1.0;
     public double autoStunSlamAxeDelayMs = 0.0;
     public boolean autoStunSlamAxeRandomizer = true;
     public double autoStunSlamAxeJitterMs = 10.0;
@@ -114,7 +116,12 @@ public class ActivityConfig {
     public boolean autoStunSlamRandomDelay = true;
     public boolean autoStunSlamLegitMode = true;
     public double autoStunSlamNewDistance = 3.0;
-    public double autoStunSlamNewMinFall = 1.3;
+    public String autoStunSlamNewMode = "full_auto";
+    public double autoStunSlamNewChance = 100.0;
+    public double autoStunSlamNewAttackDelayMs = 0.0;
+    public String autoStunSlamNewAirCondition = "blocks";
+    public double autoStunSlamNewMinFall = 3.0;
+    public double autoStunSlamNewAirTimeSec = 1.0;
     public String autoStunSlamNewEnchant = "smart";
     public boolean autoStunSlamNewSilentAim = true;
     public boolean autoStunSlamNewRandomizer = true;
@@ -276,7 +283,7 @@ public class ActivityConfig {
 
     public boolean waterDropEnabled = true;
     public Keybind waterDropKeybind = new Keybind();
-    public String waterDropMode = "hotbar";
+    public String waterDropMode = "inventory";
     public double waterDropFallThreshold = 4.0;
     public boolean waterDropPickupWater = true;
     public boolean waterDropSwitchBack = true;
@@ -290,7 +297,7 @@ public class ActivityConfig {
     public boolean waterDropPearlGuard = true;
     public boolean waterDropNetherAdapter = true;
     public boolean waterDropEnableWater = true;
-    public boolean waterDropEnableWindCharge = true;
+    public boolean waterDropEnableWindCharge = false;
     public boolean waterDropEnableHayBlock = true;
     public boolean waterDropEnableSlimeBlock = true;
     public boolean waterDropEnableCobweb = true;
@@ -576,8 +583,8 @@ public class ActivityConfig {
         this.autoMaceLegitMode = true;
         this.autoMaceMissChance = 10.0;
         this.autoMaceRandomDelay = true;
-        this.autoMaceSwapType = "old";
-        this.autoMaceEngineMode = "old";
+        this.autoMaceSwapType = "new";
+        this.autoMaceEngineMode = "new";
         this.autoMaceMinFallDistance = 1.25;
         this.autoMaceAutoSwitch = true;
         this.autoMaceSilentAim = true;
@@ -617,12 +624,14 @@ public class ActivityConfig {
 
         this.autoStunSlamEnabled = true;
         this.autoStunSlamKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_M, true, true, false);
-        this.autoStunSlamPreset = "old";
-        this.autoStunSlamEngineMode = "old";
+        this.autoStunSlamPreset = "new";
+        this.autoStunSlamEngineMode = "new";
         this.autoStunSlamMode = "full_auto";
         this.autoStunSlamDistance = 2.85;
         this.autoStunSlamChance = 100.0;
-        this.autoStunSlamAirTimeSec = 0.05;
+        this.autoStunSlamAirCondition = "blocks";
+        this.autoStunSlamMinFall = 3.0;
+        this.autoStunSlamAirTimeSec = 1.0;
         this.autoStunSlamAxeDelayMs = 0.0;
         this.autoStunSlamAxeRandomizer = true;
         this.autoStunSlamAxeJitterMs = 10.0;
@@ -636,7 +645,12 @@ public class ActivityConfig {
         this.autoStunSlamRandomDelay = true;
         this.autoStunSlamLegitMode = true;
         this.autoStunSlamNewDistance = 3.0;
-        this.autoStunSlamNewMinFall = 1.3;
+        this.autoStunSlamNewMode = "full_auto";
+        this.autoStunSlamNewChance = 100.0;
+        this.autoStunSlamNewAttackDelayMs = 0.0;
+        this.autoStunSlamNewAirCondition = "blocks";
+        this.autoStunSlamNewMinFall = 3.0;
+        this.autoStunSlamNewAirTimeSec = 1.0;
         this.autoStunSlamNewEnchant = "smart";
         this.autoStunSlamNewSilentAim = true;
         this.autoStunSlamNewRandomizer = true;
@@ -802,7 +816,7 @@ public class ActivityConfig {
 
         this.waterDropEnabled = true;
         this.waterDropKeybind.clear();
-        this.waterDropMode = "hotbar";
+        this.waterDropMode = "inventory";
         this.waterDropFallThreshold = 4.0;
         this.waterDropPickupWater = true;
         this.waterDropSwitchBack = true;
@@ -816,7 +830,7 @@ public class ActivityConfig {
         this.waterDropPearlGuard = true;
         this.waterDropNetherAdapter = true;
         this.waterDropEnableWater = true;
-        this.waterDropEnableWindCharge = true;
+        this.waterDropEnableWindCharge = false;
         this.waterDropEnableHayBlock = true;
         this.waterDropEnableSlimeBlock = true;
         this.waterDropEnableCobweb = true;
@@ -1019,7 +1033,7 @@ public class ActivityConfig {
         } else if ("test_mode".equals(this.autoMaceSwapType) || "new".equals(this.autoMaceSwapType)) {
             this.autoMaceSwapType = "new";
         } else {
-            this.autoMaceSwapType = "old";
+            this.autoMaceSwapType = "new";
         }
         this.autoMaceEngineMode = this.autoMaceSwapType;
         this.autoMaceMinFallDistance = clampSanitize(this.autoMaceMinFallDistance, 0.5, 5.0, 1.25);
@@ -1031,7 +1045,7 @@ public class ActivityConfig {
         } else if ("test_mode".equals(this.autoStunSlamPreset) || "new".equals(this.autoStunSlamPreset)) {
             this.autoStunSlamPreset = "new";
         } else {
-            this.autoStunSlamPreset = "old";
+            this.autoStunSlamPreset = "new";
         }
         this.autoStunSlamEngineMode = this.autoStunSlamPreset;
         this.autoMaceRestoreDelayMs = clampSanitize(this.autoMaceRestoreDelayMs, 30.0, 300.0, 90.0);
@@ -1047,14 +1061,27 @@ public class ActivityConfig {
 
         this.autoStunSlamDistance = clampSanitize(this.autoStunSlamDistance, 1.5, 4.5, 2.85);
         this.autoStunSlamChance = clampSanitize(this.autoStunSlamChance, 10.0, 100.0, 100.0);
-        this.autoStunSlamAirTimeSec = clampSanitize(this.autoStunSlamAirTimeSec, 0.0, 5.0, 0.05);
+        if (!"time".equals(this.autoStunSlamAirCondition) && !"both".equals(this.autoStunSlamAirCondition) && !"any".equals(this.autoStunSlamAirCondition)) {
+            this.autoStunSlamAirCondition = "blocks";
+        }
+        this.autoStunSlamMinFall = clampSanitize(this.autoStunSlamMinFall, 0.0, 10.0, 3.0);
+        this.autoStunSlamAirTimeSec = clampSanitize(this.autoStunSlamAirTimeSec, 0.0, 5.0, 1.0);
         this.autoStunSlamAxeDelayMs = clampSanitize(this.autoStunSlamAxeDelayMs, 0.0, 200.0, 0.0);
         this.autoStunSlamAxeJitterMs = clampSanitize(this.autoStunSlamAxeJitterMs, 0.0, 100.0, 10.0);
         this.autoStunSlamMaceDelayMs = clampSanitize(this.autoStunSlamMaceDelayMs, 0.0, 200.0, 0.0);
         this.autoStunSlamMaceJitterMs = clampSanitize(this.autoStunSlamMaceJitterMs, 0.0, 100.0, 15.0);
         this.autoStunSlamRestoreDelayMs = clampSanitize(this.autoStunSlamRestoreDelayMs, 0.0, 300.0, 50.0);
         this.autoStunSlamNewDistance = clampSanitize(this.autoStunSlamNewDistance, 1.5, 5.0, 3.0);
-        this.autoStunSlamNewMinFall = clampSanitize(this.autoStunSlamNewMinFall, 0.5, 5.0, 1.3);
+        if (!"semi_auto".equals(this.autoStunSlamNewMode)) {
+            this.autoStunSlamNewMode = "full_auto";
+        }
+        this.autoStunSlamNewChance = clampSanitize(this.autoStunSlamNewChance, 10.0, 100.0, 100.0);
+        this.autoStunSlamNewAttackDelayMs = clampSanitize(this.autoStunSlamNewAttackDelayMs, 0.0, 100.0, 0.0);
+        if (!"time".equals(this.autoStunSlamNewAirCondition) && !"both".equals(this.autoStunSlamNewAirCondition) && !"any".equals(this.autoStunSlamNewAirCondition)) {
+            this.autoStunSlamNewAirCondition = "blocks";
+        }
+        this.autoStunSlamNewMinFall = clampSanitize(this.autoStunSlamNewMinFall, 0.0, 10.0, 3.0);
+        this.autoStunSlamNewAirTimeSec = clampSanitize(this.autoStunSlamNewAirTimeSec, 0.0, 5.0, 1.0);
         this.autoStunSlamNewJitter = clampSanitize(this.autoStunSlamNewJitter, 0.0, 100.0, 15.0);
 
         this.autoPearlCatchThrowDelay = clampSanitize(this.autoPearlCatchThrowDelay, 1.0, 20.0, 2.0);
@@ -1106,7 +1133,7 @@ public class ActivityConfig {
         this.waterDropPickupDelayMs = clampSanitize(this.waterDropPickupDelayMs, 30.0, 300.0, 85.0);
         this.waterDropSwitchDelayMs = clampSanitize(this.waterDropSwitchDelayMs, 30.0, 300.0, 130.0);
         if (!"hotbar".equals(this.waterDropMode) && !"inventory".equals(this.waterDropMode)) {
-            this.waterDropMode = "hotbar";
+            this.waterDropMode = "inventory";
         }
         if (!"off".equals(this.waterDropCameraMode) && !"auto".equals(this.waterDropCameraMode) && !"packet".equals(this.waterDropCameraMode)) {
             this.waterDropCameraMode = "off";
@@ -1500,7 +1527,14 @@ public class ActivityConfig {
         entry.settings.put("random_delay", this.autoStunSlamRandomDelay);
         entry.settings.put("legit_mode", this.autoStunSlamLegitMode);
         entry.settings.put("new_distance", this.autoStunSlamNewDistance);
+        entry.settings.put("new_mode", this.autoStunSlamNewMode);
+        entry.settings.put("new_chance", this.autoStunSlamNewChance);
+        entry.settings.put("new_delay", this.autoStunSlamNewAttackDelayMs);
+        entry.settings.put("air_condition", this.autoStunSlamAirCondition);
+        entry.settings.put("min_fall", this.autoStunSlamMinFall);
+        entry.settings.put("new_air_condition", this.autoStunSlamNewAirCondition);
         entry.settings.put("new_min_fall", this.autoStunSlamNewMinFall);
+        entry.settings.put("new_air_time", this.autoStunSlamNewAirTimeSec);
         entry.settings.put("new_enchant", this.autoStunSlamNewEnchant);
         entry.settings.put("new_silent_aim", this.autoStunSlamNewSilentAim);
         entry.settings.put("new_randomizer", this.autoStunSlamNewRandomizer);
@@ -1863,7 +1897,14 @@ public class ActivityConfig {
                 this.autoStunSlamRandomDelay = getSettingBoolean(slam.settings, "random_delay", this.autoStunSlamRandomDelay);
                 this.autoStunSlamLegitMode = getSettingBoolean(slam.settings, "legit_mode", this.autoStunSlamLegitMode);
                 this.autoStunSlamNewDistance = getSettingDouble(slam.settings, "new_distance", this.autoStunSlamNewDistance);
+                this.autoStunSlamNewMode = getSettingString(slam.settings, "new_mode", this.autoStunSlamNewMode);
+                this.autoStunSlamNewChance = getSettingDouble(slam.settings, "new_chance", this.autoStunSlamNewChance);
+                this.autoStunSlamNewAttackDelayMs = getSettingDouble(slam.settings, "new_delay", this.autoStunSlamNewAttackDelayMs);
+                this.autoStunSlamAirCondition = getSettingString(slam.settings, "air_condition", this.autoStunSlamAirCondition);
+                this.autoStunSlamMinFall = getSettingDouble(slam.settings, "min_fall", this.autoStunSlamMinFall);
+                this.autoStunSlamNewAirCondition = getSettingString(slam.settings, "new_air_condition", this.autoStunSlamNewAirCondition);
                 this.autoStunSlamNewMinFall = getSettingDouble(slam.settings, "new_min_fall", this.autoStunSlamNewMinFall);
+                this.autoStunSlamNewAirTimeSec = getSettingDouble(slam.settings, "new_air_time", this.autoStunSlamNewAirTimeSec);
                 this.autoStunSlamNewEnchant = getSettingString(slam.settings, "new_enchant", this.autoStunSlamNewEnchant);
                 this.autoStunSlamNewSilentAim = getSettingBoolean(slam.settings, "new_silent_aim", this.autoStunSlamNewSilentAim);
                 this.autoStunSlamNewRandomizer = getSettingBoolean(slam.settings, "new_randomizer", this.autoStunSlamNewRandomizer);
@@ -2182,6 +2223,8 @@ public class ActivityConfig {
         copy.autoStunSlamMode = this.autoStunSlamMode;
         copy.autoStunSlamDistance = this.autoStunSlamDistance;
         copy.autoStunSlamChance = this.autoStunSlamChance;
+        copy.autoStunSlamAirCondition = this.autoStunSlamAirCondition;
+        copy.autoStunSlamMinFall = this.autoStunSlamMinFall;
         copy.autoStunSlamAirTimeSec = this.autoStunSlamAirTimeSec;
         copy.autoStunSlamAxeDelayMs = this.autoStunSlamAxeDelayMs;
         copy.autoStunSlamAxeRandomizer = this.autoStunSlamAxeRandomizer;
@@ -2196,7 +2239,12 @@ public class ActivityConfig {
         copy.autoStunSlamRandomDelay = this.autoStunSlamRandomDelay;
         copy.autoStunSlamLegitMode = this.autoStunSlamLegitMode;
         copy.autoStunSlamNewDistance = this.autoStunSlamNewDistance;
+        copy.autoStunSlamNewMode = this.autoStunSlamNewMode;
+        copy.autoStunSlamNewChance = this.autoStunSlamNewChance;
+        copy.autoStunSlamNewAttackDelayMs = this.autoStunSlamNewAttackDelayMs;
+        copy.autoStunSlamNewAirCondition = this.autoStunSlamNewAirCondition;
         copy.autoStunSlamNewMinFall = this.autoStunSlamNewMinFall;
+        copy.autoStunSlamNewAirTimeSec = this.autoStunSlamNewAirTimeSec;
         copy.autoStunSlamNewEnchant = this.autoStunSlamNewEnchant;
         copy.autoStunSlamNewSilentAim = this.autoStunSlamNewSilentAim;
         copy.autoStunSlamNewRandomizer = this.autoStunSlamNewRandomizer;
@@ -2520,6 +2568,8 @@ public class ActivityConfig {
                this.autoStunSlamRandomDelay == that.autoStunSlamRandomDelay &&
                Double.compare(this.autoStunSlamDistance, that.autoStunSlamDistance) == 0 &&
                Double.compare(this.autoStunSlamChance, that.autoStunSlamChance) == 0 &&
+               Objects.equals(this.autoStunSlamAirCondition, that.autoStunSlamAirCondition) &&
+               Double.compare(this.autoStunSlamMinFall, that.autoStunSlamMinFall) == 0 &&
                Double.compare(this.autoStunSlamAirTimeSec, that.autoStunSlamAirTimeSec) == 0 &&
                Double.compare(this.autoStunSlamAxeDelayMs, that.autoStunSlamAxeDelayMs) == 0 &&
                this.autoStunSlamAxeRandomizer == that.autoStunSlamAxeRandomizer &&
@@ -2532,7 +2582,12 @@ public class ActivityConfig {
                this.autoStunSlamRestoreRandomizer == that.autoStunSlamRestoreRandomizer &&
                this.autoStunSlamStayOnWeapon == that.autoStunSlamStayOnWeapon &&
                Double.compare(this.autoStunSlamNewDistance, that.autoStunSlamNewDistance) == 0 &&
+               Objects.equals(this.autoStunSlamNewMode, that.autoStunSlamNewMode) &&
+               Double.compare(this.autoStunSlamNewChance, that.autoStunSlamNewChance) == 0 &&
+               Double.compare(this.autoStunSlamNewAttackDelayMs, that.autoStunSlamNewAttackDelayMs) == 0 &&
+               Objects.equals(this.autoStunSlamNewAirCondition, that.autoStunSlamNewAirCondition) &&
                Double.compare(this.autoStunSlamNewMinFall, that.autoStunSlamNewMinFall) == 0 &&
+               Double.compare(this.autoStunSlamNewAirTimeSec, that.autoStunSlamNewAirTimeSec) == 0 &&
                Objects.equals(this.autoStunSlamNewEnchant, that.autoStunSlamNewEnchant) &&
                this.autoStunSlamNewSilentAim == that.autoStunSlamNewSilentAim &&
                this.autoStunSlamNewRandomizer == that.autoStunSlamNewRandomizer &&
@@ -2793,7 +2848,7 @@ public class ActivityConfig {
             autoStunSlamEnabled, autoStunSlamKeybind, autoStunSlamMode, autoStunSlamDistance, autoStunSlamChance
         );
         result = 31 * result + Objects.hash(
-            autoStunSlamAirTimeSec, autoStunSlamAxeDelayMs, autoStunSlamAxeRandomizer, autoStunSlamAxeJitterMs, autoStunSlamMaceDelayMs, autoStunSlamMaceRandomizer, autoStunSlamMaceJitterMs, autoStunSlamEnchantPreference, autoStunSlamRestoreDelayMs, autoStunSlamRestoreRandomizer, autoStunSlamStayOnWeapon, autoStunSlamRandomDelay, autoStunSlamLegitMode, autoStunSlamNewDistance, autoStunSlamNewMinFall, autoStunSlamNewEnchant, autoStunSlamNewSilentAim, autoStunSlamNewRandomizer, autoStunSlamNewJitter, autoStunSlamNewStayOnMace,
+            autoStunSlamAirCondition, autoStunSlamMinFall, autoStunSlamAirTimeSec, autoStunSlamAxeDelayMs, autoStunSlamAxeRandomizer, autoStunSlamAxeJitterMs, autoStunSlamMaceDelayMs, autoStunSlamMaceRandomizer, autoStunSlamMaceJitterMs, autoStunSlamEnchantPreference, autoStunSlamRestoreDelayMs, autoStunSlamRestoreRandomizer, autoStunSlamStayOnWeapon, autoStunSlamRandomDelay, autoStunSlamLegitMode, autoStunSlamNewDistance, autoStunSlamNewMode, autoStunSlamNewChance, autoStunSlamNewAttackDelayMs, autoStunSlamNewAirCondition, autoStunSlamNewMinFall, autoStunSlamNewAirTimeSec, autoStunSlamNewEnchant, autoStunSlamNewSilentAim, autoStunSlamNewRandomizer, autoStunSlamNewJitter, autoStunSlamNewStayOnMace,
             autoPearlCatchEnabled, autoPearlCatchKeybind, autoPearlCatchActionKeybind, autoPearlCatchHorizontalKeybind, autoPearlCatchThrowKeybind, autoPearlCatchAsyncKeybind,
             autoPearlCatchMode, autoPearlCatchDirection, autoPearlCatchThrowDelay, autoPearlCatchRestoreSlot,
             autoPearlCatchRestoreCamera, autoPearlCatchRotationTimeMs, autoPearlCatchLegitMode, autoPearlCatchHorizontalOffset, autoPearlCatchRandomDelay, autoPearlCatchRandomSpreadMs,

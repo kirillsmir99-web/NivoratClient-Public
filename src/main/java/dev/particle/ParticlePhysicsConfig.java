@@ -14,7 +14,9 @@ public final class ParticlePhysicsConfig {
     public static boolean legitMode = false;
     public static int chance = 100;
     public static double triggerDistance = 3.2D;
-    public static double airTimeSec = 0.05D;
+    public static String airCondition = "blocks";
+    public static double minFallDistance = 3.0D;
+    public static double airTimeSec = 1.0D;
     public static boolean randomDelay = true;
     public static double axeJitterMs = 10.0D;
     public static double maceJitterMs = 15.0D;

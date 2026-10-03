@@ -100,8 +100,8 @@ public class OcclusionCacheModule extends NivoratModule {
                             camCurve = 20.0;
                             camRand = 20.0;
                         } else if ("safe".equalsIgnoreCase(val)) {
-                            minD = 85.0;
-                            maxD = 120.0;
+                            minD = 95.0;
+                            maxD = 135.0;
                             chance = 100.0;
                             maxDist = 4.2;
                             pit = true;

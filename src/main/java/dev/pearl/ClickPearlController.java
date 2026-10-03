@@ -16,7 +16,19 @@ import net.minecraft.world.World;
 
 public final class ClickPearlController {
     public enum State { IDLE, OPENING_INVENTORY, CLOSING_INVENTORY, THROWING, WAITING_RETURN, OPENING_RETURN, CLOSING_RETURN }
+    private static ClickPearlController INSTANCE;
     private State state = State.IDLE;
+
+    public ClickPearlController() {
+        INSTANCE = this;
+    }
+
+    public static ClickPearlController getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new ClickPearlController();
+        }
+        return INSTANCE;
+    }
     private ClientPlayerEntity owner;
     private World world;
     private int originalSlot = -1;
@@ -65,7 +77,9 @@ public final class ClickPearlController {
         restoreSelected = ClickPearlConfig.switchBack;
         deadlineMs = now + 4000L;
         lastTriggerTimeMs = now;
+        dev.impact.SurfaceImpactController.recordPearlThrown();
         CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, true);
+        activity.client.diagnostic.CapabilityLogManager.log("click_pearl", "trigger", true, "slot=" + hotbar + " inv=" + inventory);
         try {
             if (inventory >= 9) {
                 sourceInvSlot = inventory;
@@ -122,10 +136,12 @@ public final class ClickPearlController {
             return false;
         }
         ActionResult result = client.interactionManager.interactItem(client.player, hand);
+        dev.impact.SurfaceImpactController.recordPearlThrown();
         if (ClickPearlConfig.swingHand && result instanceof ActionResult.Success success
                 && success.swingSource() == ActionResult.SwingSource.CLIENT) client.player.swingHand(hand);
         boolean accepted = result.isAccepted();
         activity.client.diagnostic.DiagnosticEngine.recordAction("click_pearl", "use_pearl", accepted, "hand=" + hand + " result=" + result);
+        activity.client.diagnostic.CapabilityLogManager.log("click_pearl", "use_pearl", accepted, "hand=" + hand);
         return accepted;
     }
 

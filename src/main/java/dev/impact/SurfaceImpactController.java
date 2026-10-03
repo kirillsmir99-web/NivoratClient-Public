@@ -97,9 +97,19 @@ public final class SurfaceImpactController {
     private long lastCombatWeaponTime = 0L;
     private long lastPearlTime = 0L;
     private long lastWindChargeUseTime = 0L;
+    private static volatile long globalLastPearlTime = 0L;
     private ClientPlayerEntity sessionPlayer;
     private net.minecraft.world.World sessionWorld;
     private boolean cleanupPending;
+    private boolean openedInventoryScreen;
+
+    public static void recordPearlThrown() {
+        globalLastPearlTime = System.currentTimeMillis();
+    }
+
+    public static long getGlobalLastPearlTime() {
+        return globalLastPearlTime;
+    }
 
     public void cleanup() { if (cleanupPending) reset(); }
 
@@ -107,13 +117,18 @@ public final class SurfaceImpactController {
         if (client != null && player != null && client.currentScreen == null) {
             try {
                 client.setScreen(new InventoryScreen(player));
+                openedInventoryScreen = true;
             } catch (Throwable ignored) {}
         }
     }
 
     private void closeInventoryScreen(MinecraftClient client) {
+        if (!openedInventoryScreen) {
+            return;
+        }
+        openedInventoryScreen = false;
         if (client != null) {
-            if (client.currentScreen != null) {
+            if (client.currentScreen instanceof InventoryScreen) {
                 try {
                     client.currentScreen.close();
                 } catch (Throwable ignored) {}
@@ -130,14 +145,31 @@ public final class SurfaceImpactController {
     }
 
     public boolean ownsInventoryScreen(MinecraftClient client) {
-        return client != null && client.currentScreen instanceof InventoryScreen && (swappedFromInventory || state != State.IDLE);
+        return openedInventoryScreen && state != State.IDLE && client != null && client.currentScreen instanceof InventoryScreen;
+    }
+
+    public boolean isBusy() {
+        return state != State.IDLE || swappedFromInventory || cleanupPending;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public boolean isSwappedFromInventory() {
+        return swappedFromInventory;
     }
 
     public void reset() {
+        if (state == State.IDLE && !swappedFromInventory && !cleanupPending && !openedInventoryScreen && originalSlot < 0 && selectedDropSlot < 0) {
+            sessionPlayer = null;
+            sessionWorld = null;
+            return;
+        }
         MinecraftClient client = MinecraftClient.getInstance();
         boolean sameSession = client != null && client.player != null
                 && client.player == sessionPlayer && client.world == sessionWorld;
-        if (sameSession && client.currentScreen instanceof InventoryScreen) {
+        if (sameSession && openedInventoryScreen && client.currentScreen instanceof InventoryScreen) {
             closeInventoryScreen(client);
         }
         if (swappedFromInventory && sourceInvSlot >= 9 && targetHotbarIndex >= 0) {
@@ -174,6 +206,7 @@ public final class SurfaceImpactController {
         sourceInvSlot = -1;
         targetHotbarIndex = -1;
         swappedFromInventory = false;
+        openedInventoryScreen = false;
         actionTimeMs = 0L;
         dropTimer = 0;
         pickupRetryCounter = 0;
@@ -305,6 +338,18 @@ public final class SurfaceImpactController {
     private boolean isExcluded(ClientPlayerEntity player) {
         long now = System.currentTimeMillis();
 
+        if (now - globalLastPearlTime < 2500L) {
+            return true;
+        }
+
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) {
+            return true;
+        }
+
+        if (dev.pearl.ClickPearlController.getInstance().getState() != dev.pearl.ClickPearlController.State.IDLE) {
+            return true;
+        }
+
         if (now - lastWindChargeUseTime < 2000L) {
             return true;
         }
@@ -407,6 +452,10 @@ public final class SurfaceImpactController {
             return;
         }
 
+        if (client.currentScreen != null) {
+            return;
+        }
+
         if (player.isOnGround() || player.getVelocity().y >= -0.35) {
             return;
         }
@@ -440,7 +489,7 @@ public final class SurfaceImpactController {
         }
 
         double estimatedTotalFall = player.fallDistance + distToGround;
-        if (estimatedTotalFall < Math.max(3.0, (double) SurfaceImpactConfig.fallThreshold)) {
+        if (estimatedTotalFall < Math.max(3.5, (double) SurfaceImpactConfig.fallThreshold)) {
             return;
         }
 
@@ -849,7 +898,7 @@ public final class SurfaceImpactController {
     }
 
     private void startSwitchBack() {
-        if (swappedFromInventory && sourceInvSlot >= 9 && targetHotbarIndex >= 0) {
+        if (SurfaceImpactConfig.switchBack && swappedFromInventory && sourceInvSlot >= 9 && targetHotbarIndex >= 0) {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null && client.player != null) {
                 openInventoryScreen(client, client.player);

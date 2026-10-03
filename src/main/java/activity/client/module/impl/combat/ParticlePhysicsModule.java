@@ -41,11 +41,11 @@ public class ParticlePhysicsModule extends NivoratModule {
 
         var swapTypeSetting = registerEnum("swap_type", Text.translatable("activity.setting.combat.swap_type"),
                 Text.translatable("activity.setting.combat.swap_type.desc"), SettingGroup.GENERAL,
-                List.of("old", "new"), "old",
+                List.of("new", "old"), "new",
                 opt -> Text.translatable("activity.dropdown.swap_type." + opt),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && "new".equals(c.autoMaceSwapType) ? "new" : "old";
+                    return c != null && "old".equals(c.autoMaceSwapType) ? "old" : "new";
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();

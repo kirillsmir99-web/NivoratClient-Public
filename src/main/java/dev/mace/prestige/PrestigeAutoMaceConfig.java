@@ -16,6 +16,7 @@ public final class PrestigeAutoMaceConfig {
     public boolean stayOnMace = false;
     public boolean silentAim = true;
     public double silentAimRange = 4.0;
+    public double predictDistance = 4.0;
     public boolean movementFix = true;
     public boolean breach = true;
     public boolean shieldBreak = true;
@@ -39,6 +40,7 @@ public final class PrestigeAutoMaceConfig {
         this.stayOnMace = false;
         this.silentAim = true;
         this.silentAimRange = 4.0;
+        this.predictDistance = 4.0;
         this.movementFix = true;
         this.breach = true;
         this.shieldBreak = true;

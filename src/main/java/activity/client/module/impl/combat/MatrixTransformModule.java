@@ -43,11 +43,11 @@ public class MatrixTransformModule extends NivoratModule {
 
         var presetSetting = registerEnum("preset", Text.translatable("activity.setting.combat.slam_preset"),
                 Text.translatable("activity.setting.combat.slam_preset.desc"), SettingGroup.GENERAL,
-                List.of("old", "new"), "old",
+                List.of("new", "old"), "new",
                 opt -> Text.translatable("activity.dropdown.slam_preset." + opt),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && "new".equals(c.autoStunSlamPreset) ? "new" : "old";
+                    return c != null && "old".equals(c.autoStunSlamPreset) ? "old" : "new";
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -77,6 +77,25 @@ public class MatrixTransformModule extends NivoratModule {
                     }
                 }
         ).visibleWhen(presetSetting, "old");
+
+        registerEnum("new_mode", Text.translatable("activity.setting.combat.new_stage1_mode"),
+                Text.translatable("activity.setting.combat.new_stage1_mode.desc"), SettingGroup.GENERAL,
+                List.of("full_auto", "semi_auto"), "full_auto",
+                opt -> Text.translatable("activity.dropdown.breaker." + opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoStunSlamNewMode : "full_auto";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoStunSlamNewMode = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(presetSetting, "new");
+
 
         registerNumber("distance", Text.translatable("activity.setting.combat.stage1_distance"),
                 Text.translatable("activity.setting.combat.stage1_distance.desc"), SettingGroup.BEHAVIOR,
@@ -112,12 +131,47 @@ public class MatrixTransformModule extends NivoratModule {
                 }
         ).visibleWhen(presetSetting, "old");
 
-        registerNumber("air_time", Text.translatable("activity.setting.combat.stage1_air_time"),
-                Text.translatable("activity.setting.combat.stage1_air_time.desc"), SettingGroup.BEHAVIOR,
-                0.0, 3.0, 0.05, " s", false, 0.05,
+        var airConditionSetting = registerEnum("air_condition", Text.translatable("activity.setting.combat.stage1_air_condition"),
+                Text.translatable("activity.setting.combat.stage1_air_condition.desc"), SettingGroup.BEHAVIOR,
+                List.of("blocks", "time", "both", "any"), "blocks",
+                opt -> Text.translatable("activity.dropdown.air_condition." + opt),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamAirTimeSec : 0.05;
+                    return c != null ? c.autoStunSlamAirCondition : "blocks";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoStunSlamAirCondition = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(presetSetting, "old");
+
+        registerNumber("min_fall", Text.translatable("activity.setting.combat.stage1_fall"),
+                Text.translatable("activity.setting.combat.stage1_fall.desc"), SettingGroup.BEHAVIOR,
+                0.0, 10.0, 0.1, " бл.", false, 3.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoStunSlamMinFall : 3.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoStunSlamMinFall = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(airConditionSetting, val -> "blocks".equalsIgnoreCase(val) || "both".equalsIgnoreCase(val) || "any".equalsIgnoreCase(val));
+
+        registerNumber("air_time", Text.translatable("activity.setting.combat.stage1_air_time"),
+                Text.translatable("activity.setting.combat.stage1_air_time.desc"), SettingGroup.BEHAVIOR,
+                0.0, 5.0, 0.05, " s", false, 1.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoStunSlamAirTimeSec : 1.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -127,7 +181,7 @@ public class MatrixTransformModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(presetSetting, "old");
+        ).visibleWhen(airConditionSetting, val -> "time".equalsIgnoreCase(val) || "both".equalsIgnoreCase(val) || "any".equalsIgnoreCase(val));
 
         registerNumber("axe_delay", Text.translatable("activity.setting.combat.stage2_axe_delay"),
                 Text.translatable("activity.setting.combat.stage2_axe_delay.desc"), SettingGroup.BEHAVIOR,
@@ -283,17 +337,86 @@ public class MatrixTransformModule extends NivoratModule {
                 }
         ).visibleWhen(presetSetting, "new");
 
-        registerNumber("new_min_fall", Text.translatable("activity.setting.combat.new_stage1_fall"),
-                Text.translatable("activity.setting.combat.new_stage1_fall.desc"), SettingGroup.BEHAVIOR,
-                0.5, 5.0, 0.05, " бл.", false, 1.3,
+        registerNumber("new_chance", Text.translatable("activity.setting.combat.new_stage1_chance"),
+                Text.translatable("activity.setting.combat.new_stage1_chance.desc"), SettingGroup.BEHAVIOR,
+                10.0, 100.0, 5.0, "%", true, 100.0,
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamNewMinFall : 1.3;
+                    return c != null ? c.autoStunSlamNewChance : 100.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoStunSlamNewChance = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(presetSetting, "new");
+
+        var newAirConditionSetting = registerEnum("new_air_condition", Text.translatable("activity.setting.combat.new_stage1_air_condition"),
+                Text.translatable("activity.setting.combat.new_stage1_air_condition.desc"), SettingGroup.BEHAVIOR,
+                List.of("blocks", "time", "both", "any"), "blocks",
+                opt -> Text.translatable("activity.dropdown.air_condition." + opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoStunSlamNewAirCondition : "blocks";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoStunSlamNewAirCondition = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(presetSetting, "new");
+
+        registerNumber("new_min_fall", Text.translatable("activity.setting.combat.new_stage1_fall"),
+                Text.translatable("activity.setting.combat.new_stage1_fall.desc"), SettingGroup.BEHAVIOR,
+                0.0, 10.0, 0.1, " бл.", false, 3.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoStunSlamNewMinFall : 3.0;
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoStunSlamNewMinFall = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(newAirConditionSetting, val -> "blocks".equalsIgnoreCase(val) || "both".equalsIgnoreCase(val) || "any".equalsIgnoreCase(val));
+
+        registerNumber("new_air_time", Text.translatable("activity.setting.combat.new_stage1_air_time"),
+                Text.translatable("activity.setting.combat.new_stage1_air_time.desc"), SettingGroup.BEHAVIOR,
+                0.0, 5.0, 0.05, " s", false, 1.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoStunSlamNewAirTimeSec : 1.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoStunSlamNewAirTimeSec = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        ).visibleWhen(newAirConditionSetting, val -> "time".equalsIgnoreCase(val) || "both".equalsIgnoreCase(val) || "any".equalsIgnoreCase(val));
+
+        registerNumber("new_delay", Text.translatable("activity.setting.combat.new_stage2_delay"),
+                Text.translatable("activity.setting.combat.new_stage2_delay.desc"), SettingGroup.BEHAVIOR,
+                0.0, 100.0, 5.0, " ms", true, 0.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoStunSlamNewAttackDelayMs : 0.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoStunSlamNewAttackDelayMs = val;
                         syncControllerConfig(c);
                         ActivityConfigManager.markDirty();
                     }
@@ -463,6 +586,8 @@ public class MatrixTransformModule extends NivoratModule {
         ParticlePhysicsConfig.mode = "semi_auto".equals(c.autoStunSlamMode) ? ParticlePhysicsConfig.MODE_SEMI_AUTO : ParticlePhysicsConfig.MODE_FULL_AUTO;
         ParticlePhysicsConfig.triggerDistance = c.autoStunSlamDistance;
         ParticlePhysicsConfig.chance = (int) c.autoStunSlamChance;
+        ParticlePhysicsConfig.airCondition = c.autoStunSlamAirCondition;
+        ParticlePhysicsConfig.minFallDistance = c.autoStunSlamMinFall;
         ParticlePhysicsConfig.airTimeSec = c.autoStunSlamAirTimeSec;
         ParticlePhysicsConfig.axeDelayMs = (int) c.autoStunSlamAxeDelayMs;
         ParticlePhysicsConfig.axeJitterMs = c.autoStunSlamAxeRandomizer ? c.autoStunSlamAxeJitterMs : 0.0;
@@ -482,8 +607,13 @@ public class MatrixTransformModule extends NivoratModule {
 
         PrestigeStunSlamConfig pc = PrestigeStunSlamController.getInstance().getConfig();
         pc.enabled = c.autoStunSlamEnabled && isNew;
+        pc.mode = c.autoStunSlamNewMode;
+        pc.chance = c.autoStunSlamNewChance;
+        pc.attackDelayMs = c.autoStunSlamNewAttackDelayMs;
         pc.triggerDistance = c.autoStunSlamNewDistance;
+        pc.airCondition = c.autoStunSlamNewAirCondition;
         pc.minFallDistance = c.autoStunSlamNewMinFall;
+        pc.airTimeSec = c.autoStunSlamNewAirTimeSec;
         pc.enchantMode = c.autoStunSlamNewEnchant;
         pc.silentAim = c.autoStunSlamNewSilentAim;
         pc.randomizer = c.autoStunSlamNewRandomizer;

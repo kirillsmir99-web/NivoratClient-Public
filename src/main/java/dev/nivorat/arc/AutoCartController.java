@@ -1056,7 +1056,7 @@ public final class AutoCartController {
         if (MorrowConfig.preset == MorrowConfig.PRESET_FAST) {
             return 45;
         } else if (MorrowConfig.preset == MorrowConfig.PRESET_SAFE) {
-            return 90;
+            return 110;
         }
         return 65;
     }

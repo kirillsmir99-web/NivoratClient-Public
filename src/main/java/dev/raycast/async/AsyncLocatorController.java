@@ -13,6 +13,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -44,6 +45,7 @@ public final class AsyncLocatorController {
     private float targetYaw = 0.0F;
     private float targetPitch = 0.0F;
     private boolean thrown = false;
+    private int restoreTimer = 0;
 
     private AsyncLocatorController() {
     }
@@ -107,8 +109,12 @@ public final class AsyncLocatorController {
                 if (silentThrowEndTick < 0 && hasDelayElapsed(getDelay())) {
                     if (client.player.getMainHandStack().isOf(Items.ENDER_PEARL)) {
                         if (client.interactionManager != null) {
-                            client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
+                            ActionResult res = client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
+                            if (res != null && res.isAccepted()) {
+                                client.player.swingHand(Hand.MAIN_HAND);
+                            }
                         }
+                        dev.impact.SurfaceImpactController.recordPearlThrown();
                         Vec3d vel = client.player.getVelocity();
                         pearlStartPos = new Vec3d(client.player.getX(), client.player.getY(), client.player.getZ());
                         pearlInitialVel = AsyncMath.getDirection(client.player.getYaw(), client.player.getPitch())
@@ -129,6 +135,10 @@ public final class AsyncLocatorController {
                 }
             }
             case 4 -> {
+                if (client.player != null && client.player.getItemCooldownManager().isCoolingDown(Items.WIND_CHARGE.getDefaultStack())) {
+                    reset();
+                    break;
+                }
                 int slot = findItemSlot(Items.WIND_CHARGE);
                 if (slot < 0) {
                     reset();
@@ -144,7 +154,12 @@ public final class AsyncLocatorController {
                 }
             }
             case 5 -> aimAndThrow();
-            case 6 -> reset();
+            case 6 -> {
+                restoreTimer++;
+                if (restoreTimer >= 2) {
+                    reset();
+                }
+            }
         }
     }
 
@@ -178,8 +193,13 @@ public final class AsyncLocatorController {
 
     private void performThrow(boolean silent) {
         if (client.player == null || client.interactionManager == null) return;
+        if (client.player.getItemCooldownManager().isCoolingDown(Items.WIND_CHARGE.getDefaultStack())) {
+            reset();
+            return;
+        }
         ActivityConfig cfg = ActivityConfigManager.getConfig();
         boolean legit = cfg == null || cfg.autoPearlCatchLegitMode;
+        ActionResult result;
         if (silent) {
             if (legit && client.getNetworkHandler() != null) {
                 float sendYaw = silentYaw;
@@ -196,20 +216,29 @@ public final class AsyncLocatorController {
             float realPitch = client.player.getPitch();
             client.player.setYaw(silentYaw);
             client.player.setPitch(silentPitch);
-            client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
+            result = client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
             client.player.setYaw(realYaw);
             client.player.setPitch(realPitch);
             silentThrowEndTick = client.player.age + 2;
         } else {
-            client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
+            result = client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
+        }
+        if (result != null && result.isAccepted()) {
+            client.player.swingHand(Hand.MAIN_HAND);
         }
         thrown = true;
+        restoreTimer = 0;
         state = 6;
         updateTime();
     }
 
     private void start() {
         if (client == null || client.player == null) return;
+        if (dev.pearl.ClickPearlController.getInstance().getState() != dev.pearl.ClickPearlController.State.IDLE) return;
+        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) return;
+        if (System.currentTimeMillis() - dev.impact.SurfaceImpactController.getGlobalLastPearlTime() < 2500L) return;
+        if (client.player.getItemCooldownManager().isCoolingDown(Items.ENDER_PEARL.getDefaultStack())
+                || client.player.getItemCooldownManager().isCoolingDown(Items.WIND_CHARGE.getDefaultStack())) return;
         if (findItemSlot(Items.ENDER_PEARL) >= 0 && findItemSlot(Items.WIND_CHARGE) >= 0) {
             savedSlot = client.player.getInventory().getSelectedSlot();
             pearlThrowTick = -1;
@@ -227,6 +256,7 @@ public final class AsyncLocatorController {
         }
         state = 0;
         savedSlot = -1;
+        restoreTimer = 0;
         aimAttempts = 0;
         thrown = false;
         pearlThrowTick = -1;
@@ -249,10 +279,7 @@ public final class AsyncLocatorController {
 
     private void selectSlot(int slot) {
         if (client == null || client.player == null || client.interactionManager == null) return;
-        client.player.getInventory().setSelectedSlot(slot);
-        if (client.interactionManager instanceof PipelineInteractionManagerAccessor accessor) {
-            accessor.invokeSyncSelectedSlot();
-        }
+        net.fabricmc.pack.api.SafeSlotManager.selectSlot(client, slot);
     }
 
     private int findItemSlot(Item item) {

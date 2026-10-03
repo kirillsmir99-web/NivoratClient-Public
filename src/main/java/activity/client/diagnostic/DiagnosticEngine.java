@@ -2,6 +2,7 @@ package activity.client.diagnostic;
 
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleRegistry;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.*;
 
@@ -21,11 +22,28 @@ public final class DiagnosticEngine {
     private static final int MAX_ERRORS = 100;
     private static final int MAX_PACKETS = 500;
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter FULL_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+    private static final File CRASH_LOG_FILE = new File("logs", "crash_diagnostic.log");
 
     private static volatile boolean active = true;
     private static long lastFrameTimeNs = 0L;
     private static long frameCount = 0L;
     private static double rollingFps = 60.0;
+
+    static {
+        try {
+            Thread.UncaughtExceptionHandler orig = Thread.getDefaultUncaughtExceptionHandler();
+            Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+                try {
+                    recordError("crash_handler", t.getName(), e);
+                    writeCrashReport(t, e);
+                } catch (Throwable ignored) {}
+                if (orig != null) {
+                    orig.uncaughtException(t, e);
+                }
+            });
+        } catch (Throwable ignored) {}
+    }
 
     public record FpsDropEvent(long timestampMs, double fps, long frameTimeMs, String activeModules, long usedMemMb, long maxMemMb) {}
     public record ActionEvent(long timestampMs, String module, String action, boolean success, String details) {}
@@ -86,7 +104,7 @@ public final class DiagnosticEngine {
         String msg = error != null && error.getMessage() != null ? error.getMessage() : "No message";
         StringBuilder trace = new StringBuilder();
         if (error != null) {
-            for (int i = 0; i < Math.min(8, error.getStackTrace().length); i++) {
+            for (int i = 0; i < Math.min(16, error.getStackTrace().length); i++) {
                 trace.append(" at ").append(error.getStackTrace()[i].toString()).append("\n");
             }
         }
@@ -94,6 +112,59 @@ public final class DiagnosticEngine {
         while (errorHistory.size() > MAX_ERRORS) {
             errorHistory.pollFirst();
         }
+        writeErrorLog(module, phase, type, msg, trace.toString());
+    }
+
+    private static synchronized void writeErrorLog(String module, String phase, String type, String msg, String trace) {
+        try {
+            File parent = CRASH_LOG_FILE.getParentFile();
+            if (parent != null && !parent.exists()) parent.mkdirs();
+            String time = FULL_TIME_FMT.format(Instant.now());
+            String entry = String.format(Locale.ROOT, "[%s] [ERROR] [%s:%s] %s: %s%n%s", time, module, phase, type, msg, trace);
+            Files.writeString(CRASH_LOG_FILE.toPath(), entry + System.lineSeparator(), StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (Throwable ignored) {}
+    }
+
+    private static synchronized void writeCrashReport(Thread t, Throwable e) {
+        try {
+            File parent = CRASH_LOG_FILE.getParentFile();
+            if (parent != null && !parent.exists()) parent.mkdirs();
+            String time = FULL_TIME_FMT.format(Instant.now());
+            StringBuilder sb = new StringBuilder();
+            sb.append("\n==================== CRASH / UNCAUGHT EXCEPTION ====================\n");
+            sb.append("Time: ").append(time).append("\n");
+            sb.append("Thread: ").append(t != null ? t.getName() : "unknown").append("\n");
+            sb.append("Exception: ").append(e != null ? e.getClass().getName() : "null").append(": ").append(e != null ? e.getMessage() : "null").append("\n");
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.player != null) {
+                sb.append("Player Pos: ").append(String.format(Locale.ROOT, "%.2f, %.2f, %.2f", mc.player.getX(), mc.player.getY(), mc.player.getZ())).append("\n");
+                sb.append("Player Yaw/Pitch: ").append(String.format(Locale.ROOT, "%.2f / %.2f", mc.player.getYaw(), mc.player.getPitch())).append("\n");
+                sb.append("Held Slot: ").append(mc.player.getInventory().getSelectedSlot()).append(" (").append(mc.player.getMainHandStack().getItem().toString()).append(")\n");
+                sb.append("Health: ").append(mc.player.getHealth()).append(" / ").append(mc.player.getMaxHealth()).append("\n");
+            }
+            if (mc != null && mc.world != null) {
+                sb.append("Dimension: ").append(mc.world.getRegistryKey().getValue().toString()).append("\n");
+            }
+            sb.append("Recent Actions (last 10):\n");
+            var actList = new ArrayList<>(actionHistory);
+            int startIdx = Math.max(0, actList.size() - 10);
+            for (int i = startIdx; i < actList.size(); i++) {
+                ActionEvent act = actList.get(i);
+                sb.append("  [").append(TIME_FMT.format(Instant.ofEpochMilli(act.timestampMs()))).append("] ")
+                  .append(act.module()).append(":").append(act.action())
+                  .append(" success=").append(act.success()).append(" ").append(act.details()).append("\n");
+            }
+            sb.append("Stacktrace:\n");
+            if (e != null) {
+                java.io.StringWriter sw = new java.io.StringWriter();
+                e.printStackTrace(new java.io.PrintWriter(sw));
+                sb.append(sw.toString());
+            }
+            sb.append("====================================================================\n\n");
+            Files.writeString(CRASH_LOG_FILE.toPath(), sb.toString(), StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (Throwable ignored) {}
     }
 
     public static void recordPacket(Packet<?> packet) {

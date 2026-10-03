@@ -33,7 +33,7 @@ public class AutoMaceGuiBridgeTest {
         assertNotNull(mod, "AutoMace module must be registered");
 
         ActivityConfig config = ActivityConfigManager.getConfig();
-        assertEquals("old", config.autoMaceSwapType, "Default swap type must be old");
+        assertEquals("new", config.autoMaceSwapType, "Default swap type must be new");
 
         var models = SettingsBridge.models(mod);
         assertFalse(models.isEmpty(), "SettingsBridge must produce setting models for AutoMace");
@@ -51,19 +51,19 @@ public class AutoMaceGuiBridgeTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(restoreDelayModel, "restore_delay setting must exist in GUI models");
-        assertTrue(restoreDelayModel.isVisible(), "restore_delay must be visible when swap type is old");
+        assertFalse(restoreDelayModel.isVisible(), "restore_delay must be hidden when swap type is new");
 
         EnumSetting swapSetting = (EnumSetting) mod.getSetting("swap_type");
         assertNotNull(swapSetting);
-        assertEquals("old", swapSetting.get());
-
-        swapSetting.set("new");
-        assertEquals("new", config.autoMaceSwapType);
-        assertFalse(restoreDelayModel.isVisible(), "restore_delay must be hidden when swap type is new");
+        assertEquals("new", swapSetting.get());
 
         swapSetting.set("old");
         assertEquals("old", config.autoMaceSwapType);
         assertTrue(restoreDelayModel.isVisible(), "restore_delay must be visible when swap type is old");
+
+        swapSetting.set("new");
+        assertEquals("new", config.autoMaceSwapType);
+        assertFalse(restoreDelayModel.isVisible(), "restore_delay must be hidden when swap type is new");
     }
 
     @Test

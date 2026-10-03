@@ -130,19 +130,19 @@ public class CombatModulesMigrationTest {
         assertEquals(120, RedstoneOptimizerConfig.restoreDelayMs);
 
         EnumSetting swapSetting = (EnumSetting) mod.getSetting("swap_type");
-        assertEquals(List.of("old", "new"), swapSetting.getOptions());
-        assertEquals("old", swapSetting.get());
-        assertEquals("old", config.autoMaceSwapType);
-
-        swapSetting.set("new");
+        assertEquals(List.of("new", "old"), swapSetting.getOptions());
+        assertEquals("new", swapSetting.get());
         assertEquals("new", config.autoMaceSwapType);
-        assertTrue(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().enabled);
-        assertFalse(RedstoneOptimizerConfig.enabled);
 
         swapSetting.set("old");
         assertEquals("old", config.autoMaceSwapType);
         assertFalse(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().enabled);
         assertTrue(RedstoneOptimizerConfig.enabled);
+
+        swapSetting.set("new");
+        assertEquals("new", config.autoMaceSwapType);
+        assertTrue(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().enabled);
+        assertFalse(RedstoneOptimizerConfig.enabled);
     }
 
     @Test
@@ -298,6 +298,8 @@ public class CombatModulesMigrationTest {
         assertNotNull(mod.getSetting("mode"));
         assertNotNull(mod.getSetting("distance"));
         assertNotNull(mod.getSetting("chance"));
+        assertNotNull(mod.getSetting("air_condition"));
+        assertNotNull(mod.getSetting("min_fall"));
         assertNotNull(mod.getSetting("air_time"));
         assertNotNull(mod.getSetting("axe_delay"));
         assertNotNull(mod.getSetting("mace_delay"));

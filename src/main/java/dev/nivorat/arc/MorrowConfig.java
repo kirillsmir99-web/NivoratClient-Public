@@ -112,8 +112,8 @@ public final class MorrowConfig {
                 maxDistance = 4.2D;
                 allowPitPlacement = true;
                 randomDelay = true;
-                minDelayMs = 85;
-                maxDelayMs = 120;
+                minDelayMs = 95;
+                maxDelayMs = 135;
                 cameraMode = "auto";
                 autoCamera = true;
                 cameraSmoothnessMs = 180;

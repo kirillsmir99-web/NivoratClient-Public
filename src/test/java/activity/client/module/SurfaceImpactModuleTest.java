@@ -154,4 +154,16 @@ class SurfaceImpactModuleTest {
         assertEquals(30.0, cfg.waterDropPitchThreshold);
         assertEquals("9", cfg.waterDropTargetSlot);
     }
+
+    @Test
+    @DisplayName("WaterDrop: Controller idle state and inventory screen ownership")
+    void testInventoryScreenOwnership() {
+        SurfaceImpactModule mod = (SurfaceImpactModule) ModuleRegistry.get(SurfaceImpactModule.ID);
+        assertNotNull(mod);
+        SurfaceImpactController ctrl = mod.getController();
+        assertNotNull(ctrl);
+        assertFalse(ctrl.isBusy());
+        assertFalse(ctrl.ownsInventoryScreen(null));
+        assertFalse(mod.canTickWhileScreenOpen(null));
+    }
 }
