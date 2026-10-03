@@ -136,13 +136,11 @@ public class CombatModulesMigrationTest {
 
         swapSetting.set("old");
         assertEquals("old", config.autoMaceSwapType);
-        assertFalse(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().enabled);
         assertTrue(RedstoneOptimizerConfig.enabled);
 
         swapSetting.set("new");
         assertEquals("new", config.autoMaceSwapType);
-        assertTrue(dev.mace.prestige.PrestigeAutoMaceController.getInstance().getConfig().enabled);
-        assertFalse(RedstoneOptimizerConfig.enabled);
+        assertTrue(RedstoneOptimizerConfig.enabled);
     }
 
     @Test

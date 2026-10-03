@@ -7,8 +7,6 @@ import activity.client.module.api.ModuleCategory;
 import activity.client.module.api.ModuleMetadata;
 import activity.client.module.api.NivoratModule;
 import activity.client.module.setting.SettingGroup;
-import dev.mace.prestige.PrestigeAutoMaceConfig;
-import dev.mace.prestige.PrestigeAutoMaceController;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,10 +34,10 @@ public class ParticlePhysicsModule extends NivoratModule {
                 .version("2.5.0")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)
-                .aliases("automace", "mace", "булава", "автобулава", "авто-булава", "авто булава", "свап", "swap")
+                .aliases("automace", "mace", "булава", "автобулава", "авто-булава", "авто булава", "свап", "swap", "bridge", "bridge swap", "бридж")
                 .build();
 
-        var swapTypeSetting = registerEnum("swap_type", Text.translatable("activity.setting.combat.swap_type"),
+        registerEnum("swap_type", Text.translatable("activity.setting.combat.swap_type"),
                 Text.translatable("activity.setting.combat.swap_type.desc"), SettingGroup.GENERAL,
                 List.of("new", "old"), "new",
                 opt -> Text.translatable("activity.dropdown.swap_type." + opt),
@@ -74,7 +72,7 @@ public class ParticlePhysicsModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(swapTypeSetting, "old");
+        );
 
         registerEnum("enchant_mode", Text.translatable("activity.setting.combat.enchant_mode"),
                 Text.translatable("activity.setting.combat.enchant_mode.desc"), SettingGroup.GENERAL,
@@ -110,24 +108,7 @@ public class ParticlePhysicsModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(swapTypeSetting, "old");
-
-        registerBoolean("auto_switch", Text.translatable("activity.setting.combat.auto_switch"),
-                Text.translatable("activity.setting.combat.auto_switch.desc"), SettingGroup.GENERAL,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceAutoSwitch;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceAutoSwitch = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
+        );
 
         registerNumber("restore_delay", Text.translatable("activity.setting.combat.restore_delay"),
                 Text.translatable("activity.setting.combat.restore_delay.desc"), SettingGroup.BEHAVIOR,
@@ -144,7 +125,7 @@ public class ParticlePhysicsModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(swapTypeSetting, "old");
+        );
 
         registerNumber("miss_chance", Text.translatable("activity.setting.combat.miss_chance"),
                 Text.translatable("activity.setting.combat.miss_chance.desc"), SettingGroup.BEHAVIOR,
@@ -161,75 +142,7 @@ public class ParticlePhysicsModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(swapTypeSetting, "old");
-
-        registerNumber("min_fall_distance", Text.translatable("activity.setting.combat.min_fall_distance"),
-                Text.translatable("activity.setting.combat.min_fall_distance.desc"), SettingGroup.BEHAVIOR,
-                0.5, 5.0, 0.05, " бл.", false, 1.25,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoMaceMinFallDistance : 1.25;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceMinFallDistance = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerNumber("silent_aim_range", Text.translatable("activity.setting.combat.silent_aim_range"),
-                Text.translatable("activity.setting.combat.silent_aim_range.desc"), SettingGroup.BEHAVIOR,
-                2.0, 20.0, 0.5, " бл.", false, 4.0,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoMaceSilentAimRange : 4.0;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceSilentAimRange = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerNumber("hitbox_expand", Text.translatable("activity.setting.combat.hitbox_expand"),
-                Text.translatable("activity.setting.combat.hitbox_expand.desc"), SettingGroup.BEHAVIOR,
-                1.0, 5.0, 0.1, "x", false, 1.0,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoMaceHitboxExpand : 1.0;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceHitboxExpand = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerNumber("attack_delay", Text.translatable("activity.setting.combat.attack_delay"),
-                Text.translatable("activity.setting.combat.attack_delay.desc"), SettingGroup.BEHAVIOR,
-                20.0, 250.0, 5.0, " ms", true, 60.0,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoMaceAttackDelayMs : 60.0;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceAttackDelayMs = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
+        );
 
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
@@ -246,7 +159,7 @@ public class ParticlePhysicsModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(swapTypeSetting, "old");
+        );
 
         registerBoolean("legit_mode", Text.translatable("activity.setting.combat.legit_mode"),
                 Text.translatable("activity.setting.combat.legit_mode.desc"), SettingGroup.ADVANCED,
@@ -263,133 +176,12 @@ public class ParticlePhysicsModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(swapTypeSetting, "old");
-
-        registerBoolean("silent_aim", Text.translatable("activity.setting.combat.silent_aim"),
-                Text.translatable("activity.setting.combat.silent_aim.desc"), SettingGroup.ADVANCED,
-                false,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceSilentAim;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceSilentAim = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerBoolean("movement_fix", Text.translatable("activity.setting.combat.movement_fix"),
-                Text.translatable("activity.setting.combat.movement_fix.desc"), SettingGroup.ADVANCED,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceMovementFix;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceMovementFix = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerBoolean("stay_on_mace", Text.translatable("activity.setting.combat.stay_on_mace"),
-                Text.translatable("activity.setting.combat.stay_on_mace.desc"), SettingGroup.ADVANCED,
-                false,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceStayOnMace;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceStayOnMace = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerBoolean("target_players", Text.translatable("activity.setting.combat.target_players"),
-                Text.translatable("activity.setting.combat.target_players.desc"), SettingGroup.ADVANCED,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceTargetPlayers;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceTargetPlayers = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerBoolean("target_mobs", Text.translatable("activity.setting.combat.target_mobs"),
-                Text.translatable("activity.setting.combat.target_mobs.desc"), SettingGroup.ADVANCED,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceTargetMobs;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceTargetMobs = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerBoolean("human_mode", Text.translatable("activity.setting.combat.human_mode"),
-                Text.translatable("activity.setting.combat.human_mode.desc"), SettingGroup.ADVANCED,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceHumanMode;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceHumanMode = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
-
-        registerBoolean("random_jitter", Text.translatable("activity.setting.combat.random_jitter"),
-                Text.translatable("activity.setting.combat.random_jitter.desc"), SettingGroup.ADVANCED,
-                true,
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && c.autoMaceRandomJitter;
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceRandomJitter = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(swapTypeSetting, "new");
+        );
     }
 
     private void syncEngineConfig(ActivityConfig c) {
         if (c == null) return;
-        boolean isNew = "new".equals(c.autoMaceSwapType);
-
-        RedstoneOptimizerConfig.enabled = c.autoMaceEnabled && !isNew;
+        RedstoneOptimizerConfig.enabled = c.autoMaceEnabled;
         RedstoneOptimizerConfig.restoreDelayMs = (int) c.autoMaceRestoreDelayMs;
         RedstoneOptimizerConfig.randomDelay = c.autoMaceRandomDelay;
         if (c.autoMaceRandomDelay) {
@@ -418,23 +210,6 @@ public class ParticlePhysicsModule extends NivoratModule {
         } else {
             RedstoneOptimizerConfig.missBehavior = RedstoneOptimizerConfig.MISS_SWORD_HIT;
         }
-
-        PrestigeAutoMaceConfig pc = PrestigeAutoMaceController.getInstance().getConfig();
-        pc.enabled = c.autoMaceEnabled && isNew;
-        pc.minFallDistance = c.autoMaceMinFallDistance;
-        pc.autoSwitch = c.autoMaceAutoSwitch;
-        pc.silentAim = c.autoMaceSilentAim;
-        pc.silentAimRange = c.autoMaceSilentAimRange;
-        pc.movementFix = c.autoMaceMovementFix;
-        pc.hitbox = false;
-        pc.hitboxExpand = c.autoMaceHitboxExpand;
-        pc.targetPlayers = c.autoMaceTargetPlayers;
-        pc.targetMobs = c.autoMaceTargetMobs;
-        pc.stayOnMace = c.autoMaceStayOnMace;
-        pc.attackDelayMs = c.autoMaceAttackDelayMs;
-        pc.humanMode = c.autoMaceHumanMode;
-        pc.randomJitter = c.autoMaceRandomJitter;
-        pc.enchantMode = c.autoMaceEnchantMode;
     }
 
     @Override
@@ -445,35 +220,26 @@ public class ParticlePhysicsModule extends NivoratModule {
             c.autoMaceEnabled = enabled;
             ActivityConfigManager.markDirty();
         }
-        syncEngineConfig(c);
+        RedstoneOptimizerConfig.enabled = enabled;
     }
 
     @Override
     public void onDisable() {
         engine.reset();
-        PrestigeAutoMaceController.getInstance().reset();
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.mace_active", false);
     }
 
     @Override
     public void onTick(MinecraftClient client) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c != null && "new".equals(c.autoMaceSwapType)) {
-                PrestigeAutoMaceController.getInstance().tick(client);
-            } else {
-                engine.tick(client);
-            }
+            engine.tick(client);
         }
     }
 
     @Override
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c != null && !"new".equals(c.autoMaceSwapType)) {
-                return engine.onAttackEntity(player, world, hand, entity, hitResult);
-            }
+            return engine.onAttackEntity(player, world, hand, entity, hitResult);
         }
         return ActionResult.PASS;
     }

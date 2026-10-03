@@ -157,11 +157,6 @@ public final class PrestigeStunSlamController {
                 if (maceSlot != -1) {
                     selectSlot(client, maceSlot);
                 }
-                if ("semi_auto".equalsIgnoreCase(config.mode)) {
-                    hasAttacked = true;
-                    macePending = false;
-                    return;
-                }
                 macePending = true;
                 macePendingTicks = (int) Math.max(1, Math.round(config.attackDelayMs / 50.0));
                 return;
@@ -176,11 +171,6 @@ public final class PrestigeStunSlamController {
             if (maceSlot != -1 && player.getInventory().getSelectedSlot() != maceSlot) {
                 selectSlot(client, maceSlot);
             }
-        }
-
-        if ("semi_auto".equalsIgnoreCase(config.mode)) {
-            hasAttacked = true;
-            return;
         }
 
         if (isHoldingMace(player) && hasDelayElapsed()) {

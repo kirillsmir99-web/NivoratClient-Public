@@ -78,25 +78,6 @@ public class MatrixTransformModule extends NivoratModule {
                 }
         ).visibleWhen(presetSetting, "old");
 
-        registerEnum("new_mode", Text.translatable("activity.setting.combat.new_stage1_mode"),
-                Text.translatable("activity.setting.combat.new_stage1_mode.desc"), SettingGroup.GENERAL,
-                List.of("full_auto", "semi_auto"), "full_auto",
-                opt -> Text.translatable("activity.dropdown.breaker." + opt),
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoStunSlamNewMode : "full_auto";
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoStunSlamNewMode = val;
-                        syncControllerConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        ).visibleWhen(presetSetting, "new");
-
-
         registerNumber("distance", Text.translatable("activity.setting.combat.stage1_distance"),
                 Text.translatable("activity.setting.combat.stage1_distance.desc"), SettingGroup.BEHAVIOR,
                 1.5, 4.5, 0.1, " бл.", false, 3.2,
