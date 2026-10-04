@@ -590,7 +590,7 @@ public final class PresetRenderer {
             LocalPresets.Part.MODULES, LocalPresets.Part.BINDS, LocalPresets.Part.HUD, LocalPresets.Part.THEMES, LocalPresets.Part.SOUNDS, LocalPresets.Part.CART_PROFILE, LocalPresets.Part.MENU
         };
         String[] partsLabels = new String[]{
-            tr("Модули и параметры", "Modules & settings"),
+            tr("Модули и параметры", "Modules and settings"),
             tr("Бинды и клавиши", "Keybinds"),
             tr("Позиции HUD элементов", "HUD positions"),
             tr("Цветовая тема", "Color theme"),
@@ -832,7 +832,7 @@ public final class PresetRenderer {
                 }
 
                 UI.INSTANCE.applyPreset(entry);
-                this.showToast(tr("Пресет '" + entry.name() + "' применён", "Preset '" + entry.name() + "' applied"));
+                this.showToast(tr("Пресет «" + entry.name() + "» применён", "Preset \"" + entry.name() + "\" applied"));
                 return true;
             }
         }
@@ -1111,7 +1111,7 @@ public final class PresetRenderer {
                 }
             }
             this.closeDrawer();
-            this.showToast(tr("Пресет '" + name + "' сохранён!", "Preset '" + name + "' saved!"));
+            this.showToast(tr("Пресет «" + name + "» сохранён!", "Preset \"" + name + "\" saved!"));
             Sounds.play("select_category");
         } catch (Exception e) {
             this.showToast(tr("Ошибка: " + e.getMessage(), "Error: " + e.getMessage()));

@@ -135,6 +135,15 @@ public final class MsdfFont {
         if (n <= 32 || Character.isWhitespace(n) || !Character.isDefined(n)) {
             return MISSING;
         }
+        if (n == 39) {
+            MsdfGlyph alt = this.glyphs.get(8217);
+            if (alt == null) alt = this.glyphs.get(34);
+            if (alt != null) return alt;
+        }
+        if (n == 38) {
+            MsdfGlyph alt = this.glyphs.get(43);
+            if (alt != null) return alt;
+        }
         return this.fallback;
     }
 

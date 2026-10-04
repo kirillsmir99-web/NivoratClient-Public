@@ -3,7 +3,7 @@
   "id": "activity",
   "version": "${version}",
   "name": "PulseHUD",
-  "description": "PulseHUD: продвинутый клиентский интерфейс, HUD и боевые механики для Minecraft 1.21.11.",
+  "description": "Оптимизирует работу Майнкрафта до идеального состояния.",
   "authors": [
     "Pulse"
   ],

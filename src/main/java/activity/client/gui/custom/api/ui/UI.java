@@ -1392,10 +1392,10 @@ implements GuiCapture.Source {
         int textCol = UI.color(255, 255, 255, hoverLang ? 255 : 220, f4);
         Fonts.MONTSERRAT_MEDIUM.draw(langCode, langX + langW - codeW - 4.5f, langY + 3.2f, 5.5f, textCol);
 
-        float centerLogoSize = 44.0f;
+        float centerLogoSize = 22.0f;
         float logoCenterX = f7 + f9 * 0.5f;
         float logoCenterY = f8 + f12 * 0.5f;
-        Render2D.glow(new BuiltGlow(logoCenterX - 20.0f, logoCenterY - 20.0f, 40.0f, 40.0f, new float[]{20.0f, 20.0f, 20.0f, 20.0f}, ClientAccent.accent(160.0f), 0.35f, 6.0f, f4));
+        Render2D.glow(new BuiltGlow(logoCenterX - 10.0f, logoCenterY - 10.0f, 20.0f, 20.0f, new float[]{10.0f, 10.0f, 10.0f, 10.0f}, ClientAccent.accent(160.0f), 0.35f, 6.0f, f4));
         BrandMark.draw(logoCenterX - centerLogoSize * 0.5f, logoCenterY - centerLogoSize * 0.5f, centerLogoSize, f4);
 
         float searchX = f7 + 6.0f;
@@ -1495,9 +1495,7 @@ implements GuiCapture.Source {
             }
             int textCol = UI.color(255, 255, 255, (hoverPreset || presetDropdownOpen) ? 255 : 210, f4);
             Fonts.MONTSERRAT_MEDIUM.draw(presetLabel, btnX + 4.5f + pIconSize + 3.5f, btnY + (btnH - fontH) * 0.5f + 0.5f, fontH, textCol);
-            String arrow = presetDropdownOpen ? "∧" : "∨";
-            float arrowW = Fonts.MONTSERRAT_MEDIUM.width(arrow, 5.0f);
-            Fonts.MONTSERRAT_MEDIUM.draw(arrow, btnX + btnW - arrowW - 4.0f, btnY + (btnH - 5.0f) * 0.5f + 0.5f, 5.0f, pIconCol);
+            Fonts.NV.msdf(NvIcons.CHEVRON_DOWN, btnX + btnW - 9.5f, btnY + (btnH - 5.0f) * 0.5f, 5.0f, pIconCol);
         }
 
         float catStartY = headerY + headerH + 6.0f;
