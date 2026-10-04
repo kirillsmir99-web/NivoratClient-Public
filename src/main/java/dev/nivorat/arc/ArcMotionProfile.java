@@ -893,6 +893,21 @@ public final class ArcMotionProfile {
         return learnedPlacementDelayCartMs;
     }
 
+    public synchronized void setLearnedCameraSmoothness(int val) {
+        this.learnedCameraSmoothness = MathHelper.clamp(val, 40, 180);
+        this.dirty = true;
+    }
+
+    public synchronized void setLearnedPlacementDelayRailMs(int val) {
+        this.learnedPlacementDelayRailMs = MathHelper.clamp(val, 20, 200);
+        this.dirty = true;
+    }
+
+    public synchronized void setLearnedPlacementDelayCartMs(int val) {
+        this.learnedPlacementDelayCartMs = MathHelper.clamp(val, 20, 200);
+        this.dirty = true;
+    }
+
     public synchronized int getBowShotsCount() {
         return bowShotsCount;
     }

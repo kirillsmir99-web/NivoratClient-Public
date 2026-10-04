@@ -107,22 +107,21 @@ implements AutoCloseable {
     }
 
     private void submit(DrawContext drawContext, BuiltImage builtImage) {
-        float f;
         if (drawContext == null || builtImage == null || !builtImage.visible()) {
             return;
         }
-        ImageTexture imageTexture = this.resolveTexture(builtImage.texture());
-        if (imageTexture == null) {
-            return;
-        }
-        float f2 = builtImage.explicitWidth() > 0.0f ? builtImage.explicitWidth() : imageTexture.drawWidth(builtImage.size());
-        float f3 = f = builtImage.explicitHeight() > 0.0f ? builtImage.explicitHeight() : imageTexture.drawHeight(builtImage.size());
-        if (f2 <= 0.0f || f <= 0.0f) {
-            return;
-        }
-        float f4 = Math.max(0.0f, Math.min(f2, f) * 0.5f);
-        ImageQuad imageQuad = new ImageQuad(builtImage.x(), builtImage.y(), f2, f, ImageRenderer.clamp(builtImage.radiusTL(), 0.0f, f4), ImageRenderer.clamp(builtImage.radiusTR(), 0.0f, f4), ImageRenderer.clamp(builtImage.radiusBR(), 0.0f, f4), ImageRenderer.clamp(builtImage.radiusBL(), 0.0f, f4), ImageRenderer.sanitizeSmoothness(builtImage.smoothness()), ImageRenderer.normalizeColor(builtImage.colorTopLeft()), ImageRenderer.normalizeColor(builtImage.colorTopRight()), ImageRenderer.normalizeColor(builtImage.colorBottomRight()), ImageRenderer.normalizeColor(builtImage.colorBottomLeft()), ImageRenderer.clamp(builtImage.u0(), 0.0f, 1.0f), ImageRenderer.clamp(builtImage.v0(), 0.0f, 1.0f), ImageRenderer.clamp(builtImage.u1(), 0.0f, 1.0f), ImageRenderer.clamp(builtImage.v1(), 0.0f, 1.0f), Float.isFinite(builtImage.rotationDegrees()) ? builtImage.rotationDegrees() : 0.0f, Float.isFinite(builtImage.rotationOriginX()) ? builtImage.rotationOriginX() : 0.0f, Float.isFinite(builtImage.rotationOriginY()) ? builtImage.rotationOriginY() : 0.0f);
         try {
+            ImageTexture imageTexture = this.resolveTexture(builtImage.texture());
+            if (imageTexture == null) {
+                return;
+            }
+            float f2 = builtImage.explicitWidth() > 0.0f ? builtImage.explicitWidth() : imageTexture.drawWidth(builtImage.size());
+            float f = builtImage.explicitHeight() > 0.0f ? builtImage.explicitHeight() : imageTexture.drawHeight(builtImage.size());
+            if (f2 <= 0.0f || f <= 0.0f) {
+                return;
+            }
+            float f4 = Math.max(0.0f, Math.min(f2, f) * 0.5f);
+            ImageQuad imageQuad = new ImageQuad(builtImage.x(), builtImage.y(), f2, f, ImageRenderer.clamp(builtImage.radiusTL(), 0.0f, f4), ImageRenderer.clamp(builtImage.radiusTR(), 0.0f, f4), ImageRenderer.clamp(builtImage.radiusBR(), 0.0f, f4), ImageRenderer.clamp(builtImage.radiusBL(), 0.0f, f4), ImageRenderer.sanitizeSmoothness(builtImage.smoothness()), ImageRenderer.normalizeColor(builtImage.colorTopLeft()), ImageRenderer.normalizeColor(builtImage.colorTopRight()), ImageRenderer.normalizeColor(builtImage.colorBottomRight()), ImageRenderer.normalizeColor(builtImage.colorBottomLeft()), ImageRenderer.clamp(builtImage.u0(), 0.0f, 1.0f), ImageRenderer.clamp(builtImage.v0(), 0.0f, 1.0f), ImageRenderer.clamp(builtImage.u1(), 0.0f, 1.0f), ImageRenderer.clamp(builtImage.v1(), 0.0f, 1.0f), Float.isFinite(builtImage.rotationDegrees()) ? builtImage.rotationDegrees() : 0.0f, Float.isFinite(builtImage.rotationOriginX()) ? builtImage.rotationOriginX() : 0.0f, Float.isFinite(builtImage.rotationOriginY()) ? builtImage.rotationOriginY() : 0.0f);
             GuiRenderState guiRenderState = ((GuiGraphicsExtractorAccessor)drawContext).nv_getGuiRenderState();
             int n = ((GuiRenderStateLayerAccessor)guiRenderState).nv_getLayerSerial();
             Matrix3x2f matrix3x2f = Render2DCoordinateSpace.pose(drawContext);
@@ -138,8 +137,8 @@ implements AutoCloseable {
                 imageRenderState.add(imageQuad);
             }
         }
-        catch (RuntimeException runtimeException) {
-            VisualRuntime.LOGGER.warn("[ImageRenderer] Failed to submit image: {}", (Object)builtImage.texture(), (Object)runtimeException);
+        catch (Throwable throwable) {
+            VisualRuntime.LOGGER.warn("[ImageRenderer] Failed to submit image: {}", (Object)builtImage.texture(), (Object)throwable);
         }
     }
 
@@ -247,21 +246,28 @@ implements AutoCloseable {
         if (textureManager == null) {
             return null;
         }
-        AbstractTexture abstractTexture = textureManager.getTexture(identifier);
-        if (abstractTexture == null || abstractTexture.getGlTextureView() == null || abstractTexture.getGlTexture() == null) {
+        try {
+            AbstractTexture abstractTexture = textureManager.getTexture(identifier);
+            if (abstractTexture == null) {
+                return null;
+            }
+            if (abstractTexture.getGlTextureView() == null || abstractTexture.getGlTexture() == null) {
+                return null;
+            }
+            ImageRenderer.CachedTexture cachedTexture = this.textures.get(identifier);
+            if (cachedTexture != null && cachedTexture.texture() == abstractTexture) {
+                return cachedTexture.value();
+            }
+            int n = Math.max(1, abstractTexture.getGlTexture().getWidth(0));
+            int n2 = Math.max(1, abstractTexture.getGlTexture().getHeight(0));
+            TextureSetup textureSetup = TextureSetup.of((GpuTextureView)abstractTexture.getGlTextureView(), (GpuSampler)RenderSystem.getSamplerCache().get(FilterMode.LINEAR));
+            TextureSetup textureSetup2 = TextureSetup.of((GpuTextureView)abstractTexture.getGlTextureView(), (GpuSampler)RenderSystem.getSamplerCache().get(FilterMode.NEAREST));
+            ImageTexture imageTexture = new ImageTexture(identifier, textureSetup, textureSetup2, n, n2);
+            this.textures.put(identifier, new ImageRenderer.CachedTexture(abstractTexture, imageTexture));
+            return imageTexture;
+        } catch (Throwable throwable) {
             return null;
         }
-        ImageRenderer.CachedTexture cachedTexture = this.textures.get(identifier);
-        if (cachedTexture != null && cachedTexture.texture() == abstractTexture) {
-            return cachedTexture.value();
-        }
-        int n = Math.max(1, abstractTexture.getGlTexture().getWidth(0));
-        int n2 = Math.max(1, abstractTexture.getGlTexture().getHeight(0));
-        TextureSetup textureSetup = TextureSetup.of((GpuTextureView)abstractTexture.getGlTextureView(), (GpuSampler)RenderSystem.getSamplerCache().get(FilterMode.LINEAR));
-        TextureSetup textureSetup2 = TextureSetup.of((GpuTextureView)abstractTexture.getGlTextureView(), (GpuSampler)RenderSystem.getSamplerCache().get(FilterMode.NEAREST));
-        ImageTexture imageTexture = new ImageTexture(identifier, textureSetup, textureSetup2, n, n2);
-        this.textures.put(identifier, new ImageRenderer.CachedTexture(abstractTexture, imageTexture));
-        return imageTexture;
     }
 
     private GpuBuffer ensureWritableParamsBuffer() {

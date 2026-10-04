@@ -90,6 +90,7 @@ ShardInfo computeShards(vec2 p, vec2 scale, float animTime, float mosaicMorph) {
     res.seedDelta = bestRPx;
     return res;
 }
+
 layout(std140) uniform PaletteParams {
     vec4 pal[280];
 };
@@ -236,10 +237,6 @@ vec3 hue2rgb(float h) {
     return clamp(vec3(abs(h - 3.0) - 1.0, 2.0 - abs(h - 2.0), 2.0 - abs(h - 4.0)), 0.0, 1.0);
 }
 
-vec3 rainbowColor(float along, float phase, float spread, float sat) {
-    vec3 rgb = hue2rgb(phase + along * spread);
-    return mix(vec3(1.0), rgb, clamp(sat, 0.0, 1.0));
-}
 
 void main() {
     int base = QuadIndex * 12;
@@ -266,7 +263,7 @@ void main() {
     float distortStrength = flagsDistortZ.y;
     int zFlag = int(flagsDistortZ.z + 0.5);
     int paletteBase = (zFlag >= 10) ? (zFlag - 10) * 56 : 0;
-    float rainbowFlag = (zFlag == 1) ? 1.0 : 0.0;
+    float rainbowFlag = 0.0;
     float colorOffset = flagsDistortZ.w;
     vec4 paletteMeta = pal[paletteBase];
     vec4 paletteMeta2 = pal[paletteBase + 7];
@@ -335,37 +332,11 @@ void main() {
             float minDim = min(size.x, size.y);
             float compactScale = clamp(minDim / 20.0, 0.85, 1.0);
 
-            // Continuous perimeter coordinate in pixels (no corner ray discontinuities)
-            vec2 p = coord * size;
-            float w = size.x;
-            float h = size.y;
-            float perim = 2.0 * (w + h);
-
-            vec2 q = clamp(p, vec2(0.0), size);
-            if (p.x > 0.0 && p.x < w && p.y > 0.0 && p.y < h) {
-                float dL = p.x;
-                float dR = w - p.x;
-                float dT = p.y;
-                float dB = h - p.y;
-                float minD = min(min(dL, dR), min(dT, dB));
-                if (minD == dT) q.y = 0.0;
-                else if (minD == dR) q.x = w;
-                else if (minD == dB) q.y = h;
-                else q.x = 0.0;
-            }
-
-            float sPx = 0.0;
-            if (q.y <= 0.001 && q.x < w) {
-                sPx = q.x;
-            } else if (q.x >= w - 0.001 && q.y < h) {
-                sPx = w + q.y;
-            } else if (q.y >= h - 0.001 && q.x > 0.0) {
-                sPx = w + h + (w - q.x);
-            } else {
-                sPx = 2.0 * w + h + (h - q.y);
-            }
-
-            float u = sPx / max(perim, 1.0);
+            // A closed angular field has no nearest-side switch at rounded corners.
+            // Integer wave harmonics agree in value and slope at the 0/1 seam.
+            vec2 radial = (coord - .5) * size / max(size * .5, vec2(1.0));
+            float u = (atan(radial.y, radial.x + 0.000001) + 3.14159265) / 6.2831853;
+            float perim = 2.0 * (size.x + size.y);
             liveEdgeU = u;
 
             // Broad rolling mounds for ClickGUI, distinct active waves for cards, gentle for HUD
@@ -461,11 +432,11 @@ void main() {
             float cornerAttenuation = 1.0;
             if (maxCornerRadius > 0.5) {
                 vec2 cornerDist2 = max(abs(pos) - (halfSize - maxCornerRadius), vec2(0.0));
-                if (cornerDist2.x > 0.0 && cornerDist2.y > 0.0) {
-                    float cNorm = length(cornerDist2) / max(maxCornerRadius, 1.0);
-                    float cornerDampTarget = (edgeProfile == 0) ? 0.88 : 0.75;
-                    cornerAttenuation = mix(1.0, cornerDampTarget, smoothstep(0.1, 0.9, cNorm));
-                }
+                // Both axes approach zero smoothly at the straight/rounded join.
+                // A branch here previously jumped the displacement by up to 25%.
+                vec2 cornerBlend = smoothstep(vec2(0.0), vec2(max(maxCornerRadius * .45, 1.0)), cornerDist2);
+                float cornerDampTarget = (edgeProfile == 0) ? 0.88 : 0.75;
+                cornerAttenuation = mix(1.0, cornerDampTarget, cornerBlend.x * cornerBlend.y);
             }
 
             // Safety clamp: preserve neighbor clearance
@@ -505,9 +476,6 @@ void main() {
     vec2 ofs = dir * fresnel * distortStrength;
 
     float styleTransition = clamp(mosaic1.x, 0.0, 1.0);
-    if (liveEdgeProf == 1 || liveEdgeProf == 2) {
-        styleTransition = 0.0;
-    }
     bool mosaicActive = styleTransition > 0.001;
     float rawMorph = mosaic2.w;
     float textReadability = rawMorph >= 5.0 ? clamp(floor(rawMorph / 10.0) * 0.1, 0.0, 1.0) : 0.85;
@@ -546,7 +514,7 @@ void main() {
 
         float dBorderPx = shards.borderDist;
 
-        float seamWidthPx = max(mosaicSeam * 28.0, 2.0);
+        float seamWidthPx = max(mosaicSeam * 24.0, 0.8);
 
         // Smooth material transition stages (Section 31 & 32):
         // Refraction appears first (0.0 -> 0.7)
@@ -556,24 +524,25 @@ void main() {
         float tSeam = smoothstep(0.2, 0.9, styleTransition);
         float tBevel = smoothstep(0.4, 1.0, styleTransition);
 
-        // Smooth, soft darkening along the seam groove
-        float seamProfile = 1.0 - smoothstep(0.0, seamWidthPx * 1.5, dBorderPx);
-        seamDarkening = seamProfile * 0.16 * tSeam;
+        seamDarkening = (1.0 - smoothstep(0.0, seamWidthPx, dBorderPx)) * 0.22 * tSeam;
 
-        // Smooth, gentle light reflection on the tile edge without specular jitter
         vec2 lightDir = normalize(vec2(-0.6, -0.8));
         float bevelLight = max(dot(shards.borderNormal, lightDir), 0.0);
-        float bevelProfile = smoothstep(0.2, seamWidthPx * 0.7, dBorderPx) * (1.0 - smoothstep(seamWidthPx * 0.7, seamWidthPx * 2.4, dBorderPx));
-        bevelHighlight = bevelLight * bevelProfile * mosaicBevel * 0.10 * tBevel;
+        float bevelProfile = smoothstep(0.0, seamWidthPx * 0.6, dBorderPx) * (1.0 - smoothstep(seamWidthPx * 0.8, seamWidthPx * 2.2, dBorderPx));
+        bevelHighlight = pow(bevelLight * bevelProfile, 2.0) * mosaicBevel * 0.16 * tBevel;
 
-        // Soft, diffused ambient glow along the joints
-        seamGlow = (1.0 - smoothstep(0.0, seamWidthPx * 2.8, dBorderPx)) * mosaicCellGlow * 0.045 * tSeam;
+        seamGlow = (1.0 - smoothstep(0.0, seamWidthPx * 2.5, dBorderPx)) * mosaicCellGlow * 0.04 * tSeam;
 
-        shardBrightness = 1.0 + (shards.rnd.x - 0.5) * (0.03 * (1.0 - textReadability * 0.5)) * tRefract;
-        localColorOffset += (shards.rnd.z - 0.5) * (0.05 * (1.0 - textReadability * 0.5)) * tRefract;
-        localGradX += (shards.rnd.w - 0.5) * (0.02 * (1.0 - textReadability * 0.5)) * tRefract;
+        float edgeRefractFactor = (1.0 - smoothstep(0.0, seamWidthPx * 1.8, dBorderPx)) * tRefract;
+        vec2 shardRefract = (shards.rnd.xy - 0.5) * (distortStrength * 0.010 * (1.0 - textReadability * 0.7)) * tRefract;
+        vec2 bevelRefract = -shards.borderNormal * edgeRefractFactor * (distortStrength * 0.025 * mosaicBevel) * tBevel;
+        ofs += shardRefract + bevelRefract;
 
-        panelShimmer = dot(normalize(shards.seedDelta + vec2(0.5)), vec2(0.7071, -0.7071)) * (0.010 * (1.0 - textReadability * 0.5)) * tRefract;
+        shardBrightness = 1.0 + (shards.rnd.x - 0.5) * (0.04 * (1.0 - textReadability * 0.5)) * tRefract;
+        localColorOffset += (shards.rnd.z - 0.5) * (0.08 * (1.0 - textReadability * 0.5)) * tRefract;
+        localGradX += (shards.rnd.w - 0.5) * (0.03 * (1.0 - textReadability * 0.5)) * tRefract;
+
+        panelShimmer = dot(normalize(shards.seedDelta + vec2(0.5)), vec2(0.7071, -0.7071)) * (0.012 * (1.0 - textReadability * 0.5)) * tRefract;
     }
 
     vec2 sampleUv = clamp(texCoord + ofs, vec2(0.0), vec2(1.0));
@@ -587,14 +556,12 @@ void main() {
     vec4 texColor = vec4(refracted, 1.0);
 
     vec3 mixedColor;
-    if (rainbowFlag > 0.5) {
-        mixedColor = rainbowColor(localGradX, localColorOffset, max(secondaryColor.r, 0.001), secondaryColor.g);
-    } else if (int(paletteMeta.x + 0.5) >= 2) {
-        float tri = abs(fract(localGradX + fract(localColorOffset)) * 2.0 - 1.0);
+    if (int(paletteMeta.x + 0.5) >= 2) {
+        float linearT = clamp(localGradX + fract(localColorOffset), 0.0, 1.0);
 
-        vec3 rampCol = paletteRamp(paletteBase, smoothstep(0.0, 1.0, tri)) * 0.86;
+        vec3 rampCol = paletteRamp(paletteBase, linearT);
         vec3 meshCol = meshGradient(paletteBase, gradCoord, paletteMeta.y, gradAspect);
-        vec3 boxCol = boxGradient(paletteBase, gradCoord, paletteMeta.y * 20.0);
+        vec3 boxCol = boxGradient(paletteBase, gradCoord, paletteMeta.y);
         vec3 targetCol = selectStyle(paletteMeta.z, rampCol, meshCol, boxCol);
 
         float sweep = paletteMeta.w;
@@ -614,17 +581,17 @@ void main() {
     float noise = fract(sin(dot(coord * size, vec2(12.9898, 78.233))) * 43758.5453);
     vec3 ditheredColor = mixedColor * (1.0 - (0.5 / 255.0) * noise) + (0.5 / 255.0) * noise;
 
-    float panelAlpha = (rainbowFlag > 0.5) ? primaryColor.a : mix(primaryColor.a, secondaryColor.a, 0.5);
+    float panelAlpha = mix(primaryColor.a, secondaryColor.a, 0.5);
     vec4 panelColor = vec4(ditheredColor, panelAlpha);
 
     vec3 dimmedBackdrop = mix(texColor.rgb * 0.38, vec3(0.024, 0.032, 0.052), 0.42);
     if (mosaicActive) {
         dimmedBackdrop *= (1.0 - 0.20 * textReadability);
     }
-    vec3 tintedBackground = mix(dimmedBackdrop, panelColor.rgb, clamp(panelColor.a * 0.14, 0.0, 0.28));
+    vec3 tintedBackground = mix(dimmedBackdrop, panelColor.rgb, clamp(panelColor.a * 0.35, 0.0, 0.55));
     vec3 finalColor = mix(tintedBackground, panelColor.rgb, fresnel * fresnelMix);
     if (mosaicActive) {
-        vec3 tileBase = vec3(0.026, 0.034, 0.056) + mixedColor * 0.085;
+        vec3 tileBase = vec3(0.018, 0.024, 0.038) + mixedColor * (0.24 - 0.08 * textReadability);
         finalColor = mix(finalColor, tileBase, styleTransition * 0.94);
         finalColor += panelShimmer;
         finalColor *= shardBrightness;
@@ -642,7 +609,7 @@ void main() {
     if (liveEdgeProf == 1 || liveEdgeProf == 2) {
         vec3 tintA = (fresnelColor.a > 0.01) ? fresnelColor.rgb : mixedColor;
         vec3 tintB = (secondaryColor.a > 0.01) ? secondaryColor.rgb : tintA;
-        edgeAccent = mix(tintA, tintB, liveEdgeU);
+        edgeAccent = mix(tintA, tintB, 0.5 - 0.5 * cos(liveEdgeU * 6.2831853));
     }
 
     if (edgeActivation > 0.001 && edgeDisplacement > 0.04) {

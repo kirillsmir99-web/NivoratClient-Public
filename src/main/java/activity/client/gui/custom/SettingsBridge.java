@@ -38,7 +38,7 @@ public final class SettingsBridge {
                 m.setSource(s);
                 m.setChangeListener(() -> { var key=s.get();int code=m.requestedKey();if(code==1002)code=2;if(code>=0&&code<=7)key.set(activity.client.module.keybind.Keybind.MOUSE_OFFSET-code,key.isCtrl(),key.isShift(),key.isAlt());else key.set(code,key.isCtrl(),key.isShift(),key.isAlt());s.set(key);save(module); }); model = m;
             } else if (source instanceof ActionSetting s) {
-                var m = new activity.client.gui.custom.api.modules.settings.impl.ButtonSetting(name,desc).label(name).onClick(s::execute);m.setLabelProvider(()->VisualText.settingName(module,s));model=m;
+                var m = new activity.client.gui.custom.api.modules.settings.impl.ButtonSetting(name,desc).label("Открыть").onClick(s::execute);m.setLabelProvider(()->"Открыть");model=m;
             }
             if (model != null) { model.setTextProviders(()->VisualText.settingName(module,source),()->VisualText.settingDescription(module,source));model.setVisibilityCondition(source::isVisible); models.add(model); }
         }

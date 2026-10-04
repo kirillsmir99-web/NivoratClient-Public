@@ -104,6 +104,8 @@ implements GuiCapture.Source {
                 dock = INSTANCE.inspector.dockWidth();
             } else if (INSTANCE.themesRenderer != null && INSTANCE.themesRenderer.getEditor() != null && INSTANCE.themesRenderer.getEditor().isOpen()) {
                 dock = INSTANCE.themesRenderer.getEditor().dockWidth();
+            } else if (INSTANCE.presetRenderer != null && INSTANCE.presetRenderer.isDrawerOpen()) {
+                dock = INSTANCE.presetRenderer.dockWidth();
             }
         }
         return PANEL_W + dock;
@@ -139,12 +141,12 @@ implements GuiCapture.Source {
     public static final float CONTENT_Y_OFFSET = 5.0f;
     public static final float HEADER_H = 22.0f;
     public static final float HEADER_OFFSET = 26.0f;
-    private static final Category[] MAIN_CATEGORIES = new Category[]{Category.VISUALS,Category.NPOT,Category.CRYSTAL,Category.UHC,Category.SMP,Category.MACE,Category.BEAST,Category.SWORD,Category.AXE,Category.DPOT};
-    private static final Category[] SYSTEM_CATEGORIES = new Category[]{Category.THEMES,Category.PRESETS,Category.DISPLAY,Category.ABOUT};
+    private static final Category[] MAIN_CATEGORIES = new Category[]{Category.VISUALS, Category.SWORD, Category.NPOT, Category.SMP, Category.BEAST, Category.AXE, Category.MACE, Category.CART, Category.CRYSTAL, Category.UHC, Category.DPOT};
+    private static final Category[] SYSTEM_CATEGORIES = new Category[]{Category.THEMES,Category.PRESETS,Category.DISPLAY};
     private static final float CAT_COL_TOP = 31.0f;
     private static final float CAT_HEADER_H = 20.0f;
-    private static final float CAT_SUB_GAP = 1.0f;
-    private static final float CAT_SUB_ROW_H = 14.0f;
+    private static final float CAT_SUB_GAP = 0.5f;
+    private static final float CAT_SUB_ROW_H = 13.5f;
     private static final float CAT_OTHERS_GAP = 8.0f;
     private static final float CAT_OTHER_ROW_H = 17.0f;
     private Category targetCategory = null;
@@ -166,14 +168,49 @@ implements GuiCapture.Source {
     private final ThemesRenderer themesRenderer = new ThemesRenderer();
     private final activity.client.gui.custom.PresetRenderer presetRenderer = new activity.client.gui.custom.PresetRenderer();
     public activity.client.gui.custom.PresetRenderer getPresetRenderer() { return presetRenderer; }
-    private float lastAboutResetPosBtnX, lastAboutResetPosBtnY, lastAboutResetPosBtnW, lastAboutResetPosBtnH;
-    private float lastAboutResetSidebarBtnX, lastAboutResetSidebarBtnY, lastAboutResetSidebarBtnW, lastAboutResetSidebarBtnH;
-    private float lastAboutResetThemeBtnX, lastAboutResetThemeBtnY, lastAboutResetThemeBtnW, lastAboutResetThemeBtnH;
+    private boolean presetDropdownOpen = false;
+    private final Decelerate presetDropdownAnim = UI.createAnim(180);
+    private List<activity.client.config.preset.LocalPresets.Entry> cachedPresetEntries = List.of();
+    private String selectedPresetName = null;
+    private int presetScrollOffset = 0;
+    private float lastPresetBtnX, lastPresetBtnY, lastPresetBtnW, lastPresetBtnH;
+    private float lastPresetDropX, lastPresetDropY, lastPresetDropW, lastPresetDropH;
+
+    private void reloadPresetDropdown() {
+        try {
+            this.cachedPresetEntries = activity.client.config.preset.LocalPresets.list();
+        } catch (Exception e) {
+            this.cachedPresetEntries = List.of();
+        }
+        this.presetScrollOffset = 0;
+    }
+
+    public void applyPreset(activity.client.config.preset.LocalPresets.Entry entry) {
+        try {
+            activity.client.config.preset.LocalPresets.Preview preview = activity.client.config.preset.LocalPresets.read(entry.path());
+            activity.client.config.preset.LocalPresets.apply(preview);
+            this.selectedPresetName = entry.name();
+            activity.client.gui.custom.utils.sounds.Sounds.play("buttonclick");
+        } catch (Exception e) {
+            activity.client.gui.custom.utils.sounds.Sounds.play("command_error");
+        }
+        this.presetDropdownOpen = false;
+        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+    }
+
+    public String getSelectedPresetName() {
+        return this.selectedPresetName;
+    }
+
+    public void setSelectedPresetName(String name) {
+        this.selectedPresetName = name;
+    }
+
 
     public activity.client.gui.custom.api.ui.theme.ThemesRenderer getThemesRenderer(){return themesRenderer;}
     public void setSearchText(String text){search.setText(text);}
     public void navigateToModule(String id){Module m=ModuleManager.get().findByName(id);if(m!=null){selectCategory(Category.VISUALS);openModuleSettings(m);}}
-    public void setSelectedTab(int i){selectCategoryFromWorkspace(i==16?Category.THEMES:i==4?Category.DISPLAY:i==5?Category.ABOUT:Category.VISUALS);}
+    public void setSelectedTab(int i){selectCategoryFromWorkspace(i==activity.client.gui.tab.ThemesTab.TAB_INDEX?Category.THEMES:i==4?Category.DISPLAY:Category.VISUALS);}
     public void openModuleInspector(String id){navigateToModule(id);}
     public InspectorRenderer getInspector() {
         return this.inspector;
@@ -383,7 +420,12 @@ implements GuiCapture.Source {
         this.releaseAllDrags();
         this.settingsPopup.close();
         this.inspector.close();
+        if (this.presetRenderer.isDrawerOpen()) {
+            this.presetRenderer.closeDrawer();
+        }
         this.search.collapse();
+        this.presetDropdownOpen = false;
+        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
         Sounds.play("gui_close");
         if (MinecraftClient.getInstance().currentScreen == this) {
             Screen parent = integrationParent;
@@ -394,8 +436,15 @@ implements GuiCapture.Source {
 
     public boolean keyPressed(KeyInput input) {
         capitulationHold.cancel();
+        if (this.presetDropdownOpen && input.key() == 256) {
+            this.presetDropdownOpen = false;
+            this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+            activity.client.gui.custom.utils.sounds.Sounds.play("settings_close");
+            return true;
+        }
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) { activity.client.gui.custom.CollectionDrawer.screen().keyPressed(input); return true; }
         if (activity.client.gui.custom.NativeBindAssignment.keyPressed(input.key())) return true;
+        if (activity.client.gui.custom.AutoCartCalibrationDrawer.keyPressed(input.key())) return true;
         int n;
         Setting setting;
         if (this.screenAnim.isClosing()) {
@@ -413,6 +462,11 @@ implements GuiCapture.Source {
         }
         if (this.themesRenderer.getEditor().isOpen()) {
             if (this.themesRenderer.getEditor().keyPressed(input.key())) {
+                return true;
+            }
+        }
+        if (this.presetRenderer.isDrawerOpen()) {
+            if (this.presetRenderer.drawerKeyPressed(input)) {
                 return true;
             }
         }
@@ -508,7 +562,8 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseClicked(Click click, boolean doubled) {
-        if (activity.client.gui.custom.AutoCartCalibrationTopPanel.mouseClicked(click)) return true;
+        if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseClicked(click)) return true;
+        if (activity.client.gui.custom.api.drags.DragSystem.get().mouseClicked(click)) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseClicked(click, doubled);
         if (activity.client.gui.custom.NativeBindAssignment.click(Position.mouseX(), Position.mouseY(), click.button())) return true;
         if (this.inspector.captureMouse(click.button())) return true;
@@ -516,6 +571,60 @@ implements GuiCapture.Source {
         if(click.button()==2&&isModuleView()){Module m=moduleAtCursor();if(m!=null){bindPopup.open(m,Position.mouseX(),Position.mouseY());return true;}}
         if (!this.screenAnim.canInteract()) {
             return true;
+        }
+        if (this.presetDropdownOpen && click.button() == 0) {
+            float mx = Position.mouseX();
+            float my = Position.mouseY();
+            if (mx >= this.lastPresetDropX && mx <= this.lastPresetDropX + this.lastPresetDropW
+                && my >= this.lastPresetDropY && my <= this.lastPresetDropY + this.lastPresetDropH) {
+                float itemH = 15.0f;
+                float startY = this.lastPresetDropY + 4.0f;
+                int totalEntries = this.cachedPresetEntries.size();
+                int visibleCount = totalEntries == 0 ? 0 : Math.min(totalEntries, 6);
+                int startIdx = Math.max(0, Math.min(this.presetScrollOffset, Math.max(0, totalEntries - visibleCount)));
+                for (int i = 0; i < visibleCount; i++) {
+                    float rowY = startY + i * itemH;
+                    if (my >= rowY && my < rowY + itemH) {
+                        int entryIdx = startIdx + i;
+                        if (entryIdx < totalEntries) {
+                            applyPreset(this.cachedPresetEntries.get(entryIdx));
+                        }
+                        return true;
+                    }
+                }
+                float footerY = startY + (totalEntries == 0 ? itemH : visibleCount * itemH) + 1.0f;
+                if (my >= footerY && my <= footerY + 16.0f) {
+                    this.presetDropdownOpen = false;
+                    this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+                    selectCategoryFromWorkspace(Category.PRESETS);
+                    activity.client.gui.custom.utils.sounds.Sounds.play("select_category");
+                    return true;
+                }
+                return true;
+            }
+            if (mx >= this.lastPresetBtnX && mx <= this.lastPresetBtnX + this.lastPresetBtnW
+                && my >= this.lastPresetBtnY && my <= this.lastPresetBtnY + this.lastPresetBtnH) {
+                this.presetDropdownOpen = false;
+                this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+                activity.client.gui.custom.utils.sounds.Sounds.play("settings_close");
+                return true;
+            }
+            this.presetDropdownOpen = false;
+            this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+            activity.client.gui.custom.utils.sounds.Sounds.play("settings_close");
+            return true;
+        }
+        if (!this.presetDropdownOpen && click.button() == 0) {
+            float mx = Position.mouseX();
+            float my = Position.mouseY();
+            if (mx >= this.lastPresetBtnX && mx <= this.lastPresetBtnX + this.lastPresetBtnW
+                && my >= this.lastPresetBtnY && my <= this.lastPresetBtnY + this.lastPresetBtnH) {
+                reloadPresetDropdown();
+                this.presetDropdownOpen = true;
+                this.presetDropdownAnim.setDirection(Direction.FORWARDS);
+                activity.client.gui.custom.utils.sounds.Sounds.play("settings_open");
+                return true;
+            }
         }
         if (this.themesRenderer.getEditor().isOpen()) {
             if (this.themesRenderer.getEditor().mouseClicked(Position.mouseX(), Position.mouseY(), click.button())) {
@@ -617,11 +726,11 @@ implements GuiCapture.Source {
         if (this.isModuleView() && this.search.mouseClicked(f5, f6, click.button())) {
             return true;
         }
-        if (this.contentCategory == Category.PRESETS && this.presetRenderer.click(f5, f6, click.button())) return true;
-        if (this.contentCategory == Category.THEMES && click.button() == 0 && this.themesRenderer.click(f3, f4, f, f5, f6)) {
+        if (this.presetRenderer.isDrawerOpen() && this.presetRenderer.drawerMouseClicked(f5, f6, click.button())) {
             return true;
         }
-        if (this.contentCategory == Category.ABOUT && click.button() == 0 && this.clickAboutCategory(f5, f6)) {
+        if (this.contentCategory == Category.PRESETS && this.presetRenderer.click(f5, f6, click.button())) return true;
+        if (this.contentCategory == Category.THEMES && click.button() == 0 && this.themesRenderer.click(f3, f4, f, f5, f6)) {
             return true;
         }
         if (click.button() == 0 || click.button() == 1) {
@@ -763,9 +872,15 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseScrolled(mouseX, mouseY, verticalAmount)) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         if (activity.client.gui.custom.NativeBindAssignment.isOpen()) return true;
         if (!this.screenAnim.canInteract()) {
+            return true;
+        }
+        if (this.presetDropdownOpen && Position.mouseX() >= this.lastPresetDropX && Position.mouseX() <= this.lastPresetDropX + this.lastPresetDropW && Position.mouseY() >= this.lastPresetDropY && Position.mouseY() <= this.lastPresetDropY + this.lastPresetDropH) {
+            if (verticalAmount > 0 && this.presetScrollOffset > 0) this.presetScrollOffset--;
+            else if (verticalAmount < 0 && this.presetScrollOffset + 6 < this.cachedPresetEntries.size()) this.presetScrollOffset++;
             return true;
         }
         if (this.bindPopup.isOpen()) {
@@ -789,12 +904,16 @@ implements GuiCapture.Source {
                 return true;
             }
         }
+        if (this.presetRenderer.isDrawerOpen()) {
+            if (this.presetRenderer.drawerMouseScrolled(horizontalAmount, verticalAmount)) {
+                return true;
+            }
+        }
         if (d >= (double)f4 && d <= (double)(f4 + f6) && d2 >= (double)f5 && d2 <= (double)(f5 + f7)) {
             if (this.contentCategory == Category.THEMES) {
                 this.themesRenderer.scroll(verticalAmount, f7);
             } else if (this.contentCategory == Category.PRESETS) {
                 this.presetRenderer.scroll(verticalAmount);
-            } else if (this.contentCategory == Category.ABOUT) {
 
             } else {
                 float f8 = f3 + CONTENT_Y_OFFSET + HEADER_OFFSET;
@@ -811,11 +930,15 @@ implements GuiCapture.Source {
     @Override
     public boolean mouseDragged(Click click, double deltaX, double deltaY) {
         if (this.screenAnim.isClosing()) return true;
+        if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseDragged(click, deltaX, deltaY)) return true;
+        if (activity.client.gui.custom.api.drags.DragSystem.get().mouseDragged(click, deltaX, deltaY)) return true;
         if (this.themesRenderer.getEditor().mouseDragged(Position.mouseX(), Position.mouseY(), click.button())) return true;
         return super.mouseDragged(click, deltaX, deltaY);
     }
 
     public boolean mouseReleased(Click click) {
+        activity.client.gui.custom.AutoCartCalibrationDrawer.mouseReleased(click);
+        activity.client.gui.custom.api.drags.DragSystem.get().mouseReleased(click);
         if (click.button() == 0) capitulationHold.cancel();
         if (this.screenAnim.isClosing()) {
             return true;
@@ -823,6 +946,11 @@ implements GuiCapture.Source {
         if (this.themesRenderer.getEditor().isOpen()) {
             this.themesRenderer.getEditor().mouseReleased(click.x(), click.y(), click.button());
             return true;
+        }
+        if (this.presetRenderer.isDrawerOpen()) {
+            if (this.presetRenderer.drawerMouseReleased(click.x(), click.y(), click.button())) {
+                return true;
+            }
         }
         if (click.button() == 0) {
             isDraggingPanel = false;
@@ -845,6 +973,11 @@ implements GuiCapture.Source {
         }
         if (this.themesRenderer.getEditor().isOpen()) {
             if (this.themesRenderer.getEditor().charTyped((char) input.codepoint())) {
+                return true;
+            }
+        }
+        if (this.presetRenderer.isDrawerOpen()) {
+            if (this.presetRenderer.drawerCharTyped(input)) {
                 return true;
             }
         }
@@ -876,6 +1009,9 @@ implements GuiCapture.Source {
             return false;
         }
         if (INSTANCE.themesRenderer != null && INSTANCE.themesRenderer.getEditor().isOpen()) {
+            return true;
+        }
+        if (INSTANCE.presetRenderer != null && INSTANCE.presetRenderer.isInputActive()) {
             return true;
         }
         if (isSearchTyping()) {
@@ -1217,7 +1353,12 @@ implements GuiCapture.Source {
     private void swapContentCategory(Category category) {
         this.moduleList.finishTransition();
         this.themesRenderer.finishTransition();
+        this.presetDropdownOpen = false;
+        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
         this.contentCategory = category;
+        if (this.presetRenderer.isDrawerOpen()) {
+            this.presetRenderer.closeDrawer();
+        }
         if (category == Category.PRESETS) this.presetRenderer.open();
         if (category == Category.THEMES) {
             this.themesRenderer.open(false);
@@ -1254,23 +1395,26 @@ implements GuiCapture.Source {
             Render2D.glow(new BuiltGlow(langX, langY, langW, langH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(255.0f), 0.25f, 3.5f, f4));
         }
 
-
         float iconSize = 7.5f;
         int iconCol = hoverLang ? ClientAccent.accentBright(255.0f * f4) : ClientAccent.accentSoft(210.0f * f4);
         Fonts.NV.msdf(NvIcons.LANGUAGE, langX + 4.0f, langY + (langH - iconSize) * 0.5f, iconSize, iconCol);
 
-
         Render2D.rect(langX + 14.5f, langY + 3.0f, 0.6f, langH - 6.0f, 0.3f, ThemeManager.rgba(0xFFFFFF, 22.0f * f4));
-
 
         String langCode = isRu ? "RU" : "EN";
         float codeW = Fonts.MONTSERRAT_MEDIUM.width(langCode, 5.5f);
         int textCol = UI.color(255, 255, 255, hoverLang ? 255 : 220, f4);
         Fonts.MONTSERRAT_MEDIUM.draw(langCode, langX + langW - codeW - 4.5f, langY + 3.2f, 5.5f, textCol);
 
+        float centerLogoSize = 26.0f;
+        float logoCenterX = f7 + f9 * 0.5f;
+        float logoCenterY = f8 + f12 * 0.5f;
+        Render2D.glow(new BuiltGlow(logoCenterX - 11.0f, logoCenterY - 11.0f, 22.0f, 22.0f, new float[]{11.0f, 11.0f, 11.0f, 11.0f}, ClientAccent.accent(160.0f), 0.35f, 6.0f, f4));
+        BrandMark.draw(logoCenterX - centerLogoSize * 0.5f, logoCenterY - centerLogoSize * 0.5f, centerLogoSize, f4);
+
         float searchX = f7 + 6.0f;
-        float maxSearchW = Math.max(60.0f, langX - searchX - 10.0f);
-        float targetExpandedW = Math.min(120.0f, maxSearchW);
+        float maxSearchW = Math.max(50.0f, (logoCenterX - centerLogoSize * 0.5f - 10.0f) - searchX);
+        float targetExpandedW = Math.min(105.0f, maxSearchW);
         this.search.render(drawContext, searchX, f13, targetExpandedW, f11, f4, Position.mouseX(), Position.mouseY(), f5);
     }
 
@@ -1319,68 +1463,50 @@ implements GuiCapture.Source {
         RenderHelper.drawPanelBg(sidebarX, headerY, sidebarW, headerH, 12.0f, 0.0f, 0.0f, 0.0f, f4);
         float headerCenterY = headerY + headerH * 0.5f;
 
-        if (isCompact) {
-            float logoSize = 13.0f;
-            float logoX = sidebarX + (sidebarW - logoSize) * 0.5f;
-            BrandMark.draw(logoX, headerCenterY - logoSize * .5f, logoSize, f4);
-        } else if (isExpanded) {
-            float logoH = 13.0f;
-            float fontH = 8.5f;
-            float logoGap = 5.0f;
-            float logoStartX = sidebarX + 8.0f;
-            BrandMark.draw(logoStartX, headerCenterY - logoH * .5f, logoH, f4);
-            Fonts.MONTSERRAT_BOLD.msdf("NC", logoStartX + logoH + logoGap, headerCenterY - fontH * 0.5f + 0.5f, fontH, UI.color(255, 255, 255, 255, f4));
+        float btnW = isCompact ? (sidebarW - 7.0f) : Math.min(sidebarW - 10.0f, 76.0f);
+        float btnX = sidebarX + (sidebarW - btnW) * 0.5f;
+        float btnY = headerY + 2.5f;
+        float btnH = headerH - 5.0f;
+        this.lastPresetBtnX = btnX;
+        this.lastPresetBtnY = btnY;
+        this.lastPresetBtnW = btnW;
+        this.lastPresetBtnH = btnH;
 
-            String tag = "CLIENT";
-            float tagW = Fonts.MONTSERRAT_MEDIUM.width(tag, 5.0f);
-            float badgeW = tagW + 7.0f;
-            float badgeH = 10.0f;
-            float badgeX = sidebarX + sidebarW - badgeW - 6.0f;
-            float badgeY = headerCenterY - badgeH * 0.5f;
-            Render2D.rect(badgeX, badgeY, badgeW, badgeH, 3.0f, UI.color(255, 255, 255, 14, f4));
-            Fonts.MONTSERRAT_MEDIUM.draw(tag, badgeX + 3.5f, badgeY + 2.0f, 5.0f, ClientAccent.accentSoft(220.0f * f4));
-        } else {
-            float logoH = 14.0f;
-            float fontH = 8.5f;
-            float logoGap = 6.0f;
-            float textW = Fonts.MONTSERRAT_BOLD.width("NC", fontH);
-            float logoTotalW = logoH + logoGap + textW;
-            float logoStartX = sidebarX + (sidebarW - logoTotalW) * 0.5f;
-            BrandMark.draw(logoStartX, headerCenterY - logoH * .5f, logoH, f4);
-            Fonts.MONTSERRAT_BOLD.msdf("NC", logoStartX + logoH + logoGap, headerCenterY - fontH * 0.5f + 0.5f, fontH, UI.color(255, 255, 255, 255, f4));
+        float pMx = Position.mouseX();
+        float pMy = Position.mouseY();
+        boolean hoverPreset = pMx >= btnX && pMx <= btnX + btnW && pMy >= btnY && pMy <= btnY + btnH;
+
+        Render2D.rect(btnX, btnY, btnW, btnH, 3.5f, ThemeManager.rgba(0, (presetDropdownOpen ? 75.0f : hoverPreset ? 60.0f : 40.0f) * f4));
+        Render2D.outline(btnX, btnY, btnW, btnH, 3.5f, 0.6f, (presetDropdownOpen || hoverPreset) ? ClientAccent.accent(160.0f * f4) : ThemeManager.rgba(0xFFFFFF, 18.0f * f4));
+        if (hoverPreset || presetDropdownOpen) {
+            Render2D.glow(new BuiltGlow(btnX, btnY, btnW, btnH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(255.0f), 0.25f, 3.5f, f4));
         }
 
-        float modulesSectionY = headerY + headerH + 6.0f;
-        float modulesHeaderCenterY = modulesSectionY + 8.0f;
-        float headerAnim = this.modulesHeaderAnim.getOutput().floatValue();
-        if (headerAnim > 0.004f) {
-            Render2D.rect(sidebarX + 4.0f, modulesSectionY + 1.0f, sidebarW - 8.0f, 14.0f, 5.0f, UI.color(255, 255, 255, Math.round(16.0f * headerAnim), f4));
-        }
-        float modHeaderX = sidebarX + 8.0f;
-        float modIconSize = 8.5f;
-        int modIconCol = ClientAccent.accentBright((200.0f + 55.0f * headerAnim) * f4);
+        float pIconSize = 7.5f;
+        int pIconCol = (hoverPreset || presetDropdownOpen) ? ClientAccent.accentBright(255.0f * f4) : ClientAccent.accentSoft(210.0f * f4);
 
         if (isCompact) {
-            Fonts.NV.msdf(NvIcons.MODULES, sidebarX + (sidebarW - modIconSize) * 0.5f, modulesHeaderCenterY - modIconSize * 0.5f, modIconSize, modIconCol);
-        } else if (isExpanded) {
-            Fonts.NV.msdf(NvIcons.MODULES, modHeaderX, modulesHeaderCenterY - modIconSize * 0.5f, modIconSize, modIconCol);
-            Fonts.MONTSERRAT_MEDIUM.draw(activity.client.gui.custom.api.localization.Lang.get("category.modules", "Modules"), modHeaderX + modIconSize + 5.0f, modulesHeaderCenterY - 4.0f + 0.5f, 8.0f, UI.color(255, 255, 255, Math.round(215.0f + 40.0f * headerAnim), f4));
-
-            long enabledCount = ModuleManager.get().getAll().stream().filter(Module::isEnabled).count();
-            String actText = enabledCount + (isRu ? " вкл." : " on");
-            float actW = Fonts.MONTSERRAT_MEDIUM.width(actText, 5.0f);
-            float actBadgeW = actW + 7.0f;
-            float actBadgeH = 10.0f;
-            float actBadgeX = sidebarX + sidebarW - actBadgeW - 6.0f;
-            float actBadgeY = modulesHeaderCenterY - actBadgeH * 0.5f;
-            Render2D.rect(actBadgeX, actBadgeY, actBadgeW, actBadgeH, 3.0f, ClientAccent.accent(30.0f * f4));
-            Fonts.MONTSERRAT_MEDIUM.draw(actText, actBadgeX + 3.5f, actBadgeY + 2.0f, 5.0f, ClientAccent.accentBright(240.0f * f4));
+            Fonts.NV.msdf(NvIcons.PROFILE, btnX + (btnW - pIconSize) * 0.5f, btnY + (btnH - pIconSize) * 0.5f, pIconSize, pIconCol);
         } else {
-            Fonts.NV.msdf(NvIcons.MODULES, modHeaderX, modulesHeaderCenterY - modIconSize * 0.5f, modIconSize, modIconCol);
-            Fonts.MONTSERRAT_MEDIUM.draw(activity.client.gui.custom.api.localization.Lang.get("category.modules", "Modules"), modHeaderX + modIconSize + 5.0f, modulesHeaderCenterY - 4.0f + 0.5f, 8.0f, UI.color(255, 255, 255, Math.round(215.0f + 40.0f * headerAnim), f4));
+            Fonts.NV.msdf(NvIcons.PROFILE, btnX + 4.5f, btnY + (btnH - pIconSize) * 0.5f, pIconSize, pIconCol);
+            String presetLabel = this.selectedPresetName != null && !this.selectedPresetName.isEmpty() ? this.selectedPresetName : (isRu ? "Пресеты" : "Presets");
+            float maxLabelW = btnW - (4.5f + pIconSize + 3.0f + 11.0f);
+            float fontH = 6.5f;
+            float labelW = Fonts.MONTSERRAT_MEDIUM.width(presetLabel, fontH);
+            if (labelW > maxLabelW && presetLabel.length() > 6) {
+                while (presetLabel.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(presetLabel + "…", fontH) > maxLabelW) {
+                    presetLabel = presetLabel.substring(0, presetLabel.length() - 1);
+                }
+                presetLabel += "…";
+            }
+            int textCol = UI.color(255, 255, 255, (hoverPreset || presetDropdownOpen) ? 255 : 210, f4);
+            Fonts.MONTSERRAT_MEDIUM.draw(presetLabel, btnX + 4.5f + pIconSize + 3.5f, btnY + (btnH - fontH) * 0.5f + 0.5f, fontH, textCol);
+            String arrow = presetDropdownOpen ? "∧" : "∨";
+            float arrowW = Fonts.MONTSERRAT_MEDIUM.width(arrow, 5.0f);
+            Fonts.MONTSERRAT_MEDIUM.draw(arrow, btnX + btnW - arrowW - 4.0f, btnY + (btnH - 5.0f) * 0.5f + 0.5f, 5.0f, pIconCol);
         }
 
-        float catStartY = modulesSectionY + 18.0f;
+        float catStartY = headerY + headerH + 6.0f;
         for (int i = 0; i < MAIN_CATEGORIES.length; ++i) {
             Category category = MAIN_CATEGORIES[i];
             float itemY = catStartY + (float)i * (CAT_SUB_ROW_H + CAT_SUB_GAP);
@@ -1398,7 +1524,7 @@ implements GuiCapture.Source {
 
             int textAlpha = Math.min(255, 140 + Math.round(anim * 115.0f));
             int textCol = UI.color(255, 255, 255, textAlpha, f4);
-            float iconSize = 8.5f;
+            float iconSize = 10.5f;
             int iconCol = anim > 0.01f ? ClientAccent.accentBright((float)textAlpha * f4) : UI.color(255, 255, 255, textAlpha, f4);
             int moduleCount = category == Category.PINNED ? PinManager.getPinnedCount() : (category == Category.THEMES ? (activity.client.gui.custom.api.ui.theme.Theme.values().length + activity.client.gui.custom.api.ui.theme.CustomThemeManager.getCustomThemes().size()) : ModuleManager.get().forCategory(category).size());
 
@@ -1460,7 +1586,7 @@ implements GuiCapture.Source {
 
             int n6 = Math.round((float)Math.min(255, 140 + Math.round(themesAnim * 115.0f)) * rowVisibility);
             int n7 = UI.color(255, 255, 255, n6, f4);
-            float iconSize = 8.5f;
+            float iconSize = 10.5f;
             int iconCol = themesAnim > 0.01f ? ClientAccent.accentBright((float)n6 * f4) : UI.color(255, 255, 255, n6, f4);
 
             if (isCompact) {
@@ -1505,7 +1631,7 @@ implements GuiCapture.Source {
             case UTILS -> "nivorat:textures/icons/utils.png";
             case THEMES -> "nivorat:textures/icons/themes.png";
             case PRESETS -> "nivorat:textures/icons/utils.png";
-            case ABOUT -> "nivorat:textures/icons/modules.png";
+            case CART -> "minecraft:textures/block/tnt_side.png";
             default -> "nivorat:textures/icons/modules.png";
         };
     }
@@ -1586,7 +1712,7 @@ implements GuiCapture.Source {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         activity.client.gui.custom.ChatHudLayout.render(context);
-        activity.client.gui.custom.AutoCartCalibrationTopPanel.render(context, mouseX, mouseY);
+        activity.client.gui.custom.AutoCartCalibrationDrawer.render(context, mouseX, mouseY);
     }
 
     @Override
@@ -1603,6 +1729,7 @@ implements GuiCapture.Source {
             }
         }
         this.renderPanel(drawContext);
+        activity.client.gui.custom.api.drags.DragSystem.get().renderInGui(drawContext);
     }
 
     private void renderModuleHeaderPanel(float f, float f2, float f3, float f4, float f5) {
@@ -1612,7 +1739,6 @@ implements GuiCapture.Source {
     private boolean isModuleView() {
         return this.contentCategory != null
             && this.contentCategory != Category.THEMES
-            && this.contentCategory != Category.ABOUT
             && this.contentCategory != Category.PRESETS;
     }
 
@@ -1646,8 +1772,13 @@ implements GuiCapture.Source {
         }
         this.search.collapse();
         this.settingsPopup.close();
+        this.presetDropdownOpen = false;
+        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
         if (this.inspector.isOpen()) {
             this.inspector.close();
+        }
+        if (this.presetRenderer.isDrawerOpen()) {
+            this.presetRenderer.closeDrawer();
         }
         this.targetCategory = category2;
         if (category2 != null) {
@@ -1765,6 +1896,7 @@ implements GuiCapture.Source {
         float f8 = PANEL_H;
         float f9 = panelX();
         float f10 = panelY();
+        float drawerH = activity.client.gui.custom.AutoCartCalibrationDrawer.getVisualProtrusion();
         Render2D.rect(-10.0f, -10.0f, Position.screenWidth() + 20.0f, Position.screenHeight() + 20.0f, 0.0f, UI.color(0, 0, 0, 60, f5));
         if (UI.guiCaptureActive()) {
             Render2D.flush();
@@ -1783,7 +1915,7 @@ implements GuiCapture.Source {
             float targetW = (float)Position.mouseX() - (f9 + 5.0f) - sidebarDragGrabX;
             customSidebarW = Math.max(MIN_SIDEBAR_W, Math.min(MAX_SIDEBAR_W, targetW));
         }
-        RectUtil.drawClientRect(f9, f10, f7, f8, 12.0f, f6, 6.0f);
+        RectUtil.drawClientRect(f9, f10 - drawerH, f7, f8 + drawerH, 12.0f, f6, 6.0f);
         float f11 = 12.0f;
         RenderHelper.drawPanelBg(f9 + 5.0f, f10 + 5.0f, sidebarW(), f8 - 10.0f, f11, 0.0f, 0.0f, f11, f6);
         long l = System.nanoTime();
@@ -1795,7 +1927,7 @@ implements GuiCapture.Source {
         this.renderSplitterRail(f9, f10, f8, f6, f12);
 
         float mainW = PANEL_W - contentInset();
-        float rightRadius = (this.inspector.isOpen() || this.themesRenderer.getEditor().isOpen()) ? 0.0f : f11;
+        float rightRadius = (this.inspector.isOpen() || this.themesRenderer.getEditor().isOpen() || this.presetRenderer.isDrawerOpen()) ? 0.0f : f11;
         RenderHelper.drawPanelBg(f9 + contentXOff(), f10 + CONTENT_Y_OFFSET, mainW, CONTENT_HEIGHT, 0.0f, rightRadius, rightRadius, 0.0f, f6);
         this.updateCategoryCrossfade(f12);
         float f14 = f6 * this.categoryT;
@@ -1808,8 +1940,6 @@ implements GuiCapture.Source {
                 this.themesRenderer.render(drawContext, f9, f10, PANEL_W, f14, f15, f12);
             } else if (this.contentCategory == Category.PRESETS) {
                 this.presetRenderer.render(drawContext, f9 + contentXOff(), f10 + CONTENT_Y_OFFSET, PANEL_W - contentInset(), CONTENT_HEIGHT, f14);
-            } else if (this.contentCategory == Category.ABOUT) {
-                this.renderAboutCategory(drawContext, f9, f10, PANEL_W, f14, f15, f12);
             } else {
                 List<Module> list = this.filteredModules(this.contentCategory);
                 if (this.contentCategory == Category.PINNED && list.isEmpty() && !this.search.hasText()) {
@@ -1824,7 +1954,7 @@ implements GuiCapture.Source {
             }
         }
         float f16 = this.modulesHeaderAnim.getOutput().floatValue();
-        boolean bl4 = bl = this.contentCategory != null && this.contentCategory != Category.THEMES && this.contentCategory != Category.ABOUT
+        boolean bl4 = bl = this.contentCategory != null && this.contentCategory != Category.THEMES
             && this.contentCategory != Category.PRESETS;
         if (bl && f6 > 0.01f && f16 > 0.004f) {
             f = f9 + contentXOff();
@@ -1857,6 +1987,14 @@ implements GuiCapture.Source {
             this.themesRenderer.getEditor().renderInspector(drawContext, dockX, f10 + CONTENT_Y_OFFSET, activity.client.gui.custom.api.ui.theme.ThemeEditorRenderer.INSPECTOR_WIDTH, CONTENT_HEIGHT, f6, f12);
             Render2D.popScissor(drawContext);
         }
+
+        if (this.presetRenderer.isDrawerOpen()) {
+            float dockX = f9 + PANEL_W;
+            float dockW = this.presetRenderer.dockWidth();
+            Render2D.pushScissor(drawContext, dockX - 1.0f, f10 + CONTENT_Y_OFFSET, dockW + 2.0f, CONTENT_HEIGHT);
+            this.presetRenderer.renderDrawer(drawContext, dockX, f10 + CONTENT_Y_OFFSET, activity.client.gui.custom.PresetRenderer.DRAWER_WIDTH, CONTENT_HEIGHT, f6, f12);
+            Render2D.popScissor(drawContext);
+        }
         boolean bl5 = this.settingsPopup.isVisible();
         boolean bl6 = this.bindPopup.isVisible();
         if (bl5 || bl6) {
@@ -1881,10 +2019,11 @@ implements GuiCapture.Source {
                 this.bindPopup.render(drawContext, f6);
             }
         }
-        if(UI.isOpen()&&!UI.guiCaptureActive()&&!this.bindPopup.isVisible()&&!this.settingsPopup.isVisible()&&!this.themesRenderer.getEditor().isOpen()){
+        if(UI.isOpen()&&!UI.guiCaptureActive()&&!this.bindPopup.isVisible()&&!this.settingsPopup.isVisible()&&!this.themesRenderer.getEditor().isOpen()&&!this.presetRenderer.isDrawerOpen()){
             if(!activity.client.gui.custom.CollectionDrawer.isOpen()) { if(this.inspector.isOpen())this.inspector.renderExplanation(drawContext, f6);else if(this.isModuleView())this.moduleList.renderExplanation(drawContext, f6); }
         }
         activity.client.gui.custom.NativeBindAssignment.render(drawContext, f6);
+        this.renderPresetDropdown(drawContext, f6);
         drawContext.getMatrices().popMatrix();
         activity.client.gui.custom.CollectionDrawer.render(drawContext, (int) Position.mouseX(), (int) Position.mouseY(), 0);
         if (this.themesRenderer.getEditor().isOpen()) {
@@ -1894,6 +2033,101 @@ implements GuiCapture.Source {
             this.stagePopupBlur();
             this.stageCardBlur(f9, f10, f7);
         }
+    }
+
+    private void renderPresetDropdown(DrawContext drawContext, float alpha) {
+        float dropT = this.presetDropdownAnim.getOutput().floatValue();
+        if (dropT <= 0.005f) return;
+        float totalAlpha = alpha * dropT;
+
+        float dropW = Math.max(this.lastPresetBtnW + 12.0f, 90.0f);
+        float dropX = this.lastPresetBtnX + (this.lastPresetBtnW - dropW) * 0.5f;
+        float dropY = this.lastPresetBtnY + this.lastPresetBtnH + 3.0f;
+        boolean isRu = activity.client.gui.custom.api.localization.LocalizationManager.getCurrentLanguage() == activity.client.gui.custom.api.localization.LocalizationManager.Language.RU;
+
+        int totalEntries = this.cachedPresetEntries.size();
+        int visibleCount = totalEntries == 0 ? 1 : Math.min(totalEntries, 6);
+        float itemH = 15.0f;
+        float footerH = 16.0f;
+        float dropH = 4.0f + visibleCount * itemH + 1.0f + footerH + 4.0f;
+        this.lastPresetDropX = dropX;
+        this.lastPresetDropY = dropY;
+        this.lastPresetDropW = dropW;
+        this.lastPresetDropH = dropH;
+
+        float animY = dropY - (1.0f - dropT) * 6.0f;
+        float scale = 0.94f + 0.06f * dropT;
+        float originX = dropX + dropW * 0.5f;
+        float originY = dropY;
+
+        drawContext.getMatrices().pushMatrix();
+        drawContext.getMatrices().translate(originX, originY);
+        drawContext.getMatrices().scale(scale, scale);
+        drawContext.getMatrices().translate(-originX, -originY);
+
+        Render2D.glow(new BuiltGlow(dropX, animY, dropW, dropH, new float[]{6.0f, 6.0f, 6.0f, 6.0f}, ClientAccent.accent(110.0f * totalAlpha), 0.5f, 10.0f, totalAlpha));
+        Render2D.rect(dropX, animY, dropW, dropH, 6.0f, ThemeManager.rgba(0x0e1117, 245.0f * totalAlpha));
+        Render2D.outline(dropX, animY, dropW, dropH, 6.0f, 0.75f, ClientAccent.accent(150.0f * totalAlpha));
+
+        float mx = Position.mouseX();
+        float my = Position.mouseY();
+        float curY = animY + 4.0f;
+
+        if (totalEntries == 0) {
+            String emptyLabel = isRu ? "Нет пресетов" : "No presets";
+            Fonts.MONTSERRAT_MEDIUM.draw(emptyLabel, dropX + 8.0f, curY + 4.0f, 6.0f, UI.color(255, 255, 255, 120, totalAlpha));
+            curY += itemH;
+        } else {
+            int startIdx = Math.max(0, Math.min(this.presetScrollOffset, Math.max(0, totalEntries - visibleCount)));
+            for (int i = 0; i < visibleCount; i++) {
+                int entryIdx = startIdx + i;
+                if (entryIdx >= totalEntries) break;
+                activity.client.config.preset.LocalPresets.Entry entry = this.cachedPresetEntries.get(entryIdx);
+                boolean hoverItem = mx >= dropX + 2.0f && mx <= dropX + dropW - 2.0f && my >= curY && my <= curY + itemH;
+                boolean isSelected = entry.name().equalsIgnoreCase(this.selectedPresetName);
+
+                if (hoverItem || isSelected) {
+                    Render2D.rect(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, itemH - 2.0f, 3.5f,
+                        isSelected ? ClientAccent.accent(50.0f * totalAlpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * totalAlpha));
+                    if (isSelected) {
+                        Render2D.outline(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, itemH - 2.0f, 3.5f, 0.6f, ClientAccent.accent(130.0f * totalAlpha));
+                    }
+                }
+
+                float rowIconSize = 6.0f;
+                int rowIconCol = isSelected ? ClientAccent.accentBright(255.0f * totalAlpha) : (hoverItem ? UI.color(255, 255, 255, 240, totalAlpha) : UI.color(255, 255, 255, 140, totalAlpha));
+                Fonts.NV.msdf(isSelected ? NvIcons.CHECK : NvIcons.PROFILE, dropX + 7.0f, curY + (itemH - rowIconSize) * 0.5f, rowIconSize, rowIconCol);
+
+                String name = entry.name();
+                float maxNameW = dropW - 22.0f;
+                float nameFontH = 6.0f;
+                if (Fonts.MONTSERRAT_MEDIUM.width(name, nameFontH) > maxNameW && name.length() > 6) {
+                    while (name.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(name + "…", nameFontH) > maxNameW) {
+                        name = name.substring(0, name.length() - 1);
+                    }
+                    name += "…";
+                }
+                int nameCol = isSelected ? ClientAccent.accentBright(255.0f * totalAlpha) : (hoverItem ? UI.color(255, 255, 255, 255, totalAlpha) : UI.color(255, 255, 255, 190, totalAlpha));
+                Fonts.MONTSERRAT_MEDIUM.draw(name, dropX + 16.5f, curY + (itemH - nameFontH) * 0.5f + 0.5f, nameFontH, nameCol);
+
+                curY += itemH;
+            }
+        }
+
+        Render2D.rect(dropX + 6.0f, curY, dropW - 12.0f, 0.6f, 0.3f, ThemeManager.rgba(0xFFFFFF, 20.0f * totalAlpha));
+        curY += 1.0f;
+
+        boolean hoverManage = mx >= dropX + 2.0f && mx <= dropX + dropW - 2.0f && my >= curY && my <= curY + footerH;
+        if (hoverManage) {
+            Render2D.rect(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, footerH - 2.0f, 3.5f, ClientAccent.accent(35.0f * totalAlpha));
+        }
+        String manageText = isRu ? "Все пресеты" : "All presets";
+        float mFontH = 6.0f;
+        int mCol = hoverManage ? ClientAccent.accentBright(255.0f * totalAlpha) : ClientAccent.accentSoft(200.0f * totalAlpha);
+        Fonts.NV.msdf(NvIcons.PROFILE, dropX + 7.0f, curY + (footerH - 6.0f) * 0.5f, 6.0f, mCol);
+        Fonts.MONTSERRAT_MEDIUM.draw(manageText, dropX + 16.5f, curY + (footerH - mFontH) * 0.5f + 0.5f, mFontH, mCol);
+
+        drawContext.getMatrices().popMatrix();
     }
 
     private static String layoutNormalize(String string) {
@@ -2015,8 +2249,7 @@ implements GuiCapture.Source {
         float f9 = f6 + f7 - 2.0f;
         float f10 = f2 + 2.0f;
         float headerY = f10 + 3.0f;
-        float modulesSectionY = headerY + HEADER_H + 6.0f;
-        float catStartY = modulesSectionY + 18.0f;
+        float catStartY = headerY + HEADER_H + 6.0f;
         for (int i = 0; i < MAIN_CATEGORIES.length; ++i) {
             f5 = catStartY + (float)i * (CAT_SUB_ROW_H + CAT_SUB_GAP);
             if (!(f3 >= f8) || !(f3 <= f9) || !(f4 >= f5) || !(f4 <= f5 + CAT_SUB_ROW_H)) continue;
@@ -2041,124 +2274,4 @@ implements GuiCapture.Source {
 
 
 
-    private void renderAboutCategory(DrawContext drawContext, float px, float py, float panelW, float alpha, float pageT, float dt) {
-        float contentX = px + contentXOff();
-        float contentY = py + CONTENT_Y_OFFSET;
-        float contentW = panelW - contentInset();
-        float contentH = CONTENT_HEIGHT;
-
-        float mouseX = Position.mouseX();
-        float mouseY = Position.mouseY();
-
-
-        float headerCardH = 46.0f;
-        Render2D.rect(contentX + 6.0f, contentY + 6.0f, contentW - 12.0f, headerCardH, 6.0f, ThemeManager.rgba(0, 45.0f * alpha));
-        Render2D.outline(contentX + 6.0f, contentY + 6.0f, contentW - 12.0f, headerCardH, 6.0f, 0.6f, ThemeManager.rgba(0xFFFFFF, 18.0f * alpha));
-
-
-        BrandMark.draw(contentX + 16.0f, contentY + 16.0f, 16.0f, alpha);
-        Fonts.MONTSERRAT_MEDIUM.draw("NC", contentX + 38.0f, contentY + 14.0f, 10.0f, UI.color(255, 255, 255, 245, alpha));
-
-
-        String ver = "v1.0.0 (Fabric 1.21.11)";
-        float verW = Fonts.MONTSERRAT_MEDIUM.width(ver, 5.0f);
-        float verX = contentX + contentW - 18.0f - verW - 8.0f;
-        float verY = contentY + 15.0f;
-        Render2D.rect(verX, verY, verW + 8.0f, 11.0f, 3.0f, ThemeManager.rgba(0, 50.0f * alpha));
-        Render2D.outline(verX, verY, verW + 8.0f, 11.0f, 3.0f, 0.5f, ClientAccent.accent(140.0f * alpha));
-        Fonts.MONTSERRAT_MEDIUM.draw(ver, verX + 4.0f, verY + 2.5f, 5.0f, ClientAccent.accentBright(230.0f * alpha));
-
-
-        Fonts.MONTSERRAT_MEDIUM.draw((activity.client.gui.custom.VisualText.language().equals("ru") ? "Твой Minecraft. Твой стиль." : "Your Minecraft. Your style."), contentX + 38.0f, contentY + 28.0f, 6.0f, UI.color(180, 185, 205, 210, alpha));
-
-
-        float card2Y = contentY + 6.0f + headerCardH + 6.0f;
-        float card2H = 138.0f;
-        Render2D.rect(contentX + 6.0f, card2Y, contentW - 12.0f, card2H, 6.0f, ThemeManager.rgba(0, 40.0f * alpha));
-        Render2D.outline(contentX + 6.0f, card2Y, contentW - 12.0f, card2H, 6.0f, 0.6f, ThemeManager.rgba(0xFFFFFF, 16.0f * alpha));
-
-        Fonts.MONTSERRAT_MEDIUM.draw((activity.client.gui.custom.VisualText.language().equals("ru") ? "Что умеет NC" : "What NC offers"), contentX + 14.0f, card2Y + 8.0f, 7.0f, UI.color(255, 255, 255, 235, alpha));
-        Render2D.rect(contentX + 14.0f, card2Y + 19.0f, contentW - 28.0f, 0.5f, 0.25f, ThemeManager.rgba(0xFFFFFF, 14.0f * alpha));
-
-        String[] feats = new String[]{
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "PVP: текущие боевые модули клиента" : "PvP: the client’s combat modules"),
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "HUD: нужная информация рядом" : "HUD: key information at a glance"),
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "Киты: быстрый доступ к PVP функциям" : "Kits: quick access to PvP tools"),
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "Настройки: управление текущими модулями" : "Settings: control your modules"),
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "Темы: твои цвета и материалы" : "Themes: your colors and materials"),
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "Разработчик: Nivorat" : "Developer: Nivorat"),
-            (activity.client.gui.custom.VisualText.language().equals("ru") ? "Сделано для удобной игры" : "Made for comfortable gameplay")
-        };
-        float curF = card2Y + 26.0f;
-        for (String feat : feats) {
-            Render2D.rect(contentX + 15.0f, curF + 3.0f, 3.0f, 3.0f, 1.5f, ClientAccent.accent(200.0f * alpha));
-            Fonts.MONTSERRAT_MEDIUM.draw(activity.client.gui.custom.api.ui.settings.RenderHelper.fitText(Fonts.MONTSERRAT_MEDIUM, feat, contentW - 40.0f, 6.0f), contentX + 23.0f, curF, 6.0f, UI.color(200, 205, 220, 215, alpha));
-            curF += 15.5f;
-        }
-
-
-        float btnRowY = card2Y + card2H + 7.0f;
-        float btnH = 20.0f;
-        float gap = 5.0f;
-        float btnW = (contentW - 12.0f - gap * 2.0f) / 3.0f;
-
-
-        this.lastAboutResetPosBtnX = contentX + 6.0f;
-        this.lastAboutResetPosBtnY = btnRowY;
-        this.lastAboutResetPosBtnW = btnW;
-        this.lastAboutResetPosBtnH = btnH;
-        boolean hov1 = mouseX >= lastAboutResetPosBtnX && mouseX <= lastAboutResetPosBtnX + btnW && mouseY >= btnRowY && mouseY <= btnRowY + btnH;
-        Render2D.rect(lastAboutResetPosBtnX, btnRowY, btnW, btnH, 4.0f, ThemeManager.rgba(0, (hov1 ? 75.0f : 45.0f) * alpha));
-        Render2D.outline(lastAboutResetPosBtnX, btnRowY, btnW, btnH, 4.0f, 0.6f, hov1 ? ClientAccent.accent(180.0f * alpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * alpha));
-        Fonts.NV.msdf(NvIcons.ASPECT_RATIO, lastAboutResetPosBtnX + 6.0f, btnRowY + 5.5f, 7.5f, hov1 ? ClientAccent.accentBright(240.0f * alpha) : UI.color(255, 255, 255, 170, alpha));
-        Fonts.MONTSERRAT_MEDIUM.draw((activity.client.gui.custom.VisualText.language().equals("ru") ? "Сброс позиции" : "Reset position"), lastAboutResetPosBtnX + 19.0f, btnRowY + 5.5f, 5.5f, UI.color(255, 255, 255, hov1 ? 255 : 210, alpha));
-
-
-        this.lastAboutResetSidebarBtnX = lastAboutResetPosBtnX + btnW + gap;
-        this.lastAboutResetSidebarBtnY = btnRowY;
-        this.lastAboutResetSidebarBtnW = btnW;
-        this.lastAboutResetSidebarBtnH = btnH;
-        boolean hov2 = mouseX >= lastAboutResetSidebarBtnX && mouseX <= lastAboutResetSidebarBtnX + btnW && mouseY >= btnRowY && mouseY <= btnRowY + btnH;
-        Render2D.rect(lastAboutResetSidebarBtnX, btnRowY, btnW, btnH, 4.0f, ThemeManager.rgba(0, (hov2 ? 75.0f : 45.0f) * alpha));
-        Render2D.outline(lastAboutResetSidebarBtnX, btnRowY, btnW, btnH, 4.0f, 0.6f, hov2 ? ClientAccent.accent(180.0f * alpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * alpha));
-        Fonts.NV.msdf(NvIcons.SCALE, lastAboutResetSidebarBtnX + 6.0f, btnRowY + 5.5f, 7.5f, hov2 ? ClientAccent.accentBright(240.0f * alpha) : UI.color(255, 255, 255, 170, alpha));
-        Fonts.MONTSERRAT_MEDIUM.draw((activity.client.gui.custom.VisualText.language().equals("ru") ? "Ширина меню" : "Sidebar width"), lastAboutResetSidebarBtnX + 19.0f, btnRowY + 5.5f, 5.5f, UI.color(255, 255, 255, hov2 ? 255 : 210, alpha));
-
-
-        this.lastAboutResetThemeBtnX = lastAboutResetSidebarBtnX + btnW + gap;
-        this.lastAboutResetThemeBtnY = btnRowY;
-        this.lastAboutResetThemeBtnW = btnW;
-        this.lastAboutResetThemeBtnH = btnH;
-        boolean hov3 = mouseX >= lastAboutResetThemeBtnX && mouseX <= lastAboutResetThemeBtnX + btnW && mouseY >= btnRowY && mouseY <= btnRowY + btnH;
-        Render2D.rect(lastAboutResetThemeBtnX, btnRowY, btnW, btnH, 4.0f, ThemeManager.rgba(0, (hov3 ? 75.0f : 45.0f) * alpha));
-        Render2D.outline(lastAboutResetThemeBtnX, btnRowY, btnW, btnH, 4.0f, 0.6f, hov3 ? ClientAccent.accent(180.0f * alpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * alpha));
-        Fonts.NV.msdf(NvIcons.THEMES, lastAboutResetThemeBtnX + 6.0f, btnRowY + 5.5f, 7.5f, hov3 ? ClientAccent.accentBright(240.0f * alpha) : UI.color(255, 255, 255, 170, alpha));
-        Fonts.MONTSERRAT_MEDIUM.draw((activity.client.gui.custom.VisualText.language().equals("ru") ? "Сброс темы" : "Reset theme"), lastAboutResetThemeBtnX + 19.0f, btnRowY + 5.5f, 5.5f, UI.color(255, 255, 255, hov3 ? 255 : 210, alpha));
-    }
-
-    public boolean clickAboutCategory(float mouseX, float mouseY) {
-        if (mouseX >= this.lastAboutResetPosBtnX && mouseX <= this.lastAboutResetPosBtnX + this.lastAboutResetPosBtnW &&
-            mouseY >= this.lastAboutResetPosBtnY && mouseY <= this.lastAboutResetPosBtnY + this.lastAboutResetPosBtnH) {
-            customPanelX = -1.0f;
-            customPanelY = -1.0f;
-            isDraggingPanel = false;
-            try { Sounds.play("select_category"); } catch (Throwable ignored) {}
-            return true;
-        }
-        if (mouseX >= this.lastAboutResetSidebarBtnX && mouseX <= this.lastAboutResetSidebarBtnX + this.lastAboutResetSidebarBtnW &&
-            mouseY >= this.lastAboutResetSidebarBtnY && mouseY <= this.lastAboutResetSidebarBtnY + this.lastAboutResetSidebarBtnH) {
-            customSidebarW = DEFAULT_SIDEBAR_W;
-            isDraggingSidebar = false;
-            try { Sounds.play("select_category"); } catch (Throwable ignored) {}
-            return true;
-        }
-        if (mouseX >= this.lastAboutResetThemeBtnX && mouseX <= this.lastAboutResetThemeBtnX + this.lastAboutResetThemeBtnW &&
-            mouseY >= this.lastAboutResetThemeBtnY && mouseY <= this.lastAboutResetThemeBtnY + this.lastAboutResetThemeBtnH) {
-            ThemeManager.set(activity.client.gui.custom.api.ui.theme.Theme.CLIENT);
-            activity.client.gui.custom.api.config.ConfigManager.markDirty();
-            try { Sounds.play("select_category"); } catch (Throwable ignored) {}
-            return true;
-        }
-        return false;
-    }
 }

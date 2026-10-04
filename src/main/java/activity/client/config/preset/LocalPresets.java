@@ -265,7 +265,7 @@ public final class LocalPresets {
     }
 
     private static String formatValue(JsonElement value) {
-        if (value == null || value.isJsonNull()) return "—";
+        if (value == null || value.isJsonNull()) return "-";
         if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isBoolean()) return activity.client.i18n.LocalizationService.isRussianPreferred() ? value.getAsBoolean() ? "Вкл" : "Выкл" : value.getAsBoolean() ? "On" : "Off";
         return value.isJsonPrimitive() && value.getAsJsonPrimitive().isString() ? value.getAsString() : value.toString();
     }
@@ -299,6 +299,22 @@ public final class LocalPresets {
             VisualSettingsStore.apply(group, values);
         }
         ActivityConfigManager.markDirty(); ActivityConfigManager.save(); VisualSettingsStore.save();
+    }
+
+    public static Path importString(String text) throws IOException {
+        Preview preview = parse(text);
+        JsonObject root = new JsonObject(); root.addProperty("type", "nivoratclient_preset"); root.addProperty("version", 1);
+        String name = preview.name();
+        Set<String> names = new HashSet<>(); for (var entry : list()) names.add(entry.name().toLowerCase(Locale.ROOT));
+        for (int i = 1; names.contains(name.toLowerCase(Locale.ROOT)); i++) { String suffix = " (" + i + ")"; name = preview.name().substring(0, Math.min(preview.name().length(), 32 - suffix.length())) + suffix; }
+        root.addProperty("name", name); root.add("sections", preview.sections());
+        Files.createDirectories(directory()); Path destination = directory().resolve(UUID.randomUUID() + ".json");
+        write(destination, root); return destination;
+    }
+
+    public static String exportString(Path source) throws IOException {
+        read(source);
+        return Files.readString(source, StandardCharsets.UTF_8);
     }
 
     public static Path importFile(Path external) throws IOException {

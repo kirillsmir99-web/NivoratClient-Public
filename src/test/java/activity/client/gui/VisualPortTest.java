@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class VisualPortTest {
     @Test void kitsDoNotRegisterOrDuplicateModules() {
         var original = ModuleRegistry.getAll();
-        assertEquals(10, PvpKit.values().length);
+        assertEquals(11, PvpKit.values().length);
         assertEquals(original.size(), original.stream().filter(PvpKit.ALL::matches).count());
         for (PvpKit kit : PvpKit.values()) {
             for (var module : original.stream().filter(kit::matches).toList()) {
@@ -44,6 +44,15 @@ class VisualPortTest {
         assertFalse(PvpKit.UHC.matchesId("click_pearl"));
         assertFalse(PvpKit.MACE.matchesId("auto_shieldbreaker"));
         assertFalse(PvpKit.BEAST.matchesId("auto_tool"));
+        assertTrue(PvpKit.CART.matchesId("auto_cart"));
+        assertTrue(PvpKit.CART.matchesId("cart_refill"));
+        assertTrue(PvpKit.CART.matchesId("cart_hud"));
+        assertTrue(PvpKit.CART.matchesId("click_pearl"));
+        assertTrue(PvpKit.CART.matchesId("auto_totem"));
+        assertTrue(PvpKit.CART.matchesId("hp_reaper"));
+        assertTrue(PvpKit.CART.matchesId("auto_gg"));
+        assertTrue(PvpKit.CART.matchesId("cooldown_hud"));
+        assertFalse(PvpKit.CART.matchesId("auto_mace"));
     }
     @Test void allNivoratPresetsExistAndPaletteCannotBeMutated() {
         assertEquals(20, ThemePreset.values().length);

@@ -490,7 +490,6 @@ public class SidebarTree {
         this.footerItems.add(new FooterNode("themes", activity.client.gui.tab.ThemesTab.TAB_INDEX,
             Text.translatable("activity.tab.themes"), ActivityIcon.GLASS));
         this.footerItems.add(new FooterNode("settings", 4, Text.translatable("activity.tab.settings"), ActivityIcon.SETTINGS));
-        this.footerItems.add(new FooterNode("about", 5, Text.translatable("activity.tab.about"), ActivityIcon.ABOUT));
     }
 
     public void rebuildNodes() {

@@ -5,8 +5,19 @@ package activity.client.gui.custom.utils.render.fonts;
 
 public final class NvIcons {
     private NvIcons() {}
- public static String forCategory(activity.client.gui.custom.api.modules.Category c){return switch(c){case THEMES->THEMES;case ABOUT->PROFILE;case DISPLAY->SETTINGS;case PINNED->PINNED;default->MODULES;};}
- public static char charForCategory(activity.client.gui.custom.api.modules.Category c){return forCategory(c).charAt(0);}
+    public static String forCategory(activity.client.gui.custom.api.modules.Category c) {
+        if (c == null) return MODULES;
+        return switch (c) {
+            case PINNED -> PINNED;
+            case VISUALS -> VISUALS;
+            case UTILS -> UTILS;
+            case THEMES -> THEMES;
+            case DISPLAY -> SETTINGS;
+            case PRESETS -> PROFILE;
+            default -> MODULES;
+        };
+    }
+    public static char charForCategory(activity.client.gui.custom.api.modules.Category c) { return forCategory(c).charAt(0); }
 
 
 

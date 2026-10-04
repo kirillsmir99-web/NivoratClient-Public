@@ -1,201 +1,1055 @@
 package activity.client.gui.custom;
 
 import activity.client.config.preset.LocalPresets;
+import activity.client.gui.custom.api.drags.Position;
+import activity.client.gui.custom.api.ui.UI;
+import activity.client.gui.custom.api.ui.module.SearchField;
+import activity.client.gui.custom.api.ui.settings.RenderHelper;
 import activity.client.gui.custom.api.ui.theme.ClientAccent;
+import activity.client.gui.custom.api.ui.theme.ThemeManager;
+import activity.client.gui.custom.utils.animations.Decelerate;
+import activity.client.gui.custom.utils.animations.Direction;
+import activity.client.gui.custom.utils.color.ColorUtil;
 import activity.client.gui.custom.utils.render.fonts.Fonts;
 import activity.client.gui.custom.utils.render.fonts.NvIcons;
 import activity.client.gui.custom.utils.render.render2d.Render2D;
+import activity.client.gui.custom.utils.render.render2d.glow.BuiltGlow;
 import activity.client.gui.custom.utils.sounds.Sounds;
-import activity.client.module.api.IModule;
-import activity.client.module.api.ModuleRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
+import org.lwjgl.glfw.GLFW;
+
 import java.nio.file.Path;
 import java.util.*;
 
 public final class PresetRenderer {
-    private enum View { LIST, CREATE, MODULES, PREVIEW }
-    private record Hit(float x, float y, float w, float h, Runnable action) {
-        boolean contains(float mx, float my) { return mx >= x && mx <= x + w && my >= y && my <= y + h; }
-    }
-    private View view = View.LIST;
-    private final List<Hit> hits = new ArrayList<>();
-    private final EnumSet<LocalPresets.Part> parts = EnumSet.complementOf(EnumSet.of(LocalPresets.Part.CART_PROFILE));
-    private final List<IModule> modules = ModuleRegistry.getAll();
-    private final Set<String> moduleIds = new HashSet<>();
+    public static final float DRAWER_WIDTH = 210.0f;
+    private static final float HEADER_HEIGHT = 22.0f;
+    private static final float FOOTER_HEIGHT = 28.0f;
+
     private List<LocalPresets.Entry> entries = List.of();
     private Set<String> favorites = Set.of();
-    private LocalPresets.Template template = LocalPresets.Template.CURRENT;
-    private LocalPresets.Preview preview;
-    private List<String> changes = List.of();
-    private Path importPath, deleting, previewPath;
-    private String name = "", message = "";
-    private boolean typing, drawingBody;
-    private float x, y, width, height, alpha, scroll, contentHeight;
-    private float clipTop, clipBottom;
+    private final SearchField search = new SearchField();
 
-    public PresetRenderer() { for (var module : modules) moduleIds.add(module.getId()); }
-    private String tr(String ru, String en) { return activity.client.i18n.LocalizationService.isRussianPreferred() ? ru : en; }
-    public void open() { view = View.LIST; scroll = 0; typing = false; hits.clear(); reload(); }
-    private void reload() {
-        run(() -> { entries = LocalPresets.list(); favorites = LocalPresets.favorites(); });
+    private float scroll = 0.0f;
+    private float scrollTarget = 0.0f;
+
+    private boolean drawerOpen = false;
+    private final Decelerate drawerAnim = (Decelerate) new Decelerate().setMs(240).setValue(1.0);
+    private String drawerName = "";
+    private boolean nameFocused = false;
+    private boolean nameSelectedAll = false;
+    private float nameHoverT = 0.0f;
+    private float nameFocusT = 0.0f;
+    private final List<Float> nameCharAnim = new ArrayList<>();
+    private float nameAnimCursorX = 0.0f;
+    private boolean nameCursorSnap = true;
+
+    private boolean autoActivate = true;
+    private LocalPresets.Template drawerTemplate = LocalPresets.Template.CURRENT;
+    private final EnumSet<LocalPresets.Part> drawerParts = EnumSet.allOf(LocalPresets.Part.class);
+
+    private float drawerScroll = 0.0f;
+    private float drawerScrollTarget = 0.0f;
+
+    private String toastMessage = null;
+    private long toastTime = 0;
+    private Path deletingPath = null;
+    private long deletePromptTime = 0;
+
+    private float lastX, lastY, lastW, lastH;
+    private float lastImpX, lastImpY, lastImpW, lastImpH;
+    private float lastCreateX, lastCreateY, lastCreateW, lastCreateH;
+
+    private float lastDrawerX, lastDrawerY, lastDrawerW, lastDrawerH;
+    private float lastCloseX, lastCloseY, lastCloseW, lastCloseH;
+    private float lastCancelX, lastCancelY, lastCancelW, lastCancelH;
+    private float lastSaveX, lastSaveY, lastSaveW, lastSaveH;
+    private float lastNameBoxX, lastNameBoxY, lastNameBoxW, lastNameBoxH;
+    private float lastPill1X, lastPill1Y, lastPillW, lastPillH;
+    private float lastPill2X, lastPill2Y;
+    private final float[] lastPartRowY = new float[8];
+    private float lastAutoActY;
+    private float lastToggleAllX, lastToggleAllY, lastToggleAllW;
+
+    public PresetRenderer() {
+        this.drawerAnim.setDirection(Direction.BACKWARDS);
+        this.drawerAnim.counter.setTime(System.currentTimeMillis() - 10000L);
     }
-    private interface Action { void execute() throws Exception; }
-    private void run(Action action) {
-        try { action.execute(); }
-        catch (Exception error) { message = Objects.toString(error.getMessage(), tr("Не удалось выполнить действие", "Action failed")); }
+
+    private boolean isRu() {
+        return activity.client.i18n.LocalizationService.isRussianPreferred();
     }
-    private void navigate(View next) { view = next; scroll = 0; typing = false; hits.clear(); Sounds.play("select_category"); }
-    public void showPreview(Path path, boolean importing) throws java.io.IOException {
-        preview = LocalPresets.read(path); changes = LocalPresets.changes(preview);
-        previewPath = path; importPath = importing ? path : null; deleting = null; navigate(View.PREVIEW);
+
+    private String tr(String ru, String en) {
+        return isRu() ? ru : en;
     }
-    private void back() {
-        if (view == View.MODULES) navigate(View.CREATE);
-        else { preview = null; importPath = null; deleting = null; previewPath = null; navigate(View.LIST); }
+
+    private String resolvePresetServerTag(String name) {
+        if (name == null || name.isEmpty()) return tr("«Для всех серверов»", "«For all servers»");
+        String lower = name.toLowerCase(Locale.ROOT);
+        if (lower.contains("really") || lower.contains("rw")) return "«Для ReallyWorld»";
+        if (lower.contains("funtime") || lower.contains("ft")) return "«Для FunTime»";
+        if (lower.contains("anarchy") || lower.contains("анарх")) return "«Для Анархии»";
+        if (lower.contains("smp")) return "«Для SMP»";
+        if (lower.contains("pvp") || lower.contains("пвп") || lower.contains("дуэл") || lower.contains("duel")) return "«Для PvP»";
+        if (lower.contains("crystal") || lower.contains("кристал") || lower.contains("holy")) return "«Для HolyWorld»";
+        return tr("«Для всех серверов»", "«For all servers»");
     }
-    public boolean click(float mx, float my, int button) {
-        if (mx < x || mx > x + width || my < y || my > y + height) return false;
-        if (button != 0) return true;
-        typing = false;
-        for (Hit hit : List.copyOf(hits)) if (hit.contains(mx, my)) { hit.action.run(); return true; }
-        return true;
+
+    private static int color(int r, int g, int b, int a, float alpha) {
+        int finalA = Math.max(0, Math.min(255, Math.round((float) a * alpha)));
+        return (finalA << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
     }
-    public void scroll(double delta) { scroll = Math.clamp(scroll - (float)delta * 22, 0, Math.max(0, contentHeight - (clipBottom - clipTop))); }
-    public boolean keyPressed(KeyInput key) {
-        if (key.key() == 256 && view != View.LIST) { back(); return true; }
-        if (!typing) return false;
-        if (key.key() == 259 && !name.isEmpty()) name = name.substring(0, name.offsetByCodePoints(name.length(), -1));
-        if ((key.modifiers() & 2) != 0 && key.key() == 86) {
-            String pasted = MinecraftClient.getInstance().keyboard.getClipboard().replaceAll("[\\p{Cntrl}]", "");
-            name = (name + pasted).codePoints().limit(32).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+
+    public void open() {
+        this.scroll = 0.0f;
+        this.scrollTarget = 0.0f;
+        this.search.setText("");
+        this.search.collapse();
+        this.drawerOpen = false;
+        this.drawerAnim.setDirection(Direction.BACKWARDS);
+        this.drawerAnim.counter.setTime(System.currentTimeMillis() - 10000L);
+        this.deletingPath = null;
+        this.reload();
+    }
+
+    public void reload() {
+        try {
+            this.entries = LocalPresets.list();
+            this.favorites = LocalPresets.favorites();
+        } catch (Exception e) {
+            this.entries = List.of();
+            this.favorites = Set.of();
         }
-        if (key.key() == 257) create();
-        return true;
     }
-    public boolean charTyped(CharInput input) {
-        if (!typing || name.codePointCount(0, name.length()) >= 32 || Character.isISOControl(input.codepoint())) return false;
-        name += new String(Character.toChars(input.codepoint())); return true;
+
+    public void showToast(String msg) {
+        this.toastMessage = msg;
+        this.toastTime = System.currentTimeMillis();
     }
-    private void create() {
-        run(() -> {
-            LocalPresets.create(name, template, parts, moduleIds.size() == modules.size() ? null : moduleIds);
-            name = ""; reload(); navigate(View.LIST); message = tr("Пресет сохранён", "Preset saved");
-        });
+
+    public boolean isDrawerOpen() {
+        return this.drawerOpen || this.drawerAnim.getOutput().floatValue() > 0.01f;
     }
-    private void apply() {
-        run(() -> {
-            if (deleting != null) { LocalPresets.delete(deleting); message = tr("Пресет удалён", "Preset deleted"); }
-            else { if (importPath != null) LocalPresets.importFile(importPath); LocalPresets.apply(preview); message = tr("Пресет применён", "Preset applied"); }
-            reload(); back();
-        });
+
+    public float dockProgress() {
+        return this.drawerAnim.getOutput().floatValue();
     }
-    public void render(DrawContext context, float x, float y, float width, float height, float alpha) {
-        this.x = x; this.y = y; this.width = width; this.height = height; this.alpha = alpha; hits.clear(); drawingBody = false;
-        float inner = width - 16;
-        text(view == View.LIST ? tr("Пресеты", "Presets") : view == View.CREATE ? tr("Новый пресет", "New preset") : view == View.MODULES ? tr("Выбор модулей", "Select modules") : tr("Предпросмотр", "Preview"), x + 8, y + 9, 9, -1, inner - 45);
-        if (view != View.LIST) button(x + width - 45, y + 5, 37, tr("Назад", "Back"), this::back);
-        float bodyTop = y + 32;
-        if (view == View.LIST) {
-            button(x + 8, bodyTop, inner / 2 - 3, tr("Создать пресет", "Create preset"), () -> navigate(View.CREATE));
-            button(x + 11 + inner / 2, bodyTop, inner / 2 - 3, tr("Импорт из файла", "Import file"), () -> run(() -> {
-                String path = MinecraftClient.getInstance().keyboard.getClipboard().trim();
-                if (path.startsWith("\"") && path.endsWith("\"")) path = path.substring(1, path.length() - 1);
-                showPreview(Path.of(path), true);
-            }));
-            bodyTop += 29;
+
+    public float dockWidth() {
+        return DRAWER_WIDTH * this.dockProgress();
+    }
+
+    public boolean isInputActive() {
+        return (this.drawerOpen && this.nameFocused) || this.search.isTyping();
+    }
+
+    public void openDrawer() {
+        if (UI.INSTANCE != null) {
+            UI.INSTANCE.getInspector().close();
+            UI.INSTANCE.getThemesRenderer().getEditor().close();
         }
-        clipTop = bodyTop; clipBottom = y + height - (view == View.LIST ? 23 : 52);
-        scroll = Math.clamp(scroll, 0, Math.max(0, contentHeight - (clipBottom - clipTop)));
-        Render2D.pushScissor(context, x + 6, clipTop, width - 12, clipBottom - clipTop);
-        float row = clipTop - scroll; drawingBody = true;
-        if (view == View.LIST) {
-            if (entries.isEmpty()) text(tr("Сохранённых пресетов пока нет", "No saved presets yet"), x + 12, row + 12, 7, 0xffbdc7d7, inner - 8);
-            for (var entry : entries) {
-                card(context, x + 8, row, inner, 43);
-                text(entry.name(), x + 16, row + 8, 8, -1, inner - 72);
-                text(tr("Просмотреть изменения", "Preview changes"), x + 16, row + 25, 6, 0xffbdc7d7, inner - 72);
-                hit(x + 8, row, inner - 55, 43, () -> run(() -> showPreview(entry.path(), false)));
-                icon(NvIcons.PINNED, x + width - 54, row + 11, favorites.contains(entry.path().getFileName().toString()) ? ClientAccent.accent(255) : 0xff8490a4,
-                    () -> run(() -> { LocalPresets.toggleFavorite(entry.path()); reload(); Sounds.play("select_category"); }));
-                icon(NvIcons.DELETE, x + width - 30, row + 11, 0xffdcb0b0, () -> run(() -> {
-                    showPreview(entry.path(), false); deleting = entry.path();
-                    changes = List.of(tr("Удалить «", "Delete ‘") + entry.name() + tr("»?", "’ ?"), tr("Файл сохранится в папке deleted.", "The file stays in the deleted folder."));
-                }));
-                row += 49;
+        this.drawerOpen = true;
+        this.drawerAnim.setDirection(Direction.FORWARDS);
+        this.drawerName = "";
+        this.nameCharAnim.clear();
+        this.nameFocused = true;
+        this.nameSelectedAll = false;
+        this.nameCursorSnap = true;
+        this.drawerTemplate = LocalPresets.Template.CURRENT;
+        this.drawerParts.clear();
+        this.drawerParts.addAll(EnumSet.allOf(LocalPresets.Part.class));
+        this.autoActivate = true;
+        this.drawerScroll = 0.0f;
+        this.drawerScrollTarget = 0.0f;
+        try { Sounds.play("module_settings_open"); } catch (Throwable ignored) {}
+    }
+
+    public void closeDrawer() {
+        this.drawerOpen = false;
+        this.nameFocused = false;
+        this.nameSelectedAll = false;
+        this.drawerAnim.setDirection(Direction.BACKWARDS);
+        try { Sounds.play("module_settings_close"); } catch (Throwable ignored) {}
+    }
+
+    public void render(DrawContext drawContext, float x, float y, float w, float h, float alpha) {
+        this.lastX = x;
+        this.lastY = y;
+        this.lastW = w;
+        this.lastH = h;
+
+        float fSpeed = 1.0f - (float) Math.exp(-0.016f * 14.0f);
+        this.scroll += (this.scrollTarget - this.scroll) * fSpeed;
+        if (Math.abs(this.scrollTarget - this.scroll) < 0.05f) {
+            this.scroll = this.scrollTarget;
+        }
+
+        if (this.deletingPath != null && System.currentTimeMillis() - this.deletePromptTime > 3500L) {
+            this.deletingPath = null;
+        }
+
+        float mx = Position.mouseX();
+        float my = Position.mouseY();
+        float dt = 0.016f;
+
+        float contentW = Math.min(276.0f, w - 24.0f);
+        float contentX = x + (w - contentW) * 0.5f;
+
+        float headerH = 26.0f;
+        float btnH = 14.0f;
+        float btnY = y + (headerH - btnH) * 0.5f;
+
+        this.lastImpW = 52.0f;
+        this.lastImpH = btnH;
+        this.lastImpX = contentX + contentW - this.lastImpW;
+        this.lastImpY = btnY;
+        boolean hoverImp = mx >= lastImpX && mx <= lastImpX + lastImpW && my >= lastImpY && my <= lastImpY + lastImpH;
+        Render2D.rect(lastImpX, lastImpY, lastImpW, lastImpH, 3.5f, hoverImp ? ClientAccent.accent(45.0f * alpha) : ThemeManager.rgba(0xFFFFFF, 14.0f * alpha));
+        Render2D.outline(lastImpX, lastImpY, lastImpW, lastImpH, 3.5f, 0.6f, hoverImp ? ClientAccent.accent(160.0f * alpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * alpha));
+        if (hoverImp) {
+            Render2D.glow(new BuiltGlow(lastImpX, lastImpY, lastImpW, lastImpH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(180.0f * alpha), 0.25f, 3.5f, alpha));
+        }
+        Fonts.NV.msdf(NvIcons.IMPORT, lastImpX + 5.0f, lastImpY + 3.8f, 6.0f, hoverImp ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 200, alpha));
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Импорт", "Import"), lastImpX + 15.0f, lastImpY + 3.5f, 5.2f, hoverImp ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 200, alpha));
+
+        this.lastCreateW = 58.0f;
+        this.lastCreateH = btnH;
+        this.lastCreateX = lastImpX - this.lastCreateW - 4.0f;
+        this.lastCreateY = btnY;
+        boolean hoverCreate = mx >= lastCreateX && mx <= lastCreateX + lastCreateW && my >= lastCreateY && my <= lastCreateY + lastCreateH;
+        Render2D.rect(lastCreateX, lastCreateY, lastCreateW, lastCreateH, 3.5f, ClientAccent.accent(hoverCreate ? 220.0f * alpha : 175.0f * alpha));
+        if (hoverCreate) {
+            Render2D.glow(new BuiltGlow(lastCreateX, lastCreateY, lastCreateW, lastCreateH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(255.0f * alpha), 0.35f, 4.0f, alpha));
+        }
+        Fonts.NV.msdf(NvIcons.ADD, lastCreateX + 5.5f, lastCreateY + 3.8f, 6.0f, color(255, 255, 255, 255, alpha));
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Создать", "Create"), lastCreateX + 15.5f, lastCreateY + 3.5f, 5.2f, color(255, 255, 255, 255, alpha));
+
+        float searchX = contentX;
+        float maxSearchW = Math.max(50.0f, (lastCreateX - 6.0f) - searchX);
+        float targetExpandedW = Math.min(105.0f, maxSearchW);
+        this.search.render(drawContext, searchX, btnY, targetExpandedW, btnH, alpha, mx, my, dt);
+
+        float cardsStartY = y + headerH + 5.0f;
+        float cardsH = h - headerH - 8.0f;
+
+        List<LocalPresets.Entry> filtered = new ArrayList<>();
+        String query = this.search.getText().trim().toLowerCase(Locale.ROOT);
+        boolean hasSearchText = this.search.hasText();
+        for (LocalPresets.Entry e : this.entries) {
+            if (query.isEmpty() || e.name().toLowerCase(Locale.ROOT).contains(query)) {
+                filtered.add(e);
             }
-        } else if (view == View.CREATE) {
-            text(tr("Название", "Name"), x + 10, row + 3, 7, -1, inner);
-            Render2D.rect(x + 8, row + 16, inner, 23, 5, color(0x50323a48));
-            text(name.isEmpty() ? tr("Введите название", "Enter a name") : name + (typing ? "|" : ""), x + 15, row + 24, 7, -1, inner - 14);
-            hit(x + 8, row + 16, inner, 23, () -> typing = true); row += 49;
-            text(tr("Шаблон", "Template"), x + 10, row + 3, 7, -1, inner);
-            button(x + 8, row + 16, inner, template == LocalPresets.Template.CURRENT ? tr("Текущие настройки", "Current settings") : tr("Модули по умолчанию", "Default modules"), () -> { template = template == LocalPresets.Template.CURRENT ? LocalPresets.Template.DEFAULTS : LocalPresets.Template.CURRENT; Sounds.play("select_category"); }); row += 49;
-            text(tr("Что сохранить", "Include"), x + 10, row + 3, 7, -1, inner); row += 19;
-            String[] labels = activity.client.i18n.LocalizationService.isRussianPreferred() ? new String[]{"Модули", "Бинды", "HUD", "Оформление", "Меню", "Звуки", "Темы", "Профиль Автокарта"} : new String[]{"Modules", "Bindings", "HUD", "Appearance", "Menu", "Sounds", "Themes", "AutoCart profile"};
-            for (int i = 0; i < labels.length; i++) {
-                var part = LocalPresets.Part.values()[i];
-                toggle(x + 8, row, inner, labels[i], parts.contains(part), () -> { if (!parts.remove(part)) parts.add(part); Sounds.play("select_category"); }); row += 26;
+        }
+
+        if (filtered.isEmpty()) {
+            float emptyY = cardsStartY + cardsH * 0.4f;
+            Fonts.NV.msdf(NvIcons.PROFILE, contentX + (contentW - 16.0f) * 0.5f, emptyY - 14.0f, 16.0f, color(255, 255, 255, 60, alpha));
+            String emptyTitle = hasSearchText ? tr("Ничего не найдено", "No presets found") : tr("Нет сохранённых пресетов", "No presets saved");
+            String emptySub = hasSearchText ? tr("Попробуйте изменить поисковый запрос", "Try another search query") : tr("Нажмите кнопку «Создать», чтобы сохранить текущую сборку", "Click \"Create\" to save your current build");
+            float ew = Fonts.MONTSERRAT_MEDIUM.width(emptyTitle, 7.0f);
+            Fonts.MONTSERRAT_MEDIUM.draw(emptyTitle, contentX + (contentW - ew) * 0.5f, emptyY + 8.0f, 7.0f, color(255, 255, 255, 160, alpha));
+            float esw = Fonts.MONTSERRAT_MEDIUM.width(emptySub, 5.5f);
+            Fonts.MONTSERRAT_MEDIUM.draw(emptySub, contentX + (contentW - esw) * 0.5f, emptyY + 20.0f, 5.5f, color(255, 255, 255, 100, alpha));
+        } else {
+            float gap = 6.0f;
+            float cardW = (contentW - gap) * 0.5f;
+            float cardH = 50.0f;
+            int totalRows = (filtered.size() + 1) / 2;
+            float contentH = totalRows * (cardH + gap);
+            float maxScroll = Math.max(0.0f, contentH - cardsH);
+            this.scrollTarget = Math.max(0.0f, Math.min(this.scrollTarget, maxScroll));
+
+            Render2D.pushScissor(drawContext, contentX, cardsStartY, contentW, cardsH);
+
+            for (int i = 0; i < filtered.size(); i++) {
+                LocalPresets.Entry entry = filtered.get(i);
+                int col = i % 2;
+                int row = i / 2;
+                float cardX = contentX + (float) col * (cardW + gap);
+                float cardY = cardsStartY + (float) row * (cardH + gap) - this.scroll;
+
+                if (cardY + cardH < cardsStartY - 2.0f || cardY > cardsStartY + cardsH + 2.0f) {
+                    continue;
+                }
+
+                boolean isHovered = mx >= cardX && mx <= cardX + cardW && my >= cardY && my <= cardY + cardH;
+                String activeName = UI.INSTANCE.getSelectedPresetName();
+                boolean isActive = activeName != null && activeName.equalsIgnoreCase(entry.name());
+                boolean isFav = this.favorites.contains(entry.path().getFileName().toString());
+
+                Render2D.rect(cardX, cardY, cardW, cardH, 4.0f, ThemeManager.rgba(0x101319, (isHovered ? 215.0f : 175.0f) * alpha));
+                int borderCol = isActive ? ClientAccent.accent(220.0f * alpha) : (isHovered ? ThemeManager.rgba(0xFFFFFF, 38.0f * alpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * alpha));
+                Render2D.outline(cardX, cardY, cardW, cardH, 4.0f, 0.7f, borderCol);
+
+                if (isActive) {
+                    Render2D.glow(new BuiltGlow(cardX, cardY, cardW, cardH, new float[]{4.0f, 4.0f, 4.0f, 4.0f}, ClientAccent.accent(180.0f * alpha), 0.25f, 4.0f, alpha));
+                    Render2D.rect(cardX + 2.0f, cardY + 8.0f, 2.0f, cardH - 16.0f, 1.0f, ClientAccent.accent(255.0f * alpha));
+                } else if (isHovered) {
+                    Render2D.glow(new BuiltGlow(cardX, cardY, cardW, cardH, new float[]{4.0f, 4.0f, 4.0f, 4.0f}, ClientAccent.accent(80.0f * alpha), 0.2f, 3.5f, alpha));
+                }
+
+                float iconSize = 7.0f;
+                int iconCol = isActive ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 220, alpha);
+                Fonts.NV.msdf(isActive ? NvIcons.CHECK : NvIcons.PROFILE, cardX + 8.0f, cardY + 8.0f, iconSize, iconCol);
+
+                float nameFont = 6.5f;
+                String displayName = entry.name();
+                float maxNameW = cardW - 46.0f;
+                if (Fonts.MONTSERRAT_MEDIUM.width(displayName, nameFont) > maxNameW && displayName.length() > 6) {
+                    while (displayName.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(displayName + "…", nameFont) > maxNameW) {
+                        displayName = displayName.substring(0, displayName.length() - 1);
+                    }
+                    displayName += "…";
+                }
+                Fonts.MONTSERRAT_MEDIUM.draw(displayName, cardX + 18.0f, cardY + 7.5f, nameFont, color(255, 255, 255, isActive ? 255 : 230, alpha));
+
+                String metaStr = resolvePresetServerTag(entry.name());
+                Fonts.MONTSERRAT_MEDIUM.draw(metaStr, cardX + 8.0f, cardY + 22.5f, 5.2f, isActive ? ClientAccent.accentBright(200.0f * alpha) : color(255, 255, 255, 140, alpha));
+
+                float favBtnW = 10.0f;
+                float favBtnH = 10.0f;
+                float favX = cardX + cardW - 14.0f;
+                float favY = cardY + 6.0f;
+                boolean hovFav = mx >= favX - 2.0f && mx <= favX + favBtnW + 2.0f && my >= favY - 2.0f && my <= favY + favBtnH + 2.0f;
+                int favCol = isFav ? ClientAccent.accentBright(255.0f * alpha) : (hovFav ? color(255, 255, 255, 220, alpha) : color(255, 255, 255, 80, alpha));
+                Fonts.NV.msdf(NvIcons.PINNED, favX, favY, 6.0f, favCol);
+
+                float actionH = 11.5f;
+                float actionY = cardY + cardH - actionH - 5.0f;
+
+                boolean isDeletingThis = this.deletingPath != null && this.deletingPath.equals(entry.path());
+                float delW = isDeletingThis ? 36.0f : 12.0f;
+                float delX = cardX + cardW - delW - 6.0f;
+                boolean hovDel = mx >= delX && mx <= delX + delW && my >= actionY && my <= actionY + actionH;
+                Render2D.rect(delX, actionY, delW, actionH, 2.5f, hovDel ? (isDeletingThis ? ThemeManager.rgba(0xaa2222, 220.0f * alpha) : ThemeManager.rgba(0xffffff, 25.0f * alpha)) : (isDeletingThis ? ThemeManager.rgba(0x882222, 170.0f * alpha) : ThemeManager.rgba(0xffffff, 10.0f * alpha)));
+                if (isDeletingThis) {
+                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Да?", "Sure?"), delX + 3.0f, actionY + 2.5f, 4.5f, color(255, 255, 255, 255, alpha));
+                } else {
+                    Fonts.NV.msdf(NvIcons.DELETE, delX + 3.0f, actionY + 2.5f, 5.0f, hovDel ? ThemeManager.rgba(0xff6666, 255.0f * alpha) : color(255, 255, 255, 140, alpha));
+                }
+
+                float expW = 12.0f;
+                float expX = delX - expW - 4.0f;
+                boolean hovExp = mx >= expX && mx <= expX + expW && my >= actionY && my <= actionY + actionH;
+                Render2D.rect(expX, actionY, expW, actionH, 2.5f, hovExp ? ThemeManager.rgba(0xffffff, 25.0f * alpha) : ThemeManager.rgba(0xffffff, 10.0f * alpha));
+                Fonts.NV.msdf(NvIcons.EXPORT, expX + 3.0f, actionY + 2.5f, 5.0f, hovExp ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 140, alpha));
+
+                if (isActive) {
+                    float actBadgeW = 38.0f;
+                    float actBadgeX = cardX + 8.0f;
+                    Render2D.rect(actBadgeX, actionY, actBadgeW, actionH, 2.5f, ClientAccent.accent(40.0f * alpha));
+                    Render2D.outline(actBadgeX, actionY, actBadgeW, actionH, 2.5f, 0.5f, ClientAccent.accent(160.0f * alpha));
+                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Активен", "Active"), actBadgeX + 5.5f, actionY + 2.5f, 4.5f, ClientAccent.accentBright(255.0f * alpha));
+                }
             }
-            button(x + 8, row, inner, tr("Выбрать модули: ", "Select modules: ") + moduleIds.size() + " / " + modules.size(), () -> navigate(View.MODULES)); row += 28;
-        } else if (view == View.MODULES) {
-            button(x + 8, row, inner / 2 - 3, tr("Все", "All"), () -> { for (var module : modules) moduleIds.add(module.getId()); });
-            button(x + 11 + inner / 2, row, inner / 2 - 3, tr("Ни одного", "None"), moduleIds::clear); row += 30;
-            for (var module : modules) {
-                toggle(x + 8, row, inner, VisualText.moduleName(module), moduleIds.contains(module.getId()), () -> { if (!moduleIds.remove(module.getId())) moduleIds.add(module.getId()); Sounds.play("select_category"); }); row += 26;
+
+            Render2D.popScissor(drawContext);
+        }
+
+        renderToast(drawContext, x, y, w, h, alpha);
+    }
+
+    public void renderDrawer(DrawContext drawContext, float x, float y, float w, float h, float alpha, float dt) {
+        float progress = this.dockProgress();
+        if (progress <= 0.005f) return;
+
+        float effectiveAlpha = alpha * progress;
+        float mx = Position.mouseX();
+        float my = Position.mouseY();
+
+        this.lastDrawerX = x;
+        this.lastDrawerY = y;
+        this.lastDrawerW = w;
+        this.lastDrawerH = h;
+
+        Render2D.rect(x - 3.5f, y + 6.0f, 1.0f, h - 12.0f, 0.5f, ThemeManager.rgba(0xFFFFFF, 14.0f * effectiveAlpha));
+        RenderHelper.drawPanelBg(x, y, w, h, 0.0f, 12.0f, 12.0f, 0.0f, effectiveAlpha);
+
+        Fonts.NV.msdf(NvIcons.PROFILE, x + 10.0f, y + 8.5f, 6.5f, ClientAccent.accentBright(240.0f * effectiveAlpha));
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Создание пресета", "Create Preset"), x + 20.0f, y + 7.5f, 6.5f, color(255, 255, 255, 245, effectiveAlpha));
+
+        this.lastCloseW = 12.0f;
+        this.lastCloseH = 12.0f;
+        this.lastCloseX = x + w - 10.0f - this.lastCloseW;
+        this.lastCloseY = y + (HEADER_HEIGHT - this.lastCloseH) * 0.5f;
+        boolean closeHov = mx >= lastCloseX - 2.0f && mx <= lastCloseX + lastCloseW + 2.0f && my >= lastCloseY - 2.0f && my <= lastCloseY + lastCloseH + 2.0f;
+        Fonts.NV.msdf(NvIcons.CLOSE, lastCloseX + 2.5f, lastCloseY + 2.5f, 6.0f, color(255, 255, 255, closeHov ? 255 : 140, effectiveAlpha));
+
+        Render2D.rect(x + 8.0f, y + HEADER_HEIGHT - 1.0f, w - 16.0f, 0.6f, 0.3f, ThemeManager.rgba(0xFFFFFF, 14.0f * effectiveAlpha));
+
+        float footerY = y + h - FOOTER_HEIGHT;
+        Render2D.rect(x + 8.0f, footerY, w - 16.0f, 0.6f, 0.3f, ThemeManager.rgba(0xFFFFFF, 14.0f * effectiveAlpha));
+
+        float btnH = 18.0f;
+        float btnY = footerY + (FOOTER_HEIGHT - btnH) * 0.5f;
+        float gap = 6.0f;
+        float totalBtnW = w - 16.0f;
+        this.lastCancelW = (totalBtnW - gap) * 0.42f;
+        this.lastSaveW = totalBtnW - gap - this.lastCancelW;
+        this.lastCancelH = btnH;
+        this.lastSaveH = btnH;
+        this.lastCancelX = x + 8.0f;
+        this.lastCancelY = btnY;
+        this.lastSaveX = this.lastCancelX + this.lastCancelW + gap;
+        this.lastSaveY = btnY;
+
+        boolean cancelHov = mx >= lastCancelX && mx <= lastCancelX + lastCancelW && my >= lastCancelY && my <= lastCancelY + lastCancelH;
+        Render2D.rect(lastCancelX, lastCancelY, lastCancelW, lastCancelH, 4.0f, cancelHov ? ThemeManager.rgba(0xFFFFFF, 26.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 14.0f * effectiveAlpha));
+        Render2D.outline(lastCancelX, lastCancelY, lastCancelW, lastCancelH, 4.0f, 0.6f, ThemeManager.rgba(0xFFFFFF, 18.0f * effectiveAlpha));
+        float cW = Fonts.MONTSERRAT_MEDIUM.width(tr("Отмена", "Cancel"), 5.5f);
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Отмена", "Cancel"), lastCancelX + (lastCancelW - cW) * 0.5f, lastCancelY + 4.2f, 5.5f, color(255, 255, 255, cancelHov ? 255 : 200, effectiveAlpha));
+
+        boolean saveHov = mx >= lastSaveX && mx <= lastSaveX + lastSaveW && my >= lastSaveY && my <= lastSaveY + lastSaveH;
+        int saveBg = saveHov ? ClientAccent.accent(245.0f * effectiveAlpha) : ClientAccent.accent(200.0f * effectiveAlpha);
+        Render2D.rect(lastSaveX, lastSaveY, lastSaveW, lastSaveH, 4.0f, saveBg);
+        if (saveHov) {
+            Render2D.glow(new BuiltGlow(lastSaveX, lastSaveY, lastSaveW, lastSaveH, new float[]{4.0f, 4.0f, 4.0f, 4.0f}, ClientAccent.accent(255.0f * effectiveAlpha), 0.35f, 4.0f, effectiveAlpha));
+        }
+        float sW = Fonts.MONTSERRAT_MEDIUM.width(tr("Сохранить", "Save"), 5.5f);
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Сохранить", "Save"), lastSaveX + (lastSaveW - sW) * 0.5f, lastSaveY + 4.2f, 5.5f, color(255, 255, 255, 255, effectiveAlpha));
+
+        float bodyY = y + HEADER_HEIGHT + 3.0f;
+        float bodyH = h - HEADER_HEIGHT - FOOTER_HEIGHT - 6.0f;
+        float bodyX = x + 8.0f;
+        float bodyW = w - 16.0f;
+
+        float scrollSpeed = 1.0f - (float) Math.exp(-dt * 14.0f);
+        this.drawerScroll += (this.drawerScrollTarget - this.drawerScroll) * scrollSpeed;
+        if (Math.abs(this.drawerScrollTarget - this.drawerScroll) < 0.05f) {
+            this.drawerScroll = this.drawerScrollTarget;
+        }
+
+        Render2D.pushScissor(drawContext, bodyX - 2.0f, bodyY, bodyW + 4.0f, bodyH);
+
+        float curY = bodyY + 4.0f - this.drawerScroll;
+
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Название пресета", "Preset name"), bodyX + 1.0f, curY, 5.5f, ThemeManager.rgba(0xa0a5b9, 190.0f * effectiveAlpha));
+        curY += 8.5f;
+
+        this.lastNameBoxX = bodyX;
+        this.lastNameBoxY = curY;
+        this.lastNameBoxW = bodyW;
+        this.lastNameBoxH = 19.0f;
+
+        boolean hoverName = mx >= lastNameBoxX && mx <= lastNameBoxX + lastNameBoxW && my >= lastNameBoxY && my <= lastNameBoxY + lastNameBoxH;
+        float f13 = 1.0f - (float) Math.exp(-dt * 16.0f);
+        float f14 = 1.0f - (float) Math.exp(-dt * 11.0f);
+        this.nameHoverT += ((hoverName ? 1.0f : 0.0f) - this.nameHoverT) * f13;
+        this.nameFocusT += ((this.nameFocused ? 1.0f : 0.0f) - this.nameFocusT) * f14;
+
+        Render2D.rect(lastNameBoxX, lastNameBoxY, lastNameBoxW, lastNameBoxH, 3.5f, ThemeManager.rgba(0x06080b, (180.0f + 40.0f * this.nameFocusT) * effectiveAlpha));
+        if (this.nameFocusT > 0.01f) {
+            Render2D.glow(new BuiltGlow(lastNameBoxX, lastNameBoxY, lastNameBoxW, lastNameBoxH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(255.0f), 0.28f, 4.0f, this.nameFocusT * effectiveAlpha));
+        }
+        int baseOutline = ThemeManager.rgba(0xFFFFFF, (18.0f + 14.0f * this.nameHoverT) * effectiveAlpha);
+        int focusOutline = ClientAccent.accent((160.0f + 95.0f * this.nameFocusT) * effectiveAlpha);
+        Render2D.outline(lastNameBoxX, lastNameBoxY, lastNameBoxW, lastNameBoxH, 3.5f, 0.6f, ColorUtil.lerpColor(baseOutline, focusOutline, this.nameFocusT));
+
+        float textStartX = lastNameBoxX + 6.0f;
+        float textVisibleW = lastNameBoxW - 12.0f;
+        boolean hasName = !this.drawerName.isEmpty();
+
+        Render2D.pushScissor(drawContext, textStartX - 1.0f, lastNameBoxY, textVisibleW + 2.0f, lastNameBoxH);
+        float step = dt * 3.6f;
+        boolean hasStagger = false;
+        for (int i = 0; i < this.nameCharAnim.size(); i++) {
+            float val = this.nameCharAnim.get(i);
+            if (val < 1.0f) {
+                this.nameCharAnim.set(i, Math.min(1.0f, val + step));
+                hasStagger = true;
+            }
+        }
+
+        if (hasName) {
+            float textW = Fonts.MONTSERRAT_MEDIUM.width(this.drawerName, 5.5f);
+            if (this.nameSelectedAll) {
+                Render2D.rect(textStartX - 1.0f, lastNameBoxY + 2.5f, textW + 2.0f, lastNameBoxH - 5.0f, 2.0f, ClientAccent.accent(110.0f * effectiveAlpha));
+            }
+            if (!hasStagger) {
+                Fonts.MONTSERRAT_MEDIUM.draw(this.drawerName, textStartX, lastNameBoxY + 4.2f, 5.5f, color(255, 255, 255, 240, effectiveAlpha));
+            } else {
+                float pen = textStartX;
+                for (int i = 0; i < this.drawerName.length(); i++) {
+                    String glyph = String.valueOf(this.drawerName.charAt(i));
+                    float prog = i < this.nameCharAnim.size() ? Math.max(0.0f, Math.min(1.0f, this.nameCharAnim.get(i))) : 1.0f;
+                    float eased = 1.0f - (float) Math.pow(1.0f - prog, 3);
+                    int op = Math.max(0, Math.min(255, Math.round(240.0f * effectiveAlpha * eased)));
+                    if (op > 0) {
+                        Fonts.MONTSERRAT_MEDIUM.draw(glyph, pen, lastNameBoxY + 4.2f + 1.5f * (1.0f - eased), 5.5f, color(255, 255, 255, op, effectiveAlpha));
+                    }
+                    pen += Fonts.MONTSERRAT_MEDIUM.width(glyph, 5.5f);
+                }
             }
         } else {
-            text(preview.name(), x + 10, row + 4, 8, -1, inner - 4); row += 25;
-            if (changes.isEmpty()) text(tr("Настройки уже совпадают", "Settings already match"), x + 10, row + 5, 7, 0xffbdc7d7, inner);
-            for (String change : changes) {
-                for (String line : wrap(change, inner - 16)) { text(line, x + 12, row + 5, 6.5f, 0xffd9dfea, inner - 8); row += 12; }
-                row += 7;
+            Fonts.MONTSERRAT_MEDIUM.draw(tr("Например: Ranked PVP", "e.g. Ranked PVP"), textStartX, lastNameBoxY + 4.2f, 5.5f, color(255, 255, 255, Math.round(90.0f + 30.0f * this.nameHoverT), effectiveAlpha));
+        }
+
+        float cursorTargetX = Fonts.MONTSERRAT_MEDIUM.width(this.drawerName, 5.5f);
+        if (this.nameCursorSnap || !this.nameFocused) {
+            this.nameAnimCursorX = cursorTargetX;
+            this.nameCursorSnap = false;
+        } else {
+            this.nameAnimCursorX += (cursorTargetX - this.nameAnimCursorX) * (1.0f - (float) Math.exp(-dt * 20.0f));
+        }
+
+        if (this.nameFocusT > 0.01f) {
+            float pulse = (float) (Math.sin((double) System.currentTimeMillis() / 200.0) * 0.5 + 0.5);
+            float cx = textStartX + this.nameAnimCursorX;
+            Render2D.rect(cx, lastNameBoxY + 3.0f, 0.7f, lastNameBoxH - 6.0f, 0.0f, ClientAccent.accent((70.0f + 185.0f * pulse) * this.nameFocusT * effectiveAlpha));
+        }
+        Render2D.popScissor(drawContext);
+        curY += lastNameBoxH + 9.0f;
+
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Базовые настройки", "Base settings"), bodyX + 1.0f, curY, 5.5f, ThemeManager.rgba(0xa0a5b9, 190.0f * effectiveAlpha));
+        curY += 8.5f;
+
+        this.lastPillW = (bodyW - 4.0f) * 0.5f;
+        this.lastPillH = 17.0f;
+        this.lastPill1X = bodyX;
+        this.lastPill1Y = curY;
+        this.lastPill2X = bodyX + lastPillW + 4.0f;
+        this.lastPill2Y = curY;
+
+        boolean actCur = this.drawerTemplate == LocalPresets.Template.CURRENT;
+        boolean actDef = this.drawerTemplate == LocalPresets.Template.DEFAULTS;
+        boolean hovP1 = mx >= lastPill1X && mx <= lastPill1X + lastPillW && my >= lastPill1Y && my <= lastPill1Y + lastPillH;
+        boolean hovP2 = mx >= lastPill2X && mx <= lastPill2X + lastPillW && my >= lastPill2Y && my <= lastPill2Y + lastPillH;
+
+        Render2D.rect(lastPill1X, lastPill1Y, lastPillW, lastPillH, 3.5f, actCur ? ClientAccent.accent(190.0f * effectiveAlpha) : (hovP1 ? ThemeManager.rgba(0xFFFFFF, 24.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 12.0f * effectiveAlpha)));
+        Render2D.outline(lastPill1X, lastPill1Y, lastPillW, lastPillH, 3.5f, 0.6f, actCur ? ClientAccent.accent(240.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * effectiveAlpha));
+        float p1w = Fonts.MONTSERRAT_MEDIUM.width(tr("Текущие", "Current"), 5.0f);
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Текущие", "Current"), lastPill1X + (lastPillW - p1w) * 0.5f, lastPill1Y + 4.0f, 5.0f, color(255, 255, 255, actCur ? 255 : 180, effectiveAlpha));
+
+        Render2D.rect(lastPill2X, lastPill2Y, lastPillW, lastPillH, 3.5f, actDef ? ClientAccent.accent(190.0f * effectiveAlpha) : (hovP2 ? ThemeManager.rgba(0xFFFFFF, 24.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 12.0f * effectiveAlpha)));
+        Render2D.outline(lastPill2X, lastPill2Y, lastPillW, lastPillH, 3.5f, 0.6f, actDef ? ClientAccent.accent(240.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * effectiveAlpha));
+        float p2w = Fonts.MONTSERRAT_MEDIUM.width(tr("По умолчанию", "Default"), 5.0f);
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("По умолчанию", "Default"), lastPill2X + (lastPillW - p2w) * 0.5f, lastPill2Y + 4.0f, 5.0f, color(255, 255, 255, actDef ? 255 : 180, effectiveAlpha));
+        curY += lastPillH + 9.0f;
+
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Включить в пресет", "Include in preset"), bodyX + 1.0f, curY, 5.5f, ThemeManager.rgba(0xa0a5b9, 190.0f * effectiveAlpha));
+        boolean allSelected = this.drawerParts.size() == 8;
+        String toggleAllStr = allSelected ? tr("Снять всё", "Deselect all") : tr("Выбрать всё", "Select all");
+        this.lastToggleAllW = Fonts.MONTSERRAT_MEDIUM.width(toggleAllStr, 5.0f);
+        this.lastToggleAllX = bodyX + bodyW - this.lastToggleAllW - 2.0f;
+        this.lastToggleAllY = curY;
+        boolean hovToggle = mx >= lastToggleAllX - 2.0f && mx <= lastToggleAllX + lastToggleAllW + 2.0f && my >= curY - 1.0f && my <= curY + 9.0f;
+        Fonts.MONTSERRAT_MEDIUM.draw(toggleAllStr, lastToggleAllX, curY, 5.0f, hovToggle ? ClientAccent.accentBright(255.0f * effectiveAlpha) : ThemeManager.rgba(0xa0a5b9, 160.0f * effectiveAlpha));
+        curY += 8.5f;
+
+        LocalPresets.Part[] partsList = new LocalPresets.Part[]{
+            LocalPresets.Part.MODULES, LocalPresets.Part.BINDS, LocalPresets.Part.HUD, LocalPresets.Part.THEMES, LocalPresets.Part.SOUNDS, LocalPresets.Part.APPEARANCE, LocalPresets.Part.CART_PROFILE, LocalPresets.Part.MENU
+        };
+        String[] partsLabels = new String[]{
+            tr("Модули и параметры", "Modules & settings"),
+            tr("Бинды и клавиши", "Keybinds"),
+            tr("Позиции HUD элементов", "HUD positions"),
+            tr("Цветовая тема", "Color theme"),
+            tr("Звуки клиента", "Client sounds"),
+            tr("Внешний вид и анимации", "Appearance & animations"),
+            tr("Профиль авто-тележки", "Auto-Cart profile"),
+            tr("Настройки меню", "Menu settings")
+        };
+
+        for (int i = 0; i < partsList.length; i++) {
+            LocalPresets.Part p = partsList[i];
+            boolean checked = this.drawerParts.contains(p);
+            float rowY = curY;
+            this.lastPartRowY[i] = rowY;
+            float cbSize = 8.5f;
+            float cbX = bodyX + 3.0f;
+            float cbY = rowY + 1.5f;
+
+            boolean hoverRow = mx >= bodyX && mx <= bodyX + bodyW && my >= rowY && my <= rowY + 14.0f;
+            if (hoverRow) {
+                Render2D.rect(bodyX, rowY - 1.0f, bodyW, 14.0f, 3.0f, ThemeManager.rgba(0xFFFFFF, 8.0f * effectiveAlpha));
+            }
+
+            Render2D.rect(cbX, cbY, cbSize, cbSize, 2.0f, checked ? ClientAccent.accent(220.0f * effectiveAlpha) : ThemeManager.rgba(0x0a0c10, 200.0f * effectiveAlpha));
+            Render2D.outline(cbX, cbY, cbSize, cbSize, 2.0f, 0.6f, checked ? ClientAccent.accent(255.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 25.0f * effectiveAlpha));
+            if (checked) {
+                Fonts.NV.msdf(NvIcons.CHECK, cbX + 1.5f, cbY + 1.5f, 5.5f, color(255, 255, 255, 255, effectiveAlpha));
+            }
+
+            Fonts.MONTSERRAT_MEDIUM.draw(partsLabels[i], cbX + cbSize + 6.0f, rowY + 2.0f, 5.0f, color(255, 255, 255, checked ? 240 : 160, effectiveAlpha));
+            curY += 15.0f;
+        }
+
+        curY += 4.0f;
+        this.lastAutoActY = curY;
+        boolean hoverAuto = mx >= bodyX && mx <= bodyX + bodyW && my >= curY && my <= curY + 14.0f;
+        if (hoverAuto) {
+            Render2D.rect(bodyX, curY - 1.0f, bodyW, 14.0f, 3.0f, ThemeManager.rgba(0xFFFFFF, 8.0f * effectiveAlpha));
+        }
+        float aX = bodyX + 3.0f;
+        float aY = curY + 1.5f;
+        Render2D.rect(aX, aY, 8.5f, 8.5f, 2.0f, this.autoActivate ? ClientAccent.accent(220.0f * effectiveAlpha) : ThemeManager.rgba(0x0a0c10, 200.0f * effectiveAlpha));
+        Render2D.outline(aX, aY, 8.5f, 8.5f, 2.0f, 0.6f, this.autoActivate ? ClientAccent.accent(255.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 25.0f * effectiveAlpha));
+        if (this.autoActivate) {
+            Fonts.NV.msdf(NvIcons.CHECK, aX + 1.5f, aY + 1.5f, 5.5f, color(255, 255, 255, 255, effectiveAlpha));
+        }
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Активировать сразу", "Activate on create"), aX + 14.5f, curY + 2.0f, 5.0f, color(255, 255, 255, this.autoActivate ? 240 : 160, effectiveAlpha));
+        curY += 18.0f;
+
+        float totalH = curY - bodyY + this.drawerScroll;
+        float maxDrawerScroll = Math.max(0.0f, totalH - bodyH);
+        this.drawerScrollTarget = Math.max(0.0f, Math.min(this.drawerScrollTarget, maxDrawerScroll));
+
+        Render2D.popScissor(drawContext);
+    }
+
+    private void renderToast(DrawContext drawContext, float x, float y, float w, float h, float alpha) {
+        if (this.toastMessage == null || this.toastTime == 0) return;
+        long elapsed = System.currentTimeMillis() - this.toastTime;
+        if (elapsed > 2400L) {
+            this.toastMessage = null;
+            return;
+        }
+
+        float toastProgress = (float) elapsed / 2400.0f;
+        float toastAlpha = toastProgress < 0.15f ? (toastProgress / 0.15f) : (toastProgress > 0.85f ? (1.0f - toastProgress) / 0.15f : 1.0f);
+        float totalAlpha = alpha * toastAlpha;
+
+        float textW = Fonts.MONTSERRAT_MEDIUM.width(this.toastMessage, 6.0f);
+        float toastW = textW + 28.0f;
+        float toastH = 17.0f;
+        float toastX = x + (w - toastW) * 0.5f;
+        float toastY = y + h - toastH - 8.0f;
+
+        Render2D.rect(toastX, toastY, toastW, toastH, 8.5f, ThemeManager.rgba(0x0e1117, 240.0f * totalAlpha));
+        Render2D.outline(toastX, toastY, toastW, toastH, 8.5f, 0.6f, ClientAccent.accent(180.0f * totalAlpha));
+        Fonts.NV.msdf(NvIcons.CHECK, toastX + 6.0f, toastY + 5.0f, 6.5f, ClientAccent.accentBright(255.0f * totalAlpha));
+        Fonts.MONTSERRAT_MEDIUM.draw(this.toastMessage, toastX + 16.5f, toastY + 5.0f, 6.0f, color(255, 255, 255, 255, totalAlpha));
+    }
+
+    public boolean click(float mx, float my, int button) {
+        if (button != 0) return false;
+
+        float x = this.lastX;
+        float y = this.lastY;
+        float w = this.lastW;
+        float h = this.lastH;
+
+        if (this.search.mouseClicked(mx, my, button)) {
+            return true;
+        }
+
+        if (mx >= lastImpX && mx <= lastImpX + lastImpW && my >= lastImpY && my <= lastImpY + lastImpH) {
+            this.importPresetFromClipboard();
+            Sounds.play("buttonclick");
+            return true;
+        }
+
+        if (mx >= lastCreateX && mx <= lastCreateX + lastCreateW && my >= lastCreateY && my <= lastCreateY + lastCreateH) {
+            this.openDrawer();
+            return true;
+        }
+
+        float headerH = 26.0f;
+        float cardsStartY = y + headerH + 5.0f;
+        float cardsH = h - headerH - 8.0f;
+
+        float contentW = Math.min(276.0f, w - 24.0f);
+        float contentX = x + (w - contentW) * 0.5f;
+
+        List<LocalPresets.Entry> filtered = new ArrayList<>();
+        String query = this.search.getText().trim().toLowerCase(Locale.ROOT);
+        for (LocalPresets.Entry e : this.entries) {
+            if (query.isEmpty() || e.name().toLowerCase(Locale.ROOT).contains(query)) {
+                filtered.add(e);
             }
         }
-        contentHeight = Math.max(0, row - (clipTop - scroll));
-        Render2D.popScissor(context); drawingBody = false;
-        if (contentHeight > clipBottom - clipTop) {
-            float track = clipBottom - clipTop, thumb = Math.max(16, track * track / contentHeight);
-            Render2D.rect(x + width - 4, clipTop + (track - thumb) * scroll / (contentHeight - track), 2, thumb, 1, color(ClientAccent.accent(150)));
+
+        if (mx < contentX || mx > contentX + contentW || my < cardsStartY || my > cardsStartY + cardsH) {
+            return false;
         }
-        if (view == View.CREATE) button(x + 8, y + height - 45, inner, tr("Сохранить пресет", "Save preset"), this::create);
-        if (view == View.MODULES) button(x + 8, y + height - 45, inner, tr("Готово", "Done"), this::back);
-        if (view == View.PREVIEW) {
-            button(x + 8, y + height - 45, inner / 2 - 3, deleting != null ? tr("Удалить", "Delete") : tr("Применить", "Apply"), this::apply);
-            button(x + 11 + inner / 2, y + height - 45, inner / 2 - 3, deleting != null ? tr("Отмена", "Cancel") : tr("Экспорт файла", "Export file"), deleting != null ? this::back : () -> run(() -> {
-                Path saved = previewPath;
-                if (saved == null) throw new java.io.IOException(tr("Файл пресета не найден", "Preset file not found"));
-                Path exported = LocalPresets.export(saved); MinecraftClient.getInstance().keyboard.setClipboard(exported.toAbsolutePath().toString()); message = tr("Путь к файлу скопирован", "File path copied");
-            }));
+
+        float gap = 6.0f;
+        float cardW = (contentW - gap) * 0.5f;
+        float cardH = 50.0f;
+
+        for (int i = 0; i < filtered.size(); i++) {
+            LocalPresets.Entry entry = filtered.get(i);
+            int col = i % 2;
+            int row = i / 2;
+            float cardX = contentX + (float) col * (cardW + gap);
+            float cardY = cardsStartY + (float) row * (cardH + gap) - this.scroll;
+
+            if (cardY + cardH < cardsStartY || cardY > cardsStartY + cardsH) {
+                continue;
+            }
+
+            if (mx >= cardX && mx <= cardX + cardW && my >= cardY && my <= cardY + cardH) {
+                float favBtnW = 12.0f;
+                float favBtnH = 12.0f;
+                float favX = cardX + cardW - 14.0f;
+                float favY = cardY + 6.0f;
+                if (mx >= favX - 2.0f && mx <= favX + favBtnW + 2.0f && my >= favY - 2.0f && my <= favY + favBtnH + 2.0f) {
+                    try {
+                        LocalPresets.toggleFavorite(entry.path());
+                        this.reload();
+                        Sounds.play("click");
+                    } catch (Exception ignored) {}
+                    return true;
+                }
+
+                float actionH = 11.5f;
+                float actionY = cardY + cardH - actionH - 5.0f;
+
+                boolean isDeletingThis = this.deletingPath != null && this.deletingPath.equals(entry.path());
+                float delW = isDeletingThis ? 36.0f : 12.0f;
+                float delX = cardX + cardW - delW - 6.0f;
+
+                float expW = 12.0f;
+                float expX = delX - expW - 4.0f;
+
+                if (mx >= delX && mx <= delX + delW && my >= actionY && my <= actionY + actionH) {
+                    if (isDeletingThis) {
+                        try {
+                            LocalPresets.delete(entry.path());
+                            this.deletingPath = null;
+                            this.reload();
+                            this.showToast(tr("Пресет удалён", "Preset deleted"));
+                            Sounds.play("click");
+                        } catch (Exception e) {
+                            this.showToast(tr("Не удалось удалить", "Delete failed"));
+                        }
+                    } else {
+                        this.deletingPath = entry.path();
+                        this.deletePromptTime = System.currentTimeMillis();
+                        Sounds.play("buttonclick");
+                    }
+                    return true;
+                }
+
+                if (mx >= expX && mx <= expX + expW && my >= actionY && my <= actionY + actionH) {
+                    try {
+                        Path exp = LocalPresets.export(entry.path());
+                        String json = LocalPresets.exportString(entry.path());
+                        MinecraftClient.getInstance().keyboard.setClipboard(json != null && !json.isEmpty() ? json : exp.toAbsolutePath().toString());
+                        this.showToast(tr("Пресет скопирован в буфер", "Preset copied to clipboard"));
+                        Sounds.play("buttonclick");
+                    } catch (Exception e) {
+                        this.showToast(tr("Ошибка экспорта", "Export error"));
+                    }
+                    return true;
+                }
+
+                UI.INSTANCE.applyPreset(entry);
+                this.showToast(tr("Пресет '" + entry.name() + "' применён", "Preset '" + entry.name() + "' applied"));
+                return true;
+            }
         }
-        text(message, x + 9, y + height - 15, 6, 0xffbdc7d7, inner);
+
+        return false;
     }
-    private List<String> wrap(String value, float width) {
-        List<String> lines = new ArrayList<>(); String line = "";
-        for (String word : value.split(" ")) {
-            String next = line.isEmpty() ? word : line + " " + word;
-            if (!line.isEmpty() && Fonts.MONTSERRAT_MEDIUM.width(next, 6.5f) > width) { lines.add(line); line = word; } else line = next;
+
+    public boolean drawerMouseClicked(float mx, float my, int button) {
+        if (button != 0 || !this.isDrawerOpen()) return false;
+
+        float x = this.lastDrawerX;
+        float y = this.lastDrawerY;
+        float w = this.lastDrawerW;
+        float h = this.lastDrawerH;
+
+        if (mx < x || mx > x + w || my < y || my > y + h) {
+            return false;
         }
-        if (!line.isEmpty()) lines.add(line); return lines;
+
+        if (mx >= lastCloseX - 3.0f && mx <= lastCloseX + lastCloseW + 3.0f && my >= lastCloseY - 3.0f && my <= lastCloseY + lastCloseH + 3.0f) {
+            this.closeDrawer();
+            return true;
+        }
+
+        if (mx >= lastCancelX && mx <= lastCancelX + lastCancelW && my >= lastCancelY && my <= lastCancelY + lastCancelH) {
+            this.closeDrawer();
+            return true;
+        }
+
+        if (mx >= lastSaveX && mx <= lastSaveX + lastSaveW && my >= lastSaveY && my <= lastSaveY + lastSaveH) {
+            this.saveDrawerPreset();
+            return true;
+        }
+
+        if (mx >= lastNameBoxX && mx <= lastNameBoxX + lastNameBoxW && my >= lastNameBoxY && my <= lastNameBoxY + lastNameBoxH) {
+            this.nameFocused = true;
+            this.nameSelectedAll = false;
+            this.nameCursorSnap = true;
+            return true;
+        } else if (this.nameFocused) {
+            this.nameFocused = false;
+            this.nameSelectedAll = false;
+        }
+
+        if (mx >= lastPill1X && mx <= lastPill1X + lastPillW && my >= lastPill1Y && my <= lastPill1Y + lastPillH) {
+            this.drawerTemplate = LocalPresets.Template.CURRENT;
+            Sounds.play("buttonclick");
+            return true;
+        }
+        if (mx >= lastPill2X && mx <= lastPill2X + lastPillW && my >= lastPill2Y && my <= lastPill2Y + lastPillH) {
+            this.drawerTemplate = LocalPresets.Template.DEFAULTS;
+            Sounds.play("buttonclick");
+            return true;
+        }
+
+        float bodyY = y + HEADER_HEIGHT + 3.0f;
+        float bodyH = h - HEADER_HEIGHT - FOOTER_HEIGHT - 6.0f;
+
+        if (my >= bodyY && my <= bodyY + bodyH) {
+            if (mx >= lastToggleAllX - 3.0f && mx <= lastToggleAllX + lastToggleAllW + 3.0f && my >= lastToggleAllY - 2.0f && my <= lastToggleAllY + 11.0f) {
+                if (this.drawerParts.size() == 8) {
+                    this.drawerParts.clear();
+                } else {
+                    this.drawerParts.addAll(EnumSet.allOf(LocalPresets.Part.class));
+                }
+                Sounds.play("buttonclick");
+                return true;
+            }
+
+            LocalPresets.Part[] partsList = new LocalPresets.Part[]{
+                LocalPresets.Part.MODULES, LocalPresets.Part.BINDS, LocalPresets.Part.HUD, LocalPresets.Part.THEMES, LocalPresets.Part.SOUNDS, LocalPresets.Part.APPEARANCE, LocalPresets.Part.CART_PROFILE, LocalPresets.Part.MENU
+            };
+            for (int i = 0; i < partsList.length; i++) {
+                float rowY = this.lastPartRowY[i];
+                if (mx >= lastNameBoxX && mx <= lastNameBoxX + lastNameBoxW && my >= rowY && my <= rowY + 14.0f) {
+                    LocalPresets.Part p = partsList[i];
+                    if (this.drawerParts.contains(p)) {
+                        this.drawerParts.remove(p);
+                    } else {
+                        this.drawerParts.add(p);
+                    }
+                    Sounds.play("buttonclick");
+                    return true;
+                }
+            }
+
+            if (mx >= lastNameBoxX && mx <= lastNameBoxX + lastNameBoxW && my >= lastAutoActY && my <= lastAutoActY + 14.0f) {
+                this.autoActivate = !this.autoActivate;
+                Sounds.play("buttonclick");
+                return true;
+            }
+        }
+
+        return true;
     }
-    private int color(int value) { return ((int)((value >>> 24) * alpha) << 24) | (value & 0xffffff); }
-    private void text(String value, float x, float y, float size, int color, float width) { Fonts.MONTSERRAT_MEDIUM.draw(CustomRender.fit(value, width, size), x, y, size, color(color)); }
-    private void card(DrawContext context, float x, float y, float w, float h) { CustomRender.panel(context, x, y, w, h, 6, alpha); }
-    private void hit(float x, float y, float w, float h, Runnable action) {
-        float top = Math.max(y, clipTop), bottom = Math.min(y + h, clipBottom);
-        if (bottom > top) hits.add(new Hit(x, top, w, bottom - top, action));
+
+    public boolean drawerMouseReleased(double mx, double my, int button) {
+        return false;
     }
-    private void button(float x, float y, float w, String label, Runnable action) {
-        Render2D.rect(x, y, w, 22, 5, color(ClientAccent.accentSoft(75))); text(label, x + 7, y + 7, 7, -1, w - 14);
-        if (!drawingBody) hits.add(new Hit(x, y, w, 22, action)); else hit(x, y, w, 22, action);
+
+    public boolean drawerMouseScrolled(double horiz, double vert) {
+        if (!this.isDrawerOpen()) return false;
+        float mx = Position.mouseX();
+        float my = Position.mouseY();
+        if (mx >= lastDrawerX && mx <= lastDrawerX + lastDrawerW && my >= lastDrawerY && my <= lastDrawerY + lastDrawerH) {
+            this.drawerScrollTarget -= (float) (vert * 18.0);
+            return true;
+        }
+        return false;
     }
-    private void icon(String glyph, float x, float y, int color, Runnable action) { Fonts.NV.msdf(glyph, x + 4, y + 4, 9, color(color)); hit(x, y, 21, 21, action); }
-    private void toggle(float x, float y, float w, String label, boolean selected, Runnable action) {
-        Render2D.rect(x, y, w, 22, 5, color(selected ? ClientAccent.accentSoft(95) : 0x40343a48));
-        Render2D.outline(x + w - 18, y + 7, 8, 8, 2, .6f, color(selected ? ClientAccent.accentBright(255) : 0xff929dad));
-        if (selected) Fonts.NV.msdf(NvIcons.CHECK, x + w - 17, y + 8, 6, color(-1));
-        text(label, x + 7, y + 7, 7, -1, w - 32); hit(x, y, w, 22, action);
+
+    public boolean drawerKeyPressed(KeyInput input) {
+        if (!this.isDrawerOpen()) return false;
+
+        if (input.key() == GLFW.GLFW_KEY_ESCAPE) {
+            this.closeDrawer();
+            return true;
+        }
+
+        if (this.nameFocused) {
+            long handle = MinecraftClient.getInstance().getWindow().getHandle();
+            boolean ctrl = GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_LEFT_CONTROL) == 1
+                    || GLFW.glfwGetKey(handle, GLFW.GLFW_KEY_RIGHT_CONTROL) == 1;
+
+            if (ctrl && input.key() == GLFW.GLFW_KEY_A) {
+                if (!this.drawerName.isEmpty()) {
+                    this.nameSelectedAll = true;
+                }
+                return true;
+            }
+            if (ctrl && input.key() == GLFW.GLFW_KEY_C) {
+                if (this.nameSelectedAll && !this.drawerName.isEmpty()) {
+                    MinecraftClient.getInstance().keyboard.setClipboard(this.drawerName);
+                }
+                return true;
+            }
+            if (ctrl && input.key() == GLFW.GLFW_KEY_X) {
+                if (this.nameSelectedAll && !this.drawerName.isEmpty()) {
+                    MinecraftClient.getInstance().keyboard.setClipboard(this.drawerName);
+                    this.drawerName = "";
+                    this.nameCharAnim.clear();
+                    this.nameSelectedAll = false;
+                }
+                return true;
+            }
+            if (ctrl && input.key() == GLFW.GLFW_KEY_V) {
+                String clip = MinecraftClient.getInstance().keyboard.getClipboard();
+                if (clip != null && !clip.isEmpty()) {
+                    String clean = clip.replaceAll("[\\r\\n]", "").trim();
+                    if (this.nameSelectedAll) {
+                        this.drawerName = "";
+                        this.nameCharAnim.clear();
+                        this.nameSelectedAll = false;
+                    }
+                    int rem = 24 - this.drawerName.length();
+                    if (rem > 0) {
+                        String add = clean.length() > rem ? clean.substring(0, rem) : clean;
+                        this.drawerName = this.drawerName + add;
+                        for (int i = 0; i < add.length(); i++) {
+                            this.nameCharAnim.add(Float.valueOf(1.0f));
+                        }
+                    }
+                    Sounds.play("search_typing");
+                }
+                return true;
+            }
+
+            if (input.key() == GLFW.GLFW_KEY_BACKSPACE || input.key() == GLFW.GLFW_KEY_DELETE) {
+                if (this.nameSelectedAll) {
+                    this.drawerName = "";
+                    this.nameCharAnim.clear();
+                    this.nameSelectedAll = false;
+                    Sounds.play("search_typing");
+                    return true;
+                }
+                if (!this.drawerName.isEmpty()) {
+                    this.drawerName = this.drawerName.substring(0, this.drawerName.length() - 1);
+                    if (!this.nameCharAnim.isEmpty()) {
+                        this.nameCharAnim.remove(this.nameCharAnim.size() - 1);
+                    }
+                    Sounds.play("search_typing");
+                    return true;
+                }
+                return true;
+            }
+            if (input.key() == GLFW.GLFW_KEY_ENTER || input.key() == GLFW.GLFW_KEY_KP_ENTER) {
+                this.nameFocused = false;
+                this.nameSelectedAll = false;
+                this.saveDrawerPreset();
+                return true;
+            }
+            return true;
+        }
+
+        if (input.key() == GLFW.GLFW_KEY_ENTER || input.key() == GLFW.GLFW_KEY_KP_ENTER) {
+            this.saveDrawerPreset();
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean drawerCharTyped(CharInput input) {
+        if (!this.isDrawerOpen() || !this.nameFocused) return false;
+        int codepoint = input.codepoint();
+        if (Character.isISOControl(codepoint)) return false;
+        char c = (char) codepoint;
+
+        if (this.nameSelectedAll) {
+            this.drawerName = "";
+            this.nameCharAnim.clear();
+            this.nameSelectedAll = false;
+        }
+        if (this.drawerName.length() < 24) {
+            this.drawerName += c;
+            this.nameCharAnim.add(Float.valueOf(-0.14f));
+            Sounds.play("search_typing");
+        }
+        return true;
+    }
+
+    private void saveDrawerPreset() {
+        String name = this.drawerName.trim();
+        if (name.isEmpty()) {
+            this.showToast(tr("Введите название пресета!", "Enter a preset name!"));
+            Sounds.play("command_error");
+            return;
+        }
+        if (this.drawerParts.isEmpty()) {
+            this.showToast(tr("Выберите хотя бы один раздел!", "Select at least one section!"));
+            Sounds.play("command_error");
+            return;
+        }
+        try {
+            Path file = LocalPresets.create(name, this.drawerTemplate, this.drawerParts);
+            this.reload();
+            if (this.autoActivate) {
+                for (LocalPresets.Entry e : this.entries) {
+                    if (e.name().equalsIgnoreCase(name)) {
+                        UI.INSTANCE.applyPreset(e);
+                        break;
+                    }
+                }
+            }
+            this.closeDrawer();
+            this.showToast(tr("Пресет '" + name + "' сохранён!", "Preset '" + name + "' saved!"));
+            Sounds.play("select_category");
+        } catch (Exception e) {
+            this.showToast(tr("Ошибка: " + e.getMessage(), "Error: " + e.getMessage()));
+            Sounds.play("command_error");
+        }
+    }
+
+    private void importPresetFromClipboard() {
+        try {
+            String clip = MinecraftClient.getInstance().keyboard.getClipboard();
+            if (clip == null || clip.trim().isEmpty()) {
+                this.showToast(tr("Буфер обмена пуст!", "Clipboard is empty!"));
+                Sounds.play("command_error");
+                return;
+            }
+            clip = clip.trim();
+            if (clip.startsWith("\"") && clip.endsWith("\"")) {
+                clip = clip.substring(1, clip.length() - 1).trim();
+            }
+            if (clip.startsWith("{") && clip.endsWith("}")) {
+                LocalPresets.importString(clip);
+                this.reload();
+                this.showToast(tr("Пресет импортирован!", "Preset imported!"));
+                Sounds.play("select_category");
+                return;
+            }
+            try {
+                Path path = Path.of(clip);
+                LocalPresets.importFile(path);
+                this.reload();
+                this.showToast(tr("Пресет импортирован!", "Preset imported!"));
+                Sounds.play("select_category");
+            } catch (Exception ex) {
+                LocalPresets.importString(clip);
+                this.reload();
+                this.showToast(tr("Пресет импортирован!", "Preset imported!"));
+                Sounds.play("select_category");
+            }
+        } catch (Exception e) {
+            this.showToast(tr("Не удалось импортировать", "Import failed"));
+            Sounds.play("command_error");
+        }
+    }
+
+    public void scroll(double verticalAmount) {
+        this.scrollTarget -= (float) (verticalAmount * 24.0);
+    }
+
+    public boolean charTyped(CharInput input) {
+        if (this.search.charTyped(input)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean keyPressed(KeyInput input) {
+        if (this.search.keyPressed(input)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean mouseReleased(int button) {
+        this.search.mouseReleased(button);
+        return false;
     }
 }

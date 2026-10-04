@@ -23,7 +23,7 @@ public class SidebarTreeTest {
     @Test
     void testCategoriesInitialization() {
         List<SidebarTree.CategoryNode> categories = sidebarTree.getCategories();
-        assertEquals(11, categories.size());
+        assertEquals(12, categories.size());
         var kits = activity.client.gui.navigation.PvpKit.values();
         for (int i = 0; i < kits.length; i++) {
             assertEquals(kits[i].id(), categories.get(i).getId());
@@ -33,21 +33,19 @@ public class SidebarTreeTest {
                 .filter(kits[i]::matches).map(activity.client.module.api.IModule::getId).toList();
             assertEquals(expected, categories.get(i).getChildren().stream().map(SidebarTree.ModuleItem::getId).toList());
         }
-        assertEquals("config", categories.get(10).getId());
-        assertEquals(3, categories.get(10).getTabIndex());
-        assertEquals(2, categories.get(10).getChildren().size());
+        assertEquals("config", categories.get(11).getId());
+        assertEquals(3, categories.get(11).getTabIndex());
+        assertEquals(2, categories.get(11).getChildren().size());
     }
 
     @Test
     void testFooterInitialization() {
         List<SidebarTree.FooterNode> footers = sidebarTree.getFooterItems();
-        assertEquals(3, footers.size());
+        assertEquals(2, footers.size());
         assertEquals("themes", footers.get(0).getId());
-        assertEquals(16, footers.get(0).getTabIndex());
+        assertEquals(17, footers.get(0).getTabIndex());
         assertEquals("settings", footers.get(1).getId());
         assertEquals(4, footers.get(1).getTabIndex());
-        assertEquals("about", footers.get(2).getId());
-        assertEquals(5, footers.get(2).getTabIndex());
     }
 
     @Test

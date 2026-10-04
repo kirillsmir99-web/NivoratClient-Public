@@ -21,7 +21,7 @@ import activity.client.gui.render.ScissorHelper;
 import activity.client.gui.search.ActivitySearchBar;
 import activity.client.gui.sheet.AboutModuleSheet;
 import activity.client.gui.sidebar.SidebarTree;
-import activity.client.gui.tab.AboutTab;
+
 import activity.client.gui.tab.ActivityTab;
 import activity.client.gui.tab.CombatTab;
 import activity.client.gui.tab.ConfigTab;
@@ -206,7 +206,7 @@ public class ActivityScreen extends Screen {
         new UtilityTab(),
         new ConfigTab(),
         new SettingsTab(),
-        new AboutTab(),
+
         new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.ALL),
         new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.NETHERITE_POT),
         new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.CRYSTAL),
@@ -217,6 +217,7 @@ public class ActivityScreen extends Screen {
         new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.SWORD),
         new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.AXE),
         new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.DIAMOND_POT),
+        new activity.client.gui.tab.PvpKitTab(activity.client.gui.navigation.PvpKit.CART),
         new activity.client.gui.tab.ThemesTab()
     ));
 

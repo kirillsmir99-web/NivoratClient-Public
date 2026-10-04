@@ -1,6 +1,10 @@
 package activity.client.gui.hud;
 
 import activity.client.config.ActivityConfig;
+import activity.client.gui.custom.api.ui.BrandMark;
+import activity.client.gui.custom.api.ui.theme.ClientAccent;
+import activity.client.gui.custom.utils.render.render2d.Render2D;
+import activity.client.gui.custom.utils.render.render2d.glow.BuiltGlow;
 import activity.client.module.api.IModule;
 import activity.client.module.api.ModuleRegistry;
 import net.minecraft.client.MinecraftClient;
@@ -8,6 +12,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -15,12 +21,48 @@ import java.util.Locale;
 public final class ActivityHudOverlay {
 
     public static final String DEFAULT_TITLE = "NivoratClient";
-    public static final int PILL_HEIGHT = 14;
+    public static final int PILL_HEIGHT = 15;
     public static final int MODULE_ROW_HEIGHT = 12;
     public static final int ROW_GAP = 2;
     public static final int PADDING_H = 6;
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private ActivityHudOverlay() {}
+
+    private record Segment(String text, int color) {}
+
+    private static List<Segment> buildSegments(MinecraftClient client, ActivityConfig config, int alpha) {
+        List<Segment> segments = new ArrayList<>();
+        boolean inCalibration = dev.nivorat.arc.ArcMotorCalibrationService.hasSession();
+        if (inCalibration) {
+            dev.nivorat.arc.ArcMotionProfile profile = dev.nivorat.arc.ArcMotionProfile.getInstance();
+            int mastery = profile.getMasteryPercent();
+            long remMs = profile.getCalibrationRemainingTimeMs();
+            long sec = (remMs + 999L) / 1000L;
+            String timerStr = String.format("%02d:%02d", sec / 60L, sec % 60L);
+            segments.add(new Segment("Калибровка: " + mastery + "%", (alpha << 24) | 0x38BDF8));
+            segments.add(new Segment(timerStr, (alpha << 24) | 0xFFFFFF));
+            segments.add(new Segment(profile.getManualDetonationsCount() + " взрывов", (alpha << 24) | 0xF59E0B));
+            if (client != null) {
+                segments.add(new Segment(client.getCurrentFps() + " FPS", (alpha << 24) | 0xCBD5E1));
+            }
+        } else {
+            String serverName = "Одиночная игра";
+            if (client != null && client.getCurrentServerEntry() != null && client.getCurrentServerEntry().address != null) {
+                serverName = client.getCurrentServerEntry().address.toLowerCase(Locale.ROOT);
+            }
+            segments.add(new Segment(serverName, (alpha << 24) | 0xA78BFA));
+            if (client != null) {
+                segments.add(new Segment(client.getCurrentFps() + " FPS", (alpha << 24) | 0xE2E8F0));
+                if (client.getSession() != null && client.getSession().getUsername() != null && !client.getSession().getUsername().isBlank()) {
+                    segments.add(new Segment(client.getSession().getUsername(), (alpha << 24) | 0xF472B6));
+                }
+            }
+            String timeStr = LocalTime.now().format(TIME_FORMATTER);
+            segments.add(new Segment(timeStr, (alpha << 24) | 0xFFFFFF));
+        }
+        return segments;
+    }
 
     public static Text resolveTitleText(ActivityConfig config) {
         String base = (config != null && config.customTitle != null && !config.customTitle.isBlank() && !"Activity HUD".equals(config.customTitle))
@@ -33,18 +75,9 @@ public final class ActivityHudOverlay {
             long remMs = dev.nivorat.arc.ArcMotorCalibrationService.getRemainingTimeMs();
             long sec = (remMs + 999L) / 1000L;
             String timeStr = String.format("%02d:%02d", sec / 60L, sec % 60L);
-            long cycle = (System.currentTimeMillis() / 2500L) % 3;
-            if (cycle == 0) {
-                sb.append(" | Калибровка: ").append(mastery).append("%");
-                if (mc != null) sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
-            } else if (cycle == 1) {
-                sb.append(" | Калибровка: ").append(timeStr);
-                if (mc != null && mc.getSession() != null && mc.getSession().getUsername() != null && !mc.getSession().getUsername().isBlank()) {
-                    sb.append(" | ").append(mc.getSession().getUsername());
-                }
-            } else {
-                sb.append(" | Калибровка: ").append(mastery).append("% (").append(timeStr).append(")");
-            }
+            sb.append(" | Калибровка: ").append(mastery).append("%");
+            sb.append(" | ").append(timeStr);
+            if (mc != null) sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
         } else {
             if (mc != null) {
                 sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
@@ -70,8 +103,16 @@ public final class ActivityHudOverlay {
 
     public static int getWatermarkWidth(MinecraftClient client, ActivityConfig config) {
         if (client == null || client.textRenderer == null) return 80;
-        Text titleText = resolveTitleText(config);
-        return client.textRenderer.getWidth(titleText) + 17;
+        List<Segment> segments = buildSegments(client, config, 255);
+        int width = 10 + 6;
+        for (int i = 0; i < segments.size(); i++) {
+            width += client.textRenderer.getWidth(segments.get(i).text());
+            if (i < segments.size() - 1) {
+                width += client.textRenderer.getWidth("|") + 10;
+            }
+        }
+        width += 6;
+        return Math.max(width, client.textRenderer.getWidth(resolveTitleText(config)) + 17);
     }
 
     public static int getTotalWidth(MinecraftClient client, ActivityConfig config) {
@@ -126,40 +167,35 @@ public final class ActivityHudOverlay {
         activity.client.gui.custom.NativeVisualHud.render(context, tickCounter);
     }
 
+    public static void renderInGame(DrawContext context) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc == null || mc.world == null || mc.options.hudHidden) return;
+        ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
+        boolean hasCalib = dev.nivorat.arc.ArcMotorCalibrationService.hasSession();
+        if (config == null || (!config.overlayEnabled && !hasCalib)) return;
+
+        int windowW = mc.getWindow().getScaledWidth();
+        int windowH = mc.getWindow().getScaledHeight();
+        int totalW = getTotalWidth(mc, config);
+        int totalH = getTotalHeight(mc, config);
+        int x = getEffectiveX(config, windowW, totalW);
+        int y = getEffectiveY(config, windowH, totalH);
+
+        renderHud(context, mc, config, x, y, totalW, windowW);
+    }
+
     public static void renderHud(DrawContext context, MinecraftClient client, ActivityConfig config, int x, int y, int totalWidth, int windowWidth) {
         if (context == null || client == null || client.textRenderer == null) return;
-
-        Text titleText = resolveTitleText(config);
-        int watermarkWidth = client.textRenderer.getWidth(titleText) + 17;
 
         float opacityNorm = (float) (Math.max(10.0, Math.min(100.0, config != null ? config.overlayOpacity : 85.0)) / 100.0);
         int alpha = Math.max(25, Math.min(255, Math.round(opacityNorm * 255.0f)));
 
-        int bgColor = (alpha << 24) | 0x0A0D14;
-        int borderColor = (Math.max(20, alpha / 2) << 24) | 0x3EA4E8;
-        int dotColor = (alpha << 24) | 0x3EA4E8;
-        int textColor = (alpha << 24) | 0xFFFFFF;
-
         boolean rightAligned = (x + totalWidth / 2) > (windowWidth / 2);
-
-        int wmX = rightAligned ? (x + totalWidth - watermarkWidth) : x;
-        int wmY = y;
-
-        context.fill(wmX, wmY, wmX + watermarkWidth, wmY + PILL_HEIGHT, bgColor);
-
-        context.fill(wmX, wmY, wmX + watermarkWidth, wmY + 1, borderColor);
-        context.fill(wmX, wmY + PILL_HEIGHT - 1, wmX + watermarkWidth, wmY + PILL_HEIGHT, borderColor);
-        context.fill(wmX, wmY + 1, wmX + 1, wmY + PILL_HEIGHT - 1, borderColor);
-        context.fill(wmX + watermarkWidth - 1, wmY + 1, wmX + watermarkWidth, wmY + PILL_HEIGHT - 1, borderColor);
-
-        context.fill(wmX + 4, wmY + 5, wmX + 8, wmY + 9, dotColor);
-
-        context.drawTextWithShadow(client.textRenderer, titleText, wmX + 11, wmY + 3, textColor);
 
         if (config != null && config.hudShowActiveModules) {
             List<IModule> active = getActiveModules();
             if (!active.isEmpty()) {
-                int curY = wmY + PILL_HEIGHT + 3;
+                int curY = y;
                 int moduleAlpha = Math.max(20, (int) (alpha * 0.85f));
                 int modBgColor = (moduleAlpha << 24) | 0x0A0D14;
                 int modTextColor = (alpha << 24) | 0xDFE8F2;
@@ -171,13 +207,13 @@ public final class ActivityHudOverlay {
                     int modW = modTextW + 10;
                     int modX = rightAligned ? (x + totalWidth - modW) : x;
 
-                    context.fill(modX, curY, modX + modW, curY + MODULE_ROW_HEIGHT, modBgColor);
+                    Render2D.rect(modX, curY, modW, MODULE_ROW_HEIGHT, 3.0f, modBgColor);
 
                     if (rightAligned) {
-                        context.fill(modX + modW - 2, curY, modX + modW, curY + MODULE_ROW_HEIGHT, accentColor);
+                        Render2D.rect(modX + modW - 2, curY, 2, MODULE_ROW_HEIGHT, 1.0f, accentColor);
                         context.drawTextWithShadow(client.textRenderer, name, modX + 3, curY + 2, modTextColor);
                     } else {
-                        context.fill(modX, curY, modX + 2, curY + MODULE_ROW_HEIGHT, accentColor);
+                        Render2D.rect(modX, curY, 2, MODULE_ROW_HEIGHT, 1.0f, accentColor);
                         context.drawTextWithShadow(client.textRenderer, name, modX + 5, curY + 2, modTextColor);
                     }
 

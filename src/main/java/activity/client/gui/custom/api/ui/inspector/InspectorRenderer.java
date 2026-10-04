@@ -229,7 +229,9 @@ public final class InspectorRenderer {
 
 
         String categoryName = activity.client.gui.custom.VisualText.category(module).toUpperCase(java.util.Locale.ROOT);
-        Fonts.MONTSERRAT_MEDIUM.draw(categoryName, x + PADDING_X + 1.0f, y + 7.5f, 5.0f, rgba(160, 165, 185, 180.0f * alpha));
+        float catW = Fonts.MONTSERRAT_MEDIUM.width(categoryName, 4.8f) + 6.0f;
+        Render2D.rect(x + PADDING_X + 1.0f, y + 5.5f, catW, 9.0f, 2.5f, rgba(255, 255, 255, 14.0f * alpha));
+        Fonts.MONTSERRAT_MEDIUM.draw(categoryName, x + PADDING_X + 4.0f, y + 7.0f, 4.8f, ClientAccent.accentBright(220.0f * alpha));
 
 
         String title = module.getDisplayName();

@@ -97,20 +97,15 @@ public final class RenderHelper {
             return;
         }
         String localized = activity.client.gui.custom.api.localization.Lang.translateSetting(string);
-        float size = 6.0f;
+        float size = 6.2f;
         String fitted = fitText(localized, f3, size);
         if (fitted.isEmpty()) {
             return;
         }
         float drawX = f + 6.0f;
-        float drawY = f2 + 5.0f;
+        float drawY = f2 + 4.8f;
 
-
-        int shadowCol = rgba(0, 0, 0, 42.0f * f4);
-        Fonts.MONTSERRAT_MEDIUM.draw(fitted, drawX + 0.5f, drawY + 0.5f, size, shadowCol);
-
-
-        int textCol = rgba(235, 240, 252, 215.0f * f4);
+        int textCol = rgba(245, 248, 255, 235.0f * f4);
         Fonts.MONTSERRAT_MEDIUM.draw(fitted, drawX, drawY, size, textCol);
     }
 

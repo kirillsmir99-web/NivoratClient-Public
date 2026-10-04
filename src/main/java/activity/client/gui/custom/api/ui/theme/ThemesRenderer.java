@@ -21,6 +21,7 @@ import activity.client.gui.custom.utils.color.ColorUtil;
 import activity.client.gui.custom.utils.render.fonts.Fonts;
 import activity.client.gui.custom.utils.render.fonts.NvIcons;
 import activity.client.gui.custom.utils.render.render2d.Render2D;
+import activity.client.gui.custom.utils.render.render2d.glow.BuiltGlow;
 import activity.client.gui.custom.utils.sounds.Sounds;
 
 public final class ThemesRenderer {
@@ -135,10 +136,10 @@ public final class ThemesRenderer {
         }
 
 
-        float btnW = 84.0f;
+        float btnW = 82.0f;
         float btnH = 16.0f;
         float btnX = f6 + f8 - btnW - 6.0f;
-        float btnY = f7 + 3.0f;
+        float btnY = f7 + (HEADER_BAR_H - btnH) * 0.5f;
         if (f4 >= btnX && f4 <= btnX + btnW && f5 >= btnY && f5 <= btnY + btnH) {
             this.editor.openNew();
             return true;
@@ -303,21 +304,29 @@ public final class ThemesRenderer {
         float f18 = Position.mouseY();
 
 
-        float btnW = 84.0f;
+        float btnW = 82.0f;
         float btnH = 16.0f;
         float btnX = f7 + f9 - btnW - 6.0f;
-        float btnY = f8 + 3.0f;
+        float btnY = f8 + (HEADER_BAR_H - btnH) * 0.5f;
         boolean btnHover = f17 >= btnX && f17 <= btnX + btnW && f18 >= btnY && f18 <= btnY + btnH;
 
         String headerTitle = Lang.get("category.themes", "Темы");
         Fonts.MONTSERRAT_MEDIUM.draw(headerTitle, f7 + 6.0f, f8 + 4.5f, 7.5f, ThemeManager.rgba(0xFFFFFF, 230.0f * f4));
 
-        Render2D.rect(btnX, btnY, btnW, btnH, 3.5f, ClientAccent.accent((btnHover ? 210.0f : 160.0f) * f4));
-        Render2D.outline(btnX, btnY, btnW, btnH, 3.5f, 0.6f, ThemeManager.rgba(0xFFFFFF, 35.0f * f4));
+        int btnBg = btnHover ? ClientAccent.accent(50.0f * f4) : ThemeManager.rgba(0xFFFFFF, 14.0f * f4);
+        Render2D.rect(btnX, btnY, btnW, btnH, 3.5f, btnBg);
+        int btnBrd = btnHover ? ClientAccent.accent(160.0f * f4) : ThemeManager.rgba(0xFFFFFF, 22.0f * f4);
+        Render2D.outline(btnX, btnY, btnW, btnH, 3.5f, 0.6f, btnBrd);
+        if (btnHover) {
+            Render2D.glow(new BuiltGlow(btnX, btnY, btnW, btnH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(180.0f * f4), 0.25f, 4.0f, f4));
+        }
         String createStr = Lang.get("theme.editor.create", "Создать тему");
-        float addIconSize = 5.5f;
-        Fonts.NV.msdf(NvIcons.ADD, btnX + 6.0f, btnY + 5.0f, addIconSize, ThemeManager.rgba(0xFFFFFF, 255.0f * f4));
-        Fonts.MONTSERRAT_MEDIUM.draw(activity.client.gui.custom.api.ui.settings.RenderHelper.fitText(Fonts.MONTSERRAT_MEDIUM, createStr, btnW - 22.0f, 5.5f), btnX + 15.0f, btnY + 4.5f, 5.5f, ThemeManager.rgba(0xFFFFFF, 255.0f * f4));
+        float textW = Fonts.MONTSERRAT_MEDIUM.width(createStr, 5.5f);
+        float iconSize = 6.0f;
+        float totalInnerW = iconSize + 4.0f + textW;
+        float innerX = btnX + (btnW - totalInnerW) * 0.5f;
+        Fonts.NV.msdf(NvIcons.ADD, innerX, btnY + 5.0f, iconSize, btnHover ? ClientAccent.accentBright(255.0f * f4) : ThemeManager.rgba(0xFFFFFF, 230.0f * f4));
+        Fonts.MONTSERRAT_MEDIUM.draw(createStr, innerX + iconSize + 4.0f, btnY + 4.5f, 5.5f, btnHover ? ClientAccent.accentBright(255.0f * f4) : ThemeManager.rgba(0xFFFFFF, 230.0f * f4));
 
 
         float cardsStartY = f8 + HEADER_BAR_H;

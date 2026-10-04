@@ -208,6 +208,14 @@ public final class Render2D {
         Render2D.image().enqueue(new BuiltImage(string, f, f2, f3, f4, 0.0f, n));
     }
 
+    public static void imageNearest(String string, float f, float f2, float f3, float f4, int n) {
+        Render2D.image().enqueue(new BuiltImage(string, f, f2, f3, f4, 0.0f, n).withNearest());
+    }
+
+    public static void imageNearest(String string, float f, float f2, float f3, float f4) {
+        Render2D.image().enqueue(new BuiltImage(string, f, f2, f3, f4, 0.0f, -1).withNearest());
+    }
+
     public static void image(String string, float f, float f2, float f3, float f4, int ... nArray) {
         Render2D.image().enqueue(new BuiltImage(string, f, f2, f3, f4).withColors(nArray));
     }

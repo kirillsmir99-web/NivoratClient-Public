@@ -61,4 +61,8 @@ TEST_READY.md
 *.zip
 NivoratClient_All_Sources.txt
 
+# Tools extracted cache
+tools/assets/minecraft-vanilla/
+tools/assets/vanilla_extracted/
+
 !vendor/clientspoofer/ClientSpoofer-1.21.11-1.4.0.jar

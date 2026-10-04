@@ -14,7 +14,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 
 public final class ThemesTab extends ActivityTab {
-    public static final int TAB_INDEX = 16;
+    public static final int TAB_INDEX = 17;
     public ThemesTab() { super("themes", Text.translatable("activity.tab.themes"), ActivityIcon.GLASS); }
     @Override public Text getSubtitle() { return Text.translatable("activity.themes.subtitle"); }
     @Override public void resetDefaults() { select(ThemePreset.CLIENT); }

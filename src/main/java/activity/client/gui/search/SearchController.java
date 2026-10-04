@@ -214,8 +214,7 @@ public final class SearchController {
         addCategory("settings", Text.translatable("activity.tab.settings"), ActivityIcon.SETTINGS,
             List.of("settings", "настройки", "интерфейс", "шрифт", "звуки", "анимации", "прозрачность", "окно"));
 
-        addCategory("about", Text.translatable("activity.tab.about"), ActivityIcon.ABOUT,
-            List.of("about", "о проекте", "информация", "версия", "автор", "телеграм", "telegram", "ссылки"));
+
 
         addModule("utility", "hud_activity",
             Text.translatable("activity.card.utility.hud_activity"),
@@ -259,19 +258,7 @@ public final class SearchController {
             List.of("presets", "пресеты", "активный", "сброс", "сохранить", "импорт", "экспорт", "layout")
         );
 
-        addModule("about", "info",
-            Text.translatable("activity.card.about.info"),
-            Text.translatable("activity.tab.about"),
-            ActivityIcon.ABOUT,
-            List.of("info", "информация", "версия", "version", "автор", "author", "activity", "о проекте")
-        );
 
-        addModule("about", "links",
-            Text.translatable("activity.button.open_telegram"),
-            Text.translatable("activity.tab.about"),
-            ActivityIcon.TELEGRAM,
-            List.of("telegram", "телеграм", "тг", "канал", "сообщество", "ссылка", "автор")
-        );
 
         addSetting("utility", "hud_activity", "hud_anchor",
             Text.translatable("activity.setting.general.hud_anchor"),

@@ -96,9 +96,7 @@ implements AutoCloseable {
         try {
             VisualMaterial iface = VisualMaterial.getInstance();
             float material = iface == null ? 0.0f : iface.getStyleTransition();
-            if (builtGlass.liveEdgeProfile() == 1 || builtGlass.liveEdgeProfile() == 2) {
-                builtGlass = builtGlass.withMosaic(false, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.85f);
-            } else if (!builtGlass.mosaicEnabled() && material > 0.001f && builtGlass.liveEdgeProfile() == 0) {
+            if (!builtGlass.mosaicEnabled() && material > 0.001f) {
                 builtGlass = builtGlass.withMosaic(true, material, iface.mosaicScale.getFloat(), iface.mosaicSpeed.getFloat(), iface.mosaicSeam.getFloat(), iface.mosaicBevel.getFloat(), iface.mosaicCellGlow.getFloat(), iface.mosaicMorph.getFloat(), iface.textReadability.getFloat());
             }
             BuiltGlass builtGlass2 = this.normalize(builtGlass);
@@ -118,7 +116,8 @@ implements AutoCloseable {
         float f3 = GlassRenderer.clamp(builtGlass.radiusTopRight(), 0.0f, f);
         float f4 = GlassRenderer.clamp(builtGlass.radiusBottomRight(), 0.0f, f);
         float f5 = GlassRenderer.clamp(builtGlass.radiusBottomLeft(), 0.0f, f);
-        float material = builtGlass.mosaicEnabled() ? builtGlass.styleTransition() : 0.0f;
+        boolean isCapsule = f > 0.0f && f2 >= f * 0.85f && f3 >= f * 0.85f && f4 >= f * 0.85f && f5 >= f * 0.85f;
+        float material = (builtGlass.mosaicEnabled() && !isCapsule) ? builtGlass.styleTransition() : 0.0f;
         f2 += (Math.min(f2, activity.client.gui.custom.api.ui.UiTokens.MOSAIC_RADIUS) - f2) * material;
         f3 += (Math.min(f3, activity.client.gui.custom.api.ui.UiTokens.MOSAIC_RADIUS) - f3) * material;
         f4 += (Math.min(f4, activity.client.gui.custom.api.ui.UiTokens.MOSAIC_RADIUS) - f4) * material;

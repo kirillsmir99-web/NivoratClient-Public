@@ -37,7 +37,7 @@ class NivoratEcosystemTest {
         assertFalse(NivoratEcosystem.owns("combat"));
         var settings = ModuleManager.get().forCategory(Category.DISPLAY);
         assertFalse(settings.stream().anyMatch(m -> m instanceof ClickGui));
-        assertEquals(5, settings.size());
+        assertEquals(6, settings.size());
         assertTrue(settings.stream().anyMatch(m -> m instanceof activity.client.gui.custom.PresetSettingsModule));
         assertEquals(1, settings.stream().filter(m -> m instanceof CompanionSettingsModule).count());
     }

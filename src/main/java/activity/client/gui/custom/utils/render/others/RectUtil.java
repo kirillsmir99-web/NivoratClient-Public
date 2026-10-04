@@ -72,13 +72,10 @@ public final class RectUtil {
         if (mc == null) {
             return false;
         }
-        if (mc.currentScreen instanceof activity.client.gui.ActivityScreen) {
+        if (mc.currentScreen instanceof activity.client.gui.custom.api.ui.UI || activity.client.gui.custom.api.ui.UI.isPanelActive() || activity.client.gui.custom.api.ui.BaseScreen.hasClosingOverlay() || mc.currentScreen instanceof activity.client.gui.ActivityScreen) {
             return false;
         }
-        if (mc.currentScreen == null || mc.currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen) {
-            return true;
-        }
-        return false;
+        return true;
     }
 
     private RectUtil() {
@@ -576,7 +573,7 @@ public final class RectUtil {
             builtGlass = builtGlass.withMosaic(true, transition2, interfaceModule.mosaicScale.getFloat(), interfaceModule.mosaicSpeed.getFloat(), interfaceModule.mosaicSeam.getFloat(), interfaceModule.mosaicBevel.getFloat(), interfaceModule.mosaicCellGlow.getFloat(), interfaceModule.mosaicMorph.getFloat(), interfaceModule.textReadability.getFloat());
         }
         boolean isHud2 = RectUtil.isHudRendering();
-        boolean allowWave = isHud2 || !bl2;
+        boolean allowWave = !bl2 && (f3 >= 36.0f && f4 >= 24.0f);
         if (interfaceModule != null && allowWave && interfaceModule.isWaveEdgeActiveFor(isHud2)) {
             float seed = (float) Math.abs((int)(f * 17.0f + f2 * 31.0f + f3 * 7.0f + f4) % 10000);
             builtGlass = builtGlass.withWaveEdge(

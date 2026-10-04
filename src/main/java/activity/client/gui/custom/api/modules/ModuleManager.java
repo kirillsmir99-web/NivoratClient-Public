@@ -59,6 +59,7 @@ public final class ModuleManager {
                 if (!activity.client.integration.NivoratEcosystem.owns("appearance")) display.add(VisualMaterial.getInstance());
                 if (!activity.client.integration.NivoratEcosystem.owns("menu")) display.add(get(ClickGui.class));
                 if (!activity.client.integration.NivoratEcosystem.owns("sounds")) display.add(get(ClientSounds.class));
+                display.add(get(activity.client.gui.custom.api.modules.impl.Interface.WatermarkModule.class));
                 for (var section : activity.client.integration.NivoratEcosystem.sections()) {
                     display.add(new activity.client.integration.CompanionSettingsModule(section));
                 }
@@ -68,7 +69,7 @@ public final class ModuleManager {
             }
             return displaySnapshot;
         }
-        if (category == Category.PRESETS || category == Category.THEMES || category == Category.ABOUT || category == Category.UTILS) return List.of();
+        if (category == Category.PRESETS || category == Category.THEMES || category == Category.UTILS) return List.of();
         if (category == Category.PINNED) return activity.client.gui.custom.api.ui.pin.PinManager.getPinnedModules();
         List<Module> all = getAll();
         if (category == Category.VISUALS) return all;
@@ -103,6 +104,8 @@ public final class ModuleManager {
         else if (type == activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.class) {
             if (notifications == null) notifications = new activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule();
             value = notifications;
+        } else if (type == activity.client.gui.custom.api.modules.impl.Interface.WatermarkModule.class) {
+            value = activity.client.gui.custom.api.modules.impl.Interface.WatermarkModule.getInstance();
         } else return null;
         return type.cast(value);
     }

@@ -17,6 +17,8 @@ public final class ShaderPassConfig {
     public static int randomMaxRestoreDelayMs = 65;
     public static double reactionDelaySec = 0.0;
     public static int cooldownTicks = 4;
+    public static boolean checkAirTime = true;
+    public static double maxAirTimeSec = 1.0;
 
     private ShaderPassConfig() {}
 

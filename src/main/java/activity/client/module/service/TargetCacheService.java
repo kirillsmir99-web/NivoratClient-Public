@@ -69,24 +69,23 @@ public final class TargetCacheService {
         if (cached != null) return cached;
 
         boolean blocking = entity.isBlocking();
-        if (!blocking && entity.isUsingItem()) {
+        if (!blocking && entity.isUsingItem() && entity.getItemUseTime() >= 5) {
+            net.minecraft.item.ItemStack off = entity.getOffHandStack();
+            net.minecraft.item.ItemStack main = entity.getMainHandStack();
             net.minecraft.item.ItemStack active = entity.getActiveItem();
-            if (active != null && !active.isEmpty() && (active.getItem() instanceof ShieldItem || active.isOf(Items.SHIELD))) {
+            if (isShield(off) || isShield(main) || isShield(active)) {
                 blocking = true;
-            } else {
-                net.minecraft.item.ItemStack offhand = entity.getOffHandStack();
-                if (offhand != null && !offhand.isEmpty() && (offhand.getItem() instanceof ShieldItem || offhand.isOf(Items.SHIELD))) {
-                    blocking = true;
-                } else {
-                    net.minecraft.item.ItemStack mainhand = entity.getMainHandStack();
-                    if (mainhand != null && !mainhand.isEmpty() && (mainhand.getItem() instanceof ShieldItem || mainhand.isOf(Items.SHIELD))) {
-                        blocking = true;
-                    }
-                }
             }
+        }
+        if (blocking && entity.getItemUseTime() < 5 && !entity.isBlocking()) {
+            blocking = false;
         }
         SHIELD_BLOCKING_CACHE.put(id, blocking);
         return blocking;
+    }
+
+    private static boolean isShield(net.minecraft.item.ItemStack stack) {
+        return stack != null && !stack.isEmpty() && (stack.getItem() instanceof ShieldItem || stack.isOf(Items.SHIELD));
     }
 
     public static int getShieldCacheSize() {

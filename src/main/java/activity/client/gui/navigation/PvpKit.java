@@ -13,7 +13,8 @@ public enum PvpKit {
     BEAST("БИСТЫ", "Beast", "auto_gg hp_reaper"),
     SWORD("OP", "OP", "click_pearl hp_reaper cooldown_hud auto_gg"),
     AXE("ТОПОРЫ", "Axe", "auto_shieldbreaker auto_tool auto_gg hp_reaper cooldown_hud"),
-    DIAMOND_POT("ДПОТ", "Diamond Pot", "hp_reaper auto_gg cooldown_hud");
+    DIAMOND_POT("ДПОТ", "Diamond Pot", "hp_reaper auto_gg cooldown_hud"),
+    CART("КАРТ", "Cart", "click_pearl auto_totem hp_reaper auto_gg cooldown_hud cart_refill auto_cart cart_hud");
 
     public static final int FIRST_TAB_INDEX = 6;
     private final String russianName;

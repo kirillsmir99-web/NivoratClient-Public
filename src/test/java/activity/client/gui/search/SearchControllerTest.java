@@ -228,10 +228,6 @@ public class SearchControllerTest {
         List<SearchController.SearchResult> settings = SearchController.search("Настройки", 5);
         assertFalse(settings.isEmpty());
         assertTrue(settings.stream().anyMatch(r -> "settings".equals(r.entry().categoryId())));
-
-        List<SearchController.SearchResult> about = SearchController.search("О проекте", 5);
-        assertFalse(about.isEmpty());
-        assertTrue(about.stream().anyMatch(r -> "about".equals(r.entry().categoryId())));
     }
 
     @Test

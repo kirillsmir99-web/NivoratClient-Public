@@ -343,13 +343,13 @@ public class ModuleUXStage6Test {
     @Test
     void testSidebarTreeRebuildAndRefresh() {
         SidebarTree tree = new SidebarTree();
-        assertEquals(11, tree.getCategories().size());
+        assertEquals(12, tree.getCategories().size());
 
         tree.refresh();
-        assertEquals(11, tree.getCategories().size());
+        assertEquals(12, tree.getCategories().size());
 
         tree.rebuildNodes();
-        assertEquals(11, tree.getCategories().size());
+        assertEquals(12, tree.getCategories().size());
         assertEquals(ModuleRegistry.getAll().size(), tree.getCategories().get(0).getChildren().size());
         assertTrue(tree.getCategories().get(1).getChildren().stream().allMatch(m ->
             activity.client.gui.navigation.PvpKit.NETHERITE_POT.matchesId(m.getId())));

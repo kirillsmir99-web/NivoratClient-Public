@@ -1,6 +1,8 @@
 package activity.client.gui.custom.api.ui.theme;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -47,6 +49,12 @@ public final class ThemeEditorRenderer {
     private boolean hexFocused = false;
     private String hexInput = "6C72CB";
     private boolean nameFocused = false;
+    private boolean nameSelectedAll = false;
+    private final List<Float> nameCharAnim = new ArrayList<>();
+    private float nameAnimCursorX = 0.0f;
+    private boolean nameCursorSnap = true;
+    private float nameHoverT = 0.0f;
+    private float nameFocusT = 0.0f;
 
 
     private boolean advancedOpen = false;
@@ -156,6 +164,8 @@ public final class ThemeEditorRenderer {
         this.saveFailed = false;
         this.draggingMode = 0;
         this.nameFocused = false;
+        this.nameCharAnim.clear();
+        this.nameCursorSnap = true;
         this.hexFocused = false;
         this.lastDragX = Float.NaN;
         this.lastDragY = Float.NaN;
@@ -182,6 +192,8 @@ public final class ThemeEditorRenderer {
         this.saveFailed = false;
         this.draggingMode = 0;
         this.nameFocused = false;
+        this.nameCharAnim.clear();
+        this.nameCursorSnap = true;
         this.hexFocused = false;
         this.lastDragX = Float.NaN;
         this.lastDragY = Float.NaN;
@@ -217,6 +229,7 @@ public final class ThemeEditorRenderer {
         ThemeManager.clearLiveOverride();
         this.open = false;
         this.nameFocused = false;
+        this.nameSelectedAll = false;
         this.hexFocused = false;
         this.draggingMode = 0;
         this.pendingLeaveConfirm = false;
@@ -323,26 +336,40 @@ public final class ThemeEditorRenderer {
         this.lastCloseW = 12.0f;
         this.lastCloseH = 12.0f;
         this.lastCloseX = x + w - PADDING_X - this.lastCloseW;
-        this.lastCloseY = y + 7.0f;
+        this.lastCloseY = y + (HEADER_HEIGHT - this.lastCloseH) * 0.5f;
         boolean closeHov = mouseX >= lastCloseX - 2.0f && mouseX <= lastCloseX + lastCloseW + 2.0f && mouseY >= lastCloseY - 2.0f && mouseY <= lastCloseY + lastCloseH + 2.0f;
         int closeCol = rgba(255, 255, 255, (closeHov ? 255.0f : 140.0f) * alpha);
         Fonts.NV.msdf(NvIcons.CLOSE, lastCloseX + 2.5f, lastCloseY + 2.5f, 6.0f, closeCol);
 
-        this.lastExpW = 12.0f;
-        this.lastExpH = 12.0f;
-        this.lastExpX = lastCloseX - 16.0f;
-        this.lastExpY = y + 7.0f;
-        boolean expHov = mouseX >= lastExpX - 2.0f && mouseX <= lastExpX + lastExpW + 2.0f && mouseY >= lastExpY - 2.0f && mouseY <= lastExpY + lastExpH + 2.0f;
-        int expCol = rgba(255, 255, 255, (expHov ? 255.0f : 150.0f) * alpha);
-        Fonts.NV.msdf(NvIcons.EXPORT, lastExpX + 2.5f, lastExpY + 2.5f, 5.5f, expCol);
+        this.lastExpW = 18.0f;
+        this.lastExpH = 18.0f;
+        this.lastExpX = lastCloseX - 24.0f;
+        this.lastExpY = y + (HEADER_HEIGHT - this.lastExpH) * 0.5f;
+        boolean expHov = mouseX >= lastExpX && mouseX <= lastExpX + lastExpW && mouseY >= lastExpY && mouseY <= lastExpY + lastExpH;
+        int expBg = expHov ? ClientAccent.accent(45.0f * alpha) : rgba(255, 255, 255, 12.0f * alpha);
+        int expBrd = expHov ? ClientAccent.accent(180.0f * alpha) : rgba(255, 255, 255, 20.0f * alpha);
+        Render2D.rect(lastExpX, lastExpY, lastExpW, lastExpH, 4.0f, expBg);
+        Render2D.outline(lastExpX, lastExpY, lastExpW, lastExpH, 4.0f, 0.7f, expBrd);
+        if (expHov) {
+            Render2D.glow(new BuiltGlow(lastExpX, lastExpY, lastExpW, lastExpH, new float[]{4.0f, 4.0f, 4.0f, 4.0f}, ClientAccent.accent(180.0f * alpha), 0.25f, 3.5f, alpha));
+        }
+        int expCol = expHov ? ClientAccent.accentBright(255.0f * alpha) : rgba(255, 255, 255, 185.0f * alpha);
+        Fonts.NV.msdf(NvIcons.EXPORT, lastExpX + 5.0f, lastExpY + 5.0f, 8.0f, expCol);
 
-        this.lastImpW = 12.0f;
-        this.lastImpH = 12.0f;
-        this.lastImpX = lastExpX - 16.0f;
-        this.lastImpY = y + 7.0f;
-        boolean impHov = mouseX >= lastImpX - 2.0f && mouseX <= lastImpX + lastImpW + 2.0f && mouseY >= lastImpY - 2.0f && mouseY <= lastImpY + lastImpH + 2.0f;
-        int impCol = rgba(255, 255, 255, (impHov ? 255.0f : 150.0f) * alpha);
-        Fonts.NV.msdf(NvIcons.IMPORT, lastImpX + 2.5f, lastImpY + 2.5f, 5.5f, impCol);
+        this.lastImpW = 18.0f;
+        this.lastImpH = 18.0f;
+        this.lastImpX = lastExpX - 22.0f;
+        this.lastImpY = y + (HEADER_HEIGHT - this.lastImpH) * 0.5f;
+        boolean impHov = mouseX >= lastImpX && mouseX <= lastImpX + lastImpW && mouseY >= lastImpY && mouseY <= lastImpY + lastImpH;
+        int impBg = impHov ? ClientAccent.accent(45.0f * alpha) : rgba(255, 255, 255, 12.0f * alpha);
+        int impBrd = impHov ? ClientAccent.accent(180.0f * alpha) : rgba(255, 255, 255, 20.0f * alpha);
+        Render2D.rect(lastImpX, lastImpY, lastImpW, lastImpH, 4.0f, impBg);
+        Render2D.outline(lastImpX, lastImpY, lastImpW, lastImpH, 4.0f, 0.7f, impBrd);
+        if (impHov) {
+            Render2D.glow(new BuiltGlow(lastImpX, lastImpY, lastImpW, lastImpH, new float[]{4.0f, 4.0f, 4.0f, 4.0f}, ClientAccent.accent(180.0f * alpha), 0.25f, 3.5f, alpha));
+        }
+        int impCol = impHov ? ClientAccent.accentBright(255.0f * alpha) : rgba(255, 255, 255, 185.0f * alpha);
+        Fonts.NV.msdf(NvIcons.IMPORT, lastImpX + 5.0f, lastImpY + 5.0f, 8.0f, impCol);
 
         if (expHov) {
             this.pendingTooltipTitle = Lang.get("theme.workspace.export", "Экспорт");
@@ -427,16 +454,75 @@ public final class ThemeEditorRenderer {
         this.lastNameH = nameH;
 
         boolean inpHov = mouseX >= lastNameX && mouseX <= lastNameX + lastNameW && mouseY >= lastNameY && mouseY <= lastNameY + lastNameH;
-        Render2D.rect(lastNameX, lastNameY, lastNameW, lastNameH, 3.0f, rgba(0, 0, 0, (nameFocused ? 80.0f : 50.0f) * alpha));
-        Render2D.outline(lastNameX, lastNameY, lastNameW, lastNameH, 3.0f, 0.6f, nameFocused ? ClientAccent.accent(210.0f * alpha) : rgba(255, 255, 255, (inpHov ? 35.0f : 18.0f) * alpha));
+        float f13 = 1.0f - (float) Math.exp(-dt * 16.0f);
+        float f14 = 1.0f - (float) Math.exp(-dt * 11.0f);
+        this.nameHoverT += ((inpHov ? 1.0f : 0.0f) - this.nameHoverT) * f13;
+        this.nameFocusT += ((this.nameFocused ? 1.0f : 0.0f) - this.nameFocusT) * f14;
 
-        String dispName = this.draft.getName().isEmpty() ? Lang.get("theme.workspace.name_placeholder", "Новая тема") : this.draft.getName();
-        int txtCol = this.draft.getName().isEmpty() ? rgba(255, 255, 255, 90.0f * alpha) : rgba(255, 255, 255, 240.0f * alpha);
-        Fonts.MONTSERRAT_MEDIUM.draw(dispName, lastNameX + 5.0f, lastNameY + 3.8f, 5.5f, txtCol);
-        if (this.nameFocused && System.currentTimeMillis() / 450L % 2L == 0L) {
-            float cursorX = lastNameX + 5.0f + (this.draft.getName().isEmpty() ? 0.0f : Fonts.MONTSERRAT_MEDIUM.width(dispName, 5.5f)) + 1.0f;
-            Render2D.rect(cursorX, lastNameY + 3.0f, 0.8f, 9.0f, 0.0f, ClientAccent.accent(230.0f * alpha));
+        Render2D.rect(lastNameX, lastNameY, lastNameW, lastNameH, 3.0f, rgba(0, 0, 0, (50.0f + 35.0f * this.nameFocusT) * alpha));
+        if (this.nameFocusT > 0.01f) {
+            Render2D.glow(new BuiltGlow(lastNameX, lastNameY, lastNameW, lastNameH, new float[]{3.0f, 3.0f, 3.0f, 3.0f}, ClientAccent.accent(255.0f), 0.30f, 4.5f, this.nameFocusT * alpha));
         }
+        int baseOutline = rgba(255, 255, 255, (18.0f + 16.0f * this.nameHoverT) * alpha);
+        int focusOutline = ClientAccent.accent((160.0f + 95.0f * this.nameFocusT) * alpha);
+        int finalOutline = ColorUtil.lerpColor(baseOutline, focusOutline, this.nameFocusT);
+        Render2D.outline(lastNameX, lastNameY, lastNameW, lastNameH, 3.0f, 0.6f, finalOutline);
+
+        String curName = this.draft.getName();
+        boolean hasName = !curName.isEmpty();
+        float textStartX = lastNameX + 5.0f;
+        float textVisibleW = lastNameW - 10.0f;
+
+        Render2D.pushScissor(drawContext, textStartX - 1.0f, lastNameY, textVisibleW + 2.0f, nameH);
+        float step = dt * 3.6f;
+        boolean hasStagger = false;
+        for (int i = 0; i < this.nameCharAnim.size(); i++) {
+            float val = this.nameCharAnim.get(i);
+            if (val < 1.0f) {
+                this.nameCharAnim.set(i, Math.min(1.0f, val + step));
+                hasStagger = true;
+            }
+        }
+
+        if (hasName) {
+            float textW = Fonts.MONTSERRAT_MEDIUM.width(curName, 5.5f);
+            if (this.nameSelectedAll) {
+                Render2D.rect(textStartX - 1.0f, lastNameY + 2.5f, textW + 2.0f, nameH - 5.0f, 2.0f, ClientAccent.accent(110.0f * alpha));
+            }
+            if (!hasStagger) {
+                Fonts.MONTSERRAT_MEDIUM.draw(curName, textStartX, lastNameY + 3.8f, 5.5f, rgba(255, 255, 255, 240.0f * alpha));
+            } else {
+                float pen = textStartX;
+                for (int i = 0; i < curName.length(); i++) {
+                    String glyph = String.valueOf(curName.charAt(i));
+                    float prog = i < this.nameCharAnim.size() ? Math.max(0.0f, Math.min(1.0f, this.nameCharAnim.get(i))) : 1.0f;
+                    float eased = 1.0f - (float) Math.pow(1.0f - prog, 3);
+                    int op = Math.max(0, Math.min(255, Math.round(240.0f * alpha * eased)));
+                    if (op > 0) {
+                        Fonts.MONTSERRAT_MEDIUM.draw(glyph, pen, lastNameY + 3.8f + 1.5f * (1.0f - eased), 5.5f, rgba(255, 255, 255, (float) op));
+                    }
+                    pen += Fonts.MONTSERRAT_MEDIUM.width(glyph, 5.5f);
+                }
+            }
+        } else {
+            String ph = Lang.get("theme.workspace.name_placeholder", "Новая тема");
+            Fonts.MONTSERRAT_MEDIUM.draw(ph, textStartX, lastNameY + 3.8f, 5.5f, rgba(255, 255, 255, (80.0f + 30.0f * this.nameHoverT) * alpha));
+        }
+
+        float cursorTargetX = Fonts.MONTSERRAT_MEDIUM.width(curName, 5.5f);
+        if (this.nameCursorSnap || !this.nameFocused) {
+            this.nameAnimCursorX = cursorTargetX;
+            this.nameCursorSnap = false;
+        } else {
+            this.nameAnimCursorX += (cursorTargetX - this.nameAnimCursorX) * (1.0f - (float) Math.exp(-dt * 20.0f));
+        }
+
+        if (this.nameFocusT > 0.01f) {
+            float pulse = (float) (Math.sin((double) System.currentTimeMillis() / 200.0) * 0.5 + 0.5);
+            float cx = textStartX + this.nameAnimCursorX;
+            Render2D.rect(cx, lastNameY + 3.0f, 0.7f, nameH - 6.0f, 0.0f, ClientAccent.accent((70.0f + 185.0f * pulse) * this.nameFocusT * alpha));
+        }
+        Render2D.popScissor(drawContext);
         curY += nameH + 8.0f;
 
 
@@ -981,14 +1067,16 @@ public final class ThemeEditorRenderer {
             }
 
 
-            if (mouseX >= lastExpX - 3.0f && mouseX <= lastExpX + lastExpW + 3.0f && mouseY >= lastExpY - 3.0f && mouseY <= lastExpY + lastExpH + 3.0f) {
+            if (mouseX >= lastExpX && mouseX <= lastExpX + lastExpW && mouseY >= lastExpY && mouseY <= lastExpY + lastExpH) {
                 exportToClipboard();
+                Sounds.play("buttonclick");
                 return true;
             }
 
 
-            if (mouseX >= lastImpX - 3.0f && mouseX <= lastImpX + lastImpW + 3.0f && mouseY >= lastImpY - 3.0f && mouseY <= lastImpY + lastImpH + 3.0f) {
+            if (mouseX >= lastImpX && mouseX <= lastImpX + lastImpW && mouseY >= lastImpY && mouseY <= lastImpY + lastImpH) {
                 importFromClipboard();
+                Sounds.play("buttonclick");
                 return true;
             }
             return true;
@@ -1017,11 +1105,14 @@ public final class ThemeEditorRenderer {
 
 
         if (mouseX >= lastNameX && mouseX <= lastNameX + lastNameW && mouseY >= lastNameY && mouseY <= lastNameY + lastNameH) {
-            this.nameFocused = !this.nameFocused;
+            this.nameFocused = true;
+            this.nameSelectedAll = false;
+            this.nameCursorSnap = true;
             this.hexFocused = false;
             return true;
         } else if (this.nameFocused) {
             this.nameFocused = false;
+            this.nameSelectedAll = false;
         }
 
 
@@ -1180,12 +1271,75 @@ public final class ThemeEditorRenderer {
         }
 
         if (this.nameFocused) {
-            if (key == GLFW.GLFW_KEY_BACKSPACE && !this.draft.getName().isEmpty()) {
-                this.draft.setName(this.draft.getName().substring(0, this.draft.getName().length() - 1));
+            long handle = net.minecraft.client.MinecraftClient.getInstance().getWindow().getHandle();
+            boolean ctrl = org.lwjgl.glfw.GLFW.glfwGetKey(handle, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL) == 1
+                    || org.lwjgl.glfw.GLFW.glfwGetKey(handle, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL) == 1;
+
+            if (ctrl && key == GLFW.GLFW_KEY_A) {
+                if (!this.draft.getName().isEmpty()) {
+                    this.nameSelectedAll = true;
+                }
+                return true;
+            }
+            if (ctrl && key == GLFW.GLFW_KEY_C) {
+                if (this.nameSelectedAll && !this.draft.getName().isEmpty()) {
+                    net.minecraft.client.MinecraftClient.getInstance().keyboard.setClipboard(this.draft.getName());
+                }
+                return true;
+            }
+            if (ctrl && key == GLFW.GLFW_KEY_X) {
+                if (this.nameSelectedAll && !this.draft.getName().isEmpty()) {
+                    net.minecraft.client.MinecraftClient.getInstance().keyboard.setClipboard(this.draft.getName());
+                    this.draft.setName("");
+                    this.nameCharAnim.clear();
+                    this.nameSelectedAll = false;
+                }
+                return true;
+            }
+            if (ctrl && key == GLFW.GLFW_KEY_V) {
+                String clip = net.minecraft.client.MinecraftClient.getInstance().keyboard.getClipboard();
+                if (clip != null && !clip.isEmpty()) {
+                    String clean = clip.replaceAll("[\\r\\n]", "").trim();
+                    if (this.nameSelectedAll) {
+                        this.draft.setName("");
+                        this.nameCharAnim.clear();
+                        this.nameSelectedAll = false;
+                    }
+                    int rem = 24 - this.draft.getName().length();
+                    if (rem > 0) {
+                        String add = clean.length() > rem ? clean.substring(0, rem) : clean;
+                        this.draft.setName(this.draft.getName() + add);
+                        for (int i = 0; i < add.length(); i++) {
+                            this.nameCharAnim.add(Float.valueOf(1.0f));
+                        }
+                    }
+                    Sounds.play("search_typing");
+                }
+                return true;
+            }
+
+            if (key == GLFW.GLFW_KEY_BACKSPACE || key == GLFW.GLFW_KEY_DELETE) {
+                if (this.nameSelectedAll) {
+                    this.draft.setName("");
+                    this.nameCharAnim.clear();
+                    this.nameSelectedAll = false;
+                    Sounds.play("search_typing");
+                    return true;
+                }
+                if (!this.draft.getName().isEmpty()) {
+                    this.draft.setName(this.draft.getName().substring(0, this.draft.getName().length() - 1));
+                    if (!this.nameCharAnim.isEmpty()) {
+                        this.nameCharAnim.remove(this.nameCharAnim.size() - 1);
+                    }
+                    Sounds.play("search_typing");
+                    return true;
+                }
                 return true;
             }
             if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
                 this.nameFocused = false;
+                this.nameSelectedAll = false;
+                Sounds.play("buttonclick");
                 return true;
             }
             return true;
@@ -1211,8 +1365,17 @@ public final class ThemeEditorRenderer {
         if (!isOpen()) return false;
 
         if (this.nameFocused) {
-            if (this.draft.getName().length() < 24 && !Character.isISOControl(c)) {
-                this.draft.setName(this.draft.getName() + c);
+            if (!Character.isISOControl(c)) {
+                if (this.nameSelectedAll) {
+                    this.draft.setName("");
+                    this.nameCharAnim.clear();
+                    this.nameSelectedAll = false;
+                }
+                if (this.draft.getName().length() < 24) {
+                    this.draft.setName(this.draft.getName() + c);
+                    this.nameCharAnim.add(Float.valueOf(-0.14f));
+                    Sounds.play("search_typing");
+                }
             }
             return true;
         }
@@ -1286,7 +1449,24 @@ public final class ThemeEditorRenderer {
             String clip = mc.keyboard.getClipboard();
             if (clip == null || clip.isBlank()) return;
 
-            clip = clip.trim().replace("#", "").replace("0x", "").replace(" ", "");
+            clip = clip.trim();
+            if (clip.contains("{") && clip.contains("}")) {
+                com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(clip).getAsJsonObject();
+                if (json.has("palette")) {
+                    com.google.gson.JsonArray arr = json.getAsJsonArray("palette");
+                    int[] newPal = this.draft.getPalette().clone();
+                    for (int i = 0; i < Math.min(newPal.length, arr.size()); i++) {
+                        newPal[i] = arr.get(i).getAsInt();
+                    }
+                    this.draft.setPalette(newPal);
+                    syncHsbFromActiveSlot();
+                    applyLiveToThemeManager();
+                    Sounds.play("click");
+                    return;
+                }
+            }
+
+            clip = clip.replace("#", "").replace("0x", "").replace(" ", "");
             String[] parts = clip.split("[,;]");
             int[] newPal = this.draft.getPalette().clone();
             int idx = 0;

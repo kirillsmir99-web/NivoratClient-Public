@@ -141,6 +141,40 @@ public class ShaderPassModule extends NivoratModule {
                 }
         );
 
+        registerBoolean("check_air_time", Text.translatable("activity.setting.combat.check_air_time"),
+                Text.translatable("activity.setting.combat.check_air_time.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoShieldbreakerCheckAirTime;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoShieldbreakerCheckAirTime = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerNumber("max_air_time", Text.translatable("activity.setting.combat.max_air_time"),
+                Text.translatable("activity.setting.combat.max_air_time.desc"), SettingGroup.BEHAVIOR,
+                0.2, 3.0, 0.1, " с", false, 1.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoShieldbreakerMaxAirTimeSec : 1.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoShieldbreakerMaxAirTimeSec = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerBoolean("random_delay", Text.translatable("activity.setting.combat.random_delay"),
                 Text.translatable("activity.setting.combat.random_delay.desc"), SettingGroup.ADVANCED,
                 true,
@@ -205,6 +239,8 @@ public class ShaderPassModule extends NivoratModule {
         ShaderPassConfig.randomDelay = c.autoShieldbreakerRandomDelay;
         ShaderPassConfig.abortOnManualSwitch = c.autoShieldbreakerAbortOnManualSwitch;
         ShaderPassConfig.legitMode = c.autoShieldbreakerLegitMode;
+        ShaderPassConfig.checkAirTime = c.autoShieldbreakerCheckAirTime;
+        ShaderPassConfig.maxAirTimeSec = c.autoShieldbreakerMaxAirTimeSec;
     }
 
     @Override

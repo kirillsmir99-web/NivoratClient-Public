@@ -92,6 +92,8 @@ public class ActivityConfig {
     public boolean autoShieldbreakerRandomDelay = true;
     public boolean autoShieldbreakerAbortOnManualSwitch = true;
     public boolean autoShieldbreakerLegitMode = true;
+    public boolean autoShieldbreakerCheckAirTime = true;
+    public double autoShieldbreakerMaxAirTimeSec = 1.0;
 
     public boolean autoStunSlamEnabled = true;
     public Keybind autoStunSlamKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_M, true, true, false);
@@ -1058,6 +1060,7 @@ public class ActivityConfig {
         this.autoShieldbreakerSwitchDelayMs = clampSanitize(this.autoShieldbreakerSwitchDelayMs, 10.0, 200.0, 50.0);
         this.autoShieldbreakerRestoreDelayMs = clampSanitize(this.autoShieldbreakerRestoreDelayMs, 10.0, 200.0, 50.0);
         this.autoShieldbreakerReactionDelaySec = clampSanitize(this.autoShieldbreakerReactionDelaySec, 0.0, 2.0, 0.0);
+        this.autoShieldbreakerMaxAirTimeSec = clampSanitize(this.autoShieldbreakerMaxAirTimeSec, 0.1, 5.0, 1.0);
 
         this.autoStunSlamDistance = clampSanitize(this.autoStunSlamDistance, 1.5, 4.5, 2.85);
         this.autoStunSlamChance = clampSanitize(this.autoStunSlamChance, 10.0, 100.0, 100.0);
@@ -1506,6 +1509,8 @@ public class ActivityConfig {
         entry.settings.put("random_delay", this.autoShieldbreakerRandomDelay);
         entry.settings.put("abort_on_manual_switch", this.autoShieldbreakerAbortOnManualSwitch);
         entry.settings.put("legit_mode", this.autoShieldbreakerLegitMode);
+        entry.settings.put("check_air_time", this.autoShieldbreakerCheckAirTime);
+        entry.settings.put("max_air_time", this.autoShieldbreakerMaxAirTimeSec);
     }
 
     private void populateStunSlamSettings(ModuleConfigEntry entry) {
@@ -1869,6 +1874,8 @@ public class ActivityConfig {
                 this.autoShieldbreakerRandomDelay = getSettingBoolean(sb.settings, "random_delay", this.autoShieldbreakerRandomDelay);
                 this.autoShieldbreakerAbortOnManualSwitch = getSettingBoolean(sb.settings, "abort_on_manual_switch", this.autoShieldbreakerAbortOnManualSwitch);
                 this.autoShieldbreakerLegitMode = getSettingBoolean(sb.settings, "legit_mode", this.autoShieldbreakerLegitMode);
+                this.autoShieldbreakerCheckAirTime = getSettingBoolean(sb.settings, "check_air_time", this.autoShieldbreakerCheckAirTime);
+                this.autoShieldbreakerMaxAirTimeSec = getSettingDouble(sb.settings, "max_air_time", this.autoShieldbreakerMaxAirTimeSec);
             }
         }
         ModuleConfigEntry slam = getModuleEntry("auto_stun_slam");
@@ -2216,6 +2223,8 @@ public class ActivityConfig {
         copy.autoShieldbreakerRandomDelay = this.autoShieldbreakerRandomDelay;
         copy.autoShieldbreakerAbortOnManualSwitch = this.autoShieldbreakerAbortOnManualSwitch;
         copy.autoShieldbreakerLegitMode = this.autoShieldbreakerLegitMode;
+        copy.autoShieldbreakerCheckAirTime = this.autoShieldbreakerCheckAirTime;
+        copy.autoShieldbreakerMaxAirTimeSec = this.autoShieldbreakerMaxAirTimeSec;
 
         copy.autoStunSlamEnabled = this.autoStunSlamEnabled;
         copy.autoStunSlamKeybind.copyFrom(this.autoStunSlamKeybind);
@@ -2562,6 +2571,8 @@ public class ActivityConfig {
                Double.compare(this.autoShieldbreakerReactionDelaySec, that.autoShieldbreakerReactionDelaySec) == 0 &&
                Objects.equals(this.autoShieldbreakerKeybind, that.autoShieldbreakerKeybind) &&
                Objects.equals(this.autoShieldbreakerMode, that.autoShieldbreakerMode) &&
+               this.autoShieldbreakerCheckAirTime == that.autoShieldbreakerCheckAirTime &&
+               Double.compare(this.autoShieldbreakerMaxAirTimeSec, that.autoShieldbreakerMaxAirTimeSec) == 0 &&
 
                Objects.equals(this.pinnedModules, that.pinnedModules) &&
                this.autoStunSlamEnabled == that.autoStunSlamEnabled &&
@@ -2845,7 +2856,7 @@ public class ActivityConfig {
             autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay, autoMaceEngineMode, autoMaceSwapType, autoMaceMinFallDistance, autoMaceAutoSwitch, autoMaceSilentAim, autoMaceSilentAimRange, autoMaceMovementFix, autoMaceStunSlam, autoMaceHitboxExpand, autoMaceTargetPlayers, autoMaceTargetMobs, autoMaceStayOnMace, autoMaceAttackDelayMs, autoMaceHumanMode, autoMaceRandomJitter, autoStunSlamEngineMode, autoStunSlamPreset,
             autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay, autoSpearMaxSpeed, autoSpearCheckCharge,
             autoShieldbreakerEnabled, autoShieldbreakerKeybind, autoShieldbreakerMode, autoShieldbreakerDistance, autoShieldbreakerChance,
-            autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerReactionDelaySec, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode,
+            autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerReactionDelaySec, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode, autoShieldbreakerCheckAirTime, autoShieldbreakerMaxAirTimeSec,
             autoStunSlamEnabled, autoStunSlamKeybind, autoStunSlamMode, autoStunSlamDistance, autoStunSlamChance
         );
         result = 31 * result + Objects.hash(

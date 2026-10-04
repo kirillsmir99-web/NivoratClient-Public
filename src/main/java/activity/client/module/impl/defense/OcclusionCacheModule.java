@@ -525,13 +525,13 @@ public class OcclusionCacheModule extends NivoratModule {
         registerAction("motor_calibration", Text.translatable("activity.setting.defense.motor_calibration"),
                 Text.translatable("activity.setting.defense.motor_calibration.desc"), SettingGroup.ADVANCED,
                 () -> {
-                    activity.client.gui.custom.AutoCartCalibrationTopPanel.toggle();
+                    activity.client.gui.custom.AutoCartCalibrationDrawer.toggle();
                     MinecraftClient mc = MinecraftClient.getInstance();
                     if (mc != null && mc.currentScreen != activity.client.gui.custom.api.ui.UI.INSTANCE) {
                         mc.send(() -> mc.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE));
                     }
                 }
-        ).visibleWhen(isBetaNeural);
+        );
 
         registerBoolean("adaptive_learning", Text.translatable("activity.setting.defense.adaptive_learning"),
                 Text.translatable("activity.setting.defense.adaptive_learning.desc"), SettingGroup.ADVANCED,

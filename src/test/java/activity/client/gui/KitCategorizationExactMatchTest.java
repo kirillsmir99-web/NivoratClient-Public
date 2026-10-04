@@ -84,6 +84,19 @@ class KitCategorizationExactMatchTest {
     }
 
     @Test
+    void testCartKitExactMatch() {
+        Set<String> expected = Set.of(
+            "click_pearl", "auto_totem", "hp_reaper", "auto_gg",
+            "cooldown_hud", "cart_refill", "auto_cart", "cart_hud"
+        );
+        assertKitExactMatch(PvpKit.CART, Category.CART, expected);
+        assertTrue(PvpKit.CART.matchesId("auto_cart"));
+        assertTrue(PvpKit.CART.matchesId("cart_refill"));
+        assertTrue(PvpKit.CART.matchesId("cart_hud"));
+        assertFalse(PvpKit.CART.matchesId("auto_mace"));
+    }
+
+    @Test
     void testUtilsCategoryReturnsEmptySafely() {
         List<Module> modules = ModuleManager.get().forCategory(Category.UTILS);
         assertNotNull(modules);

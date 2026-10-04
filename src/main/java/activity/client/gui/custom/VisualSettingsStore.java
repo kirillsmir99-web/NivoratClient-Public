@@ -42,8 +42,11 @@ public final class VisualSettingsStore {
     private static List<Entry> entries() {
         if (entries != null) return entries;
         List<Entry> result = new ArrayList<>();
-        Map<String, Module> modules = Map.of("appearance", VisualMaterial.getInstance(),
-                "menu", ModuleManager.get().get(ClickGui.class), "sounds", ModuleManager.get().get(ClientSounds.class));
+        Map<String, Module> modules = Map.of(
+                "appearance", VisualMaterial.getInstance(),
+                "menu", ModuleManager.get().get(ClickGui.class),
+                "sounds", ModuleManager.get().get(ClientSounds.class),
+                "watermark", ModuleManager.get().get(activity.client.gui.custom.api.modules.impl.Interface.WatermarkModule.class));
         for (var module : modules.entrySet()) {
             for (var field : module.getValue().getClass().getDeclaredFields()) {
                 if (Modifier.isStatic(field.getModifiers()) || !Setting.class.isAssignableFrom(field.getType())) continue;
