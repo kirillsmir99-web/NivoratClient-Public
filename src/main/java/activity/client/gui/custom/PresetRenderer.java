@@ -108,15 +108,15 @@ public final class PresetRenderer {
     }
 
     private String resolvePresetServerTag(String name) {
-        if (name == null || name.isEmpty()) return tr("«Для всех серверов»", "«For all servers»");
+        if (name == null || name.isEmpty()) return tr("Для всех серверов", "For all servers");
         String lower = name.toLowerCase(Locale.ROOT);
-        if (lower.contains("really") || lower.contains("rw")) return "«Для ReallyWorld»";
-        if (lower.contains("funtime") || lower.contains("ft")) return "«Для FunTime»";
-        if (lower.contains("anarchy") || lower.contains("анарх")) return "«Для Анархии»";
-        if (lower.contains("smp")) return "«Для SMP»";
-        if (lower.contains("pvp") || lower.contains("пвп") || lower.contains("дуэл") || lower.contains("duel")) return "«Для PvP»";
-        if (lower.contains("crystal") || lower.contains("кристал") || lower.contains("holy")) return "«Для HolyWorld»";
-        return tr("«Для всех серверов»", "«For all servers»");
+        if (lower.contains("really") || lower.contains("rw")) return "Для ReallyWorld";
+        if (lower.contains("funtime") || lower.contains("ft")) return "Для FunTime";
+        if (lower.contains("anarchy") || lower.contains("анарх")) return "Для Анархии";
+        if (lower.contains("smp")) return "Для SMP";
+        if (lower.contains("pvp") || lower.contains("пвп") || lower.contains("дуэл") || lower.contains("duel")) return "Для PvP";
+        if (lower.contains("crystal") || lower.contains("кристал") || lower.contains("holy")) return "Для HolyWorld";
+        return tr("Для всех серверов", "For all servers");
     }
 
     private String getModuleLabel(String id) {
@@ -287,9 +287,9 @@ public final class PresetRenderer {
 
         if (filtered.isEmpty()) {
             float emptyY = cardsStartY + cardsH * 0.4f;
-            Fonts.NV.msdf(NvIcons.PROFILE, contentX + (contentW - 16.0f) * 0.5f, emptyY - 14.0f, 16.0f, color(255, 255, 255, 60, alpha));
+            Fonts.NV.msdf(NvIcons.PRESETS, contentX + (contentW - 16.0f) * 0.5f, emptyY - 14.0f, 16.0f, color(255, 255, 255, 60, alpha));
             String emptyTitle = hasSearchText ? tr("Ничего не найдено", "No presets found") : tr("Нет сохранённых пресетов", "No presets saved");
-            String emptySub = hasSearchText ? tr("Попробуйте изменить поисковый запрос", "Try another search query") : tr("Нажмите кнопку «Создать», чтобы сохранить текущую сборку", "Click \"Create\" to save your current build");
+            String emptySub = hasSearchText ? tr("Попробуйте изменить поисковый запрос", "Try another search query") : tr("Нажмите кнопку \"Создать\", чтобы сохранить текущую сборку", "Click \"Create\" to save your current build");
             float ew = Fonts.MONTSERRAT_MEDIUM.width(emptyTitle, 7.0f);
             Fonts.MONTSERRAT_MEDIUM.draw(emptyTitle, contentX + (contentW - ew) * 0.5f, emptyY + 8.0f, 7.0f, color(255, 255, 255, 160, alpha));
             float esw = Fonts.MONTSERRAT_MEDIUM.width(emptySub, 5.5f);
@@ -334,16 +334,16 @@ public final class PresetRenderer {
 
                 float iconSize = 7.0f;
                 int iconCol = isActive ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 220, alpha);
-                Fonts.NV.msdf(isActive ? NvIcons.CHECK : NvIcons.PROFILE, cardX + 8.0f, cardY + 8.0f, iconSize, iconCol);
+                Fonts.NV.msdf(isActive ? NvIcons.CHECK : NvIcons.PRESETS, cardX + 8.0f, cardY + 8.0f, iconSize, iconCol);
 
                 float nameFont = 6.5f;
                 String displayName = entry.name();
                 float maxNameW = cardW - 46.0f;
                 if (Fonts.MONTSERRAT_MEDIUM.width(displayName, nameFont) > maxNameW && displayName.length() > 6) {
-                    while (displayName.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(displayName + "…", nameFont) > maxNameW) {
+                    while (displayName.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(displayName + "...", nameFont) > maxNameW) {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
-                    displayName += "…";
+                    displayName += "...";
                 }
                 Fonts.MONTSERRAT_MEDIUM.draw(displayName, cardX + 18.0f, cardY + 7.5f, nameFont, color(255, 255, 255, isActive ? 255 : 230, alpha));
 
@@ -367,7 +367,7 @@ public final class PresetRenderer {
                 boolean hovDel = mx >= delX && mx <= delX + delW && my >= actionY && my <= actionY + actionH;
                 Render2D.rect(delX, actionY, delW, actionH, 2.5f, hovDel ? (isDeletingThis ? ThemeManager.rgba(0xaa2222, 220.0f * alpha) : ThemeManager.rgba(0xffffff, 25.0f * alpha)) : (isDeletingThis ? ThemeManager.rgba(0x882222, 170.0f * alpha) : ThemeManager.rgba(0xffffff, 10.0f * alpha)));
                 if (isDeletingThis) {
-                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Да?", "Sure?"), delX + 3.0f, actionY + 2.5f, 4.5f, color(255, 255, 255, 255, alpha));
+                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Удалить", "Delete"), delX + 3.0f, actionY + 2.5f, 4.5f, color(255, 255, 255, 255, alpha));
                 } else {
                     Fonts.NV.msdf(NvIcons.DELETE, delX + 3.0f, actionY + 2.5f, 5.0f, hovDel ? ThemeManager.rgba(0xff6666, 255.0f * alpha) : color(255, 255, 255, 140, alpha));
                 }
@@ -409,7 +409,7 @@ public final class PresetRenderer {
         Render2D.rect(x - 3.5f, y + 6.0f, 1.0f, h - 12.0f, 0.5f, ThemeManager.rgba(0xFFFFFF, 14.0f * effectiveAlpha));
         RenderHelper.drawPanelBg(x, y, w, h, 0.0f, 12.0f, 12.0f, 0.0f, effectiveAlpha);
 
-        Fonts.NV.msdf(NvIcons.PROFILE, x + 10.0f, y + 8.5f, 6.5f, ClientAccent.accentBright(240.0f * effectiveAlpha));
+        Fonts.NV.msdf(NvIcons.PRESETS, x + 10.0f, y + 8.5f, 6.5f, ClientAccent.accentBright(240.0f * effectiveAlpha));
         Fonts.MONTSERRAT_MEDIUM.draw(tr("Создание пресета", "Create Preset"), x + 20.0f, y + 7.5f, 6.5f, color(255, 255, 255, 245, effectiveAlpha));
 
         this.lastCloseW = 12.0f;

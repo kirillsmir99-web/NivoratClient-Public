@@ -52,9 +52,22 @@ public class OcclusionCacheModule extends NivoratModule {
                 opt -> Text.translatable("activity.dropdown.cart_mode." + opt + ".desc"),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null && "beta_neural".equalsIgnoreCase(c.autoCartMode)) {
+                        c.autoCartMode = "classic";
+                        ActivityConfigManager.markDirty();
+                    }
                     return c != null && c.autoCartMode != null ? c.autoCartMode : "classic";
                 },
                 val -> {
+                    if ("beta_neural".equalsIgnoreCase(val)) {
+                        activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.notify(
+                            activity.client.i18n.LocalizationService.isRussianPreferred()
+                                ? "Данная функция находится в разработке"
+                                : "This feature is currently in development",
+                            3500L
+                        );
+                        return;
+                    }
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoCartMode = val;
@@ -531,7 +544,7 @@ public class OcclusionCacheModule extends NivoratModule {
                         mc.send(() -> mc.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE));
                     }
                 }
-        );
+        ).visibleWhen(isBetaNeural);
 
         registerBoolean("adaptive_learning", Text.translatable("activity.setting.defense.adaptive_learning"),
                 Text.translatable("activity.setting.defense.adaptive_learning.desc"), SettingGroup.ADVANCED,

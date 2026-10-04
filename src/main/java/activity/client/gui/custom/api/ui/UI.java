@@ -1392,10 +1392,10 @@ implements GuiCapture.Source {
         int textCol = UI.color(255, 255, 255, hoverLang ? 255 : 220, f4);
         Fonts.MONTSERRAT_MEDIUM.draw(langCode, langX + langW - codeW - 4.5f, langY + 3.2f, 5.5f, textCol);
 
-        float centerLogoSize = 26.0f;
+        float centerLogoSize = 22.0f;
         float logoCenterX = f7 + f9 * 0.5f;
         float logoCenterY = f8 + f12 * 0.5f;
-        Render2D.glow(new BuiltGlow(logoCenterX - 11.0f, logoCenterY - 11.0f, 22.0f, 22.0f, new float[]{11.0f, 11.0f, 11.0f, 11.0f}, ClientAccent.accent(160.0f), 0.35f, 6.0f, f4));
+        Render2D.glow(new BuiltGlow(logoCenterX - 9.0f, logoCenterY - 9.0f, 18.0f, 18.0f, new float[]{9.0f, 9.0f, 9.0f, 9.0f}, ClientAccent.accent(160.0f), 0.35f, 5.0f, f4));
         BrandMark.draw(logoCenterX - centerLogoSize * 0.5f, logoCenterY - centerLogoSize * 0.5f, centerLogoSize, f4);
 
         float searchX = f7 + 6.0f;

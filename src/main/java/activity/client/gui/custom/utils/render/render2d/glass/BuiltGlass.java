@@ -115,6 +115,10 @@ public record BuiltGlass(
         return this.withMosaic(enabled, scale, speed, seam, bevel, glow, 0.40f, 0.85f);
     }
 
+    public BuiltGlass withoutMosaic() {
+        return this.withMosaic(true, 0.0f, this.mosaicScale, this.mosaicSpeed, this.mosaicSeam, this.mosaicBevel, this.mosaicCellGlow, this.mosaicMorph, this.textReadability);
+    }
+
     public BuiltGlass withWaveEdge(boolean enabled, float activation, float intensity, float size, float density, boolean motion, float speed, float glow, float seed, int profile) {
         return withLiveEdge(enabled, activation, intensity, size, density, motion, speed, glow, seed, profile);
     }

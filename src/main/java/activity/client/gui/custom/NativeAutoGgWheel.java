@@ -6,6 +6,7 @@ import activity.client.gui.custom.hud.HudIcons;
 import activity.client.gui.custom.utils.render.fonts.Fonts;
 import activity.client.gui.custom.utils.render.others.RectUtil;
 import activity.client.gui.custom.utils.render.render2d.Render2D;
+import activity.client.gui.custom.utils.render.render2d.glass.BuiltGlass;
 import activity.client.gui.custom.utils.render.render2d.radialglass.BuiltRadialGlass;
 import net.minecraft.client.gui.DrawContext;
 
@@ -36,7 +37,21 @@ public final class NativeAutoGgWheel {
                         .65f, false, .32f, .006f, 3,
                         ClientAccent.accentBright(255), over ? .4f : active ? .12f : .025f, 0));
             }
-            RectUtil.drawClientRectFixedRadius(cx - 46, cy - 46, 92, 92, 46, 1, 0);
+            BuiltGlass hubGlass = new BuiltGlass(
+                    cx - 46, cy - 46, 92, 92,
+                    46, 46, 46, 46,
+                    hubHovered ? ClientAccent.accent(180) : ThemeManager.rgba(0x15131d, 245),
+                    1.0f,
+                    2.2f,
+                    ClientAccent.accentBright(hubHovered ? 255 : 105),
+                    0.65f,
+                    false,
+                    0.32f,
+                    0.006f,
+                    0.5f,
+                    0.0f
+            ).withBlurRadius(30.0f).withSecondColor(ThemeManager.rgba(0x0d0f17, 245), 0.0f).withoutMosaic();
+            Render2D.glass(hubGlass);
             Render2D.outline(cx - 46, cy - 46, 92, 92, 46, .65f,
                     ClientAccent.accent(hubHovered ? 235 : 100));
             HudIcons.draw(HudIcons.CHAT, cx - 8, cy - 28, 16, ClientAccent.accentBright(245));

@@ -42,7 +42,10 @@ public final class LocalizationService {
 
     public static boolean isRussianPreferred() {
         ActivityConfig cfg = ActivityConfigManager.getConfig();
-        String pref = cfg != null ? cfg.language : "auto";
+        String pref = cfg != null ? cfg.language : null;
+        if (pref == null || pref.isBlank() || "auto".equalsIgnoreCase(pref)) {
+            pref = activity.client.gui.custom.api.localization.LocalizationManager.getCurrentLanguage().getCode();
+        }
         if ("ru".equalsIgnoreCase(pref)) return true;
         if ("en".equalsIgnoreCase(pref)) return false;
 

@@ -319,6 +319,9 @@ public final class ModuleListRenderer {
                      cardSeed,
                      1
                  );
+                if (interfaceModule != null && !interfaceModule.activeModuleMosaic.getValue()) {
+                    cardGlass = cardGlass.withoutMosaic();
+                }
                 Render2D.glass(cardGlass);
             } else {
                 Render2D.rect(cardX, cardY, colW, CARD_H, CARD_RADIUS, cardBg);

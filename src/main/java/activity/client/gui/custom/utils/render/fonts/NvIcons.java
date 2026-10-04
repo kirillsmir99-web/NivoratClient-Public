@@ -13,7 +13,7 @@ public final class NvIcons {
             case UTILS -> UTILS;
             case THEMES -> THEMES;
             case DISPLAY -> SETTINGS;
-            case PRESETS -> PROFILE;
+            case PRESETS -> PRESETS;
             default -> MODULES;
         };
     }
@@ -52,6 +52,7 @@ public final class NvIcons {
     public static final String ADD = "\uE01C";
     public static final String DELETE = "\uE01D";
     public static final String DUPLICATE = "\uE01E";
+    public static final String PRESETS = DUPLICATE;
     public static final String IMPORT = "\uE01F";
     public static final String EXPORT = "\uE020";
     public static final String CLOSE = "\uE021";

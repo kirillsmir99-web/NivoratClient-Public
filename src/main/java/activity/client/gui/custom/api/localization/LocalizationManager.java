@@ -59,6 +59,10 @@ public final class LocalizationManager {
     public static void init() {
         if (initialized) return;
         initialized = true;
+        activity.client.config.ActivityConfig cfg = activity.client.config.ActivityConfigManager.getConfig();
+        if (cfg != null && cfg.language != null && !cfg.language.isBlank()) {
+            currentLanguage = Language.fromCode(cfg.language);
+        }
         loadLanguage(Language.EN, fallbackTranslations);
         loadLanguage(currentLanguage, translations);
     }
@@ -69,11 +73,15 @@ public final class LocalizationManager {
     }
 
     public static void setLanguage(Language language) {
-        if (language == null || language == currentLanguage) return;
+        if (language == null) return;
         currentLanguage = language;
         translations.clear();
         loadLanguage(language, translations);
-        activity.client.config.ActivityConfigManager.getConfig().language=language.getCode();
+        activity.client.config.ActivityConfig cfg = activity.client.config.ActivityConfigManager.getConfig();
+        if (cfg != null) {
+            cfg.language = language.getCode();
+            activity.client.config.ActivityConfigManager.markDirty();
+        }
         ConfigManager.markDirty();
     }
 

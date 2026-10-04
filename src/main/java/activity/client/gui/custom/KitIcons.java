@@ -87,7 +87,7 @@ public final class KitIcons {
         if (category == Category.THEMES) {
             Fonts.NV.msdf(NvIcons.THEMES, x, y, size, color);
         } else if (category == Category.PRESETS) {
-            Fonts.NV.msdf(NvIcons.PROFILE, x, y, size, color);
+            Fonts.NV.msdf(NvIcons.PRESETS, x, y, size, color);
         } else if (category == Category.DISPLAY) {
             Fonts.NV.msdf(NvIcons.SETTINGS, x, y, size, color);
         } else {

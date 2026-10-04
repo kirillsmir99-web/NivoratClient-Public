@@ -44,7 +44,9 @@ public final class VisualMaterial extends Module {
     private final int[] rainbowPalette = new int[9];
 
     private final SeparatorSetting rectLayout = this.register(new SeparatorSetting("Материал"));
-    public final ModeSetting rectStyle = this.register(new ModeSetting("Стиль", "Стиль оформления материала интерфейса.", STYLE_SHARDS, STYLE_MONOLITH, STYLE_SHARDS));
+    public final ModeSetting rectStyle = this.register(new ModeSetting("Стиль", "Стиль оформления материала интерфейса.", STYLE_SHARDS, STYLE_SHARDS));
+    public final BooleanSetting activeModuleMosaic = this.register(new BooleanSetting("Мозаика активных модулей", "Отображать эффект мозаики на плашках активных модулей.", true));
+    public final BooleanSetting moduleActiveMosaic = activeModuleMosaic;
     public final NumberSetting mosaicScale = this.register(new NumberSetting("Размер осколков", "Масштаб панелей: чем выше значение, тем крупнее осколки.", 1.0, 0.4, 2.5, 0.05).visibleWhen(this::isMosaicStyle));
     public final NumberSetting mosaicMorph = this.register(new NumberSetting("Деформация", "Амплитуда медленного изменения формы осколков.", 0.4, 0.0, 1.0, 0.05).visibleWhen(this::isMosaicStyle));
     public final NumberSetting mosaicSpeed = this.register(new NumberSetting("Скорость", "Скорость плавного движения осколков.", 0.7, 0.1, 3.0, 0.05).visibleWhen(this::isMosaicStyle));
@@ -198,30 +200,11 @@ public final class VisualMaterial extends Module {
     }
 
     public boolean isMosaicStyle() {
-        return this.rectStyle.is(STYLE_SHARDS) || this.rectStyle.is("Мозаика");
+        return true;
     }
 
-    private float styleTransition = -1.0f;
-    private long lastStyleUpdateNs = System.nanoTime();
-
     public float getStyleTransition() {
-        long now = System.nanoTime();
-        float dt = Math.min(0.1f, (float)(now - this.lastStyleUpdateNs) / 1.0E9f);
-        this.lastStyleUpdateNs = now;
-
-        float target = this.isMosaicStyle() ? 1.0f : 0.0f;
-        if (this.styleTransition < 0.0f) {
-            this.styleTransition = target;
-            return target;
-        }
-
-
-        float speed = 1.0f - (float) Math.exp(-dt * 12.0f);
-        this.styleTransition += (target - this.styleTransition) * speed;
-        if (Math.abs(target - this.styleTransition) < 0.002f) {
-            this.styleTransition = target;
-        }
-        return Math.max(0.0f, Math.min(1.0f, this.styleTransition));
+        return 1.0f;
     }
 
     public boolean isWaveEdgeActiveFor(boolean isHud) {
