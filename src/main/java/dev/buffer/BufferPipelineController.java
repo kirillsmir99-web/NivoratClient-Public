@@ -480,6 +480,11 @@ public final class BufferPipelineController {
 
         int screenSlot = (invTotemSlot >= 0 && invTotemSlot < 9) ? (36 + invTotemSlot) : invTotemSlot;
 
+        boolean needsLegitGui = "legit".equals(BufferPipelineConfig.inventorySource) && invTotemSlot >= 9;
+        if (needsLegitGui) {
+            client.setScreen(new InventoryScreen(player));
+        }
+
         client.interactionManager.clickSlot(
                 player.playerScreenHandler.syncId,
                 screenSlot,
@@ -487,6 +492,12 @@ public final class BufferPipelineController {
                 SlotActionType.SWAP,
                 player
         );
+
+        if (needsLegitGui) {
+            player.closeHandledScreen();
+            client.setScreen(null);
+        }
+
         pendingOffhandTicks = 4;
         state = State.ACTIVE;
     }
@@ -527,7 +538,7 @@ public final class BufferPipelineController {
                 player
         );
         lastTotemHotbarSlot = targetHotbar;
-        timer = 1;
+        timer = "legit".equals(BufferPipelineConfig.inventorySource) ? 2 : 1;
         state = State.REFILL_WAIT_CLOSE;
     }
 
@@ -565,9 +576,19 @@ public final class BufferPipelineController {
     }
 
     private void startRefill(MinecraftClient client, int targetHotbar) {
+        if ("hotbar".equals(BufferPipelineConfig.inventorySource)) {
+            return;
+        }
         CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, true);
         refillTargetHotbarSlot = targetHotbar;
-        timer = 1;
+        if ("legit".equals(BufferPipelineConfig.inventorySource) && client != null && client.player != null) {
+            client.setScreen(new InventoryScreen(client.player));
+            openedByRefill = true;
+            timer = 2;
+        } else {
+            openedByRefill = false;
+            timer = 1;
+        }
         state = State.REFILL_WAIT_OPEN;
     }
 
@@ -622,6 +643,39 @@ public final class BufferPipelineController {
         int bestSlot = -1;
         int lowestCost = 99999;
 
+        if ("hotbar".equals(BufferPipelineConfig.inventorySource)) {
+            if (!includeHotbar) {
+                return -1;
+            }
+            for (int i = 0; i < 9; i++) {
+                ItemStack stack = player.getInventory().getStack(i);
+                if (stack.isOf(Items.TOTEM_OF_UNDYING)) {
+                    int cost = getTotemCost(stack);
+                    if (cost < lowestCost) {
+                        lowestCost = cost;
+                        bestSlot = i;
+                    }
+                }
+            }
+            return bestSlot;
+        }
+
+        if ("legit".equals(BufferPipelineConfig.inventorySource) && includeHotbar) {
+            for (int i = 0; i < 9; i++) {
+                ItemStack stack = player.getInventory().getStack(i);
+                if (stack.isOf(Items.TOTEM_OF_UNDYING)) {
+                    int cost = getTotemCost(stack);
+                    if (cost < lowestCost) {
+                        lowestCost = cost;
+                        bestSlot = i;
+                    }
+                }
+            }
+            if (bestSlot >= 0) {
+                return bestSlot;
+            }
+        }
+
         for (int i = 9; i < 36; i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (stack.isOf(Items.TOTEM_OF_UNDYING)) {
@@ -633,7 +687,7 @@ public final class BufferPipelineController {
             }
         }
 
-        if (includeHotbar) {
+        if (includeHotbar && bestSlot < 0) {
             for (int i = 0; i < 9; i++) {
                 ItemStack stack = player.getInventory().getStack(i);
                 if (stack.isOf(Items.TOTEM_OF_UNDYING)) {
@@ -731,7 +785,16 @@ public final class BufferPipelineController {
         savedMainSlot = -1;
         lastControllerAssignedSlot = -1;
         timer = 0;
-        openedByRefill = false;
+        if (openedByRefill) {
+            MinecraftClient c = MinecraftClient.getInstance();
+            if (c != null && c.currentScreen instanceof InventoryScreen) {
+                if (c.player != null) {
+                    c.player.closeHandledScreen();
+                }
+                c.setScreen(null);
+            }
+            openedByRefill = false;
+        }
         refillTargetHotbarSlot = -1;
         refillInvSlot = -1;
         pendingOffhandTicks = 0;

@@ -61,6 +61,24 @@ public class BufferPipelineModule extends NivoratModule {
                 }
         );
 
+        registerEnum("inventory_source", Text.translatable("activity.setting.defense.inventory_source"),
+                Text.translatable("activity.setting.defense.inventory_source.desc"), SettingGroup.GENERAL,
+                List.of("hotbar", "legit", "rage"), "rage",
+                opt -> Text.translatable("activity.dropdown.inventory_source." + opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemInventorySource != null ? c.autoTotemInventorySource : "rage";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemInventorySource = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerNumber("trigger_hearts", Text.translatable("activity.setting.defense.trigger_hearts"),
                 Text.translatable("activity.setting.defense.trigger_hearts.desc"), SettingGroup.BEHAVIOR,
                 0.5, 10.0, 0.5, " ❤", false, 3.0,
@@ -411,6 +429,7 @@ public class BufferPipelineModule extends NivoratModule {
         BufferPipelineConfig.predictMace = c.autoTotemPredictMace;
         BufferPipelineConfig.predictTrident = c.autoTotemPredictTrident;
         BufferPipelineConfig.lowTotemNotify = c.autoTotemLowTotemNotify;
+        BufferPipelineConfig.inventorySource = c.autoTotemInventorySource != null ? c.autoTotemInventorySource : "rage";
         BufferPipelineConfig.validateHysteresis();
     }
 
@@ -484,6 +503,10 @@ public class BufferPipelineModule extends NivoratModule {
         activity.client.module.setting.BooleanSetting retPopSetting = (activity.client.module.setting.BooleanSetting) getSetting("return_on_pop");
         if (retPopSetting != null) {
             retPopSetting.set(config.autoTotemReturnOnPop);
+        }
+        activity.client.module.setting.EnumSetting invSourceSetting = (activity.client.module.setting.EnumSetting) getSetting("inventory_source");
+        if (invSourceSetting != null && config.autoTotemInventorySource != null) {
+            invSourceSetting.set(config.autoTotemInventorySource);
         }
         syncControllerConfig(config);
     }

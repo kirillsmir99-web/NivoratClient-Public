@@ -43,6 +43,7 @@ public final class BufferPipelineConfig {
     public static boolean predictMace = true;
     public static boolean predictTrident = true;
     public static boolean lowTotemNotify = true;
+    public static String inventorySource = "rage";
 
     private BufferPipelineConfig() { }
 
@@ -93,6 +94,7 @@ public final class BufferPipelineConfig {
             predictMace = Boolean.parseBoolean(props.getProperty("predictMace", "true"));
             predictTrident = Boolean.parseBoolean(props.getProperty("predictTrident", "true"));
             lowTotemNotify = Boolean.parseBoolean(props.getProperty("lowTotemNotify", "true"));
+            inventorySource = props.getProperty("inventorySource", "rage");
 
             validateHysteresis();
         } catch (Exception ignored) {
@@ -120,6 +122,7 @@ public final class BufferPipelineConfig {
             predictMace = true;
             predictTrident = true;
             lowTotemNotify = true;
+            inventorySource = "rage";
         }
     }
 
@@ -155,6 +158,7 @@ public final class BufferPipelineConfig {
                 props.setProperty("predictMace", String.valueOf(predictMace));
                 props.setProperty("predictTrident", String.valueOf(predictTrident));
                 props.setProperty("lowTotemNotify", String.valueOf(lowTotemNotify));
+                props.setProperty("inventorySource", inventorySource);
                 props.store(out, null);
             }
         } catch (Exception ignored) {}

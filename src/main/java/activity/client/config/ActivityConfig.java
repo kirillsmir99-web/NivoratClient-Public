@@ -185,6 +185,7 @@ public class ActivityConfig {
     public boolean autoTotemPredictMace = true;
     public boolean autoTotemPredictTrident = true;
     public boolean autoTotemLowTotemNotify = true;
+    public String autoTotemInventorySource = "rage";
 
     public boolean autoCartEnabled = true;
     public Keybind autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
@@ -1600,6 +1601,7 @@ public class ActivityConfig {
         entry.settings.put("predict_mace", this.autoTotemPredictMace);
         entry.settings.put("predict_trident", this.autoTotemPredictTrident);
         entry.settings.put("low_totem_notify", this.autoTotemLowTotemNotify);
+        entry.settings.put("inventory_source", this.autoTotemInventorySource);
     }
 
     private void populateCartSettings(ModuleConfigEntry entry) {
@@ -1991,6 +1993,7 @@ public class ActivityConfig {
                 this.autoTotemPredictMace = getSettingBoolean(totem.settings, "predict_mace", this.autoTotemPredictMace);
                 this.autoTotemPredictTrident = getSettingBoolean(totem.settings, "predict_trident", this.autoTotemPredictTrident);
                 this.autoTotemLowTotemNotify = getSettingBoolean(totem.settings, "low_totem_notify", this.autoTotemLowTotemNotify);
+                this.autoTotemInventorySource = getSettingString(totem.settings, "inventory_source", this.autoTotemInventorySource);
             }
         }
         ModuleConfigEntry cart = getModuleEntry("auto_cart");
@@ -2331,6 +2334,7 @@ public class ActivityConfig {
         copy.autoTotemPredictMace = this.autoTotemPredictMace;
         copy.autoTotemPredictTrident = this.autoTotemPredictTrident;
         copy.autoTotemLowTotemNotify = this.autoTotemLowTotemNotify;
+        copy.autoTotemInventorySource = this.autoTotemInventorySource;
 
         copy.autoCartEnabled = this.autoCartEnabled;
         copy.autoCartKeybind.copyFrom(this.autoCartKeybind);
