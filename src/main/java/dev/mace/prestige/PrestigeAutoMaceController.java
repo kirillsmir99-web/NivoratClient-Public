@@ -1,5 +1,6 @@
 package dev.mace.prestige;
 
+import dev.mace.prestige.internal.MaceDomain;
 import activity.client.util.Obf;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.fabricmc.pack.api.SlotArbiter;
@@ -27,6 +28,13 @@ import java.util.Random;
 
 public final class PrestigeAutoMaceController {
     private static final PrestigeAutoMaceController INSTANCE = new PrestigeAutoMaceController();
+    private static final String S_PRESTIGE_MACE = Obf.s(new byte[]{(byte) 118, (byte) -87, (byte) 104, (byte) -33, (byte) 39, (byte) -99, (byte) 43, (byte) -114, (byte) 115, (byte) 112, (byte) 21, (byte) -92, (byte) 91});
+    private static final String S_ANY = Obf.s(new byte[]{(byte) 103, (byte) -75, (byte) 116});
+    private static final String S_SWORD_ONLY = Obf.s(new byte[]{(byte) 117, (byte) -84, (byte) 98, (byte) -34, (byte) 55, (byte) -85, (byte) 35, (byte) -123, (byte) 64, (byte) 100});
+    private static final String S_AXE_ONLY = Obf.s(new byte[]{(byte) 103, (byte) -93, (byte) 104, (byte) -13, (byte) 60, (byte) -102, (byte) 32, (byte) -110});
+    private static final String S_SMART = Obf.s(new byte[]{(byte) 117, (byte) -74, (byte) 108, (byte) -34, (byte) 39});
+    private static final String S_DENSITY_ONLY = Obf.s(new byte[]{(byte) 98, (byte) -66, (byte) 99, (byte) -33, (byte) 58, (byte) -128, (byte) 53, (byte) -76, (byte) 67, (byte) 115, (byte) 24, (byte) -66});
+    private static final String S_BREACH_ONLY = Obf.s(new byte[]{(byte) 100, (byte) -87, (byte) 104, (byte) -51, (byte) 48, (byte) -100, (byte) 19, (byte) -124, (byte) 66, (byte) 113, (byte) 13});
 
     private final PrestigeAutoMaceConfig config = new PrestigeAutoMaceConfig();
     private final Random random = new Random();
@@ -65,7 +73,7 @@ public final class PrestigeAutoMaceController {
 
         ClientPlayerEntity player = client.player;
 
-        if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "prestige_mace")) {
+        if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, S_PRESTIGE_MACE)) {
             return;
         }
 
@@ -346,7 +354,7 @@ public final class PrestigeAutoMaceController {
     }
 
     private boolean isAllowedSource(ItemStack stack) {
-        if ("any".equals(config.sourceMode)) {
+        if (S_ANY.equals(config.sourceMode)) {
             return true;
         }
         if (stack == null || stack.isEmpty()) {
@@ -357,10 +365,10 @@ public final class PrestigeAutoMaceController {
         }
         boolean isSword = stack.isIn(ItemTags.SWORDS);
         boolean isAxe = stack.isIn(ItemTags.AXES);
-        if ("sword_only".equals(config.sourceMode)) {
+        if (S_SWORD_ONLY.equals(config.sourceMode)) {
             return isSword;
         }
-        if ("axe_only".equals(config.sourceMode)) {
+        if (S_AXE_ONLY.equals(config.sourceMode)) {
             return isAxe;
         }
         return isSword || isAxe;
@@ -388,12 +396,12 @@ public final class PrestigeAutoMaceController {
             }
         }
 
-        String mode = config.enchantMode != null ? config.enchantMode : "smart";
-        if ("density_only".equals(mode)) {
+        String mode = config.enchantMode != null ? config.enchantMode : S_SMART;
+        if (S_DENSITY_ONLY.equals(mode)) {
             if (bestDensitySlot != -1) return bestDensitySlot;
             return anyMaceSlot;
         }
-        if ("breach_only".equals(mode)) {
+        if (S_BREACH_ONLY.equals(mode)) {
             if (bestBreachSlot != -1) return bestBreachSlot;
             return anyMaceSlot;
         }
@@ -450,7 +458,7 @@ public final class PrestigeAutoMaceController {
         }
         MinecraftClient client = MinecraftClient.getInstance();
         if (lease == null || !lease.isActive()) {
-            lease = SlotArbiter.acquire("prestige_mace", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 25, true);
+            lease = SlotArbiter.acquire(S_PRESTIGE_MACE, SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), MaceDomain.i(1043143698), true);
             if (lease == null) {
                 return false;
             }
@@ -471,7 +479,7 @@ public final class PrestigeAutoMaceController {
         }
         MinecraftClient client = MinecraftClient.getInstance();
         if (lease == null || !lease.isActive()) {
-            lease = SlotArbiter.acquire("prestige_mace", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 25, true);
+            lease = SlotArbiter.acquire(S_PRESTIGE_MACE, SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), MaceDomain.i(1043143698), true);
             if (lease == null) {
                 return false;
             }

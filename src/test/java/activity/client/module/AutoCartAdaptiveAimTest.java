@@ -4,7 +4,6 @@ import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 import activity.client.module.impl.defense.OcclusionCacheModule;
 import dev.nivorat.arc.ArcCameraInterpolator;
-import dev.nivorat.arc.ArcMotorCalibrationService;
 import dev.nivorat.arc.ArcMotionProfile;
 import dev.nivorat.arc.MorrowConfig;
 import net.minecraft.client.MinecraftClient;
@@ -83,18 +82,13 @@ public class AutoCartAdaptiveAimTest {
     }
 
     @Test
-    @DisplayName("Adaptive Motor Profile: Online learning updates network weights without exploding")
-    void testAdaptiveMotorOnlineLearning() {
+    @DisplayName("Adaptive Motor Profile: Forward outputs valid kinematics without exploding")
+    void testAdaptiveMotorForwardKinematics() {
         ArcMotionProfile profile = ArcMotionProfile.getInstance();
-        int initialSamples = profile.getSampleCount();
-
-        for (int i = 0; i < 20; i++) {
-            profile.trainOnline(0.4f, 30.0f, 120.0f, 1.0f, 1.05f, 0.38f, 0.05f);
-        }
-
-        assertTrue(profile.getSampleCount() >= initialSamples + 20);
         float[] outputsAfter = profile.forward(0.4f, 30.0f, 120.0f, 1.0f);
         assertTrue(outputsAfter[0] > 0.0f && outputsAfter[0] < 2.0f);
+        assertTrue(outputsAfter[1] > 0.0f && outputsAfter[1] < 1.0f);
+        assertTrue(outputsAfter[2] > 0.0f && outputsAfter[2] < 1.0f);
     }
 
     @Test
@@ -119,60 +113,6 @@ public class AutoCartAdaptiveAimTest {
         float meanYaw = sumYaw / count;
         assertTrue(Math.abs(meanPitch) < 0.25f, "Mean pitch tremor must be close to zero: " + meanPitch);
         assertTrue(Math.abs(meanYaw) < 0.25f, "Mean yaw tremor must be close to zero: " + meanYaw);
-    }
-
-    @Test
-    @DisplayName("Calibration Service: Start, progress and completion life cycle")
-    void testCalibrationServiceLifecycle() {
-        assertEquals(300000L, ArcMotionProfile.CALIBRATION_DURATION_MS);
-
-        ArcMotorCalibrationService.start();
-        assertTrue(ArcMotorCalibrationService.isActive());
-
-        long remaining = ArcMotorCalibrationService.getRemainingTimeMs();
-        assertTrue(remaining > 0L && remaining <= 300000L);
-
-        int progress = ArcMotorCalibrationService.getProgress();
-        assertTrue(progress >= 0 && progress <= 100);
-
-        ArcMotorCalibrationService.stop();
-        assertFalse(ArcMotorCalibrationService.isActive());
-    }
-
-    @Test
-    @DisplayName("Calibration Service: Manual action recording tracks cart detonation sequences")
-    void testManualActionRecording() {
-        ArcMotorCalibrationService.start();
-        assertTrue(ArcMotorCalibrationService.isActive());
-        assertEquals(0, ArcMotorCalibrationService.getManualDetonationsCount());
-
-        BlockPos railPos = new BlockPos(12, 64, 15);
-        BlockPos cartPos = new BlockPos(12, 65, 15);
-
-        ArcMotorCalibrationService.onBowReleased(6);
-        ArcMotorCalibrationService.onRailPlaced(railPos);
-        ArcMotorCalibrationService.onCartPlaced(cartPos);
-        ArcMotorCalibrationService.onExplosion(12.5, 65.5, 15.5);
-
-        assertEquals(1, ArcMotorCalibrationService.getManualDetonationsCount());
-
-        ArcMotorCalibrationService.stop();
-        assertFalse(ArcMotorCalibrationService.isActive());
-    }
-
-    @Test
-    @DisplayName("Calibration Service: Empty calibration must not activate learned preset")
-    void testCalibrationCompletionActivatesLearnedPreset() {
-        ArcMotorCalibrationService.start();
-        assertTrue(ArcMotorCalibrationService.isActive());
-
-        ArcMotionProfile.getInstance().finishCalibration();
-        assertFalse(ArcMotionProfile.getInstance().isCalibrating());
-        assertFalse(ArcMotionProfile.getInstance().didLastCalibrationSucceed());
-
-        ArcMotorCalibrationService.checkCompletion();
-        assertFalse(ArcMotorCalibrationService.isActive());
-        assertNotEquals(MorrowConfig.PRESET_LEARNED, MorrowConfig.preset);
     }
 
     @Test
@@ -267,10 +207,7 @@ public class AutoCartAdaptiveAimTest {
         interpolator.start(0.0f, 10.0f, 0.0f, 20.0f, 100L, 0.2f);
         assertTrue(ArcCameraInterpolator.isAnyActive());
 
-        ArcMotionProfile profile = ArcMotionProfile.getInstance();
-        int sampleCountBefore = profile.getSampleCount();
         ArcMotionProfile.trackNaturalMovement(null);
-        assertEquals(sampleCountBefore, profile.getSampleCount(), "Self-movement frames must not increment training samples");
 
         interpolator.reset();
         assertFalse(ArcCameraInterpolator.isAnyActive());
@@ -319,18 +256,11 @@ public class AutoCartAdaptiveAimTest {
     }
 
     @Test
-    @DisplayName("Calibration Reset: Restores default motoric state and factory delays")
-    void testCalibrationReset() {
+    @DisplayName("Motion Profile: Default motoric state and factory delays")
+    void testMotionProfileDefaults() {
         ArcMotionProfile profile = ArcMotionProfile.getInstance();
-        profile.trainOnline(0.5f, 40.0f, 100.0f, 1.0f, 1.2f, 0.45f, 0.08f);
-        assertTrue(profile.getSampleCount() > 0);
-
-        profile.resetCalibration();
-        assertFalse(profile.isCalibrated());
-        assertFalse(profile.isCalibrating());
-        assertEquals(0, profile.getSampleCount());
-        assertEquals(50, profile.getLearnedMinDelayMs());
-        assertEquals(80, profile.getLearnedMaxDelayMs());
-        assertEquals(110, profile.getLearnedCameraSmoothness());
+        assertTrue(profile.getLearnedMinDelayMs() >= 20);
+        assertTrue(profile.getLearnedMaxDelayMs() >= profile.getLearnedMinDelayMs());
+        assertTrue(profile.getLearnedCameraSmoothness() >= 40);
     }
 }

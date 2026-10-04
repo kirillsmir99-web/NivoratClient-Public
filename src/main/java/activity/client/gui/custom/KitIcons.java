@@ -84,7 +84,9 @@ public final class KitIcons {
     }
 
     private static void drawFallback(Category category, float x, float y, float size, int color) {
-        if (category == Category.THEMES) {
+        if (category == Category.PINNED) {
+            Fonts.NV.msdf(NvIcons.PINNED, x, y, size, color);
+        } else if (category == Category.THEMES) {
             Fonts.NV.msdf(NvIcons.THEMES, x, y, size, color);
         } else if (category == Category.PRESETS) {
             Fonts.NV.msdf(NvIcons.PRESETS, x, y, size, color);

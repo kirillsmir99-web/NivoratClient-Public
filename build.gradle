@@ -148,9 +148,9 @@ java {
 jar {
 	manifest {
 		attributes(
-			"Specification-Title": "NivoratClient",
+			"Specification-Title": "MemoryLeakFix",
 			"Specification-Version": project.version,
-			"Implementation-Title": "NivoratClient",
+			"Implementation-Title": "MemoryLeakFix",
 			"Implementation-Version": project.version
 		)
 	}
@@ -164,9 +164,11 @@ tasks.register("generateEditionResource") {
 	inputs.property("devEdition", isDev)
 	outputs.dir(editionResourcesDir)
 	doLast {
-		def marker = editionResourcesDir.get().file("cooldownhud-edition.txt").asFile
+		def marker = editionResourcesDir.get().file("memoryleakfix-edition.txt").asFile
 		marker.parentFile.mkdirs()
 		marker.text = isDev ? "dev\n" : "public\n"
+		def cooldownMarker = editionResourcesDir.get().file("cooldownhud-edition.txt").asFile
+		cooldownMarker.text = isDev ? "dev\n" : "public\n"
 		def legacyMarker = editionResourcesDir.get().file("nivorat-edition.txt").asFile
 		legacyMarker.text = isDev ? "dev\n" : "public\n"
 	}
@@ -232,26 +234,8 @@ version=${project.version}
 buildId=${buildId}
 gitCommit=${gitCommit}
 buildTimestamp=${java.time.Instant.now()}
-profile=DashO-Standard-Java-v1.0
+profile=ProGuard-7.9.1-Hardened-v1.0
 """
-
-        def inputJar = remapJar.archiveFile.get().asFile.absolutePath
-        def outputDir = layout.buildDirectory.dir("protection/dasho-output").get().asFile.absolutePath
-        def mappingFile = layout.buildDirectory.file("protection/mappings/${project.version}-${buildId}/mapping.txt").get().asFile.absolutePath
-        def compileClasspath = sourceSets.main.compileClasspath.asPath
-
-        def template = file("protection/dasho/project.dox").text
-        def populated = template
-            .replace('${input.jar}', inputJar)
-            .replace('${output.dir}', outputDir)
-            .replace('${mapping.file}', mappingFile)
-            .replace('${compile.classpath}', compileClasspath)
-            .replace('${build.version}', project.version.toString())
-            .replace('${build.hash}', gitCommit.take(8))
-
-        def concreteDox = layout.buildDirectory.file("protection/dasho/project.dox").get().asFile
-        concreteDox.parentFile.mkdirs()
-        concreteDox.text = populated
     }
 }
 

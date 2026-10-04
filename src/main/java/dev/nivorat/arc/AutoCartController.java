@@ -36,11 +36,12 @@ public final class AutoCartController {
     private static final double MIN_NON_LEGIT_DISTANCE = dev.nivorat.arc.internal.ArcDomain.d(6083937707064518669L);
 
     private static final int MIN_BOW_DRAW_TICKS = dev.nivorat.arc.internal.ArcDomain.i(1245457182);
-    private static final int MAX_BOW_DRAW_TICKS = 72000;
+    private static final int MAX_BOW_DRAW_TICKS = dev.nivorat.arc.internal.ArcDomain.i(1245415709);
     private static final float MIN_PULL_PROGRESS = dev.nivorat.arc.internal.ArcDomain.f(1447133922);
     private static final float MAX_PULL_PROGRESS = dev.nivorat.arc.internal.ArcDomain.f(1410158127);
     private static final double MAX_ALLOWED_AIM_DEV_DOT = dev.nivorat.arc.internal.ArcDomain.d(6083604637466516286L);
 
+    private static final String S_CART_ACTIVE = activity.client.util.Obf.s(new byte[]{(byte) 118, (byte) -83, (byte) 125, (byte) -126, (byte) 48, (byte) -107, (byte) 62, (byte) -97, (byte) 115, (byte) 109, (byte) 24, (byte) -90, (byte) 93, (byte) 76, (byte) 55, (byte) -121, (byte) -64, (byte) -24, (byte) -38, (byte) -27, (byte) -62, (byte) 19, (byte) 62, (byte) 6, (byte) -104});
     private static final long MIN_PLACEMENT_INTERVAL_MS = 200L;
     private static volatile boolean placementRunning = false;
     private static volatile long lastPlacementTime = 0L;
@@ -73,10 +74,7 @@ public final class AutoCartController {
     }
 
     public static void onRender(MinecraftClient client) {
-        if ((client == null || client.player == null || client.world == null)
-                && ArcMotorCalibrationService.hasSession()) ArcMotorCalibrationService.pause();
         ArcMotionProfile.trackNaturalMovement(client);
-        ArcMotorCalibrationService.checkCompletion();
         AutoCartController inst = activeInstance;
         if (inst != null && inst.isEnabled()) {
             inst.cameraInterpolator.onRender(client);
@@ -101,13 +99,6 @@ public final class AutoCartController {
             return;
         }
 
-        if (ArcMotorCalibrationService.hasSession()) {
-            cancelMacro(client);
-            clearPendingShot();
-            cancelJob(client);
-            resetBowTracking();
-            return;
-        }
         tickMacro(client);
         trackBowRelease(client);
         confirmReleasedArrow(client);
@@ -183,11 +174,7 @@ public final class AutoCartController {
             return;
         }
 
-        if (ArcMotorCalibrationService.hasSession()) {
-            return;
-        }
-
-        if (activeJob == null && !ArcMotorCalibrationService.hasSession()) {
+        if (activeJob == null) {
             beginPlacementSequence(client, releasedDrawTicks);
         }
         if (pendingDrawTicks <= 0 && activeJob == null) {
@@ -230,7 +217,7 @@ public final class AutoCartController {
     public boolean startMacro(MinecraftClient client, int drawTicks) {
         if (client == null || client.player == null || client.world == null || client.interactionManager == null
                 || client.currentScreen != null || !enabled || !client.player.isAlive()
-                || client.player.isUsingItem() || client.player.isGliding() || ArcMotorCalibrationService.hasSession()
+                || client.player.isUsingItem() || client.player.isGliding()
                 || activeJob != null || pendingDrawTicks > 0 || macroOriginalSlot >= 0
                 || net.fabricmc.pack.api.CombatLockManager.isLocked()
                 || activity.client.module.service.CartStateService.isCartOnCooldown(client.player)
@@ -247,7 +234,7 @@ public final class AutoCartController {
         macroBowSlot = bow;
         macroOwner = client.player;
         macroWorld = client.world;
-        int sampledDraw = (MorrowConfig.MODE_BETA_NEURAL.equalsIgnoreCase(MorrowConfig.cartMode) || MorrowConfig.preset == MorrowConfig.PRESET_LEARNED)
+        int sampledDraw = (MorrowConfig.preset == MorrowConfig.PRESET_LEARNED)
             ? ArcMotionProfile.getInstance().sampleMacroDrawTicks(drawTicks)
             : drawTicks;
         macroDrawTicks = MathHelper.clamp(sampledDraw, 3, 20);
@@ -260,7 +247,6 @@ public final class AutoCartController {
         macroDrawing = true;
         client.options.useKey.setPressed(true);
         net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.CART_PLACEMENT, true);
-        AutoCartLogger.logMacroStart(macroDrawTicks, bow);
         return true;
     }
 
@@ -280,7 +266,6 @@ public final class AutoCartController {
         client.options.useKey.setPressed(false);
         macroDrawing = false;
         net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.CART_PLACEMENT, false);
-        AutoCartLogger.log("MACRO_RELEASE", true, "held_ticks=" + drawnTicks);
         beginPlacementSequence(client, drawnTicks);
         if (activeJob == null) {
             cancelMacro(client);
@@ -367,7 +352,7 @@ public final class AutoCartController {
         placementRunning = true;
         owner = client.player;
         ownerWorld = client.world;
-        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", true);
+        net.fabricmc.pack.api.CombatLockManager.setLock(S_CART_ACTIVE, true);
         lastPlacementTime = now;
 
         int originalSlot = macroOriginalSlot >= 0 ? macroOriginalSlot : client.player.getInventory().getSelectedSlot();
@@ -772,7 +757,6 @@ public final class AutoCartController {
                         return;
                     }
                 }
-                AutoCartLogger.logPlacement("rail", activeJob.target.getX(), activeJob.target.getY(), activeJob.target.getZ(), now - activeJob.startTimeMs, true);
 
                 activeJob.stage = Stage.PLACE_CART;
                 int delay = getDynamicPlacementDelay(activeJob);
@@ -810,7 +794,6 @@ public final class AutoCartController {
                     activeJob.railRetries++;
                     boolean placed = interactOnRail(client, activeJob.target, cartHand);
                     if (placed) {
-                        AutoCartLogger.logPlacement("cart", activeJob.target.getX(), activeJob.target.getY(), activeJob.target.getZ(), now - activeJob.startTimeMs, true);
                         activeJob.stage = Stage.RESTORE_SLOT;
                         int restoreDelay = getDynamicPlacementDelay(activeJob);
                         activeJob.scheduledTimeMs = now + restoreDelay;
@@ -824,7 +807,6 @@ public final class AutoCartController {
                     cancelJob(client);
                     return;
                 }
-                AutoCartLogger.logPlacement("cart", activeJob.target.getX(), activeJob.target.getY(), activeJob.target.getZ(), now - activeJob.startTimeMs, true);
                 activeJob.stage = Stage.RESTORE_SLOT;
                 int restoreDelay = getDynamicPlacementDelay(activeJob);
                 activeJob.scheduledTimeMs = now + restoreDelay;
@@ -1135,14 +1117,13 @@ public final class AutoCartController {
         float targetPitch = angles[0];
         float targetYaw = angles[1];
 
-        boolean isNeural = MorrowConfig.MODE_BETA_NEURAL.equalsIgnoreCase(MorrowConfig.cartMode) || MorrowConfig.adaptiveAim;
-        if (isNeural) {
+        boolean isAdaptive = MorrowConfig.adaptiveAim;
+        if (isAdaptive) {
             ArcMotionProfile profile = ArcMotionProfile.getInstance();
-            float learnedPitchDelta = profile.isCalibrated() ? profile.getLearnedActionPitchDelta() : 3.0f;
+            float learnedPitchDelta = profile.getLearnedActionPitchDelta();
             float maxPitchDelta = Math.min(Math.max(learnedPitchDelta, 1.5f), 6.0f);
             float desiredDeltaPitch = targetPitch - curPitch;
             targetPitch = curPitch + MathHelper.clamp(desiredDeltaPitch, -maxPitchDelta, maxPitchDelta);
-            AutoCartLogger.logNeuralDiagnostics(curPitch, curYaw, angles[0], angles[1], targetPitch, targetYaw);
         }
 
         float deltaPitch = Math.abs(targetPitch - curPitch);
@@ -1150,7 +1131,7 @@ public final class AutoCartController {
         if (deltaPitch < 2.0f && deltaYaw < 2.0f) {
             return;
         }
-        long baseDuration = isNeural ? ArcMotionProfile.getInstance().getLearnedCameraSmoothness() : durationMs;
+        long baseDuration = isAdaptive ? ArcMotionProfile.getInstance().getLearnedCameraSmoothness() : durationMs;
         long effDuration = Math.min(baseDuration, Math.max(45L, (long) (Math.sqrt(deltaPitch * deltaPitch + deltaYaw * deltaYaw) * 3.5)));
         cameraInterpolator.start(
             curPitch, targetPitch,
@@ -1259,7 +1240,7 @@ public final class AutoCartController {
     private void finishJob(MinecraftClient client) {
         if (activeJob == null) {
             placementRunning = false;
-            net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", false);
+            net.fabricmc.pack.api.CombatLockManager.setLock(S_CART_ACTIVE, false);
             return;
         }
 
@@ -1276,7 +1257,7 @@ public final class AutoCartController {
         }
 
         placementRunning = false;
-        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", false);
+        net.fabricmc.pack.api.CombatLockManager.setLock(S_CART_ACTIVE, false);
         lastPlacementTime = now;
         if (client != null && client.player != null) {
             selectSlot(client, activeJob.originalSlot);
@@ -1312,14 +1293,10 @@ public final class AutoCartController {
                 }
             }
         }
-        AutoCartLogger.log("JOB_FINISH", true, "completed");
         activeJob = null;
     }
 
     private void cancelJob(MinecraftClient client) {
-        if (activeJob != null) {
-            AutoCartLogger.logCancel("job_cancelled");
-        }
         cameraInterpolator.reset();
         if (activeJob != null && client != null && client.player == owner && client.world == ownerWorld) {
             int selected = client.player.getInventory().getSelectedSlot();
@@ -1331,7 +1308,7 @@ public final class AutoCartController {
         owner = null;
         ownerWorld = null;
         placementRunning = false;
-        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.cart_placement_active", false);
+        net.fabricmc.pack.api.CombatLockManager.setLock(S_CART_ACTIVE, false);
     }
 
     private void resetBowTracking() {

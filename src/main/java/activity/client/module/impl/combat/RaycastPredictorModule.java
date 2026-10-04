@@ -283,8 +283,6 @@ public class RaycastPredictorModule extends NivoratModule {
             ActivityConfig cfg = ActivityConfigManager.getConfig();
             if (cfg != null && "full_auto".equalsIgnoreCase(cfg.autoPearlCatchMode)) {
                 controller.onTick(client);
-            } else {
-                dev.raycast.async.AsyncLocatorController.getInstance().tick(client);
             }
         }
     }

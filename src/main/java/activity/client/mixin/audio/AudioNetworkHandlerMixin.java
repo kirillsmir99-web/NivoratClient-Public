@@ -70,14 +70,11 @@ public final class AudioNetworkHandlerMixin {
     }
 
     @Inject(method = "onExplosion", at = @At("TAIL"))
-    private void activity$calibration$onExplosion(ExplosionS2CPacket packet, CallbackInfo ci) {
+    private void activity$audiowave$onExplosion(ExplosionS2CPacket packet, CallbackInfo ci) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
         if (packet != null) {
             try {
                 activity.client.module.impl.utility.AudioWaveTracker.recordExplosion(packet.center().x, packet.center().y, packet.center().z);
-                if (dev.nivorat.arc.ArcMotorCalibrationService.isActive()) {
-                    dev.nivorat.arc.ArcMotorCalibrationService.onExplosion(packet.center().x, packet.center().y, packet.center().z);
-                }
             } catch (Throwable ignored) {}
         }
     }

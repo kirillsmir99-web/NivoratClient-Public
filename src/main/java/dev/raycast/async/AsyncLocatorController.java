@@ -41,6 +41,7 @@ public final class AsyncLocatorController {
     private float targetYaw = 0.0F;
     private float targetPitch = 0.0F;
     private boolean thrown = false;
+    private int lastTickRan = -1;
 
     private AsyncLocatorController() {
     }
@@ -60,6 +61,11 @@ public final class AsyncLocatorController {
             silentThrowEndTick = -1;
             return;
         }
+
+        if (client.player.age == lastTickRan) {
+            return;
+        }
+        lastTickRan = client.player.age;
 
         if (client.currentScreen != null) {
             if (state != 0) {
@@ -104,7 +110,7 @@ public final class AsyncLocatorController {
                 if (silentThrowEndTick >= 0 || !hasDelayElapsed(0.0)) break;
                 if (client.player.getMainHandStack().getItem() == Items.ENDER_PEARL) {
                     client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
-                    Vec3d vel = client.player.getVelocity();
+                    Vec3d vel = client.player.getMovement();
                     pearlStartPos = new Vec3d(client.player.getX(), client.player.getY(), client.player.getZ());
                     pearlInitialVel = AsyncMath.getDirection(client.player.getYaw(), client.player.getPitch())
                             .multiply(1.5)
@@ -138,10 +144,12 @@ public final class AsyncLocatorController {
             }
             case 5 -> aimAndThrow();
             case 6 -> {
-                if (silentThrowEndTick >= 0 && client.player != null && client.player.age < silentThrowEndTick) {
-                    break;
-                }
-                reset();
+                state = 0;
+                aimAttempts = 0;
+                thrown = false;
+                pearlThrowTick = -1;
+                startTick = -1;
+                manualTriggered = false;
             }
         }
     }
@@ -215,6 +223,7 @@ public final class AsyncLocatorController {
         pearlThrowTick = -1;
         startTick = -1;
         manualTriggered = false;
+        resetSilentRot();
     }
 
     private void resetSilentRot() {
@@ -224,6 +233,11 @@ public final class AsyncLocatorController {
         firstAimTick = -1;
         lastRotationTick = -1;
         silentThrowEndTick = -1;
+        ActivityConfig cfg = ActivityConfigManager.getConfig();
+        if (cfg != null && cfg.autoPearlCatchRestoreSlot && savedSlot >= 0 && client != null && client.player != null) {
+            selectSlot(savedSlot);
+        }
+        savedSlot = -1;
     }
 
     private void selectSlot(int slot) {
@@ -274,12 +288,15 @@ public final class AsyncLocatorController {
         if (client == null || client.getWindow() == null || client.currentScreen != null) return false;
         ActivityConfig cfg = ActivityConfigManager.getConfig();
         if (cfg == null || !cfg.autoPearlCatchEnabled || "full_auto".equalsIgnoreCase(cfg.autoPearlCatchMode)) return false;
-        Keybind kb = cfg.autoPearlCatchKeybind;
-        if (kb == null || kb.isUnbound()) {
-            kb = cfg.autoPearlCatchThrowKeybind;
-        }
+        Keybind kb = cfg.autoPearlCatchThrowKeybind;
         if (kb == null || kb.isUnbound()) {
             kb = cfg.autoPearlCatchAsyncKeybind;
+        }
+        if (kb == null || kb.isUnbound()) {
+            kb = cfg.autoPearlCatchActionKeybind;
+        }
+        if (kb == null || kb.isUnbound()) {
+            kb = cfg.autoPearlCatchKeybind;
         }
         if (kb == null || kb.isUnbound()) return false;
         Window window = client.getWindow();
@@ -368,7 +385,7 @@ public final class AsyncLocatorController {
         if (client == null || client.world == null || pearlThrowTick < 0 || client.player == null) return false;
 
         double pingTicks = getPingTicks();
-        Vec3d playerVel = client.player.getVelocity();
+        Vec3d playerVel = client.player.getMovement();
         double predictedVy = playerVel.y;
         if (!client.player.isGliding()) {
             int intTicks = (int) pingTicks;

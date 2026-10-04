@@ -73,8 +73,6 @@ public final class ArcCameraInterpolator {
 
         this.active = true;
         anyActive = true;
-        MinecraftClient currentMc = MinecraftClient.getInstance();
-        AutoCartLogger.logAimStart(fromPitch, targetPitch, fromYaw, targetYaw, effectiveMs, calculateMouseGcd(currentMc));
     }
 
     public void startReturn(float toPitch, float toYaw, long durationMs, float randomness) {
@@ -127,7 +125,6 @@ public final class ArcCameraInterpolator {
 
         this.active = true;
         anyActive = true;
-        AutoCartLogger.logAimStart(curPitch, targetPitch, curYaw, targetYaw, effectiveMs, calculateMouseGcd(mc));
     }
 
     public void onRender(MinecraftClient client) {
@@ -166,8 +163,6 @@ public final class ArcCameraInterpolator {
             active = false;
             returning = false;
             anyActive = false;
-            float err = Math.abs(client.player.getPitch() - targetPitch) + Math.abs(MathHelper.wrapDegrees(client.player.getYaw() - targetYaw));
-            AutoCartLogger.logAimFinish(elapsedNs / 1_000_000L, err);
             return;
         }
 

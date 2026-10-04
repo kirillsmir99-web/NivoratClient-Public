@@ -31,7 +31,7 @@ public final class DamageForecast {
     private DamageForecast() {}
 
     public static void publishIntent(String module, float selfDamage, int delayTicks) {
-        long expire = System.currentTimeMillis() + Math.max(100L, delayTicks * 50L + 150L);
+        long expire = System.currentTimeMillis() + Math.max(Obf.l(6520153561102040442L), delayTicks * Obf.l(6520153561102040364L) + Obf.l(6520153561102040456L));
         ACTIVE_INTENT.set(new PublishedIntent(module, selfDamage, expire));
     }
 
@@ -86,12 +86,12 @@ public final class DamageForecast {
     }
 
     public static boolean isRecentBurstThreat() {
-        return System.currentTimeMillis() - LAST_BURST_TIME.get() < 500L;
+        return System.currentTimeMillis() - LAST_BURST_TIME.get() < Obf.l(6520153561102040298L);
     }
 
     private static float calculateExplosionRisk(MinecraftClient client, ClientPlayerEntity player) {
         Vec3d pos = new Vec3d(player.getX(), player.getY(), player.getZ());
-        Box searchBox = player.getBoundingBox().expand(9.0D);
+        Box searchBox = player.getBoundingBox().expand(Obf.d(1900023293373332766L));
         float highestDamage = 0.0F;
 
         for (Entity entity : client.world.getOtherEntities(player, searchBox)) {
@@ -110,10 +110,10 @@ public final class DamageForecast {
 
             if (power > 0.0F) {
                 double dist = Math.sqrt(entity.squaredDistanceTo(pos));
-                double maxDist = power * 2.0D;
+                double maxDist = power * Obf.d(1908467542674652446L);
                 if (dist <= maxDist) {
-                    double impact = (1.0D - dist / maxDist);
-                    double raw = (impact * impact + impact) / 2.0D * 7.0D * maxDist + 1.0D;
+                    double impact = (Obf.d(7317290695146618142L) - dist / maxDist);
+                    double raw = (impact * impact + impact) / Obf.d(1908467542674652446L) * Obf.d(1900586243326754078L) * maxDist + Obf.d(7317290695146618142L);
                     float reduced = reduceDamageByArmor(player, (float) raw);
                     if (reduced > highestDamage) {
                         highestDamage = reduced;
@@ -131,10 +131,10 @@ public final class DamageForecast {
                         int charges = client.world.getBlockState(p).get(RespawnAnchorBlock.CHARGES);
                         if (charges > 0) {
                             double dist = Math.sqrt(p.getSquaredDistance(pos));
-                            double maxDist = 10.0D;
+                            double maxDist = Obf.d(1898334443513068830L);
                             if (dist <= maxDist) {
-                                double impact = (1.0D - dist / maxDist);
-                                double raw = (impact * impact + impact) / 2.0D * 7.0D * maxDist + 1.0D;
+                                double impact = (Obf.d(7317290695146618142L) - dist / maxDist);
+                                double raw = (impact * impact + impact) / Obf.d(1908467542674652446L) * Obf.d(1900586243326754078L) * maxDist + Obf.d(7317290695146618142L);
                                 float reduced = reduceDamageByArmor(player, (float) raw);
                                 if (reduced > highestDamage) {
                                     highestDamage = reduced;
@@ -168,15 +168,15 @@ public final class DamageForecast {
 
     private static float calculateMaceRisk(MinecraftClient client, ClientPlayerEntity player) {
         Vec3d pos = new Vec3d(player.getX(), player.getY(), player.getZ());
-        Box box = player.getBoundingBox().expand(4.5D);
+        Box box = player.getBoundingBox().expand(Obf.d(1904526893000703262L));
         float highestMace = 0.0F;
 
         for (Entity e : client.world.getOtherEntities(player, box)) {
             if (e instanceof PlayerEntity enemy && enemy.isAlive()) {
                 if (enemy.getEquippedStack(EquipmentSlot.MAINHAND).isOf(Items.MACE)) {
-                    if (enemy.getY() > player.getY() && enemy.getVelocity().y < -0.2D) {
+                    if (enemy.getY() > player.getY() && enemy.getVelocity().y < Obf.d(-1894427165225278332L)) {
                         float fall = (float) enemy.fallDistance;
-                        float damage = 6.0F + fall * 3.0F;
+                        float damage = Obf.f(448544030) + fall * Obf.f(440155422);
                         float reduced = reduceDamageByArmor(player, damage);
                         if (reduced > highestMace) {
                             highestMace = reduced;
@@ -190,18 +190,18 @@ public final class DamageForecast {
 
     private static float calculateTridentRisk(MinecraftClient client, ClientPlayerEntity player) {
         Vec3d pos = new Vec3d(player.getX(), player.getY(), player.getZ());
-        Box box = player.getBoundingBox().expand(8.0D);
+        Box box = player.getBoundingBox().expand(Obf.d(1899460343419911454L));
         float highestTrident = 0.0F;
 
         for (Entity e : client.world.getOtherEntities(player, box)) {
             if (e instanceof TridentEntity trident) {
                 Vec3d vel = trident.getVelocity();
-                if (vel.lengthSquared() > 0.2D) {
+                if (vel.lengthSquared() > Obf.d(7328944871629497476L)) {
                     Vec3d tridentPos = new Vec3d(trident.getX(), trident.getY(), trident.getZ());
                     Vec3d toPlayer = pos.subtract(tridentPos).normalize();
                     double dot = vel.normalize().dotProduct(toPlayer);
-                    if (dot > 0.6D) {
-                        float reduced = reduceDamageByArmor(player, 9.0F);
+                    if (dot > Obf.d(7322587107330821677L)) {
+                        float reduced = reduceDamageByArmor(player, Obf.f(460078366));
                         if (reduced > highestTrident) {
                             highestTrident = reduced;
                         }
@@ -215,7 +215,7 @@ public final class DamageForecast {
     private static float reduceDamageByArmor(ClientPlayerEntity player, float damage) {
         float armor = player.getArmor();
         float toughness = 0.0F;
-        float factor = 1.0F - Math.min(20.0F, Math.max(armor / 5.0F, armor - damage / (2.0F + toughness / 4.0F))) / 25.0F;
+        float factor = Obf.f(1711029534) - Math.min(Obf.f(467418398), Math.max(armor / Obf.f(450641182), armor - damage / (Obf.f(444349726) + toughness / Obf.f(452738334)))) / Obf.f(464796958);
         return Math.max(0.0F, damage * factor);
     }
 }

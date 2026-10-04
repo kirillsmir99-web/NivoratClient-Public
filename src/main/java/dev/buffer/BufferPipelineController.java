@@ -1,6 +1,7 @@
 package dev.buffer;
 
 import net.fabricmc.pack.api.CombatLockManager;
+import activity.client.util.Obf;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
@@ -30,10 +31,10 @@ public final class BufferPipelineController {
     private net.minecraft.item.Item lastNonTotemItem = null;
     private boolean userCancelled = false;
     private long userCancelledTime = 0L;
-    private float lastHp = 20.0F;
+    private float lastHp = Obf.f(467418398);
     private boolean awaitingHealAfterPop = false;
     private long lastPopTime = 0L;
-    private static final long POST_POP_GRACE_MS = 1000L;
+    private static final long POST_POP_GRACE_MS = Obf.l(6520153561102040822L);
     private int userOverrideCount = 0;
     private int lastControllerAssignedSlot = -1;
     private int timer = 0;
@@ -41,7 +42,7 @@ public final class BufferPipelineController {
     private int refillTargetHotbarSlot = -1;
     private int refillInvSlot = -1;
     private long lastRefillTime = 0L;
-    private static final long REFILL_COOLDOWN_MS = 300L;
+    private static final long REFILL_COOLDOWN_MS = Obf.l(6520153561102040114L);
 
     private SlotArbiter.Lease activeLease = null;
     private int pendingOffhandTicks = 0;
@@ -205,14 +206,14 @@ public final class BufferPipelineController {
             chancePassedForCurrentThreat = true;
         }
 
-        boolean isHealed = (hp >= maxHp - 1.0F) || (restoreHp > triggerHp && hp >= restoreHp);
+        boolean isHealed = (hp >= maxHp - Obf.f(1711029534)) || (restoreHp > triggerHp && hp >= restoreHp);
         if (awaitingHealAfterPop) {
             if (isHealed || now - lastPopTime > POST_POP_GRACE_MS) {
                 awaitingHealAfterPop = false;
             }
         }
 
-        if (isHealed || (userCancelled && (now - userCancelledTime > 1500L || hp < lastHp - 0.5F))) {
+        if (isHealed || (userCancelled && (now - userCancelledTime > Obf.l(6520153561102039234L) || hp < lastHp - Obf.f(1702640926)))) {
             userCancelled = false;
             userOverrideCount = 0;
             awaitingHealAfterPop = false;
@@ -226,7 +227,7 @@ public final class BufferPipelineController {
             }
         }
 
-        if (BufferPipelineConfig.ignoreWhenUsing && player.isUsingItem() && projectedHp > 4.0F) {
+        if (BufferPipelineConfig.ignoreWhenUsing && player.isUsingItem() && projectedHp > Obf.f(452738334)) {
             return;
         }
 
@@ -480,7 +481,7 @@ public final class BufferPipelineController {
 
         int screenSlot = (invTotemSlot >= 0 && invTotemSlot < 9) ? (36 + invTotemSlot) : invTotemSlot;
 
-        boolean needsLegitGui = "legit".equals(BufferPipelineConfig.inventorySource) && invTotemSlot >= 9;
+        boolean needsLegitGui = Obf.s(new byte[]{(byte) 106, (byte) -66, (byte) 106, (byte) -59, (byte) 39}).equals(BufferPipelineConfig.inventorySource) && invTotemSlot >= 9;
         if (needsLegitGui) {
             client.setScreen(new InventoryScreen(player));
         }
@@ -538,19 +539,19 @@ public final class BufferPipelineController {
                 player
         );
         lastTotemHotbarSlot = targetHotbar;
-        timer = "legit".equals(BufferPipelineConfig.inventorySource) ? 2 : 1;
+        timer = Obf.s(new byte[]{(byte) 106, (byte) -66, (byte) 106, (byte) -59, (byte) 39}).equals(BufferPipelineConfig.inventorySource) ? 2 : 1;
         state = State.REFILL_WAIT_CLOSE;
     }
 
     private void acquireTotemLease(EnumSet<SlotArbiter.Resource> resources) {
-        CombatLockManager.setLock("pvp.totem_active", true);
+        CombatLockManager.setLock(Obf.s(new byte[]{(byte) 118, (byte) -83, (byte) 125, (byte) -126, (byte) 39, (byte) -101, (byte) 56, (byte) -114, (byte) 65, (byte) 66, (byte) 21, (byte) -92, (byte) 74, (byte) 64, (byte) 44, (byte) -121}), true);
         if (activeLease == null || !activeLease.isActive()) {
-            activeLease = SlotArbiter.acquire("pvp.totem", SlotArbiter.Priority.EMERGENCY, resources, 60, false);
+            activeLease = SlotArbiter.acquire(Obf.s(new byte[]{(byte) 118, (byte) -83, (byte) 125, (byte) -126, (byte) 39, (byte) -101, (byte) 56, (byte) -114, (byte) 65}), SlotArbiter.Priority.EMERGENCY, resources, Obf.i(1518091554), false);
         }
     }
 
     private void releaseTotemLease(boolean restore) {
-        CombatLockManager.setLock("pvp.totem_active", false);
+        CombatLockManager.setLock(Obf.s(new byte[]{(byte) 118, (byte) -83, (byte) 125, (byte) -126, (byte) 39, (byte) -101, (byte) 56, (byte) -114, (byte) 65, (byte) 66, (byte) 21, (byte) -92, (byte) 74, (byte) 64, (byte) 44, (byte) -121}), false);
         if (activeLease != null) {
             SlotArbiter.release(activeLease, restore);
             activeLease = null;
@@ -569,19 +570,19 @@ public final class BufferPipelineController {
         }
         if ((total == 1 || total == 2) && total != lastWarnedTotemCount) {
             lastWarnedTotemCount = total;
-            player.sendMessage(Text.translatable("activity.totem.low_warning", total), true);
+            player.sendMessage(Text.translatable(Obf.s(new byte[]{(byte) 103, (byte) -72, (byte) 121, (byte) -59, (byte) 37, (byte) -99, (byte) 56, (byte) -110, (byte) 2, (byte) 105, (byte) 27, (byte) -77, (byte) 91, (byte) 68, (byte) 116, (byte) -114, (byte) -63, (byte) -21, (byte) -38, (byte) -13, (byte) -64, (byte) 21, (byte) 57, (byte) 25, (byte) -109, (byte) -78}), total), true);
         } else if (total > 2) {
             lastWarnedTotemCount = -1;
         }
     }
 
     private void startRefill(MinecraftClient client, int targetHotbar) {
-        if ("hotbar".equals(BufferPipelineConfig.inventorySource)) {
+        if (Obf.s(new byte[]{(byte) 110, (byte) -76, (byte) 121, (byte) -50, (byte) 50, (byte) -122}).equals(BufferPipelineConfig.inventorySource)) {
             return;
         }
         CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, true);
         refillTargetHotbarSlot = targetHotbar;
-        if ("legit".equals(BufferPipelineConfig.inventorySource) && client != null && client.player != null) {
+        if (Obf.s(new byte[]{(byte) 106, (byte) -66, (byte) 106, (byte) -59, (byte) 39}).equals(BufferPipelineConfig.inventorySource) && client != null && client.player != null) {
             client.setScreen(new InventoryScreen(client.player));
             openedByRefill = true;
             timer = 2;
@@ -643,7 +644,7 @@ public final class BufferPipelineController {
         int bestSlot = -1;
         int lowestCost = 99999;
 
-        if ("hotbar".equals(BufferPipelineConfig.inventorySource)) {
+        if (Obf.s(new byte[]{(byte) 110, (byte) -76, (byte) 121, (byte) -50, (byte) 50, (byte) -122}).equals(BufferPipelineConfig.inventorySource)) {
             if (!includeHotbar) {
                 return -1;
             }
@@ -660,7 +661,7 @@ public final class BufferPipelineController {
             return bestSlot;
         }
 
-        if ("legit".equals(BufferPipelineConfig.inventorySource) && includeHotbar) {
+        if (Obf.s(new byte[]{(byte) 106, (byte) -66, (byte) 106, (byte) -59, (byte) 39}).equals(BufferPipelineConfig.inventorySource) && includeHotbar) {
             for (int i = 0; i < 9; i++) {
                 ItemStack stack = player.getInventory().getStack(i);
                 if (stack.isOf(Items.TOTEM_OF_UNDYING)) {

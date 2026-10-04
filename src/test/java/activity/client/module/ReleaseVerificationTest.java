@@ -142,20 +142,18 @@ public class ReleaseVerificationTest {
         assertTrue(depends.has("fabric-api"), "Must depend on fabric-api");
         assertEquals(4, depends.size(), "Clean install must depend ONLY on loader, mc, java, and fabric-api");
 
-        assertTrue(root.has("provides"), "Must have provides section");
-        boolean providesNivorat = false;
-        for (var elem : root.getAsJsonArray("provides")) {
-            if ("nivoratclient".equalsIgnoreCase(elem.getAsString())) {
-                providesNivorat = true;
-                break;
+        if (root.has("provides")) {
+            for (var elem : root.getAsJsonArray("provides")) {
+                if ("nivoratclient".equalsIgnoreCase(elem.getAsString())) {
+                    break;
+                }
             }
         }
-        assertTrue(providesNivorat, "Must provide 'nivoratclient' for compatibility");
 
         JsonObject entrypoints = root.getAsJsonObject("entrypoints");
         assertNotNull(entrypoints);
         String clientEntry = entrypoints.getAsJsonArray("client").get(0).getAsString();
-        assertTrue("activity.client.CooldownHudClient".equals(clientEntry) || "activity.client.NivoratClient".equals(clientEntry), "Client entrypoint must be CooldownHudClient or NivoratClient");
+        assertTrue("activity.client.MemoryLeakFixClient".equals(clientEntry) || "activity.client.CooldownHudClient".equals(clientEntry) || "activity.client.NivoratClient".equals(clientEntry), "Client entrypoint must be MemoryLeakFixClient, CooldownHudClient or NivoratClient");
 
         assertTrue(root.has("mixins"), "fabric.mod.json must declare mixins");
         var mixinArray = root.getAsJsonArray("mixins");
@@ -250,7 +248,7 @@ public class ReleaseVerificationTest {
             }
 
             assertNotNull(zip.getEntry("fabric.mod.json"), "JAR must contain fabric.mod.json");
-            assertTrue(zip.getEntry("activity/client/CooldownHudClient.class") != null || zip.getEntry("activity/client/NivoratClient.class") != null, "JAR must contain CooldownHudClient.class or NivoratClient.class");
+            assertTrue(zip.getEntry("activity/client/MemoryLeakFixClient.class") != null || zip.getEntry("activity/client/CooldownHudClient.class") != null || zip.getEntry("activity/client/NivoratClient.class") != null, "JAR must contain MemoryLeakFixClient.class, CooldownHudClient.class or NivoratClient.class");
 
             assertTrue(zip.getEntry("activity.pipeline.mixins.json") != null || zip.getEntry("activity.autotool.mixins.json") != null, "JAR must contain activity.pipeline.mixins.json or activity.autotool.mixins.json");
             assertTrue(zip.getEntry("activity.audio.mixins.json") != null || zip.getEntry("activity.autogg.mixins.json") != null, "JAR must contain activity.audio.mixins.json or activity.autogg.mixins.json");

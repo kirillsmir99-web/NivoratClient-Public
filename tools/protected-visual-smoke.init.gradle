@@ -18,7 +18,10 @@ allprojects {
                     def source = original.get()
                     args source.args
                     jvmArgs source.jvmArgs.findAll { !it.startsWith('-Dfabric.addMods=') && !it.startsWith('-Dfabric.classPathGroups=') && !it.startsWith('-Dvisual.smoke.output=') }
-                    def protectedJar = p.file('build/libs/NivoratClient-Protected.jar')
+                    def protectedJar = p.file("build/libs/${p.archives_base_name}-Protected.jar")
+                    if (!protectedJar.exists()) {
+                        protectedJar = p.file('build/libs/NivoratClient-Protected.jar')
+                    }
                     if (!protectedJar.exists()) {
                         throw new GradleException('Protected JAR not found at: ' + protectedJar.absolutePath)
                     }

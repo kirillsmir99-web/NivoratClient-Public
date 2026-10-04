@@ -20,9 +20,6 @@ import activity.client.gui.custom.utils.render.others.RectUtil;
 import activity.client.gui.custom.utils.render.render2d.Render2D;
 import activity.client.gui.custom.utils.render.render2d.glass.BuiltGlass;
 import activity.client.gui.custom.utils.render.render2d.glow.BuiltGlow;
-import dev.nivorat.arc.ArcMotionProfile;
-import dev.nivorat.arc.ArcMotorCalibrationService;
-
 public final class WatermarkComp extends Draggable {
     private static final float H = 20.0f;
     private static final String INFO_FONT = "montserrat-bold";
@@ -38,7 +35,6 @@ public final class WatermarkComp extends Draggable {
     private final SmoothAnimation nickAnim = new SmoothAnimation();
     private final SmoothAnimation timeAnim = new SmoothAnimation();
     private final SmoothAnimation combatAnim = new SmoothAnimation();
-    private final SmoothAnimation calibAnim = new SmoothAnimation();
 
     private boolean widthInitialized;
     private boolean lastTargetVisible;
@@ -56,8 +52,6 @@ public final class WatermarkComp extends Draggable {
     private float timeWidth;
     private String cachedCombat = "";
     private float combatWidth;
-    private String cachedCalib = "";
-    private float calibWidth;
     private boolean centered = true;
 
     public WatermarkComp() {
@@ -70,7 +64,6 @@ public final class WatermarkComp extends Draggable {
         this.nickAnim.set(1.0);
         this.timeAnim.set(1.0);
         this.combatAnim.set(0.0);
-        this.calibAnim.set(0.0);
     }
 
     public boolean isCentered() {
@@ -264,22 +257,6 @@ public final class WatermarkComp extends Draggable {
             this.timeText = "";
             this.timeWidth = 0.0f;
         }
-
-        boolean hasCalib = ArcMotorCalibrationService.hasSession();
-        if (hasCalib) {
-            ArcMotionProfile profile = ArcMotionProfile.getInstance();
-            long remMs = profile.getCalibrationRemainingTimeMs();
-            long sec = (remMs + 999L) / 1000L;
-            String timerStr = String.format("%02d:%02d", sec / 60L, sec % 60L);
-            String calibStr = "Калибровка " + profile.getMasteryPercent() + "% • " + timerStr;
-            if (!calibStr.equals(this.cachedCalib) || this.calibWidth <= 0.0f) {
-                this.cachedCalib = calibStr;
-                this.calibWidth = measureString(INFO_FONT, calibStr, 8.0f);
-            }
-        } else {
-            this.cachedCalib = "";
-            this.calibWidth = 0.0f;
-        }
     }
 
     private static float measureString(String font, String text, float size) {
@@ -326,13 +303,12 @@ public final class WatermarkComp extends Draggable {
         Render2D.rect(x, y, 1.0f, h, 0.5f, sepColor);
     }
 
-    private void updateChipAnimations(boolean showServer, boolean showFps, boolean showPing, boolean showNick, boolean showTime, boolean showCalib) {
+    private void updateChipAnimations(boolean showServer, boolean showFps, boolean showPing, boolean showNick, boolean showTime) {
         updateSingleChipAnim(this.serverAnim, showServer);
         updateSingleChipAnim(this.fpsAnim, showFps);
         updateSingleChipAnim(this.pingAnim, showPing);
         updateSingleChipAnim(this.nickAnim, showNick);
         updateSingleChipAnim(this.timeAnim, showTime);
-        updateSingleChipAnim(this.calibAnim, showCalib);
     }
 
     private static void updateSingleChipAnim(SmoothAnimation anim, boolean target) {
@@ -352,16 +328,12 @@ public final class WatermarkComp extends Draggable {
         boolean showPing = watermarkModule != null && watermarkModule.showPing.getValue() && !this.cachedPing.isEmpty();
         boolean showNick = watermarkModule == null || watermarkModule.showNick.getValue() && !this.cachedName.isEmpty();
         boolean showTime = watermarkModule == null || watermarkModule.showTime.getValue() && !this.timeText.isEmpty();
-        boolean showCalib = ArcMotorCalibrationService.hasSession() && !this.cachedCalib.isEmpty();
 
-        this.updateChipAnimations(showServer, showFps, showPing, showNick, showTime, showCalib);
+        this.updateChipAnimations(showServer, showFps, showPing, showNick, showTime);
 
         float padX = 12.5f;
         float sepGap = 13.0f;
         float totalW = padX + 11.0f;
-
-        float cF = (float) this.calibAnim.get();
-        if (cF > 0.005f) totalW += (sepGap + this.calibWidth) * cF;
 
         float sF = (float) this.serverAnim.get();
         if (sF > 0.005f) totalW += (sepGap + this.serverWidth) * sF;
@@ -481,17 +453,6 @@ public final class WatermarkComp extends Draggable {
         float logoY = originY + (20.0f - 11.0f) * 0.5f;
         BrandMark.draw(curX, logoY, 11.0f, f);
         curX += 11.0f;
-
-        float calF = (float) this.calibAnim.get();
-        if (calF > 0.01f && !this.cachedCalib.isEmpty()) {
-            float chipAlpha = f * Math.min(1.0f, calF * 1.25f);
-            drawVerticalSeparator(curX + sepGap * 0.5f - 0.5f, middleY, chipAlpha);
-            curX += sepGap * calF;
-            int[] calibPalette = new int[]{ClientAccent.accentBright(255), 0xFFFFFFFF};
-            drawGradientString(INFO_FONT, this.cachedCalib, curX, textY + 0.5f, 8.0f, glyphIdx, calibPalette, chipAlpha, phase, isMinimal);
-            curX += this.calibWidth * calF;
-            glyphIdx += Math.round(this.calibWidth / 8.0f) + 1;
-        }
 
         float sF = (float) this.serverAnim.get();
         if (sF > 0.01f && !this.cachedServer.isEmpty()) {

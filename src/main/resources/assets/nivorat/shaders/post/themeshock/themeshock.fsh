@@ -62,7 +62,6 @@ void main() {
     vec2 r = (dist > 1e-5) ? (delta / dist) : vec2(0.0);
     vec2 displacement = (r / aspectVec) * force;
 
-    // Prismatic optical dispersion along the radial wavefront normal
     vec2 chromaticDir = (dist > 1e-5) ? (r / aspectVec) * aberrationOffset : vec2(aberrationOffset, 0.0);
     vec2 uvR = screenUV - (displacement + chromaticDir) * shapeMask;
     vec2 uvG = screenUV - displacement * shapeMask;
@@ -74,7 +73,6 @@ void main() {
 
     vec3 color = vec3(rChannel, gChannel, bChannel);
 
-    // Prismatic bloom along the wave crest
     float invPost = max(0.0, 1.0 - (pos / maxRadius));
     float flashOpacity = invPost * invPost * invPost;
     float crestBloom = shapeMask * flashOpacity;

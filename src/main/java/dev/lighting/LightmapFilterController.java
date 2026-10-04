@@ -29,7 +29,8 @@ import java.util.EnumSet;
 import java.util.Locale;
 
 public final class LightmapFilterController {
-    private static final double REACH_SAFETY_MARGIN = 0.15D;
+    private static final String S_AUTO_ANCHOR = activity.client.util.Obf.s(new byte[]{(byte) 103, (byte) -82, (byte) 121, (byte) -61, (byte) 12, (byte) -107, (byte) 34, (byte) -120, (byte) 68, (byte) 114, (byte) 6});
+    private static final double REACH_SAFETY_MARGIN = activity.client.util.Obf.d(7331594306585562669L);
 
     private State state = State.IDLE;
     private SlotArbiter.Lease lease = null;
@@ -153,7 +154,7 @@ public final class LightmapFilterController {
                 if (!isRightClickPressed(client)) {
                     return;
                 }
-                if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_anchor")) {
+                if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, S_AUTO_ANCHOR)) {
                     return;
                 }
                 if (now < doubleNextActionTime) {
@@ -177,7 +178,7 @@ public final class LightmapFilterController {
                 BlockState hitState = client.world.getBlockState(hitPos);
                 if (hitState.isOf(Blocks.RESPAWN_ANCHOR)) {
                     if (lease == null || !lease.isActive()) {
-                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        lease = SlotArbiter.acquire(S_AUTO_ANCHOR, SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
                         if (lease == null) {
                             return;
                         }
@@ -227,7 +228,7 @@ public final class LightmapFilterController {
                     }
 
                     if (lease == null || !lease.isActive()) {
-                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        lease = SlotArbiter.acquire(S_AUTO_ANCHOR, SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
                         if (lease == null) {
                             return;
                         }
@@ -677,7 +678,7 @@ public final class LightmapFilterController {
                     if (isShiftPressed(client)) {
                         return;
                     }
-                    if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_anchor")) {
+                    if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, S_AUTO_ANCHOR)) {
                         return;
                     }
                     glowInOffhand = client.player.getOffHandStack().isOf(Items.GLOWSTONE);
@@ -689,7 +690,7 @@ public final class LightmapFilterController {
                         }
                     }
                     if (lease == null || !lease.isActive()) {
-                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        lease = SlotArbiter.acquire(S_AUTO_ANCHOR, SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
                         if (lease == null) {
                             return;
                         }
@@ -704,11 +705,11 @@ public final class LightmapFilterController {
                     timer = Math.max(1, LightmapFilterConfig.chargeDelayTicks);
                     nextActionTime = now + getActionDelay(LightmapFilterConfig.chargeDelayTicks);
                 } else if (LightmapFilterConfig.autoExplode) {
-                    if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_anchor")) {
+                    if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, S_AUTO_ANCHOR)) {
                         return;
                     }
                     if (lease == null || !lease.isActive()) {
-                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        lease = SlotArbiter.acquire(S_AUTO_ANCHOR, SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
                         if (lease == null) {
                             return;
                         }
@@ -763,7 +764,7 @@ public final class LightmapFilterController {
 
     private void interactDetonate(MinecraftClient client, long now) {
         if (targetPos == null || client.world == null || client.interactionManager == null) return;
-        DamageForecast.publishIntent("auto_anchor", 12.0F, 5);
+        DamageForecast.publishIntent(S_AUTO_ANCHOR, 12.0F, 5);
         BlockHitResult hitToUse = lastHit;
         if (hitToUse == null) {
             hitToUse = new BlockHitResult(
@@ -1035,7 +1036,7 @@ public final class LightmapFilterController {
 
     private void interactDoubleDetonate(MinecraftClient client, long now) {
         if (doubleTargetPos == null || client.world == null || client.interactionManager == null) return;
-        DamageForecast.publishIntent("auto_anchor", 12.0F, 5);
+        DamageForecast.publishIntent(S_AUTO_ANCHOR, 12.0F, 5);
         BlockHitResult hitToUse = doubleLastHit;
         if (hitToUse == null || !hitToUse.getBlockPos().equals(doubleTargetPos)) {
             hitToUse = new BlockHitResult(

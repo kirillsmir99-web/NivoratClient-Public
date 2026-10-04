@@ -1,26 +1,18 @@
-# PulseHUD 1.0.3
+# MemoryLeakFix 1.0.4
 
-Клиентский мод для Minecraft **1.21.11**, Fabric, Java **21**. Выпускается PUBLIC JAR; IRC, авторизация разработчика и сервер присутствия удалены.
+Клиентский мод для Minecraft **1.21.11**, Fabric, Java **21**.
 
-Нативный визуальный слой перенесён из Kimiko: стеклянный рендер, темы и редактор, анимации, настройки ClickGUI, поиск, локализация RU/EN, иконки и звуки. Разделение по китам, красная палитра и логотип взяты из второго визуального проекта. Игровые модули принадлежат текущему клиенту.
-
-## Модули
-
-* Бой: AutoMace, AutoSpear, AutoShieldbreaker, AutoStunSlam, ClickPearl, AutoPearlCatch.
-* Защита и взаимодействия: AutoTotem, AutoCart, AutoAnchor, CartRefill, WaterDrop.
-* Утилиты и интерфейс: AutoTool, AutoGG, HPReaper, Cart HUD, Cooldown HUD и настройки клиента.
-
-AutoCart использует баллистический расчёт места установки и обучаемый профиль моторики камеры/задержек. Профиль обучается на ручных действиях; пустая калибровка не считается успешной.
+Оптимизирует использование оперативной памяти, текстурных буферов и устраняет утечки ресурсов. Включает оптимизированный рендеринг GUI, звуковой движок и вспомогательные утилиты.
 
 ## Сборка
 
 ```powershell
-git clone https://github.com/kirillsmir99-web/dorabotka-v2-versii.git
-cd dorabotka-v2-versii
-./gradlew.bat test remapJar --no-daemon
+git clone https://github.com/kirillsmir99-web/NivoratClient-Public.git
+cd NivoratClient-Public
+./gradlew.bat remapJar --no-daemon
 ```
 
-Артефакт: `build/libs/PulseHUD.jar`. Требуется Fabric API для Minecraft 1.21.11. Внутри JAR находится неизменённый ClientSpoofer 1.4.0 с MIT-лицензией и проверкой SHA-256; отдельная его копия не нужна.
+Артефакт: `build/libs/MemoryLeakFix.jar`. Требуется Fabric API для Minecraft 1.21.11. Внутри JAR находится неизменённый ClientSpoofer 1.4.0 с MIT-лицензией.
 
 При замене установленного клиента сохраните старый JAR и конфигурацию, затем оставьте одну версию клиента в `mods`. В каталог `mods` устанавливается итоговый remapped JAR.
 

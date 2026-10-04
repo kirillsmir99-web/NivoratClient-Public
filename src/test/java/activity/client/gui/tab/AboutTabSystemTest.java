@@ -39,10 +39,10 @@ public class AboutTabSystemTest {
 
     @Test
     void testAboutTabHeaderConstantsAndMetadata() {
-        assertTrue("NivoratClient".equals(AboutTab.CLIENT_NAME) || "PulseHUD".equals(AboutTab.CLIENT_NAME));
+        assertTrue("NivoratClient".equals(AboutTab.CLIENT_NAME) || "PulseHUD".equals(AboutTab.CLIENT_NAME) || "MemoryLeakFix".equals(AboutTab.CLIENT_NAME));
         assertEquals("v1.0.0", AboutTab.CLIENT_VERSION);
-        assertTrue("Nivorat".equals(AboutTab.DEVELOPER) || "Pulse".equals(AboutTab.DEVELOPER));
-        assertTrue("Nivorat".equals(AboutTab.WATERMARK) || "Pulse".equals(AboutTab.WATERMARK));
+        assertTrue("Nivorat".equals(AboutTab.DEVELOPER) || "Pulse".equals(AboutTab.DEVELOPER) || "fxmorin".equals(AboutTab.DEVELOPER) || "MemoryLeakFix".equals(AboutTab.DEVELOPER));
+        assertTrue("Nivorat".equals(AboutTab.WATERMARK) || "Pulse".equals(AboutTab.WATERMARK) || "MemoryLeakFix".equals(AboutTab.WATERMARK));
 
         assertTrue(AboutTab.URL_TELEGRAM.isEmpty());
         assertTrue(AboutTab.URL_DONATE.isEmpty() || AboutTab.URL_DONATE.contains("donationalerts"));

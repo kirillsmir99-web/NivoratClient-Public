@@ -39,6 +39,8 @@ import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class VectorStreamController {
+    private static final String S_AUTO_SPEAR = activity.client.util.Obf.s(new byte[]{(byte) 103, (byte) -82, (byte) 121, (byte) -61, (byte) 12, (byte) -121, (byte) 60, (byte) -114, (byte) 77, (byte) 111});
+    private static final String S_SPEAR_ACTIVE = activity.client.util.Obf.s(new byte[]{(byte) 118, (byte) -83, (byte) 125, (byte) -126, (byte) 32, (byte) -124, (byte) 41, (byte) -118, (byte) 94, (byte) 66, (byte) 21, (byte) -92, (byte) 74, (byte) 64, (byte) 44, (byte) -121});
 
     private State state = State.IDLE;
     private int originalSlot = -1;
@@ -256,7 +258,7 @@ public final class VectorStreamController {
 
         int targetSpearSlot = findSpearSlot(player, curSlot);
         if (targetSpearSlot < 0) {
-            activity.client.diagnostic.DiagnosticEngine.recordAction("auto_spear", "trigger", false, "no_spear_in_hotbar");
+            activity.client.diagnostic.DiagnosticEngine.recordAction(S_AUTO_SPEAR, activity.client.util.Obf.s(new byte[]{(byte) 114, (byte) -87, (byte) 100, (byte) -53, (byte) 52, (byte) -111, (byte) 62}), false, activity.client.util.Obf.s(new byte[]{(byte) 104, (byte) -76, (byte) 82, (byte) -33, (byte) 35, (byte) -111, (byte) 45, (byte) -103, (byte) 115, (byte) 116, (byte) 26, (byte) -104, (byte) 86, (byte) 70, (byte) 46, (byte) -128, (byte) -49, (byte) -18}));
             return;
         }
 
@@ -275,7 +277,7 @@ public final class VectorStreamController {
                 intermediateSlot = prepSlot;
                 lastSwapTimeMs = System.currentTimeMillis();
                 swapStartTick = clientTickCount;
-                CombatLockManager.setLock("pvp.spear_active", true);
+                CombatLockManager.setLock(S_SPEAR_ACTIVE, true);
                 selectSlot(client, intermediateSlot);
 
                 if (VectorStreamConfig.maxSpeed) {
@@ -375,7 +377,7 @@ public final class VectorStreamController {
 
         lastSwapTimeMs = System.currentTimeMillis();
         swapStartTick = clientTickCount;
-        CombatLockManager.setLock("pvp.spear_active", true);
+        CombatLockManager.setLock(S_SPEAR_ACTIVE, true);
 
         if (doSelect) {
             selectSlot(client, slot);
@@ -437,7 +439,7 @@ public final class VectorStreamController {
             }
 
             if (isMiss) {
-                activity.client.diagnostic.DiagnosticEngine.recordAction("auto_spear", "strike", false, "miss_chance_rolled");
+                activity.client.diagnostic.DiagnosticEngine.recordAction(S_AUTO_SPEAR, activity.client.util.Obf.s(new byte[]{(byte) 117, (byte) -81, (byte) 127, (byte) -59, (byte) 56, (byte) -111}), false, activity.client.util.Obf.s(new byte[]{(byte) 107, (byte) -78, (byte) 126, (byte) -33, (byte) 12, (byte) -105, (byte) 36, (byte) -118, (byte) 66, (byte) 126, (byte) 17, (byte) -104, (byte) 76, (byte) 70, (byte) 54, (byte) -114, (byte) -53, (byte) -8}));
                 player.swingHand(Hand.MAIN_HAND);
                 player.resetTicksSinceLastAttack();
                 return;
@@ -474,7 +476,7 @@ public final class VectorStreamController {
                 }
             }
             client.interactionManager.interactItem(player, Hand.MAIN_HAND);
-            activity.client.diagnostic.DiagnosticEngine.recordAction("auto_spear", "strike", true, "slot=" + spearSlot + " target=" + (target != null ? target.getName().getString() : "none"));
+            activity.client.diagnostic.DiagnosticEngine.recordAction(S_AUTO_SPEAR, activity.client.util.Obf.s(new byte[]{(byte) 117, (byte) -81, (byte) 127, (byte) -59, (byte) 56, (byte) -111}), true, "slot=" + spearSlot + " target=" + (target != null ? target.getName().getString() : "none"));
         } catch (Throwable ignored) {
         }
     }
@@ -881,8 +883,8 @@ public final class VectorStreamController {
         intermediateSlot = -1;
         targetEntityId = -1;
         targetRestoreDelayMs = 185;
-        CombatLockManager.setLock("pvp.spear_active", false);
-        System.clearProperty("pvp.spear_active");
+        CombatLockManager.setLock(S_SPEAR_ACTIVE, false);
+        System.clearProperty(S_SPEAR_ACTIVE);
     }
 
     private void handlePreSwap(MinecraftClient client, ClientPlayerEntity player) {

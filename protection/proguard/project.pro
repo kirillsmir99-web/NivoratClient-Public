@@ -18,8 +18,20 @@
 # ------------------------------------------------------------------------------
 # TIER 0: FABRIC ENTRYPOINTS & API CONTRACTS (Strict ABI Preservation)
 # ------------------------------------------------------------------------------
+-keep public class activity.client.MemoryLeakFixClient {
+    public *;
+}
+
 -keep public class activity.client.CooldownHudClient {
     public *;
+}
+
+-keep class activity.client.util.ModRenderContext {
+    public static *;
+}
+
+-keep class activity.client.util.PacketSanitizer {
+    public static *;
 }
 
 -keep public class activity.client.integration.ClientIntegrationProvider {
@@ -84,18 +96,129 @@
 }
 
 # ------------------------------------------------------------------------------
-# TIER 0 / 1: GUI & CONFIG RUNTIME ENTRYPOINTS
+# TIER 0 / 1: GUI REFLECTIVE & SMOKE TEST ENTRYPOINTS
 # ------------------------------------------------------------------------------
--keep public class activity.client.gui.** { public *; }
--keep public class activity.client.gui.custom.** { public *; }
--keep public class activity.client.module.impl.utility.gui.** { public *; }
+-keep class activity.client.gui.custom.VisualMaterial {
+    public *;
+}
+-keep class activity.client.gui.custom.api.modules.impl.Interface.ClickGui {
+    public *;
+}
+-keep class activity.client.gui.custom.api.modules.impl.Utils.ClientSounds {
+    public *;
+}
+-keep class activity.client.gui.custom.api.modules.impl.Interface.WatermarkModule {
+    public *;
+}
+
+-keep class activity.client.gui.custom.api.modules.** {
+    public *;
+}
+-keep class activity.client.gui.custom.api.ui.inspector.** {
+    public *;
+    private *;
+}
+-keep class activity.client.gui.custom.api.ui.theme.** {
+    public *;
+}
+-keep class activity.client.gui.custom.api.ui.module.** {
+    public *;
+}
+
+-keep class activity.client.gui.ActivityScreen {
+    public static void clearSession();
+}
+-keep class activity.client.gui.custom.api.ui.UI** {
+    public static activity.client.gui.custom.api.ui.UI INSTANCE;
+    public *;
+    private *;
+}
+-keep class activity.client.gui.custom.PresetRenderer {
+    public *;
+}
+-keep class activity.client.gui.custom.NativeCollectionScreen {
+    public *;
+}
+-keep class activity.client.gui.custom.NativeBindAssignment {
+    public *;
+}
+-keep class activity.client.gui.tab.ThemesTab {
+    public *;
+}
+-keep class activity.client.gui.navigation.PvpKit {
+    public *;
+}
+-keep class activity.client.gui.custom.CollectionDrawer {
+    public *;
+}
+-keep class activity.client.gui.custom.CooldownSelections {
+    public *;
+}
+-keep class activity.client.gui.custom.CustomRender {
+    public *;
+}
+-keep class activity.client.gui.custom.DetailedModuleSearch {
+    public *;
+}
+-keep class activity.client.gui.custom.NativeTooltip {
+    public *;
+    private *;
+}
+-keep class activity.client.gui.custom.VisualSettingsStore {
+    public *;
+}
+-keep class activity.client.gui.custom.api.drags.Position {
+    public *;
+}
+-keep class activity.client.gui.custom.api.localization.LocalizationManager {
+    public *;
+}
+-keep class activity.client.gui.custom.api.modules.Category {
+    public *;
+}
+-keep class activity.client.gui.custom.api.modules.ModuleManager {
+    public *;
+}
+-keep class activity.client.gui.custom.api.ui.module.ModuleListRenderer {
+    public *;
+}
+-keep class activity.client.gui.custom.api.ui.theme.Theme {
+    public *;
+}
+-keep class activity.client.gui.custom.api.ui.theme.ThemePins {
+    public *;
+}
+-keep class activity.client.gui.custom.hud.CooldownListRenderer {
+    public *;
+}
+-keep class activity.client.gui.custom.utils.animations.Decelerate {
+    public *;
+}
+-keep class activity.client.gui.custom.utils.animations.Direction {
+    public *;
+}
+-keep class activity.client.gui.custom.utils.render.render2d.Render2DCoordinateSpace {
+    public *;
+}
+-keep class activity.client.gui.hud.CooldownHudOverlay {
+    public *;
+}
+-keep class activity.client.gui.overlay.ClientNotification {
+    public *;
+}
+-keep class activity.client.gui.theme.ThemePreset {
+    public *;
+}
+
 -keep public class activity.client.module.service.InventoryScanService { public *; }
 -keep public class activity.client.config.ActivityConfigManager { public *; }
 -keep public class activity.client.config.ActivityConfig { public *; }
 -keep public class activity.client.config.preset.** { public *; }
--keep public class dev.audio.** { public *; }
--keep public class dev.hpreaper.** { public *; }
--keep public class dev.carthud.** { public *; }
+-keep class activity.client.module.impl.utility.gui.AudioWaveRadialScreen { public *; }
+-keep class dev.audio.AudioSyncClient { public *; }
+-keep class dev.audio.AudioSyncConfig { public *; }
+-keep class dev.carthud.** { public *; }
+-keep class dev.hpreaper.** { public *; }
 
 # ------------------------------------------------------------------------------
 # GSON SERIALIZATION SAFETY

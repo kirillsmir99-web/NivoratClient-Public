@@ -27,7 +27,6 @@ struct ShardInfo {
     vec2 seedDelta;
 };
 
-// Original large moving irregular panels, evaluated only in mosaic mode.
 ShardInfo computeShards(vec2 p, vec2 scale, float animTime, float mosaicMorph) {
     vec2 g = floor(p);
     vec2 f = fract(p);
@@ -304,7 +303,6 @@ void main() {
         gradAspect = pr.z / max(pr.w, 0.001);
     }
 
-    // --- NIVORAT DYNAMIC SOFT EDGE SYSTEM ---
     float edgeActivation = clamp(edge1.x, 0.0, 1.0);
     float edgeDisplacement = 0.0;
     float liveEdgeGlowIntensity = 0.0;
@@ -324,33 +322,26 @@ void main() {
             float edgeGlowVal = max(edge2.y, 0.0);
             float edgeSeed = edge2.z;
 
-            // Smooth linear/mild size scaling (well-behaved across entire slider range)
             float sizeMultiplier = mix(0.85, 1.45, userSize);
             float waveWidthScale = mix(0.90, 1.40, userSize);
 
-            // Adaptive scale for compact surfaces
             float minDim = min(size.x, size.y);
             float compactScale = clamp(minDim / 20.0, 0.85, 1.0);
 
-            // A closed angular field has no nearest-side switch at rounded corners.
-            // Integer wave harmonics agree in value and slope at the 0/1 seam.
             vec2 radial = (coord - .5) * size / max(size * .5, vec2(1.0));
             float u = (atan(radial.y, radial.x + 0.000001) + 3.14159265) / 6.2831853;
             float perim = 2.0 * (size.x + size.y);
             liveEdgeU = u;
 
-            // Broad rolling mounds for ClickGUI, distinct active waves for cards, gentle for HUD
             float targetWaveLen = 60.0;
             float minWaves = 3.0;
             if (edgeProfile == 0) {
                 targetWaveLen = mix(150.0, 90.0, userDensity) * waveWidthScale;
                 minWaves = 4.0;
             } else if (edgeProfile == 1) {
-                // Module cards: widen wavelength so cards have 3 to 4 gentle undulating waves along their length instead of dense hedgehog spikes
                 targetWaveLen = mix(115.0, 72.0, userDensity) * waveWidthScale;
                 minWaves = 3.0;
             } else {
-                // HUD widgets: wide relaxed wavelength for gentle smooth undulations
                 targetWaveLen = mix(120.0, 75.0, userDensity) * waveWidthScale;
                 minWaves = 2.0;
             }
@@ -360,7 +351,6 @@ void main() {
             float k1 = k0 + 1.0;
             float kBlend = smoothstep(0.0, 1.0, fract(rawCount));
 
-            // Flowing perimeter motion
             float timeVal = edge2.x > 0.0001 ? edge2.x : mosaic2.z;
             float baseDriftA = (edgeProfile == 1) ? 0.120 : 0.070;
             float baseDriftB = (edgeProfile == 1) ? -0.080 : -0.045;
@@ -369,50 +359,41 @@ void main() {
             float driftB = baseDriftB;
             float driftC = baseDriftC;
 
-            // Layer A: primary forward perimeter drift with smooth gentle wave
             float phaseA0 = u * k0 * 6.2831853 + timeVal * driftA * 6.2831853 + edgeSeed * 1.618;
             float phaseA1 = u * k1 * 6.2831853 + timeVal * driftA * 6.2831853 + edgeSeed * 1.618;
             float hA0 = cos(phaseA0);
             float hA1 = cos(phaseA1);
             float hA = mix(hA0, hA1, kBlend);
 
-            // Layer B: secondary gentle texture
             float kSec = floor(max(rawCount * 1.25, rawCount + 1.0) + 0.5);
             float phaseB = u * kSec * 6.2831853 + timeVal * driftB * 6.2831853 + edgeSeed * 7.821;
             float hB = cos(phaseB);
 
-            // Layer C: slow organic envelope modulation
             float kEnv = floor(max(rawCount * 0.25, 2.0) + 0.5);
             float phaseC = u * kEnv * 6.2831853 + timeVal * driftC * 6.2831853 + edgeSeed * 3.414;
             float env = 0.94 + 0.06 * sin(phaseC);
 
-            // Continuous merged wave field in [0, 1]
             float rawWave = 0.96 * hA + 0.04 * hB;
             float normWave = clamp(0.5 + 0.5 * rawWave, 0.0, 1.0);
 
-            // Smooth convex mounds with connected valleys (no sharp spikes)
             float softLobe = normWave * normWave * (3.0 - 2.0 * normWave) * env;
 
-            // Height calculation: refined, sleek, not fat, clearly visible
             float baseHeight = 0.0;
             float maxSafeBulge = 8.0;
 
             if (edgeProfile == 0) {
-                // ClickGUI global surface: prominent bold floating mounds
                 float effIntensity = edgeIntensity <= 0.001 ? 0.0 : mix(0.55, 1.0, clamp(edgeIntensity, 0.0, 1.0));
                 float minH = 0.35 * sizeMultiplier;
                 float maxH = 3.40 * sizeMultiplier;
                 baseHeight = mix(minH, maxH, softLobe) * effIntensity;
                 maxSafeBulge = 4.5 * sizeMultiplier;
             } else if (edgeProfile == 1) {
-                // Module card: prominent active state wave edge (gentle undulating wave, delicate hairline)
                 float effIntensity = edgeIntensity <= 0.001 ? 0.0 : mix(0.60, 1.0, clamp(edgeIntensity, 0.0, 1.0));
                 float minH = 0.25 * sizeMultiplier;
                 float maxH = 2.40 * sizeMultiplier;
                 baseHeight = mix(minH, maxH, softLobe) * effIntensity * compactScale;
                 maxSafeBulge = 3.2 * sizeMultiplier;
             } else {
-                // HUD widgets: clean gentle wave contour (delicate, sleek, visible baseline ~1.6 - 2.8px)
                 float effIntensity = edgeIntensity <= 0.001 ? 0.0 : mix(0.68, 1.0, clamp(edgeIntensity, 0.0, 1.0));
                 float minH = 0.40 * sizeMultiplier;
                 float maxH = 2.85 * sizeMultiplier;
@@ -420,31 +401,25 @@ void main() {
                 maxSafeBulge = 3.6 * sizeMultiplier;
             }
 
-            // Smooth staggered activation (0-260 ms)
             float regionStagger = 0.08 * sin(u * kEnv * 6.2831853 + edgeSeed * 4.5);
             float localAct = clamp((edgeActivation - regionStagger) / (1.0 - abs(regionStagger) + 0.001), 0.0, 1.0);
             float grow = smoothstep(0.10, 0.95, localAct);
             grow = grow * (1.0 + 0.03 * sin(grow * 3.14159265));
             liveEdgeGrow = grow;
 
-            // Corner attenuation: smooth damping around rounded corners (ClickGUI soft 12%, cards 25%)
             float maxCornerRadius = max(max(radius.x, radius.y), max(radius.z, radius.w));
             float cornerAttenuation = 1.0;
             if (maxCornerRadius > 0.5) {
                 vec2 cornerDist2 = max(abs(pos) - (halfSize - maxCornerRadius), vec2(0.0));
-                // Both axes approach zero smoothly at the straight/rounded join.
-                // A branch here previously jumped the displacement by up to 25%.
                 vec2 cornerBlend = smoothstep(vec2(0.0), vec2(max(maxCornerRadius * .45, 1.0)), cornerDist2);
                 float cornerDampTarget = (edgeProfile == 0) ? 0.88 : 0.75;
                 cornerAttenuation = mix(1.0, cornerDampTarget, cornerBlend.x * cornerBlend.y);
             }
 
-            // Safety clamp: preserve neighbor clearance
             float totalBulge = min(baseHeight * grow * cornerAttenuation, maxSafeBulge);
 
             edgeDisplacement = totalBulge;
 
-            // Soft continuous theme accent rim response (NO pure white markers)
             if (edgeGlowVal > 0.005) {
                 liveEdgeGlowIntensity = edgeGlowVal * (edgeProfile == 0 ? 0.35 : 0.60) * grow;
             }
@@ -516,10 +491,6 @@ void main() {
 
         float seamWidthPx = max(mosaicSeam * 24.0, 0.8);
 
-        // Smooth material transition stages (Section 31 & 32):
-        // Refraction appears first (0.0 -> 0.7)
-        // Seams appear second (0.2 -> 0.9)
-        // Bevel appears third (0.4 -> 1.0)
         float tRefract = smoothstep(0.0, 0.7, styleTransition);
         float tSeam = smoothstep(0.2, 0.9, styleTransition);
         float tBevel = smoothstep(0.4, 1.0, styleTransition);
@@ -604,7 +575,6 @@ void main() {
     float upperLight = clamp(0.5 - pos.y / max(size.y, 1.0), 0.0, 1.0);
     finalColor += vec3(0.055, 0.065, 0.085) * hairline * upperLight * (1.0 - styleTransition);
 
-    // Theme accent extraction
     vec3 edgeAccent = mixedColor;
     if (liveEdgeProf == 1 || liveEdgeProf == 2) {
         vec3 tintA = (fresnelColor.a > 0.01) ? fresnelColor.rgb : mixedColor;
@@ -619,22 +589,18 @@ void main() {
         float crestLight = smoothstep(-lineW * 1.1, 0.0, modifiedEdge) * (1.0 - smoothstep(0.0, lineW * 0.7, modifiedEdge));
 
         if (liveEdgeProf == 1) {
-            // Module card: vibrant luminous accent color in the protruding wave edge, delicate hairline
             finalColor = mix(finalColor, edgeAccent * 1.05, inBulge * 0.12);
             finalColor += edgeAccent * (crestLight * 0.34 + rimLight * 0.30);
         } else if (liveEdgeProf == 2) {
-            // HUD widgets: subtle delicate refraction with crisp hairline crest
             finalColor = mix(finalColor, edgeAccent, inBulge * 0.08);
             finalColor += edgeAccent * (crestLight * 0.30 + rimLight * 0.28);
         } else {
-            // ClickGUI: deep glass tone with sleek crests outlining the rolling mounds
             finalColor = mix(finalColor, edgeAccent, inBulge * 0.10);
             finalColor += edgeAccent * (crestLight * 0.32 + rimLight * 0.28);
         }
     }
 
     if (liveEdgeGlowIntensity > 0.001) {
-        // Continuous soft edge response following displaced contour
         float glowLineW = (liveEdgeProf == 2) ? 0.60 : ((liveEdgeProf == 1) ? 0.68 : 0.76);
         float rimFactor = 1.0 - smoothstep(0.0, glowLineW, abs(modifiedEdge));
         float softGlow = rimFactor * liveEdgeGlowIntensity;
@@ -646,7 +612,6 @@ void main() {
     float finalAlpha = mix(baseAlpha, edgeAlpha, fresnel) * alpha * globalAlpha * splitMask;
     finalAlpha = mix(finalAlpha, max(finalAlpha, 0.94 * alpha * globalAlpha * splitMask), styleTransition);
 
-    // Solidify bulge opacity so waves are visible against any background without looking chunky/fat
     if (edgeActivation > 0.001 && signedEdge > 0.0 && modifiedEdge < 0.0) {
         float minBulgeAlpha = (liveEdgeProf == 2) ? 0.12 : ((liveEdgeProf == 1) ? 0.15 : 0.14);
         finalAlpha = max(finalAlpha, minBulgeAlpha * alpha * globalAlpha);

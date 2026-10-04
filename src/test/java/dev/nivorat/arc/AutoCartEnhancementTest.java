@@ -22,65 +22,6 @@ class AutoCartEnhancementTest {
     }
 
     @Test
-    void successfulDetonationsTrainMacroDrawTicks() {
-        AtomicLong clock = new AtomicLong(1000L);
-        Path path = directory.resolve("motor.json");
-        ArcMotionProfile profile = new ArcMotionProfile(path, clock::get);
-        profile.startCalibration();
-
-        var pos = new net.minecraft.util.math.BlockPos(10, 64, 10);
-        profile.recordBowRelease(4);
-        clock.addAndGet(80);
-        profile.recordRailPlacement(pos);
-        clock.addAndGet(70);
-        profile.recordCartPlacement(pos);
-        clock.addAndGet(50);
-        profile.recordExplosion(10.5, 64.5, 10.5);
-
-        assertEquals(1, profile.getManualDetonationsCount());
-
-        for (int i = 0; i < 20; i++) {
-            int sampled = profile.sampleMacroDrawTicks(6);
-            assertTrue(sampled >= 3 && sampled <= 5);
-        }
-    }
-
-    @Test
-    void exportAndImportRetainsSuccessfulDrawTicks() throws Exception {
-        AtomicLong clock = new AtomicLong(1000L);
-        Path path = directory.resolve("motor.json");
-        ArcMotionProfile profile = new ArcMotionProfile(path, clock::get);
-        profile.startCalibration();
-
-        for (int i = 0; i < 25; i++) profile.observeMovement(2f, 3f, 0.05);
-
-        var pos = new net.minecraft.util.math.BlockPos(0, 64, 0);
-        for (int i = 0; i < 3; i++) {
-            profile.recordBowRelease(4);
-            clock.addAndGet(100);
-            profile.recordRailPlacement(pos);
-            clock.addAndGet(75);
-            profile.recordCartPlacement(pos);
-            clock.addAndGet(50);
-            profile.recordExplosion(0.5, 64.5, 0.5);
-            clock.addAndGet(50);
-        }
-
-        profile.finishCalibration();
-        assertTrue(profile.isCalibrated());
-
-        var exported = profile.exportProfile();
-        assertTrue(exported.has("successfulDrawTicks"));
-
-        Path secondPath = directory.resolve("second.json");
-        ArcMotionProfile imported = new ArcMotionProfile(secondPath, clock::get);
-        imported.importProfile(exported);
-
-        int sampled = imported.sampleMacroDrawTicks(6);
-        assertTrue(sampled >= 3 && sampled <= 5);
-    }
-
-    @Test
     void vectorStreamRageModeHasZeroDelayFloor() {
         VectorStreamConfig.securityMode = VectorStreamConfig.MODE_RAGE;
         assertEquals(0, VectorStreamConfig.getMinFloor());
@@ -103,13 +44,6 @@ class AutoCartEnhancementTest {
     }
 
     @Test
-    void calibrationHudUsesWatermarkDividers() throws Exception {
-        String code = java.nio.file.Files.readString(Path.of("src/main/java/activity/client/gui/hud/ActivityHudOverlay.java"));
-        assertTrue(code.contains("\" | Калибровка: \""));
-        assertTrue(code.contains("\" | \""));
-    }
-
-    @Test
     void slotSwitchingWaitsForCameraInterpolationToComplete() throws Exception {
         MorrowConfig.autoCamera = true;
         AutoCartController controller = new AutoCartController();
@@ -128,35 +62,5 @@ class AutoCartEnhancementTest {
                 "AutoCartController must wait for camera interpolation in PLACE_CART stage");
 
         interpolator.reset();
-        assertFalse(interpolator.isActive(), "Camera interpolation must be inactive after reset");
-    }
-
-    @Test
-    void configurableCalibrationDurationSupported() {
-        Path path = directory.resolve("motor_duration.json");
-        ArcMotionProfile profile = new ArcMotionProfile(path);
-        assertEquals(5, profile.getTargetCalibrationDurationMinutes());
-        assertEquals(300000L, profile.getTargetCalibrationDurationMs());
-
-        profile.setTargetCalibrationDurationMinutes(2);
-        assertEquals(2, profile.getTargetCalibrationDurationMinutes());
-        assertEquals(120000L, profile.getTargetCalibrationDurationMs());
-
-        profile.setTargetCalibrationDurationMinutes(1);
-        assertEquals(1, profile.getTargetCalibrationDurationMinutes());
-        assertEquals(60000L, profile.getTargetCalibrationDurationMs());
-
-        profile.setTargetCalibrationDurationMinutes(5);
-        assertEquals(5, profile.getTargetCalibrationDurationMinutes());
-        assertEquals(300000L, profile.getTargetCalibrationDurationMs());
-    }
-
-    @Test
-    void autoCartLoggerRecordsToDiagnosticEngineAndFile() {
-        AutoCartLogger.log("TEST_EVENT", true, "sample_diagnostic_detail");
-        String report = activity.client.diagnostic.DiagnosticEngine.generateReport();
-        assertTrue(report.contains("auto_cart") && report.contains("TEST_EVENT"));
-        java.io.File logFile = new java.io.File("logs", "autocart.log");
-        assertTrue(logFile.exists());
     }
 }

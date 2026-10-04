@@ -3,7 +3,6 @@ package activity.client;
 import activity.client.config.ActivityConfig;
 import activity.client.config.ActivityConfigManager;
 import activity.client.gui.ActivityScreen;
-import activity.client.gui.hud.CooldownHudStandaloneScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -18,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public class ActivityClient implements ClientModInitializer {
     public static final String MOD_ID = "activity";
-    public static final Logger LOGGER = LoggerFactory.getLogger("NivoratClient");
+    public static final Logger LOGGER = LoggerFactory.getLogger("MemoryLeakFix");
 
     public static KeyBinding openCooldownHudKey;
     public static KeyBinding openMenuKey;

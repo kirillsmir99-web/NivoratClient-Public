@@ -52,6 +52,8 @@ __pycache__/
 
 # Agent working files
 .agents/
+AGENTS.md
+GEMINI.md
 ORIGINAL_REQUEST.md
 PROJECT.md
 TEST_INFRA.md
@@ -67,14 +69,6 @@ tools/assets/minecraft-vanilla/
 tools/assets/vanilla_extracted/
 
 !vendor/clientspoofer/ClientSpoofer-1.21.11-1.4.0.jar
-
-# Share this project skill; keep unrelated agent working files ignored.
-!.agents/
-.agents/*
-!.agents/skills/
-.agents/skills/*
-!.agents/skills/minecraft-client-protection/
-!.agents/skills/minecraft-client-protection/**
 
 scratch/
 

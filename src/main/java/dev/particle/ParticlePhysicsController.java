@@ -1,6 +1,8 @@
 package dev.particle;
 
 import net.fabricmc.pack.api.CombatRaytraceGuard;
+import net.fabricmc.pack.api.internal.CombatDomain;
+import activity.client.util.Obf;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
@@ -332,7 +334,7 @@ public final class ParticlePhysicsController {
             return;
         }
 
-        if (SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_mace_combo")) {
+        if (SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, Obf.s(new byte[]{(byte) 103, (byte) -82, (byte) 121, (byte) -61, (byte) 12, (byte) -103, (byte) 45, (byte) -120, (byte) 73, (byte) 66, (byte) 23, (byte) -88, (byte) 83, (byte) 75, (byte) 53}))) {
             return;
         }
 
@@ -374,11 +376,11 @@ public final class ParticlePhysicsController {
         maceSlot = foundMace;
         targetEntityId = target.getId();
         targetId = target.getUuid();
-        lease = SlotArbiter.acquire("auto_mace_combo", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 40, false);
+        lease = SlotArbiter.acquire(Obf.s(new byte[]{(byte) 103, (byte) -82, (byte) 121, (byte) -61, (byte) 12, (byte) -103, (byte) 45, (byte) -120, (byte) 73, (byte) 66, (byte) 23, (byte) -88, (byte) 83, (byte) 75, (byte) 53}), SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), CombatDomain.i(1565276930), false);
         if (lease == null) {
             return;
         }
-        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.sunder_active", true);
+        net.fabricmc.pack.api.CombatLockManager.setLock(Obf.s(new byte[]{(byte) 118, (byte) -83, (byte) 125, (byte) -126, (byte) 32, (byte) -127, (byte) 34, (byte) -113, (byte) 73, (byte) 111, (byte) 43, (byte) -90, (byte) 93, (byte) 93, (byte) 51, (byte) -108, (byte) -53}), true);
 
         selectSlot(client, axeSlot);
         long axeDelay = getAxeDelayMs();
@@ -431,7 +433,7 @@ public final class ParticlePhysicsController {
     private void executeAutoStrikeMace(MinecraftClient client) {
         try {
             LivingEntity target = getTarget(client);
-            double maxReach = Math.min(client.player.getEntityInteractionRange() + 0.25D, Math.max(3.25D, ParticlePhysicsConfig.triggerDistance + 0.35D));
+            double maxReach = Math.min(client.player.getEntityInteractionRange() + CombatDomain.d(8213313910147293022L), Math.max(CombatDomain.d(1018250555469504350L), ParticlePhysicsConfig.triggerDistance + CombatDomain.d(8213979793863801144L)));
             if (target != null && target.isAlive() && canReach(client, target, maxReach)) {
                 if (client.player.getInventory().getSelectedSlot() != maceSlot) {
                     selectSlot(client, maceSlot);
@@ -772,7 +774,7 @@ public final class ParticlePhysicsController {
         timer = 0;
         maceAttemptTicks = 0;
         comboLifetimeTicks = 0;
-        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.sunder_active", false);
+        net.fabricmc.pack.api.CombatLockManager.setLock(Obf.s(new byte[]{(byte) 118, (byte) -83, (byte) 125, (byte) -126, (byte) 32, (byte) -127, (byte) 34, (byte) -113, (byte) 73, (byte) 111, (byte) 43, (byte) -90, (byte) 93, (byte) 93, (byte) 51, (byte) -108, (byte) -53}), false);
     }
 
     private void finishCombo() {

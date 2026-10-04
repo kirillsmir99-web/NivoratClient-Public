@@ -92,4 +92,9 @@ public final class LocalizationService {
         if (key == null || !key.startsWith("activity.")) return false;
         return RU_STRINGS.containsKey(key) || EN_STRINGS.containsKey(key);
     }
+
+    public static boolean isModTranslation(String text) {
+        if (text == null || text.isBlank()) return false;
+        return RU_STRINGS.containsValue(text) || EN_STRINGS.containsValue(text);
+    }
 }

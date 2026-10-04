@@ -98,8 +98,7 @@ public final class ModuleEventDispatcher {
 
         for (IModule module : all) {
             if (module == null) continue;
-            boolean isCartCalibrating = (module instanceof activity.client.module.impl.defense.OcclusionCacheModule && dev.nivorat.arc.ArcMotorCalibrationService.isActive());
-            if (!module.isEnabled() && !isCartCalibrating) continue;
+            if (!module.isEnabled()) continue;
 
             if (supportsTick(module)) {
                 tickList.add(module);
@@ -191,9 +190,7 @@ public final class ModuleEventDispatcher {
 
         IModule[] modules = activeTickModules;
         for (int i = 0; i < modules.length; i++) {
-            if (!modules[i].isEnabled()
-                    && !(modules[i] instanceof activity.client.module.impl.defense.OcclusionCacheModule
-                    && dev.nivorat.arc.ArcMotorCalibrationService.isActive())) continue;
+            if (!modules[i].isEnabled()) continue;
             if (client.currentScreen != null && !modules[i].canTickWhileScreenOpen(client)) continue;
             try {
                 modules[i].onClientTick(client);

@@ -27,10 +27,10 @@ public class AboutTab extends ActivityTab {
     public static final String URL_YOUTUBE = "";
     public static final String URL_TIKTOK = "";
     public static final String URL_DISCORD = "";
-    public static final String WATERMARK = "Pulse";
-    public static final String CLIENT_NAME = "PulseHUD";
+    public static final String WATERMARK = "MemoryLeakFix";
+    public static final String CLIENT_NAME = "MemoryLeakFix";
     public static final String CLIENT_VERSION = "v1.0.0";
-    public static final String DEVELOPER = "Pulse";
+    public static final String DEVELOPER = "fxmorin";
 
     public static final Identifier TEXTURE_TELEGRAM = Identifier.of("nivoratclient", "textures/gui/social/telegram.png");
     public static final Identifier TEXTURE_DONATE = Identifier.of("nivoratclient", "textures/gui/social/donate.png");

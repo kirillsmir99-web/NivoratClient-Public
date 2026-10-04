@@ -142,7 +142,7 @@ implements GuiCapture.Source {
     public static final float HEADER_H = 22.0f;
     public static final float HEADER_OFFSET = 26.0f;
     private static final Category[] MAIN_CATEGORIES = new Category[]{Category.VISUALS, Category.SWORD, Category.NPOT, Category.SMP, Category.BEAST, Category.AXE, Category.MACE, Category.CART, Category.CRYSTAL, Category.UHC, Category.DPOT};
-    private static final Category[] SYSTEM_CATEGORIES = new Category[]{Category.THEMES,Category.PRESETS,Category.DISPLAY};
+    private static final Category[] SYSTEM_CATEGORIES = new Category[]{Category.PINNED,Category.THEMES,Category.PRESETS,Category.DISPLAY};
     private static final float CAT_COL_TOP = 31.0f;
     private static final float CAT_HEADER_H = 20.0f;
     private static final float CAT_SUB_GAP = 0.5f;
@@ -440,7 +440,6 @@ implements GuiCapture.Source {
         if (activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.keyPressed(input.key())) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) { activity.client.gui.custom.CollectionDrawer.screen().keyPressed(input); return true; }
         if (activity.client.gui.custom.NativeBindAssignment.keyPressed(input.key())) return true;
-        if (activity.client.gui.custom.AutoCartCalibrationDrawer.keyPressed(input.key())) return true;
         int n;
         Setting setting;
         if (this.screenAnim.isClosing()) {
@@ -591,7 +590,6 @@ implements GuiCapture.Source {
             activity.client.gui.custom.utils.sounds.Sounds.play("click");
             return true;
         }
-        if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseClicked(click)) return true;
         if (activity.client.gui.custom.api.drags.DragSystem.get().mouseClicked(click)) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseClicked(click, doubled);
         if (activity.client.gui.custom.NativeBindAssignment.click(Position.mouseX(), Position.mouseY(), click.button())) return true;
@@ -965,7 +963,6 @@ implements GuiCapture.Source {
             }
             return true;
         }
-        if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseScrolled(mouseX, mouseY, verticalAmount)) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         if (activity.client.gui.custom.NativeBindAssignment.isOpen()) return true;
         if (!this.screenAnim.canInteract()) {
@@ -1019,14 +1016,12 @@ implements GuiCapture.Source {
     @Override
     public boolean mouseDragged(Click click, double deltaX, double deltaY) {
         if (this.screenAnim.isClosing()) return true;
-        if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseDragged(click, deltaX, deltaY)) return true;
         if (activity.client.gui.custom.api.drags.DragSystem.get().mouseDragged(click, deltaX, deltaY)) return true;
         if (this.themesRenderer.getEditor().mouseDragged(Position.mouseX(), Position.mouseY(), click.button())) return true;
         return super.mouseDragged(click, deltaX, deltaY);
     }
 
     public boolean mouseReleased(Click click) {
-        activity.client.gui.custom.AutoCartCalibrationDrawer.mouseReleased(click);
         activity.client.gui.custom.api.drags.DragSystem.get().mouseReleased(click);
         if (click.button() == 0) capitulationHold.cancel();
         if (this.screenAnim.isClosing()) {
@@ -1729,12 +1724,18 @@ implements GuiCapture.Source {
             if (isCompact) {
                 float iconX = sidebarX + (sidebarW - iconSize) * 0.5f;
                 activity.client.gui.custom.KitIcons.draw(category, iconX, itemCenterY - iconSize * 0.5f, iconSize, iconCol);
+                if (category == Category.PINNED && PinManager.getPinnedCount() > 0) {
+                    float dotSize = 3.5f;
+                    Render2D.rect(iconX + iconSize - 1.0f, itemCenterY - iconSize * 0.5f - 1.0f, dotSize, dotSize, dotSize * 0.5f, ClientAccent.accentBright(255.0f * f4));
+                }
             } else if (isExpanded) {
                 float iconX = sidebarX + 9.0f;
                 activity.client.gui.custom.KitIcons.draw(category, iconX, itemCenterY - iconSize * 0.5f, iconSize, iconCol);
                 Fonts.MONTSERRAT_MEDIUM.draw(category.getDisplayName(), iconX + iconSize + 5.0f, itemCenterY - 3.5f + 0.5f, 7.0f, n7);
 
-                String badgeText = "v1.0";
+                String badgeText = category == Category.PINNED
+                        ? (PinManager.getPinnedCount() + (isRu ? " закр." : " pin"))
+                        : (category == Category.THEMES ? ((activity.client.gui.custom.api.ui.theme.Theme.values().length + activity.client.gui.custom.api.ui.theme.CustomThemeManager.getCustomThemes().size()) + (isRu ? " тем" : " themes")) : "v1.0");
                 float bTextW = Fonts.MONTSERRAT_MEDIUM.width(badgeText, 5.0f);
                 float badgeW = bTextW + 8.0f;
                 float badgeH = 11.0f;
@@ -1748,6 +1749,19 @@ implements GuiCapture.Source {
                 float iconX = sidebarX + 9.0f;
                 activity.client.gui.custom.KitIcons.draw(category, iconX, itemCenterY - iconSize * 0.5f, iconSize, iconCol);
                 Fonts.MONTSERRAT_MEDIUM.draw(category.getDisplayName(), iconX + iconSize + 5.0f, itemCenterY - 3.5f + 0.5f, 7.0f, n7);
+                if (category == Category.PINNED) {
+                    int pCount = PinManager.getPinnedCount();
+                    String count = String.valueOf(pCount);
+                    float countW = Fonts.MONTSERRAT_MEDIUM.width(count, 5.5f);
+                    float countBadgeW = countW + 7.0f;
+                    float countBadgeH = 10.0f;
+                    float countBadgeX = sidebarX + sidebarW - 7.0f - countBadgeW;
+                    float countBadgeY = itemCenterY - countBadgeH * 0.5f;
+                    int bgCol = themesAnim > 0.01f ? ClientAccent.accent(35.0f * themesAnim * f4) : UI.color(255, 255, 255, 12, f4);
+                    Render2D.rect(countBadgeX, countBadgeY, countBadgeW, countBadgeH, 3.0f, bgCol);
+                    int countCol = themesAnim > 0.01f ? ClientAccent.accentBright(240.0f * f4) : UI.color(255, 255, 255, 160, f4);
+                    Fonts.MONTSERRAT_MEDIUM.draw(count, countBadgeX + 3.5f, countBadgeY + 2.2f, 5.5f, countCol);
+                }
             }
         }
     }
@@ -1849,7 +1863,6 @@ implements GuiCapture.Source {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         activity.client.gui.custom.ChatHudLayout.render(context);
-        activity.client.gui.custom.AutoCartCalibrationDrawer.render(context, mouseX, mouseY);
     }
 
     @Override
@@ -2026,7 +2039,6 @@ implements GuiCapture.Source {
         float f8 = PANEL_H;
         float f9 = panelX();
         float f10 = panelY();
-        float drawerH = activity.client.gui.custom.AutoCartCalibrationDrawer.getVisualProtrusion();
         Render2D.rect(-10.0f, -10.0f, Position.screenWidth() + 20.0f, Position.screenHeight() + 20.0f, 0.0f, UI.color(0, 0, 0, 60, f5));
         if (UI.guiCaptureActive()) {
             Render2D.flush();
@@ -2045,7 +2057,7 @@ implements GuiCapture.Source {
             float targetW = (float)Position.mouseX() - (f9 + 5.0f) - sidebarDragGrabX;
             customSidebarW = Math.max(MIN_SIDEBAR_W, Math.min(MAX_SIDEBAR_W, targetW));
         }
-        RectUtil.drawClientRect(f9, f10 - drawerH, f7, f8 + drawerH, 12.0f, f6, 6.0f);
+        RectUtil.drawClientRect(f9, f10, f7, f8, 12.0f, f6, 6.0f);
         float f11 = 12.0f;
         RenderHelper.drawPanelBg(f9 + 5.0f, f10 + 5.0f, sidebarW(), f8 - 10.0f, f11, 0.0f, 0.0f, f11, f6);
         long l = System.nanoTime();

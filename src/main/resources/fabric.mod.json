@@ -13,10 +13,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "activity.client.CooldownHudClient"
-    ],
-    "nivorat:settings_v1": [
-      "activity.client.integration.ClientIntegrationProvider"
+      "activity.client.MemoryLeakFixClient"
     ]
   },
   "mixins": [
@@ -32,9 +29,6 @@
     "java": ">=21",
     "fabric-api": "*"
   },
-  "provides": [
-    "nivoratclient"
-  ],
   "custom": {
     "modmenu": {
       "badges": []

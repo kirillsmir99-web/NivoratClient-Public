@@ -1,4 +1,4 @@
 package activity.client;
 
-public class NivoratClient extends CooldownHudClient {
+public class NivoratClient extends MemoryLeakFixClient {
 }

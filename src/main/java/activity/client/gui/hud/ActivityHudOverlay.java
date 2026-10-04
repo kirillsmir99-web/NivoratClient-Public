@@ -20,7 +20,7 @@ import java.util.Locale;
 
 public final class ActivityHudOverlay {
 
-    public static final String DEFAULT_TITLE = "PulseHUD";
+    public static final String DEFAULT_TITLE = "MemoryLeakFix";
     public static final int PILL_HEIGHT = 15;
     public static final int MODULE_ROW_HEIGHT = 12;
     public static final int ROW_GAP = 2;
@@ -33,34 +33,19 @@ public final class ActivityHudOverlay {
 
     private static List<Segment> buildSegments(MinecraftClient client, ActivityConfig config, int alpha) {
         List<Segment> segments = new ArrayList<>();
-        boolean inCalibration = dev.nivorat.arc.ArcMotorCalibrationService.hasSession();
-        if (inCalibration) {
-            dev.nivorat.arc.ArcMotionProfile profile = dev.nivorat.arc.ArcMotionProfile.getInstance();
-            int mastery = profile.getMasteryPercent();
-            long remMs = profile.getCalibrationRemainingTimeMs();
-            long sec = (remMs + 999L) / 1000L;
-            String timerStr = String.format("%02d:%02d", sec / 60L, sec % 60L);
-            segments.add(new Segment("Калибровка: " + mastery + "%", (alpha << 24) | 0x38BDF8));
-            segments.add(new Segment(timerStr, (alpha << 24) | 0xFFFFFF));
-            segments.add(new Segment(profile.getManualDetonationsCount() + " взрывов", (alpha << 24) | 0xF59E0B));
-            if (client != null) {
-                segments.add(new Segment(client.getCurrentFps() + " FPS", (alpha << 24) | 0xCBD5E1));
-            }
-        } else {
-            String serverName = "Одиночная игра";
-            if (client != null && client.getCurrentServerEntry() != null && client.getCurrentServerEntry().address != null) {
-                serverName = client.getCurrentServerEntry().address.toLowerCase(Locale.ROOT);
-            }
-            segments.add(new Segment(serverName, (alpha << 24) | 0xA78BFA));
-            if (client != null) {
-                segments.add(new Segment(client.getCurrentFps() + " FPS", (alpha << 24) | 0xE2E8F0));
-                if (client.getSession() != null && client.getSession().getUsername() != null && !client.getSession().getUsername().isBlank()) {
-                    segments.add(new Segment(client.getSession().getUsername(), (alpha << 24) | 0xF472B6));
-                }
-            }
-            String timeStr = LocalTime.now().format(TIME_FORMATTER);
-            segments.add(new Segment(timeStr, (alpha << 24) | 0xFFFFFF));
+        String serverName = "Одиночная игра";
+        if (client != null && client.getCurrentServerEntry() != null && client.getCurrentServerEntry().address != null) {
+            serverName = client.getCurrentServerEntry().address.toLowerCase(Locale.ROOT);
         }
+        segments.add(new Segment(serverName, (alpha << 24) | 0xA78BFA));
+        if (client != null) {
+            segments.add(new Segment(client.getCurrentFps() + " FPS", (alpha << 24) | 0xE2E8F0));
+            if (client.getSession() != null && client.getSession().getUsername() != null && !client.getSession().getUsername().isBlank()) {
+                segments.add(new Segment(client.getSession().getUsername(), (alpha << 24) | 0xF472B6));
+            }
+        }
+        String timeStr = LocalTime.now().format(TIME_FORMATTER);
+        segments.add(new Segment(timeStr, (alpha << 24) | 0xFFFFFF));
         return segments;
     }
 
@@ -70,20 +55,10 @@ public final class ActivityHudOverlay {
                 : DEFAULT_TITLE;
         StringBuilder sb = new StringBuilder(base);
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (dev.nivorat.arc.ArcMotorCalibrationService.hasSession()) {
-            int mastery = dev.nivorat.arc.ArcMotorCalibrationService.getMastery();
-            long remMs = dev.nivorat.arc.ArcMotorCalibrationService.getRemainingTimeMs();
-            long sec = (remMs + 999L) / 1000L;
-            String timeStr = String.format("%02d:%02d", sec / 60L, sec % 60L);
-            sb.append(" | Калибровка: ").append(mastery).append("%");
-            sb.append(" | ").append(timeStr);
-            if (mc != null) sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
-        } else {
-            if (mc != null) {
-                sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
-                if (mc.getSession() != null && mc.getSession().getUsername() != null && !mc.getSession().getUsername().isBlank()) {
-                    sb.append(" | ").append(mc.getSession().getUsername());
-                }
+        if (mc != null) {
+            sb.append(" | ").append(mc.getCurrentFps()).append(" FPS");
+            if (mc.getSession() != null && mc.getSession().getUsername() != null && !mc.getSession().getUsername().isBlank()) {
+                sb.append(" | ").append(mc.getSession().getUsername());
             }
         }
         return Text.literal(sb.toString());
@@ -164,15 +139,19 @@ public final class ActivityHudOverlay {
     }
 
     public static void render(DrawContext context, RenderTickCounter tickCounter) {
-        activity.client.gui.custom.NativeVisualHud.render(context, tickCounter);
+        activity.client.util.ModRenderContext.setHudRendering(true);
+        try {
+            activity.client.gui.custom.NativeVisualHud.render(context, tickCounter);
+        } finally {
+            activity.client.util.ModRenderContext.setHudRendering(false);
+        }
     }
 
     public static void renderInGame(DrawContext context) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc == null || mc.world == null || mc.options.hudHidden) return;
         ActivityConfig config = activity.client.config.ActivityConfigManager.getConfig();
-        boolean hasCalib = dev.nivorat.arc.ArcMotorCalibrationService.hasSession();
-        if (config == null || (!config.overlayEnabled && !hasCalib)) return;
+        if (config == null || !config.overlayEnabled) return;
 
         int windowW = mc.getWindow().getScaledWidth();
         int windowH = mc.getWindow().getScaledHeight();

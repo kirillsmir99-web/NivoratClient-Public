@@ -31,7 +31,6 @@ public final class CapitulationManager {
             try { module.onSuspend(client); }
             catch (Throwable error) { activity.client.module.api.ModuleDiagnostics.report(module.getId(), "stop", error); }
         }
-        dev.nivorat.arc.ArcMotorCalibrationService.stop();
         net.fabricmc.pack.api.CombatLockManager.reset();
         net.fabricmc.pack.api.SafeSlotManager.reset();
         dev.raycast.async.AsyncSilentRot.forceStop();

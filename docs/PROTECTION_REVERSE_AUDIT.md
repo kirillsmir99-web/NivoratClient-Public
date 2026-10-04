@@ -41,39 +41,29 @@ public class AutoCartController {
 
 #### Состояние в защищенной сборке (`NivoratClient-Protected.jar`):
 ```java
-// Декомпиляция через CFR (Tier 3 MAX IP + Control Flow + String Encryption):
-package dev.nivorat.arc; // Или агрессивный subpackage renaming
+// Декомпиляция через CFR (ProGuard 7.9.1 + Domain Decoders + Obf.s String Encryption):
+package activity.client.internal;
 
-public class a {
-    private final b \u0061;
-    private final c \u0062;
-    private double \u0063;
-    private double \u0064;
+public class aI {
+    private static final int a = ArcDomain.i(1245457229);
+    private static final double b = ArcDomain.d(6080668990927871120L);
+    private static final double c = ArcDomain.d(6063208178848744100L);
+    private final aJ d;
+    private final aK e;
+    private double f;
+    private double g;
 
-    /* ERROR: Unable to fully analyze control flow */
-    public void \u0061(Object var1, double var2) {
-        int var4 = 0x7F2A;
-        while (true) {
-            switch (var4 ^ 0x7F00) {
-                case 42:
-                    double var5 = this.\u0061.\u0061(this.\u0064, var2);
-                    var4 = 0x7F3B;
-                    break;
-                case 59:
-                    this.\u0062.\u0061(var5, this.\u0063);
-                    return;
-                default:
-                    throw new IllegalStateException(z.a("e8F1...")); // Зашифрованная строка ошибки
-            }
-        }
+    public void a(Object entity, double curvature) {
+        double optimal = this.d.a(this.g, curvature);
+        this.e.a(optimal, this.f);
     }
 }
 ```
 *Результат защиты*:
-- Все семантические имена классов (`AutoCartController`, `ArcMotionProfile`, `ArcMotorAnalysisEngine`) заменены на короткие нечитаемые символы.
-- Имена методов, полей и локальных переменных стерты (`LocalVariableTable` удалена).
-- Тело метода развернуто в switch-based диспетчерский конечный автомат с непрозрачными предикатами (Opaque Predicates).
-- Декомпиляторы выдают варнинги `Unable to fully analyze control flow` или генерируют невалидный Java-код, который невозможно скомпилировать без ручного ассемблирования байткода.
+- Все семантические имена классов (`AutoCartController`, `ArcMotionProfile`, `ArcMotorAnalysisEngine`) свернуты в короткие идентификаторы `aI`, `aJ`, `aK`.
+- Имена методов, полей и локальных переменных стерты (`LocalVariableTable` и `SourceFile` удалены).
+- Числовые константы (гравитация, сопротивление, дистанции, пороги) декодируются через независимые доменные маски без единого открытого IEEE-754 литерала в Constant Pool.
+- Чувствительные строки модулей и фаз зашифрованы через LCG PRNG XOR (`Obf.s(...)`).
 
 ---
 
@@ -81,10 +71,10 @@ public class a {
 
 | Критерий | Базовый `remapJar` | Защищенный `Protected.jar` |
 |---|---|---|
-| **Имена классов** | `MaceCombatHelper`, `RaycastPredictor` | `dev.mace.a`, `dev.raycast.b` |
+| **Имена классов** | `MaceCombatHelper`, `RaycastPredictor` | `activity.client.internal.as`, `activity.client.internal.aU` |
 | **Имена математических методов** | `predictIntercept()`, `findSafeSlot()` | `a()`, `b()` |
 | **Параметры и стек** | `double targetYaw, float pingDelay` | `double d1, float f1` (LVT удалена) |
-| **Константы и эвристики** | Открытые `String` и `double` значения | Зашифрованы через динамический пул |
+| **Константы и эвристики** | Открытые `String` и `double` значения | Замаскированы через `MaceDomain`, `RaycastDomain`, `CombatDomain` |
 | **Сложность копирования** | 1 клик мышью (Ctrl+C / Ctrl+V) | Требуется трудоемкий реверс-инжиниринг в IDA Pro / Ghidra / Recaf |
 
 ---
@@ -118,8 +108,8 @@ public class a {
 
 | Тип строки | Базовый `remapJar` | Защищенный `Protected.jar` |
 |---|---|---|
-| **Служебные строки AutoCart** | `"Calibrating motor curve..."` в открытом виде | Зашифровано в байткод DashO |
-| **Имена приватных настроек** | `"Internal PID factor"` в открытом виде | Зашифровано в байткод DashO |
+| **Служебные строки AutoCart** | `"Calibrating motor curve..."` в открытом виде | Зашифровано через `Obf.s(...)` |
+| **Имена приватных настроек** | `"Internal PID factor"` в открытом виде | Зашифровано через `Obf.s(...)` |
 | **Пути к Fabric Entrypoints** | `activity.client.CooldownHudClient` | **Сохранено открытым (ABI requirement)** |
 | **Имена Mixin-классов** | `activity.client.mixin.client.GameRendererMixin` | **Сохранено открытым (Mixin requirement)** |
 | **Пути к ресурсам** | `assets/nivorat/shaders/core/msdf_text.fsh` | **Сохранено открытым (Minecraft ResourceManager)** |

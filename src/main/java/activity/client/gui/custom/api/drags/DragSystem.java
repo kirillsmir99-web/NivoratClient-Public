@@ -113,8 +113,7 @@ public final class DragSystem {
             float py = UI.panelY();
             float pw = UI.panelW();
             float ph = UI.PANEL_H;
-            float drawerH = activity.client.gui.custom.AutoCartCalibrationDrawer.getVisualProtrusion();
-            if (mx >= px && mx <= px + pw && my >= py - drawerH && my <= py + ph) {
+            if (mx >= px && mx <= px + pw && my >= py && my <= py + ph) {
                 return false;
             }
         }

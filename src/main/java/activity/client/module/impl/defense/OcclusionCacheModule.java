@@ -36,30 +36,30 @@ public class OcclusionCacheModule extends NivoratModule {
 
         java.util.function.BooleanSupplier isClassic = () -> {
             ActivityConfig c = ActivityConfigManager.getConfig();
-            return c == null || !"beta_neural".equalsIgnoreCase(c.autoCartMode);
+            return c == null || !"adaptive".equalsIgnoreCase(c.autoCartMode);
         };
-        java.util.function.BooleanSupplier isBetaNeural = () -> {
+        java.util.function.BooleanSupplier isAdaptive = () -> {
             ActivityConfig c = ActivityConfigManager.getConfig();
-            return c != null && "beta_neural".equalsIgnoreCase(c.autoCartMode);
+            return c != null && "adaptive".equalsIgnoreCase(c.autoCartMode);
         };
         java.util.concurrent.atomic.AtomicBoolean expertSettingsExpanded = new java.util.concurrent.atomic.AtomicBoolean(false);
         java.util.function.BooleanSupplier isProfileSettingVisible = () -> isClassic.getAsBoolean() || expertSettingsExpanded.get();
 
         registerEnum("cart_mode", Text.translatable("activity.setting.defense.cart_mode"),
                 Text.translatable("activity.setting.defense.cart_mode.desc"), SettingGroup.GENERAL,
-                List.of("classic", "beta_neural"), "classic",
+                List.of("classic", "adaptive"), "classic",
                 opt -> Text.translatable("activity.dropdown.cart_mode." + opt),
                 opt -> Text.translatable("activity.dropdown.cart_mode." + opt + ".desc"),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null && "beta_neural".equalsIgnoreCase(c.autoCartMode)) {
+                    if (c != null && "adaptive".equalsIgnoreCase(c.autoCartMode)) {
                         c.autoCartMode = "classic";
                         ActivityConfigManager.markDirty();
                     }
                     return c != null && c.autoCartMode != null ? c.autoCartMode : "classic";
                 },
                 val -> {
-                    if ("beta_neural".equalsIgnoreCase(val)) {
+                    if ("adaptive".equalsIgnoreCase(val)) {
                         activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.notify(
                             activity.client.i18n.LocalizationService.isRussianPreferred()
                                 ? "Данная функция находится в разработке"
@@ -299,7 +299,7 @@ public class OcclusionCacheModule extends NivoratModule {
                 false,
                 expertSettingsExpanded::get,
                 expertSettingsExpanded::set
-        ).visibleWhen(isBetaNeural);
+        ).visibleWhen(isAdaptive);
 
         java.util.function.Supplier<String> getCameraModeVal = () -> {
             ActivityConfig c = ActivityConfigManager.getConfig();
@@ -533,30 +533,19 @@ public class OcclusionCacheModule extends NivoratModule {
                         ActivityConfigManager.markDirty();
                     }
                 }
-        ).visibleWhen(isBetaNeural);
-
-        registerAction("motor_calibration", Text.translatable("activity.setting.defense.motor_calibration"),
-                Text.translatable("activity.setting.defense.motor_calibration.desc"), SettingGroup.ADVANCED,
-                () -> {
-                    activity.client.gui.custom.AutoCartCalibrationDrawer.toggle();
-                    MinecraftClient mc = MinecraftClient.getInstance();
-                    if (mc != null && mc.currentScreen != activity.client.gui.custom.api.ui.UI.INSTANCE) {
-                        mc.send(() -> mc.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE));
-                    }
-                }
-        ).visibleWhen(isBetaNeural);
+        ).visibleWhen(isAdaptive);
 
         registerBoolean("adaptive_learning", Text.translatable("activity.setting.defense.adaptive_learning"),
                 Text.translatable("activity.setting.defense.adaptive_learning.desc"), SettingGroup.ADVANCED,
                 true, () -> dev.nivorat.arc.ArcMotionProfile.getInstance().isAdaptiveLearning(),
                 value -> dev.nivorat.arc.ArcMotionProfile.getInstance().setAdaptiveLearning(value)
-        ).visibleWhen(isBetaNeural);
+        ).visibleWhen(isAdaptive);
     }
 
     private void syncControllerConfig(ActivityConfig c) {
         if (c == null) return;
-        boolean isNeural = "beta_neural".equalsIgnoreCase(c.autoCartMode);
-        MorrowConfig.cartMode = isNeural ? MorrowConfig.MODE_BETA_NEURAL : MorrowConfig.MODE_CLASSIC;
+        boolean isAdaptive = "adaptive".equalsIgnoreCase(c.autoCartMode);
+        MorrowConfig.cartMode = isAdaptive ? MorrowConfig.MODE_ADAPTIVE : MorrowConfig.MODE_CLASSIC;
         MorrowConfig.placementChance = (int) Math.round(c.autoCartPlacementChance);
         MorrowConfig.maxDistance = c.autoCartMaxDistance;
         MorrowConfig.minDelayMs = (int) Math.round(c.autoCartMinDelayMs);
@@ -568,7 +557,7 @@ public class OcclusionCacheModule extends NivoratModule {
         MorrowConfig.legitMode = c.autoCartLegitMode;
         MorrowConfig.autonomousPlacement = c.autoCartAutonomousPlacement;
 
-        if (isNeural) {
+        if (isAdaptive) {
             MorrowConfig.adaptiveAim = c.autoCartAdaptiveAim;
             MorrowConfig.cameraMode = c.autoCartCameraMode != null ? c.autoCartCameraMode : "auto";
             MorrowConfig.autoCamera = c.autoCartAutoCamera && !"off".equalsIgnoreCase(MorrowConfig.cameraMode);
@@ -628,7 +617,7 @@ public class OcclusionCacheModule extends NivoratModule {
 
     @Override
     public void onTick(MinecraftClient client) {
-        if (isEnabled() || dev.nivorat.arc.ArcMotorCalibrationService.isActive()) {
+        if (isEnabled()) {
             controller.tick(client);
         }
     }
@@ -640,9 +629,9 @@ public class OcclusionCacheModule extends NivoratModule {
     public void activateLearnedPreset() {
         ActivityConfig c = ActivityConfigManager.getConfig();
         if (c != null) {
-            c.autoCartMode = "beta_neural";
+            c.autoCartMode = "adaptive";
             c.autoCartPreset = "learned";
-            updateEnumSetting("cart_mode", "beta_neural");
+            updateEnumSetting("cart_mode", "adaptive");
             dev.nivorat.arc.ArcMotionProfile prof = dev.nivorat.arc.ArcMotionProfile.getInstance();
             double minD = prof.getLearnedMinDelayMs();
             double maxD = prof.getLearnedMaxDelayMs();

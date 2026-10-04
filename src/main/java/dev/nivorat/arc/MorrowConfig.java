@@ -18,7 +18,7 @@ public final class MorrowConfig {
     public static final Path CONFIG_PATH = safePath("autocart.properties");
 
     public static final String MODE_CLASSIC = "classic";
-    public static final String MODE_BETA_NEURAL = "beta_neural";
+    public static final String MODE_ADAPTIVE = "adaptive";
     public static String cartMode = MODE_CLASSIC;
 
     public static int placementChance = dev.nivorat.arc.internal.ConfigDomain.i(523123992);
@@ -41,7 +41,6 @@ public final class MorrowConfig {
     public static boolean adaptiveAim = true;
     public static boolean autonomousPlacement = true;
     public static boolean debugLogs = false;
-    public static int calibrationMinutes = 5;
 
     public static final int PRESET_FAST = 0;
     public static final int PRESET_MEDIUM = 1;

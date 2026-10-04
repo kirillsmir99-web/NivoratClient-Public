@@ -264,7 +264,7 @@ public final class LocalPresets {
         List<String> result = new ArrayList<>();
         JsonObject current = PresetSerializer.extractSettingsSnapshot(ActivityConfigManager.getConfig().copy());
         for (var section : preview.sections().entrySet()) {
-            if (section.getKey().equals("cart_profile")) { result.add("Автокарт: сохранённый профиль калибровки будет заменён"); continue; }
+            if (section.getKey().equals("cart_profile")) { result.add("Автокарт: сохранённый профиль параметров будет заменён"); continue; }
             if (section.getKey().equals("themes")) { result.add("Темы: " + section.getValue().getAsJsonObject().getAsJsonArray("custom").size() + " пользовательских; выбранная тема и закрепления"); continue; }
             JsonObject before = switch (section.getKey()) {
                 case "modules" -> filter(current, Part.MODULES);

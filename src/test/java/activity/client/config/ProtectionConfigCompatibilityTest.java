@@ -12,11 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Phase 22 - Config Compatibility Regression Tests.
- * Ensures that Gson serialization retains stable external keys across
- * protected builds and refuses to mangle property keys into obfuscated symbols.
- */
 public class ProtectionConfigCompatibilityTest {
 
     private static final Gson GSON = new GsonBuilder()
@@ -25,7 +20,6 @@ public class ProtectionConfigCompatibilityTest {
             .serializeSpecialFloatingPointValues()
             .create();
 
-    // Stable legacy fixture representing serialized configuration from older/unprotected client versions
     private static final String LEGACY_UNPROTECTED_FIXTURE = """
     {
       "configVersion": 2,
@@ -111,7 +105,6 @@ public class ProtectionConfigCompatibilityTest {
         String json = GSON.toJson(config);
         JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
 
-        // Verify key property names are NOT mangled to a, b, c
         assertTrue(obj.has("configVersion"), "JSON must retain configVersion key");
         assertTrue(obj.has("autoMaceEnabled"), "JSON must retain autoMaceEnabled key");
         assertTrue(obj.has("autoCartCameraSmoothness"), "JSON must retain autoCartCameraSmoothness key");
@@ -120,7 +113,6 @@ public class ProtectionConfigCompatibilityTest {
         assertTrue(obj.has("autoShieldbreakerDistance"), "JSON must retain autoShieldbreakerDistance key");
         assertTrue(obj.has("pinnedModules"), "JSON must retain pinnedModules key");
 
-        // Verify keybind nested serialization
         JsonObject keybindObj = obj.getAsJsonObject("autoMaceKeybind");
         assertNotNull(keybindObj);
         assertTrue(keybindObj.has("keyCode"), "Keybind must retain keyCode key");

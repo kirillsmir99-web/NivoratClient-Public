@@ -50,7 +50,6 @@ final class EcosystemSmoke {
         if (ticks == 44) UI.INSTANCE.mouseReleased(new Click(0, 0, new MouseInput(0, 0)));
         if (ticks == 55) {
             require(!CapitulationManager.isCapitulated(), "Short click deactivated the client");
-            dev.nivorat.arc.ArcMotorCalibrationService.start();
             TickBoundScheduler.runAfterTicks(200, () -> pendingAction.set(true));
             CombatLockManager.setLock("smoke.pending", true);
             press(client);
@@ -60,7 +59,6 @@ final class EcosystemSmoke {
             require(CapitulationManager.isCapitulated(), "Full hold did not deactivate: focus=" + client.isWindowFocused());
             require(!pendingAction.get(), "Pending action ran after stop");
             require(!CombatLockManager.isLocked(), "Stop retained combat lock");
-            require(!dev.nivorat.arc.ArcMotorCalibrationService.hasSession(), "Stop retained calibration");
             require(activity.client.module.api.ModuleEventDispatcher.getActiveTickModules().length == 0, "Stop retained active tick modules");
             require(!client.options.useKey.isPressed(), "Stop retained item use");
             require(client.currentScreen == null, "Stop retained menu");

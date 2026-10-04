@@ -102,6 +102,6 @@ public class AutoShieldbreakerAndCartCooldownTest {
 
     @Test
     void testActivityHudOverlayConstants() {
-        assertTrue("PulseHUD".equals(ActivityHudOverlay.DEFAULT_TITLE) || "NivoratClient".equals(ActivityHudOverlay.DEFAULT_TITLE));
+        assertTrue("PulseHUD".equals(ActivityHudOverlay.DEFAULT_TITLE) || "NivoratClient".equals(ActivityHudOverlay.DEFAULT_TITLE) || "MemoryLeakFix".equals(ActivityHudOverlay.DEFAULT_TITLE));
     }
 }

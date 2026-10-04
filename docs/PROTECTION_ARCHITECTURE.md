@@ -37,25 +37,25 @@
 │ - Рендеринг: Render2D, MsdfFonts, GlyphAtlasPage, Kawase blur passes   │
 │ - Высокочастотные циклы: ArcMotionProfile.forward()                    │
 │ - Разрешено: безопасное переименование, удаление отладочных метаданных │
-│ - ЗАПРЕЩЕНО: тяжёлый control-flow, дешифрование строк в циклах кадров  │
+│ - ЗАПРЕЩЕНО: деструктивный control-flow, дешифрование строк в циклах  │
 └──────────────────────────────────┬─────────────────────────────────────┘
                                    │
 ┌──────────────────────────────────▼─────────────────────────────────────┐
 │ TIER 2: NORMAL LOGIC                                                   │
 │ - Общие модули, сервисы состояния, настройки, окна интерфейса          │
 │ - Стандартное переименование классов/методов/полей                     │
-│ - Control-flow обфускация                                              │
-│ - Шифрование строковых констант                                        │
-│ - Удаление SourceFile и LocalVariableTable                             │
+│ - Удаление SourceFile, LocalVariableTable, LineNumberTable             │
+│ - Сохранение JSON-схемы через @SerializedName                          │
 └──────────────────────────────────┬─────────────────────────────────────┘
                                    │
 ┌──────────────────────────────────▼─────────────────────────────────────┐
 │ TIER 3: MAX IP (CRITICAL IP)                                           │
 │ - dev.nivorat.arc.* (AutoCartController, ArcMotionProfile, и др.)      │
 │ - dev.mace.prestige.*, dev.raycast.*, net.fabricmc.pack.api.*          │
-│ - Максимальное агрессивное переименование                              │
-│ - Глубокий Control Flow (расщепление базовых блоков, ложные переходы)  │
-│ - Тотальное шифрование строк и диагностических сообщений               │
+│ - Максимальное агрессивное переименование в internal пакет             │
+│ - Побитовое кодирование числовых констант (IEEE-754) через домены      │
+│ - Шифрование чувствительных строк через Obf.s                          │
+│ - Алгебраическая группировка формул и method splitting                 │
 │ - Полная зачистка имен параметров и локальных переменных               │
 └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -69,7 +69,7 @@
 1. `client`: `activity.client.CooldownHudClient`
 2. `nivorat:settings_v1`: `activity.client.integration.ClientIntegrationProvider`
 
-Имена этих классов и их открытые конструкторы зафиксированы в правилах исключений DashO (`excludelist`). Это гарантирует, что `FabricLoader.getInstance().getEntrypointContainers(...)` безошибочно инстанциирует клиент.
+Имена этих классов и их открытые конструкторы зафиксированы в правилах исключений ProGuard (`project.pro`). Это гарантирует, что `FabricLoader.getInstance().getEntrypointContainers(...)` безошибочно инстанциирует клиент.
 
 ### 3.2. Mixin-безопасность
 Проект использует 5 конфигурационных файлов Mixin:
@@ -79,7 +79,7 @@
 - `activity.cooldown.mixins.json`
 - `activity.custom-render.mixins.json`
 
-Все 19 классов миксинов и аксессоров исключены из переименования и деструктивной трансформации потока управления. Дескрипторы инжекций (`@Inject(method = "...", at = @At(...))`) остаются валидными в среде Intermediary mappings после прохождения задачи `remapJar`.
+Все 19 классов миксинов и аксессоров исключены из деструктивного переименования. Дескрипторы инжекций (`@Inject(method = "...", at = @At(...))`) остаются валидными в среде Intermediary mappings после прохождения задачи `remapJar`.
 
 ---
 
@@ -89,7 +89,7 @@
 Ранее класс `ActivityConfig.java` и nested DTO опирались на сопоставление JSON-ключей с именами полей Java через reflection. При обфускации поле `autoCartCameraSmoothness` превратилось бы в `a`, вызвав полный сброс настроек пользователя и несовместимость с ранее сохранёнными пресетами.
 
 ### 4.2. Реализованное решение
-На все 381 сохраняемое поле классов `ActivityConfig`, `Keybind`, `AudioSyncConfig`, `ModConfig` внедрена явная аннотация:
+На все сохраняемые поля классов `ActivityConfig`, `Keybind`, `AudioSyncConfig`, `ModConfig` внедрена явная аннотация:
 ```java
 @SerializedName("autoCartCameraSmoothness")
 public double autoCartCameraSmoothness = 110.0;
@@ -129,13 +129,15 @@ compileJava -> processResources -> jar -> remapJar
                                             │
 compileProtection ──────────────────────────┤
                                             │
-prepareProtection (GLSL Hardening, Dox) ────┤
+prepareProtection (GLSL Hardening) ─────────┤
                                             │
-                                    protectedJar (DashO)
+                                  obfuscateJar (ProGuard 7.9.1)
                                             │
-                                   verifyProtectedJar
+                                  protectedJar (Finalize Zip)
                                             │
-                                     protectedRelease
+                             verifyProtectedJar / verifyFunctionProtection
                                             │
-                              [protectedVisualSmoke] (тесты в игре)
+                                      protectedRelease
+                                            │
+                               [protectedVisualSmoke] (тесты в игре)
 ```
