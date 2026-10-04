@@ -1,7 +1,9 @@
 package dev.lighting;
 
+import dev.buffer.DamageForecast;
 import net.fabricmc.pack.api.GaussianTimingEngine;
 import net.fabricmc.pack.api.SafeSlotManager;
+import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.RespawnAnchorBlock;
@@ -23,12 +25,14 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.EnumSet;
 import java.util.Locale;
 
 public final class LightmapFilterController {
     private static final double REACH_SAFETY_MARGIN = 0.15D;
 
     private State state = State.IDLE;
+    private SlotArbiter.Lease lease = null;
     private int originalSlot = -1;
     private int glowSlot = -1;
     private boolean glowInOffhand = false;
@@ -105,6 +109,11 @@ public final class LightmapFilterController {
             return;
         }
 
+        if ((state != State.IDLE || doubleState != DoubleState.IDLE) && lease != null && !lease.isActive()) {
+            cancelState(client);
+            return;
+        }
+
         if ("double".equalsIgnoreCase(LightmapFilterConfig.mode)) {
             tickDoubleAnchor(client);
             return;
@@ -144,6 +153,9 @@ public final class LightmapFilterController {
                 if (!isRightClickPressed(client)) {
                     return;
                 }
+                if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_anchor")) {
+                    return;
+                }
                 if (now < doubleNextActionTime) {
                     return;
                 }
@@ -164,6 +176,12 @@ public final class LightmapFilterController {
 
                 BlockState hitState = client.world.getBlockState(hitPos);
                 if (hitState.isOf(Blocks.RESPAWN_ANCHOR)) {
+                    if (lease == null || !lease.isActive()) {
+                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        if (lease == null) {
+                            return;
+                        }
+                    }
                     doubleOriginalSlot = player.getInventory().getSelectedSlot();
                     recordAnchorOriginalSlot(doubleOriginalSlot);
                     doubleTargetPos = hitPos;
@@ -181,13 +199,13 @@ public final class LightmapFilterController {
                             return;
                         }
                         if (!doubleGlowInOffhand && player.getInventory().getSelectedSlot() != doubleGlowSlot) {
-                            SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                            selectSlot(client, doubleGlowSlot);
                         }
                         interactDoubleGlowstone(client, now);
                     } else if (LightmapFilterConfig.doubleAutoExplode) {
                         int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
                         if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
-                            SafeSlotManager.selectSlot(client, detSlot);
+                            selectSlot(client, detSlot);
                         }
                         interactDoubleDetonate(client, now);
                     }
@@ -208,6 +226,12 @@ public final class LightmapFilterController {
                         return;
                     }
 
+                    if (lease == null || !lease.isActive()) {
+                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        if (lease == null) {
+                            return;
+                        }
+                    }
                     doubleOriginalSlot = player.getInventory().getSelectedSlot();
                     recordAnchorOriginalSlot(doubleOriginalSlot);
                     doubleTargetPos = placePos;
@@ -220,7 +244,7 @@ public final class LightmapFilterController {
                     }
 
                     if (player.getInventory().getSelectedSlot() != anchorSlot) {
-                        SafeSlotManager.selectSlot(client, anchorSlot);
+                        selectSlot(client, anchorSlot);
                     }
 
                     client.interactionManager.interactBlock(player, Hand.MAIN_HAND, hit);
@@ -251,14 +275,14 @@ public final class LightmapFilterController {
                             return;
                         }
                         if (player.getInventory().getSelectedSlot() != doubleGlowSlot) {
-                            SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                            selectSlot(client, doubleGlowSlot);
                         }
                     }
                     interactDoubleGlowstone(client, now);
                 } else if (LightmapFilterConfig.doubleAutoExplode) {
                     int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
                     if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
-                        SafeSlotManager.selectSlot(client, detSlot);
+                        selectSlot(client, detSlot);
                     }
                     interactDoubleDetonate(client, now);
                 } else {
@@ -274,7 +298,7 @@ public final class LightmapFilterController {
                     return;
                 }
                 if (!doubleGlowInOffhand && player.getInventory().getSelectedSlot() != doubleGlowSlot) {
-                    SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                    selectSlot(client, doubleGlowSlot);
                     return;
                 }
                 interactDoubleGlowstone(client, now);
@@ -294,7 +318,7 @@ public final class LightmapFilterController {
                     if (LightmapFilterConfig.doubleAutoExplode) {
                         int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
                         if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
-                            SafeSlotManager.selectSlot(client, detSlot);
+                            selectSlot(client, detSlot);
                         }
                         doubleState = DoubleState.WAITING_DETONATE;
                         doubleTimer = 10;
@@ -337,7 +361,7 @@ public final class LightmapFilterController {
                     return;
                 }
                 if (player.getInventory().getSelectedSlot() != anchorSlot) {
-                    SafeSlotManager.selectSlot(client, anchorSlot);
+                    selectSlot(client, anchorSlot);
                 }
                 BlockPos supportPos = doubleTargetPos.down();
                 BlockHitResult placeHit = new BlockHitResult(
@@ -373,7 +397,7 @@ public final class LightmapFilterController {
                         return;
                     }
                     if (player.getInventory().getSelectedSlot() != doubleGlowSlot) {
-                        SafeSlotManager.selectSlot(client, doubleGlowSlot);
+                        selectSlot(client, doubleGlowSlot);
                     }
                 }
                 interactDoubleGlowstone(client, now);
@@ -393,7 +417,7 @@ public final class LightmapFilterController {
                     if (LightmapFilterConfig.doubleAutoExplode) {
                         int detSlot = resolveDetonateSlot(player, doubleOriginalSlot, doubleGlowSlot);
                         if (detSlot >= 0 && player.getInventory().getSelectedSlot() != detSlot) {
-                            SafeSlotManager.selectSlot(client, detSlot);
+                            selectSlot(client, detSlot);
                         }
                         doubleState = DoubleState.WAITING_CHAIN_DETONATE;
                         doubleTimer = 10;
@@ -449,7 +473,7 @@ public final class LightmapFilterController {
                 }
                 if (!glowInOffhand) {
                     if (client.player.getInventory().getSelectedSlot() != glowSlot) {
-                        SafeSlotManager.selectSlot(client, glowSlot);
+                        selectSlot(client, glowSlot);
                     }
                 }
                 interactGlowstone(client, now);
@@ -469,7 +493,7 @@ public final class LightmapFilterController {
                     return;
                 }
                 glowSlot = foundGlow;
-                SafeSlotManager.selectSlot(client, glowSlot);
+                selectSlot(client, glowSlot);
                 interactGlowstone(client, now);
             }
             case INTERACT_GLOW -> {
@@ -478,7 +502,7 @@ public final class LightmapFilterController {
                     return;
                 }
                 if (!glowInOffhand && client.player.getInventory().getSelectedSlot() != glowSlot) {
-                    SafeSlotManager.selectSlot(client, glowSlot);
+                    selectSlot(client, glowSlot);
                     return;
                 }
                 if (timer > 0) {
@@ -547,7 +571,7 @@ public final class LightmapFilterController {
                     return;
                 }
                 if (client.player.getInventory().getSelectedSlot() != detSlot) {
-                    SafeSlotManager.selectSlot(client, detSlot);
+                    selectSlot(client, detSlot);
                 }
                 interactDetonate(client, now);
             }
@@ -562,7 +586,7 @@ public final class LightmapFilterController {
                     return;
                 }
                 if (client.player.getInventory().getSelectedSlot() != detSlot) {
-                    SafeSlotManager.selectSlot(client, detSlot);
+                    selectSlot(client, detSlot);
                 }
                 interactDetonate(client, now);
             }
@@ -590,13 +614,13 @@ public final class LightmapFilterController {
                     return;
                 }
                 if (LightmapFilterConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
-                    SafeSlotManager.selectSlot(client, originalSlot);
+                    selectSlot(client, originalSlot);
                 }
                 reset(client);
             }
             case RETURN_SLOT -> {
                 if (LightmapFilterConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
-                    SafeSlotManager.selectSlot(client, originalSlot);
+                    selectSlot(client, originalSlot);
                 }
                 reset(client);
             }
@@ -653,11 +677,20 @@ public final class LightmapFilterController {
                     if (isShiftPressed(client)) {
                         return;
                     }
+                    if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_anchor")) {
+                        return;
+                    }
                     glowInOffhand = client.player.getOffHandStack().isOf(Items.GLOWSTONE);
                     glowSlot = -1;
                     if (!glowInOffhand) {
                         glowSlot = findGlowstoneSlot(client.player);
                         if (glowSlot < 0) {
+                            return;
+                        }
+                    }
+                    if (lease == null || !lease.isActive()) {
+                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        if (lease == null) {
                             return;
                         }
                     }
@@ -671,6 +704,15 @@ public final class LightmapFilterController {
                     timer = Math.max(1, LightmapFilterConfig.chargeDelayTicks);
                     nextActionTime = now + getActionDelay(LightmapFilterConfig.chargeDelayTicks);
                 } else if (LightmapFilterConfig.autoExplode) {
+                    if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_anchor")) {
+                        return;
+                    }
+                    if (lease == null || !lease.isActive()) {
+                        lease = SlotArbiter.acquire("auto_anchor", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 50, false);
+                        if (lease == null) {
+                            return;
+                        }
+                    }
                     originalSlot = client.player.getInventory().getSelectedSlot();
                     recordAnchorOriginalSlot(originalSlot);
                     targetPos = pos;
@@ -682,6 +724,15 @@ public final class LightmapFilterController {
                     nextActionTime = now + getActionDelay(LightmapFilterConfig.explodeDelayTicks);
                 }
             }
+        }
+    }
+
+    private void selectSlot(MinecraftClient client, int slot) {
+        if (client == null || client.player == null || slot < 0 || slot >= 9) return;
+        if (lease != null && lease.isActive()) {
+            SlotArbiter.selectSlot(client, lease, slot);
+        } else {
+            SafeSlotManager.selectSlot(client, slot);
         }
     }
 
@@ -712,6 +763,7 @@ public final class LightmapFilterController {
 
     private void interactDetonate(MinecraftClient client, long now) {
         if (targetPos == null || client.world == null || client.interactionManager == null) return;
+        DamageForecast.publishIntent("auto_anchor", 12.0F, 5);
         BlockHitResult hitToUse = lastHit;
         if (hitToUse == null) {
             hitToUse = new BlockHitResult(
@@ -983,6 +1035,7 @@ public final class LightmapFilterController {
 
     private void interactDoubleDetonate(MinecraftClient client, long now) {
         if (doubleTargetPos == null || client.world == null || client.interactionManager == null) return;
+        DamageForecast.publishIntent("auto_anchor", 12.0F, 5);
         BlockHitResult hitToUse = doubleLastHit;
         if (hitToUse == null || !hitToUse.getBlockPos().equals(doubleTargetPos)) {
             hitToUse = new BlockHitResult(
@@ -1013,7 +1066,10 @@ public final class LightmapFilterController {
     }
 
     private void finishDoubleCycle(MinecraftClient client, long now) {
-        if (LightmapFilterConfig.autoReturn && doubleOriginalSlot >= 0 && doubleOriginalSlot < 9) {
+        if (lease != null) {
+            SlotArbiter.release(lease, LightmapFilterConfig.autoReturn);
+            lease = null;
+        } else if (LightmapFilterConfig.autoReturn && doubleOriginalSlot >= 0 && doubleOriginalSlot < 9) {
             if (client != null && client.player != null) {
                 SafeSlotManager.selectSlot(client, doubleOriginalSlot);
             }
@@ -1023,7 +1079,10 @@ public final class LightmapFilterController {
     }
 
     public void cancelDoubleState(MinecraftClient client) {
-        if (LightmapFilterConfig.autoReturn && doubleOriginalSlot >= 0 && doubleOriginalSlot < 9) {
+        if (lease != null) {
+            SlotArbiter.release(lease, LightmapFilterConfig.autoReturn);
+            lease = null;
+        } else if (LightmapFilterConfig.autoReturn && doubleOriginalSlot >= 0 && doubleOriginalSlot < 9) {
             if (client != null && client.player != null) {
                 SafeSlotManager.selectSlot(client, doubleOriginalSlot);
             }
@@ -1068,13 +1127,20 @@ public final class LightmapFilterController {
 
     public void cancelState(MinecraftClient client) {
         cancelDoubleState(client);
-        if (LightmapFilterConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
+        if (lease != null) {
+            SlotArbiter.release(lease, LightmapFilterConfig.autoReturn);
+            lease = null;
+        } else if (LightmapFilterConfig.autoReturn && originalSlot >= 0 && originalSlot < 9) {
             SafeSlotManager.selectSlot(client, originalSlot);
         }
         reset(client);
     }
 
     public void reset(MinecraftClient client) {
+        if (lease != null) {
+            SlotArbiter.release(lease, false);
+            lease = null;
+        }
         resetDoubleState();
         state = State.IDLE;
         originalSlot = -1;

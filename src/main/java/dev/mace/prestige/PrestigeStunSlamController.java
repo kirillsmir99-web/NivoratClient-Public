@@ -1,6 +1,7 @@
 package dev.mace.prestige;
 
 import net.fabricmc.pack.api.SafeSlotManager;
+import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.component.DataComponentTypes;
@@ -21,6 +22,7 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.util.EnumSet;
 import java.util.Random;
 
 public final class PrestigeStunSlamController {
@@ -30,6 +32,7 @@ public final class PrestigeStunSlamController {
     private final Random random = new Random();
 
     private int savedSlot = -1;
+    private SlotArbiter.Lease lease = null;
     private boolean isAirborne = false;
     private boolean hasAttacked = false;
     private boolean axeSwapped = false;
@@ -59,6 +62,18 @@ public final class PrestigeStunSlamController {
         }
 
         ClientPlayerEntity player = client.player;
+
+        if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "stun_slam")) {
+            return;
+        }
+
+        if (lease != null && !lease.isActive()) {
+            lease = null;
+            savedSlot = -1;
+            macePending = false;
+            return;
+        }
+
         lastPlayerEyePos = player.getEyePos();
         updateGroundState(client, player);
 
@@ -195,7 +210,11 @@ public final class PrestigeStunSlamController {
                 macePending = false;
                 macePendingTicks = 0;
             }
-            if (savedSlot != -1 && !config.stayOnMace) {
+            if (lease != null) {
+                SlotArbiter.release(lease, !config.stayOnMace);
+                lease = null;
+                savedSlot = -1;
+            } else if (savedSlot != -1 && !config.stayOnMace) {
                 selectSlot(client, savedSlot);
                 savedSlot = -1;
             }
@@ -219,9 +238,17 @@ public final class PrestigeStunSlamController {
 
     private boolean selectSlot(MinecraftClient client, int slot) {
         if (slot >= 0 && slot < 9 && client != null && client.player != null) {
-            SafeSlotManager.selectSlot(client, slot);
+            if (lease == null || !lease.isActive()) {
+                lease = SlotArbiter.acquire("stun_slam", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 35, true);
+            }
+            boolean success;
+            if (lease != null && lease.isActive()) {
+                success = SlotArbiter.selectSlot(client, lease, slot);
+            } else {
+                success = SafeSlotManager.selectSlot(client, slot);
+            }
             slotSwappedThisTick = true;
-            return true;
+            return success;
         }
         return false;
     }
@@ -462,9 +489,14 @@ public final class PrestigeStunSlamController {
     }
 
     public void reset() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client != null && client.player != null && savedSlot != -1 && !config.stayOnMace) {
-            selectSlot(client, savedSlot);
+        if (lease != null) {
+            SlotArbiter.release(lease, !config.stayOnMace);
+            lease = null;
+        } else {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client != null && client.player != null && savedSlot != -1 && !config.stayOnMace) {
+                selectSlot(client, savedSlot);
+            }
         }
         savedSlot = -1;
         isAirborne = false;

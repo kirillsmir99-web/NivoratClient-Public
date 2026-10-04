@@ -135,6 +135,7 @@ public final class ModuleEventDispatcher {
                     .anyMatch(module -> module.isEnabled() && module.canTickWhileScreenOpen(client));
             if (!managedScreen) net.fabricmc.pack.api.CombatLockManager.reset();
             net.fabricmc.pack.api.SafeSlotManager.reset();
+            net.fabricmc.pack.api.SlotArbiter.reset();
             PlayerStateService.reset();
             TargetCacheService.reset();
             InventoryScanService.invalidate();
@@ -175,6 +176,7 @@ public final class ModuleEventDispatcher {
         long tick = ++clientTickCounter;
 
         PlayerStateService.onTick(client, tick);
+        net.fabricmc.pack.api.SlotArbiter.onClientTick(client);
         TargetCacheService.onTick(client, tick);
         InventoryScanService.onTick(client, tick);
         CombatRaytraceGuard.onTick(tick);

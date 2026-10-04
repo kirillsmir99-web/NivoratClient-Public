@@ -1,5 +1,7 @@
 package dev.mace.prestige;
 
+import net.fabricmc.pack.api.SafeSlotManager;
+import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.component.DataComponentTypes;
@@ -18,6 +20,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 
@@ -28,6 +31,7 @@ public final class PrestigeAutoMaceController {
     private final Random random = new Random();
 
     private int originalSlot = -1;
+    private SlotArbiter.Lease lease = null;
     private boolean hasAttackedInFall = false;
     private boolean shieldBrokenInFall = false;
     private boolean hasEverFallen = false;
@@ -59,6 +63,16 @@ public final class PrestigeAutoMaceController {
         }
 
         ClientPlayerEntity player = client.player;
+
+        if (lease == null && SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "prestige_mace")) {
+            return;
+        }
+
+        if (lease != null && !lease.isActive()) {
+            lease = null;
+            originalSlot = -1;
+            return;
+        }
 
         boolean onGround = player.isOnGround();
         if (onGround) {
@@ -429,9 +443,18 @@ public final class PrestigeAutoMaceController {
         if (slotSwitchedInTick) {
             return false;
         }
-        player.getInventory().setSelectedSlot(slot);
-        slotSwitchedInTick = true;
-        return true;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (lease == null || !lease.isActive()) {
+            lease = SlotArbiter.acquire("prestige_mace", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 25, true);
+            if (lease == null) {
+                return false;
+            }
+        }
+        boolean success = SlotArbiter.selectSlot(client, lease, slot);
+        if (success) {
+            slotSwitchedInTick = true;
+        }
+        return success;
     }
 
     private boolean setSlotForce(ClientPlayerEntity player, int slot) {
@@ -441,16 +464,29 @@ public final class PrestigeAutoMaceController {
         if (player.getInventory().getSelectedSlot() == slot) {
             return true;
         }
-        player.getInventory().setSelectedSlot(slot);
-        slotSwitchedInTick = true;
-        return true;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (lease == null || !lease.isActive()) {
+            lease = SlotArbiter.acquire("prestige_mace", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 25, true);
+            if (lease == null) {
+                return false;
+            }
+        }
+        boolean success = SlotArbiter.selectSlot(client, lease, slot);
+        if (success) {
+            slotSwitchedInTick = true;
+        }
+        return success;
     }
 
     private void restoreSlot(ClientPlayerEntity player) {
-        if (originalSlot >= 0 && originalSlot < 9) {
-            setSlotSafe(player, originalSlot);
-            originalSlot = -1;
+        if (lease != null) {
+            SlotArbiter.release(lease, !config.stayOnMace);
+            lease = null;
+        } else if (originalSlot >= 0 && originalSlot < 9) {
+            MinecraftClient client = MinecraftClient.getInstance();
+            SafeSlotManager.restoreSlot(client, originalSlot);
         }
+        originalSlot = -1;
     }
 
     private void unequipElytra(MinecraftClient client, ClientPlayerEntity player) {
@@ -484,7 +520,10 @@ public final class PrestigeAutoMaceController {
     }
 
     public void reset() {
-        if (originalSlot != -1) {
+        if (lease != null) {
+            SlotArbiter.release(lease, !config.stayOnMace);
+            lease = null;
+        } else if (originalSlot != -1) {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null && client.player != null && !config.stayOnMace) {
                 restoreSlot(client.player);

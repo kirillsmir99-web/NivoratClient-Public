@@ -2,6 +2,7 @@ package dev.particle;
 
 import net.fabricmc.pack.api.CombatRaytraceGuard;
 import net.fabricmc.pack.api.SafeSlotManager;
+import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.component.DataComponentTypes;
@@ -23,6 +24,7 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.util.EnumSet;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -43,6 +45,7 @@ public final class ParticlePhysicsController {
     private int cooldownTimer = 0;
     private int airTicks = 0;
     private int comboLifetimeTicks = 0;
+    private SlotArbiter.Lease lease = null;
 
     public ParticlePhysicsController() {
     }
@@ -142,6 +145,11 @@ public final class ParticlePhysicsController {
 
         if (cooldownTimer > 0) {
             cooldownTimer--;
+        }
+
+        if (stage != Stage.IDLE && lease != null && !lease.isActive()) {
+            clearState();
+            return;
         }
 
         if (stage != Stage.IDLE) {
@@ -324,7 +332,7 @@ public final class ParticlePhysicsController {
             return;
         }
 
-        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) {
+        if (SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "auto_mace_combo")) {
             return;
         }
 
@@ -366,6 +374,10 @@ public final class ParticlePhysicsController {
         maceSlot = foundMace;
         targetEntityId = target.getId();
         targetId = target.getUuid();
+        lease = SlotArbiter.acquire("auto_mace_combo", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 40, false);
+        if (lease == null) {
+            return;
+        }
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.sunder_active", true);
 
         selectSlot(client, axeSlot);
@@ -681,12 +693,19 @@ public final class ParticlePhysicsController {
 
     private void selectSlot(MinecraftClient client, int slot) {
         if (client != null && client.player != null && slot >= 0 && slot < 9) {
-            SafeSlotManager.selectSlot(client, slot);
+            if (lease != null && lease.isActive()) {
+                SlotArbiter.selectSlot(client, lease, slot);
+            } else {
+                SafeSlotManager.selectSlot(client, slot);
+            }
         }
     }
 
     private void restoreInitialSlot(MinecraftClient client) {
-        if (client != null && client.player != null && initialSlot >= 0 && initialSlot < 9 && !ParticlePhysicsConfig.stayOnWeapon) {
+        if (lease != null) {
+            SlotArbiter.release(lease, !ParticlePhysicsConfig.stayOnWeapon);
+            lease = null;
+        } else if (client != null && client.player != null && initialSlot >= 0 && initialSlot < 9 && !ParticlePhysicsConfig.stayOnWeapon) {
             selectSlot(client, initialSlot);
         }
     }
@@ -738,6 +757,10 @@ public final class ParticlePhysicsController {
     }
 
     private void clearState() {
+        if (lease != null) {
+            SlotArbiter.release(lease, false);
+            lease = null;
+        }
         stage = Stage.IDLE;
         owner = null;
         ownerWorld = null;

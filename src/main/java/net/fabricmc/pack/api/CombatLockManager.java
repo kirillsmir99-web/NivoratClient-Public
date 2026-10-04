@@ -1,5 +1,6 @@
 package net.fabricmc.pack.api;
 
+import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class CombatLockManager {
@@ -27,10 +28,12 @@ public final class CombatLockManager {
 
     private CombatLockManager() {}
 
+    @Deprecated
     public static int getLockMask() {
         return LOCK_MASK.get();
     }
 
+    @Deprecated
     public static boolean isLocked() {
         if (LOCK_MASK.get() != 0) {
             return true;
@@ -45,6 +48,7 @@ public final class CombatLockManager {
                 || Boolean.getBoolean(PEARL_CATCH);
     }
 
+    @Deprecated
     public static boolean isLocked(String key) {
         if (key == null) return false;
         int bit = getBitForKey(key);
@@ -56,6 +60,7 @@ public final class CombatLockManager {
         return Boolean.getBoolean(key);
     }
 
+    @Deprecated
     public static boolean hasConflictExcludingMace() {
         if ((LOCK_MASK.get() & ~(MASK_MACE | MASK_SHIELD_COMBO)) != 0) {
             return true;
@@ -68,18 +73,64 @@ public final class CombatLockManager {
                 || Boolean.getBoolean(PEARL_CATCH);
     }
 
+    @Deprecated
     public static void setLock(String key, boolean active) {
         if (key == null) return;
         int bit = getBitForKey(key);
         if (active) {
             System.setProperty(key, "true");
             if (bit != 0) LOCK_MASK.updateAndGet(m -> m | bit);
+            syncArbiterOnSet(key);
         } else {
             System.clearProperty(key);
             if (bit != 0) LOCK_MASK.updateAndGet(m -> m & ~bit);
+            syncArbiterOnClear(key);
         }
     }
 
+    private static void syncArbiterOnSet(String key) {
+        SlotArbiter.Priority priority = SlotArbiter.Priority.COMBAT_NORMAL;
+        EnumSet<SlotArbiter.Resource> res = EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT);
+        boolean atomic = false;
+
+        switch (key) {
+            case TOTEM -> {
+                priority = SlotArbiter.Priority.EMERGENCY;
+                res = EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT, SlotArbiter.Resource.OFFHAND);
+            }
+            case INVENTORY_ACTION -> {
+                priority = SlotArbiter.Priority.UTILITY;
+                res = EnumSet.of(SlotArbiter.Resource.INVENTORY_CLICKS);
+            }
+            case SHIELD_COMBO -> {
+                priority = SlotArbiter.Priority.COMBAT_HIGH;
+                res = EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT);
+            }
+            case MACE, SUNDER -> {
+                priority = SlotArbiter.Priority.COMBAT_HIGH;
+                res = EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT);
+                atomic = true;
+            }
+            case ANCHOR -> {
+                priority = SlotArbiter.Priority.COMBAT_NORMAL;
+                res = EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT, SlotArbiter.Resource.USE_ITEM);
+            }
+            case PEARL_CATCH, CART_PLACEMENT, SPEAR -> {
+                priority = SlotArbiter.Priority.UTILITY;
+                res = EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT);
+            }
+        }
+        SlotArbiter.acquire(key, priority, res, 40, atomic);
+    }
+
+    private static void syncArbiterOnClear(String key) {
+        SlotArbiter.Lease lease = SlotArbiter.getActiveLease();
+        if (lease != null && key.equals(lease.getOwner())) {
+            lease.close();
+        }
+    }
+
+    @Deprecated
     public static void reset() {
         LOCK_MASK.set(0);
         System.clearProperty("pvp.shield_combo_active");
@@ -91,6 +142,7 @@ public final class CombatLockManager {
         System.clearProperty("pvp.totem_active");
         System.clearProperty("pvp.pearl_catch_active");
         System.clearProperty("pvp.inventory_action_active");
+        SlotArbiter.reset();
     }
 
     private static int getBitForKey(String key) {

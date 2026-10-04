@@ -30,11 +30,36 @@ public final class BufferPipelineConfig {
     public static int chance = 100;
     public static boolean returnItem = true;
     public static boolean returnOnPop = true;
-    public static int mode = 1;
+    public static int mode = 2;
     public static boolean autoRefill = true;
     public static int refillSlot = -1;
 
+    public static double swapBackDelay = 3.0;
+    public static boolean alwaysOffhand = true;
+    public static boolean ignoreWhenUsing = true;
+    public static boolean predictiveDamage = true;
+    public static boolean predictCrystals = true;
+    public static boolean predictFall = true;
+    public static boolean predictMace = true;
+    public static boolean predictTrident = true;
+    public static boolean lowTotemNotify = true;
+
     private BufferPipelineConfig() { }
+
+    public static void validateHysteresis() {
+        if (restoreHearts > 0.0 && restoreHearts <= triggerHearts) {
+            restoreHearts = triggerHearts + 1.0;
+        }
+        if (mainhandRestoreHearts > 0.0 && mainhandRestoreHearts <= mainhandTriggerHearts) {
+            mainhandRestoreHearts = mainhandTriggerHearts + 1.0;
+        }
+        if (offhandRestoreHearts > 0.0 && offhandRestoreHearts <= offhandTriggerHearts) {
+            offhandRestoreHearts = offhandTriggerHearts + 1.0;
+        }
+        if (crystalRestoreHearts > 0.0 && crystalRestoreHearts <= crystalTriggerHearts) {
+            crystalRestoreHearts = crystalTriggerHearts + 1.0;
+        }
+    }
 
     public static void load() {
         if (!Files.exists(CONFIG_PATH)) {
@@ -55,9 +80,21 @@ public final class BufferPipelineConfig {
             chance = Math.max(10, Math.min(100, Integer.parseInt(props.getProperty("chance", "100"))));
             returnItem = Boolean.parseBoolean(props.getProperty("returnItem", "true"));
             returnOnPop = Boolean.parseBoolean(props.getProperty("returnOnPop", "true"));
-            mode = Integer.parseInt(props.getProperty("mode", "1"));
+            mode = Integer.parseInt(props.getProperty("mode", "2"));
             autoRefill = Boolean.parseBoolean(props.getProperty("autoRefill", "true"));
             refillSlot = Integer.parseInt(props.getProperty("refillSlot", "-1"));
+
+            swapBackDelay = Double.parseDouble(props.getProperty("swapBackDelay", "3.0"));
+            alwaysOffhand = Boolean.parseBoolean(props.getProperty("alwaysOffhand", "true"));
+            ignoreWhenUsing = Boolean.parseBoolean(props.getProperty("ignoreWhenUsing", "true"));
+            predictiveDamage = Boolean.parseBoolean(props.getProperty("predictiveDamage", "true"));
+            predictCrystals = Boolean.parseBoolean(props.getProperty("predictCrystals", "true"));
+            predictFall = Boolean.parseBoolean(props.getProperty("predictFall", "true"));
+            predictMace = Boolean.parseBoolean(props.getProperty("predictMace", "true"));
+            predictTrident = Boolean.parseBoolean(props.getProperty("predictTrident", "true"));
+            lowTotemNotify = Boolean.parseBoolean(props.getProperty("lowTotemNotify", "true"));
+
+            validateHysteresis();
         } catch (Exception ignored) {
             triggerHearts = 3.0;
             restoreHearts = 6.0;
@@ -71,12 +108,55 @@ public final class BufferPipelineConfig {
             chance = 100;
             returnItem = true;
             returnOnPop = true;
-            mode = 1;
+            mode = 2;
             autoRefill = true;
             refillSlot = -1;
+            swapBackDelay = 3.0;
+            alwaysOffhand = true;
+            ignoreWhenUsing = true;
+            predictiveDamage = true;
+            predictCrystals = true;
+            predictFall = true;
+            predictMace = true;
+            predictTrident = true;
+            lowTotemNotify = true;
         }
     }
 
     public static void save() {
+        validateHysteresis();
+        try {
+            if (CONFIG_PATH.getParent() != null && !Files.exists(CONFIG_PATH.getParent())) {
+                Files.createDirectories(CONFIG_PATH.getParent());
+            }
+            try (OutputStream out = Files.newOutputStream(CONFIG_PATH)) {
+                Properties props = new Properties();
+                props.setProperty("triggerHearts", String.valueOf(triggerHearts));
+                props.setProperty("restoreHearts", String.valueOf(restoreHearts));
+                props.setProperty("mainhandTriggerHearts", String.valueOf(mainhandTriggerHearts));
+                props.setProperty("mainhandRestoreHearts", String.valueOf(mainhandRestoreHearts));
+                props.setProperty("offhandTriggerHearts", String.valueOf(offhandTriggerHearts));
+                props.setProperty("offhandRestoreHearts", String.valueOf(offhandRestoreHearts));
+                props.setProperty("crystalTriggerHearts", String.valueOf(crystalTriggerHearts));
+                props.setProperty("crystalRestoreHearts", String.valueOf(crystalRestoreHearts));
+                props.setProperty("countAbsorption", String.valueOf(countAbsorption));
+                props.setProperty("chance", String.valueOf(chance));
+                props.setProperty("returnItem", String.valueOf(returnItem));
+                props.setProperty("returnOnPop", String.valueOf(returnOnPop));
+                props.setProperty("mode", String.valueOf(mode));
+                props.setProperty("autoRefill", String.valueOf(autoRefill));
+                props.setProperty("refillSlot", String.valueOf(refillSlot));
+                props.setProperty("swapBackDelay", String.valueOf(swapBackDelay));
+                props.setProperty("alwaysOffhand", String.valueOf(alwaysOffhand));
+                props.setProperty("ignoreWhenUsing", String.valueOf(ignoreWhenUsing));
+                props.setProperty("predictiveDamage", String.valueOf(predictiveDamage));
+                props.setProperty("predictCrystals", String.valueOf(predictCrystals));
+                props.setProperty("predictFall", String.valueOf(predictFall));
+                props.setProperty("predictMace", String.valueOf(predictMace));
+                props.setProperty("predictTrident", String.valueOf(predictTrident));
+                props.setProperty("lowTotemNotify", String.valueOf(lowTotemNotify));
+                props.store(out, null);
+            }
+        } catch (Exception ignored) {}
     }
 }

@@ -176,6 +176,15 @@ public class ActivityConfig {
     public boolean autoTotemAutoRefill = true;
     public String autoTotemRefillSlot = "auto";
     public boolean autoTotemCountAbsorption = false;
+    public double autoTotemSwapBackDelay = 3.0;
+    public boolean autoTotemAlwaysOffhand = true;
+    public boolean autoTotemIgnoreWhenUsing = true;
+    public boolean autoTotemPredictiveDamage = true;
+    public boolean autoTotemPredictCrystals = true;
+    public boolean autoTotemPredictFall = true;
+    public boolean autoTotemPredictMace = true;
+    public boolean autoTotemPredictTrident = true;
+    public boolean autoTotemLowTotemNotify = true;
 
     public boolean autoCartEnabled = true;
     public Keybind autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
@@ -1582,6 +1591,15 @@ public class ActivityConfig {
         entry.settings.put("return_on_pop", this.autoTotemReturnOnPop);
         entry.settings.put("auto_refill", this.autoTotemAutoRefill);
         entry.settings.put("refill_slot", this.autoTotemRefillSlot);
+        entry.settings.put("swap_back_delay", this.autoTotemSwapBackDelay);
+        entry.settings.put("always_offhand", this.autoTotemAlwaysOffhand);
+        entry.settings.put("ignore_when_using", this.autoTotemIgnoreWhenUsing);
+        entry.settings.put("predictive_damage", this.autoTotemPredictiveDamage);
+        entry.settings.put("predict_crystals", this.autoTotemPredictCrystals);
+        entry.settings.put("predict_fall", this.autoTotemPredictFall);
+        entry.settings.put("predict_mace", this.autoTotemPredictMace);
+        entry.settings.put("predict_trident", this.autoTotemPredictTrident);
+        entry.settings.put("low_totem_notify", this.autoTotemLowTotemNotify);
     }
 
     private void populateCartSettings(ModuleConfigEntry entry) {
@@ -1964,6 +1982,15 @@ public class ActivityConfig {
                 this.autoTotemReturnOnPop = getSettingBoolean(totem.settings, "return_on_pop", this.autoTotemReturnOnPop);
                 this.autoTotemAutoRefill = getSettingBoolean(totem.settings, "auto_refill", this.autoTotemAutoRefill);
                 this.autoTotemRefillSlot = getSettingString(totem.settings, "refill_slot", this.autoTotemRefillSlot);
+                this.autoTotemSwapBackDelay = getSettingDouble(totem.settings, "swap_back_delay", this.autoTotemSwapBackDelay);
+                this.autoTotemAlwaysOffhand = getSettingBoolean(totem.settings, "always_offhand", this.autoTotemAlwaysOffhand);
+                this.autoTotemIgnoreWhenUsing = getSettingBoolean(totem.settings, "ignore_when_using", this.autoTotemIgnoreWhenUsing);
+                this.autoTotemPredictiveDamage = getSettingBoolean(totem.settings, "predictive_damage", this.autoTotemPredictiveDamage);
+                this.autoTotemPredictCrystals = getSettingBoolean(totem.settings, "predict_crystals", this.autoTotemPredictCrystals);
+                this.autoTotemPredictFall = getSettingBoolean(totem.settings, "predict_fall", this.autoTotemPredictFall);
+                this.autoTotemPredictMace = getSettingBoolean(totem.settings, "predict_mace", this.autoTotemPredictMace);
+                this.autoTotemPredictTrident = getSettingBoolean(totem.settings, "predict_trident", this.autoTotemPredictTrident);
+                this.autoTotemLowTotemNotify = getSettingBoolean(totem.settings, "low_totem_notify", this.autoTotemLowTotemNotify);
             }
         }
         ModuleConfigEntry cart = getModuleEntry("auto_cart");
@@ -2295,6 +2322,15 @@ public class ActivityConfig {
         copy.autoTotemReturnOnPop = this.autoTotemReturnOnPop;
         copy.autoTotemAutoRefill = this.autoTotemAutoRefill;
         copy.autoTotemRefillSlot = this.autoTotemRefillSlot;
+        copy.autoTotemSwapBackDelay = this.autoTotemSwapBackDelay;
+        copy.autoTotemAlwaysOffhand = this.autoTotemAlwaysOffhand;
+        copy.autoTotemIgnoreWhenUsing = this.autoTotemIgnoreWhenUsing;
+        copy.autoTotemPredictiveDamage = this.autoTotemPredictiveDamage;
+        copy.autoTotemPredictCrystals = this.autoTotemPredictCrystals;
+        copy.autoTotemPredictFall = this.autoTotemPredictFall;
+        copy.autoTotemPredictMace = this.autoTotemPredictMace;
+        copy.autoTotemPredictTrident = this.autoTotemPredictTrident;
+        copy.autoTotemLowTotemNotify = this.autoTotemLowTotemNotify;
 
         copy.autoCartEnabled = this.autoCartEnabled;
         copy.autoCartKeybind.copyFrom(this.autoCartKeybind);

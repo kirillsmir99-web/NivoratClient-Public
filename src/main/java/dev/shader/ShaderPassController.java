@@ -3,6 +3,7 @@ package dev.shader;
 import net.fabricmc.pack.api.CombatRaytraceGuard;
 import net.fabricmc.pack.api.GaussianTimingEngine;
 import net.fabricmc.pack.api.SafeSlotManager;
+import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -18,6 +19,7 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.util.EnumSet;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -48,6 +50,7 @@ public final class ShaderPassController {
     private long shieldSeenStartTick = 0L;
     private UUID lastStruckTargetId = null;
     private long lastStrikeTick = 0L;
+    private SlotArbiter.Lease lease = null;
 
     public ShaderPassController() {}
 
@@ -112,6 +115,11 @@ public final class ShaderPassController {
                 cooldownTicks--;
             }
 
+            if (stage != Stage.IDLE && lease != null && !lease.isActive()) {
+                clearState();
+                return;
+            }
+
             if (ShaderPassConfig.abortOnManualSwitch && stage != Stage.IDLE) {
                 int currentSlot = client.player.getInventory().getSelectedSlot();
                 if (stage == Stage.SWAPPED_TO_AXE || stage == Stage.SEMI_AWAIT_HIT) {
@@ -154,7 +162,7 @@ public final class ShaderPassController {
             return;
         }
 
-        if (net.fabricmc.pack.api.CombatLockManager.isLocked()) {
+        if (SlotArbiter.isResourceLocked(SlotArbiter.Resource.HOTBAR_SELECT, "shield_breaker")) {
             resetTracking();
             return;
         }
@@ -233,6 +241,11 @@ public final class ShaderPassController {
         initialSlot = client.player.getInventory().getSelectedSlot();
         targetId = target.getUuid();
         activeAxeSlot = axeSlot;
+        lease = SlotArbiter.acquire("shield_breaker", SlotArbiter.Priority.COMBAT_HIGH, EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT), 35, false);
+        if (lease == null) {
+            resetTracking();
+            return;
+        }
         net.fabricmc.pack.api.CombatLockManager.setLock(COMBO_LOCK_PROPERTY, true);
 
         if (ShaderPassConfig.mode == ShaderPassConfig.MODE_SEMI_AUTO) {
@@ -530,14 +543,21 @@ public final class ShaderPassController {
     }
 
     private void selectSlot(MinecraftClient client, int slot) {
-        if (client.player == null || slot < 0 || slot >= 9) {
+        if (client == null || client.player == null || slot < 0 || slot >= 9) {
             return;
         }
-        SafeSlotManager.selectSlot(client, slot);
+        if (lease != null && lease.isActive()) {
+            SlotArbiter.selectSlot(client, lease, slot);
+        } else {
+            SafeSlotManager.selectSlot(client, slot);
+        }
     }
 
     private void restoreWeapon(MinecraftClient client) {
-        if (client != null && client.player == owner && client.world == ownerWorld && owner != null
+        if (lease != null) {
+            SlotArbiter.release(lease, true);
+            lease = null;
+        } else if (client != null && client.player == owner && client.world == ownerWorld && owner != null
                 && initialSlot >= 0
                 && owner.getInventory().getSelectedSlot() == activeAxeSlot) {
             SafeSlotManager.restoreSlot(client, initialSlot);
@@ -561,6 +581,10 @@ public final class ShaderPassController {
     }
 
     private void clearState() {
+        if (lease != null) {
+            SlotArbiter.release(lease, false);
+            lease = null;
+        }
         stage = Stage.IDLE;
         owner = null;
         ownerWorld = null;

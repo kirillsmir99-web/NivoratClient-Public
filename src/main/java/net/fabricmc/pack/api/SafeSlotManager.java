@@ -50,13 +50,16 @@ public final class SafeSlotManager {
                 }
             }
             int cur = client.player.getInventory().getSelectedSlot();
-            if (cur == slot && lastSelectedSlot == slot) {
+            if (cur == slot) {
+                lastSelectedSlot = slot;
+                SlotArbiter.notifyManagerSlotChange(slot);
                 return false;
             }
-            if (currentTick >= 0 && currentTick == lastChangeTick && cur == slot) {
+            if (currentTick >= 0 && currentTick == lastChangeTick) {
                 return false;
             }
             client.player.getInventory().setSelectedSlot(slot);
+            SlotArbiter.notifyManagerSlotChange(slot);
             if (client.interactionManager instanceof PipelineInteractionManagerAccessor accessor) {
                 accessor.invokeSyncSelectedSlot();
             } else {

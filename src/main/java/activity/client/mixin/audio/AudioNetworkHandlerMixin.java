@@ -54,7 +54,9 @@ public final class AudioNetworkHandlerMixin {
 
     @Inject(method = "onHealthUpdate", at = @At("TAIL"))
     private void activity$autogg$healthUpdate(HealthUpdateS2CPacket packet, CallbackInfo ci) {
-        if (activity.client.capitulation.CapitulationManager.isCapitulated() || !AudioSyncClient.CONFIG.enabled) return;
+        if (activity.client.capitulation.CapitulationManager.isCapitulated()) return;
+        activity.client.module.impl.defense.BufferPipelineModule.onHealthUpdate(packet.getHealth());
+        if (!AudioSyncClient.CONFIG.enabled) return;
         if (AudioSyncClient.isInGracePeriod()) return;
         if (packet.getHealth() <= 0.0F) {
             AudioSyncClient.markOwnDeath();

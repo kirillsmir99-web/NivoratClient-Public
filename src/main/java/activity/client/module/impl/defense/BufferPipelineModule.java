@@ -25,7 +25,7 @@ public class BufferPipelineModule extends NivoratModule {
                 .description(description)
                 .category(category)
                 .author("Nivorat")
-                .version("1.0.3")
+                .version("1.0.4")
                 .icon(ActivityIcon.DEFENSE)
                 .keybind(keybind)
                 .aliases("autototem", "totem", "тотем", "автототем", "авто-тотем", "hearts", "сердца", "поп", "pop", "здоровье", "хп", "hp", "chance", "шанс")
@@ -33,11 +33,11 @@ public class BufferPipelineModule extends NivoratModule {
 
         registerEnum("mode", Text.translatable("activity.setting.defense.mode"),
                 Text.translatable("activity.setting.defense.mode.desc"), SettingGroup.GENERAL,
-                List.of("main_hand", "offhand", "crystal"), "main_hand",
+                List.of("main_hand", "offhand", "crystal"), "offhand",
                 opt -> Text.translatable("activity.dropdown.totem_mode." + opt),
                 () -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoTotemMode : "main_hand";
+                    return c != null ? c.autoTotemMode : "offhand";
                 },
                 val -> {
                     ActivityConfig c = ActivityConfigManager.getConfig();
@@ -132,6 +132,57 @@ public class BufferPipelineModule extends NivoratModule {
                 }
         );
 
+        registerNumber("swap_back_delay", Text.translatable("activity.setting.defense.swap_back_delay"),
+                Text.translatable("activity.setting.defense.swap_back_delay.desc"), SettingGroup.BEHAVIOR,
+                0.5, 10.0, 0.5, " s", false, 3.0,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoTotemSwapBackDelay : 3.0;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemSwapBackDelay = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("always_offhand", Text.translatable("activity.setting.defense.always_offhand"),
+                Text.translatable("activity.setting.defense.always_offhand.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemAlwaysOffhand;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemAlwaysOffhand = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("ignore_when_using", Text.translatable("activity.setting.defense.ignore_when_using"),
+                Text.translatable("activity.setting.defense.ignore_when_using.desc"), SettingGroup.BEHAVIOR,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemIgnoreWhenUsing;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemIgnoreWhenUsing = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerBoolean("count_absorption", Text.translatable("activity.setting.defense.count_absorption"),
                 Text.translatable("activity.setting.defense.count_absorption.desc"), SettingGroup.EXTRA,
                 false,
@@ -219,6 +270,108 @@ public class BufferPipelineModule extends NivoratModule {
                     }
                 }
         );
+
+        registerBoolean("predictive_damage", Text.translatable("activity.setting.defense.predictive_damage"),
+                Text.translatable("activity.setting.defense.predictive_damage.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemPredictiveDamage;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemPredictiveDamage = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("predict_crystals", Text.translatable("activity.setting.defense.predict_crystals"),
+                Text.translatable("activity.setting.defense.predict_crystals.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemPredictCrystals;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemPredictCrystals = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("predict_fall", Text.translatable("activity.setting.defense.predict_fall"),
+                Text.translatable("activity.setting.defense.predict_fall.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemPredictFall;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemPredictFall = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("predict_mace", Text.translatable("activity.setting.defense.predict_mace"),
+                Text.translatable("activity.setting.defense.predict_mace.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemPredictMace;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemPredictMace = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("predict_trident", Text.translatable("activity.setting.defense.predict_trident"),
+                Text.translatable("activity.setting.defense.predict_trident.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemPredictTrident;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemPredictTrident = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
+        registerBoolean("low_totem_notify", Text.translatable("activity.setting.defense.low_totem_notify"),
+                Text.translatable("activity.setting.defense.low_totem_notify.desc"), SettingGroup.EXTRA,
+                true,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoTotemLowTotemNotify;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoTotemLowTotemNotify = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
     }
 
     private void syncControllerConfig(ActivityConfig c) {
@@ -249,6 +402,16 @@ public class BufferPipelineModule extends NivoratModule {
         BufferPipelineConfig.returnOnPop = c.autoTotemReturnOnPop;
         BufferPipelineConfig.autoRefill = c.autoTotemAutoRefill;
         BufferPipelineConfig.refillSlot = parseRefillSlot(c.autoTotemRefillSlot);
+        BufferPipelineConfig.swapBackDelay = c.autoTotemSwapBackDelay;
+        BufferPipelineConfig.alwaysOffhand = c.autoTotemAlwaysOffhand;
+        BufferPipelineConfig.ignoreWhenUsing = c.autoTotemIgnoreWhenUsing;
+        BufferPipelineConfig.predictiveDamage = c.autoTotemPredictiveDamage;
+        BufferPipelineConfig.predictCrystals = c.autoTotemPredictCrystals;
+        BufferPipelineConfig.predictFall = c.autoTotemPredictFall;
+        BufferPipelineConfig.predictMace = c.autoTotemPredictMace;
+        BufferPipelineConfig.predictTrident = c.autoTotemPredictTrident;
+        BufferPipelineConfig.lowTotemNotify = c.autoTotemLowTotemNotify;
+        BufferPipelineConfig.validateHysteresis();
     }
 
     private static int parseRefillSlot(String slotStr) {
@@ -318,6 +481,10 @@ public class BufferPipelineModule extends NivoratModule {
         if (countAbsSetting != null) {
             countAbsSetting.set(config.autoTotemCountAbsorption);
         }
+        activity.client.module.setting.BooleanSetting retPopSetting = (activity.client.module.setting.BooleanSetting) getSetting("return_on_pop");
+        if (retPopSetting != null) {
+            retPopSetting.set(config.autoTotemReturnOnPop);
+        }
         syncControllerConfig(config);
     }
 
@@ -333,6 +500,16 @@ public class BufferPipelineModule extends NivoratModule {
         activity.client.module.api.IModule mod = activity.client.module.api.ModuleRegistry.get(ID);
         if (mod instanceof BufferPipelineModule atm && atm.isEnabled()) {
             atm.getController().onTotemPop();
+        }
+    }
+
+    public static void onHealthUpdate(float health) {
+        activity.client.module.api.IModule mod = activity.client.module.api.ModuleRegistry.get(ID);
+        if (mod instanceof BufferPipelineModule atm && atm.isEnabled()) {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client != null && client.player != null) {
+                atm.getController().tick(client);
+            }
         }
     }
 }

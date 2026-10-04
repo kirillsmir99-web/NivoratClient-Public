@@ -1,18 +1,18 @@
 package dev.buffer;
 
-import net.fabricmc.pack.api.GaussianTimingEngine;
+import net.fabricmc.pack.api.CombatLockManager;
 import net.fabricmc.pack.api.SafeSlotManager;
+import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.text.Text;
+
+import java.util.EnumSet;
 
 public final class BufferPipelineController {
     public static float getEffectiveHealth(PlayerEntity player) {
@@ -33,16 +33,22 @@ public final class BufferPipelineController {
     private float lastHp = 20.0F;
     private boolean awaitingHealAfterPop = false;
     private long lastPopTime = 0L;
-    private static final long POST_POP_GRACE_MS = 1200L;
+    private static final long POST_POP_GRACE_MS = 1000L;
     private int userOverrideCount = 0;
     private int lastControllerAssignedSlot = -1;
-    private long reactionUntil = 0L;
     private int timer = 0;
     private boolean openedByRefill = false;
     private int refillTargetHotbarSlot = -1;
     private int refillInvSlot = -1;
     private long lastRefillTime = 0L;
-    private static final long REFILL_COOLDOWN_MS = 400L;
+    private static final long REFILL_COOLDOWN_MS = 300L;
+
+    private SlotArbiter.Lease activeLease = null;
+    private int pendingOffhandTicks = 0;
+    private long lastThreatTime = 0L;
+    private int lastWarnedTotemCount = -1;
+    private boolean chanceRolledForCurrentThreat = false;
+    private boolean chancePassedForCurrentThreat = true;
 
     public BufferPipelineController() {
     }
@@ -62,29 +68,42 @@ public final class BufferPipelineController {
         }
     }
 
+    public boolean isArmed() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || client.player == null) return false;
+        if (client.player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) return true;
+        if (client.player.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) return true;
+        return activeLease != null && activeLease.isActive();
+    }
+
     public void onTotemPop() {
         onTotemPop(MinecraftClient.getInstance());
     }
 
     public void onTotemPop(MinecraftClient client) {
         if (!enabled) return;
-
-        long now = System.currentTimeMillis();
-        lastPopTime = now;
-        awaitingHealAfterPop = true;
-        userOverrideCount = 0;
-        userCancelled = false;
-
         if (state == State.REFILL_WAIT_OPEN || state == State.REFILL_WAIT_SWAP || state == State.REFILL_WAIT_CLOSE) {
             return;
         }
 
-        if (client == null || client.player == null || !client.player.isAlive() || client.currentScreen != null) {
+        long now = System.currentTimeMillis();
+        lastPopTime = now;
+        lastThreatTime = now;
+        awaitingHealAfterPop = true;
+        userOverrideCount = 0;
+        userCancelled = false;
+
+        if (client == null || client.player == null || !client.player.isAlive()) {
             clear();
             return;
         }
 
         savedMainSlot = resolveReturnSlot(client.player);
+
+        if (BufferPipelineConfig.mode == 2 || BufferPipelineConfig.alwaysOffhand) {
+            triggerOffhandTotem(client);
+            return;
+        }
 
         if (BufferPipelineConfig.mode == 3) {
             int crystalSlot = getDesignatedCrystalSlot(client.player);
@@ -107,9 +126,10 @@ public final class BufferPipelineController {
                 heldTotemHotbarSlot = nextTotem;
                 lastTotemHotbarSlot = nextTotem;
                 lastControllerAssignedSlot = nextTotem;
-                userCancelled = false;
-                net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
-                if (client.player.getInventory().getSelectedSlot() != nextTotem) {
+                acquireTotemLease(EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT));
+                if (activeLease != null) {
+                    SlotArbiter.selectSlot(client, activeLease, nextTotem);
+                } else {
                     SafeSlotManager.selectSlot(client, nextTotem);
                 }
                 state = State.HOLD_IN_HAND;
@@ -118,36 +138,6 @@ public final class BufferPipelineController {
 
             if (BufferPipelineConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
                 int targetRefill = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
-                if (targetRefill >= 0) {
-                    startRefill(client, targetRefill);
-                    return;
-                }
-            }
-
-            int returnSlot = resolveReturnSlot(client.player);
-            if (returnSlot >= 0 && returnSlot < 9 && client.player.getInventory().getSelectedSlot() != returnSlot) {
-                SafeSlotManager.selectSlot(client, returnSlot);
-            }
-            clear();
-            awaitingHealAfterPop = true;
-            return;
-        }
-
-        if (BufferPipelineConfig.mode == 2) {
-            float hp = getEffectiveHealth(client.player);
-            float triggerHp = (float) (BufferPipelineConfig.triggerHearts * 2.0);
-            int nextTotem = findHotbarTotem(client.player);
-            if (nextTotem >= 0 && hp <= triggerHp) {
-                swappedHotbarSlot = nextTotem;
-                lastTotemHotbarSlot = nextTotem;
-                SafeSlotManager.selectSlot(client, swappedHotbarSlot);
-                timer = 1;
-                state = State.SWAP_OFFHAND;
-                return;
-            }
-
-            if (BufferPipelineConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
-                int targetRefill = resolveRefillTargetSlot(client.player, swappedHotbarSlot);
                 if (targetRefill >= 0) {
                     startRefill(client, targetRefill);
                     return;
@@ -169,17 +159,16 @@ public final class BufferPipelineController {
             return;
         }
 
-        if (client.currentScreen != null) {
-            return;
-        }
-
         if (!enabled || !client.player.isAlive()) {
+            clear();
             return;
         }
 
-        if (client.player.getInventory() != null) {
-            int cur = client.player.getInventory().getSelectedSlot();
-            ItemStack curStack = client.player.getInventory().getStack(cur);
+        ClientPlayerEntity player = client.player;
+
+        if (player.getInventory() != null) {
+            int cur = player.getInventory().getSelectedSlot();
+            ItemStack curStack = player.getInventory().getStack(cur);
             if (!curStack.isEmpty() && !curStack.isOf(Items.TOTEM_OF_UNDYING)) {
                 if (cur != heldTotemHotbarSlot && cur != swappedHotbarSlot) {
                     lastNonTotemSlot = cur;
@@ -188,19 +177,41 @@ public final class BufferPipelineController {
             }
         }
 
+        checkTotemQuantityNotification(player);
+
         long now = System.currentTimeMillis();
-        float hp = getEffectiveHealth(client.player);
-        float maxHp = client.player.getMaxHealth();
+        float hp = getEffectiveHealth(player);
+        float maxHp = player.getMaxHealth();
         float triggerHp = (float) (BufferPipelineConfig.triggerHearts * 2.0);
         float restoreHp = (float) (BufferPipelineConfig.restoreHearts * 2.0);
+        float burstDamage = DamageForecast.calculateExpectedBurst(client, player);
+        float projectedHp = hp - burstDamage;
 
-        boolean isHealed = (hp >= maxHp - 1.0F) || (BufferPipelineConfig.restoreHearts > 0.0 && restoreHp > triggerHp && hp >= restoreHp);
-        float effectiveHp = hp;
+        boolean isThreat = hp <= triggerHp || projectedHp <= triggerHp;
+
+        if (isThreat) {
+            lastThreatTime = now;
+            if (!chanceRolledForCurrentThreat) {
+                chanceRolledForCurrentThreat = true;
+                if (BufferPipelineConfig.chance < 100) {
+                    int roll = java.util.concurrent.ThreadLocalRandom.current().nextInt(100);
+                    chancePassedForCurrentThreat = (roll < BufferPipelineConfig.chance);
+                } else {
+                    chancePassedForCurrentThreat = true;
+                }
+            }
+        } else {
+            chanceRolledForCurrentThreat = false;
+            chancePassedForCurrentThreat = true;
+        }
+
+        boolean isHealed = (hp >= maxHp - 1.0F) || (restoreHp > triggerHp && hp >= restoreHp);
         if (awaitingHealAfterPop) {
-            if (isHealed || (BufferPipelineConfig.restoreHearts > 0.0 && effectiveHp >= restoreHp) || now - lastPopTime > POST_POP_GRACE_MS) {
+            if (isHealed || now - lastPopTime > POST_POP_GRACE_MS) {
                 awaitingHealAfterPop = false;
             }
         }
+
         if (isHealed || (userCancelled && (now - userCancelledTime > 1500L || hp < lastHp - 0.5F))) {
             userCancelled = false;
             userOverrideCount = 0;
@@ -208,95 +219,68 @@ public final class BufferPipelineController {
         }
         lastHp = hp;
 
-        switch (state) {
-            case WAITING_REACTION -> {
-                if (hp > triggerHp) {
-                    clear();
-                    return;
-                }
-                int totemSlot = findHotbarTotem(client.player);
-                if (totemSlot < 0) {
-                    if (BufferPipelineConfig.autoRefill && now - lastRefillTime >= REFILL_COOLDOWN_MS
-                            && findInventoryTotem(client.player) >= 0) {
-                        int targetRefill = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
-                        if (targetRefill >= 0) {
-                            startRefill(client, targetRefill);
-                        } else {
-                            clear();
-                        }
-                    } else {
-                        clear();
-                    }
-                    return;
-                }
-                int currentSlot = client.player.getInventory().getSelectedSlot();
-                if (!client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
-                    savedMainSlot = currentSlot;
-                }
-                net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
-
-                swappedHotbarSlot = totemSlot;
-                lastTotemHotbarSlot = totemSlot;
-                SafeSlotManager.selectSlot(client, swappedHotbarSlot);
-                sendOffhandSwap(client);
-                swapLocalHands(client.player);
-                if (savedMainSlot >= 0 && savedMainSlot != swappedHotbarSlot) {
-                    timer = 1;
-                    state = State.RESTORE_MAIN_SLOT;
-                } else {
-                    state = State.ACTIVE;
-                }
+        if (pendingOffhandTicks > 0) {
+            pendingOffhandTicks--;
+            if (player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+                pendingOffhandTicks = 0;
             }
+        }
 
+        if (BufferPipelineConfig.ignoreWhenUsing && player.isUsingItem() && projectedHp > 4.0F) {
+            return;
+        }
+
+        switch (state) {
             case HOLD_IN_HAND -> {
-                int targetSlot = heldTotemHotbarSlot >= 0 ? heldTotemHotbarSlot : (BufferPipelineConfig.mode == 3 ? getDesignatedCrystalSlot(client.player) : findHotbarTotem(client.player));
+                int targetSlot = heldTotemHotbarSlot >= 0 ? heldTotemHotbarSlot : findHotbarTotem(player);
                 if (targetSlot < 0 || targetSlot >= 9) {
                     clear();
                     return;
                 }
 
-                ItemStack slotStack = client.player.getInventory().getStack(targetSlot);
+                ItemStack slotStack = player.getInventory().getStack(targetSlot);
                 boolean slotHasTotem = slotStack.isOf(Items.TOTEM_OF_UNDYING);
 
                 if (!slotHasTotem) {
-
-                    int nextTotem = findHotbarTotem(client.player);
-                    if (nextTotem >= 0 && hp <= triggerHp) {
+                    int nextTotem = findHotbarTotem(player);
+                    if (nextTotem >= 0 && isThreat) {
                         heldTotemHotbarSlot = nextTotem;
                         lastTotemHotbarSlot = nextTotem;
                         lastControllerAssignedSlot = nextTotem;
                         userOverrideCount = 0;
                         userCancelled = false;
-                        SafeSlotManager.selectSlot(client, nextTotem);
+                        if (activeLease != null) {
+                            SlotArbiter.selectSlot(client, activeLease, nextTotem);
+                        } else {
+                            SafeSlotManager.selectSlot(client, nextTotem);
+                        }
                         return;
                     }
 
                     userOverrideCount = 0;
-                    if (BufferPipelineConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
+                    if (BufferPipelineConfig.autoRefill && findInventoryTotem(player) >= 0) {
                         startRefill(client, targetSlot);
                     } else {
-                        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
-                        int returnSlot = resolveReturnSlot(client.player);
-                        if (returnSlot >= 0 && returnSlot < 9) {
-                            SafeSlotManager.selectSlot(client, returnSlot);
-                        }
+                        releaseTotemLease(true);
                         clear();
                     }
                     return;
                 }
 
-                int currentSelected = client.player.getInventory().getSelectedSlot();
+                int currentSelected = player.getInventory().getSelectedSlot();
                 if (currentSelected != targetSlot) {
                     userOverrideCount++;
                     if (userOverrideCount < 2) {
-
-                        SafeSlotManager.selectSlot(client, targetSlot);
+                        if (activeLease != null) {
+                            SlotArbiter.selectSlot(client, activeLease, targetSlot);
+                        } else {
+                            SafeSlotManager.selectSlot(client, targetSlot);
+                        }
                         lastControllerAssignedSlot = targetSlot;
                     } else {
-
                         userCancelled = true;
                         userCancelledTime = now;
-                        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
+                        releaseTotemLease(false);
                         state = State.IDLE;
                         return;
                     }
@@ -304,25 +288,17 @@ public final class BufferPipelineController {
                     lastControllerAssignedSlot = targetSlot;
                 }
 
-                if (BufferPipelineConfig.restoreHearts > 0.0 && hp >= restoreHp) {
+                boolean canExit = (BufferPipelineConfig.restoreHearts > 0.0 && hp >= restoreHp)
+                        || (BufferPipelineConfig.restoreHearts <= 0.0 && !isThreat && hp >= triggerHp + 2.0F);
+
+                if (canExit && now - lastThreatTime > (long)(BufferPipelineConfig.swapBackDelay * 1000.0)) {
                     if (BufferPipelineConfig.returnItem) {
-                        int returnSlot = resolveReturnSlot(client.player);
-                        if (returnSlot >= 0 && returnSlot < 9) {
-                            SafeSlotManager.selectSlot(client, returnSlot);
-                        }
+                        releaseTotemLease(true);
+                    } else {
+                        releaseTotemLease(false);
                     }
                     clear();
                 }
-            }
-
-            case SELECT_TOTEM -> {
-                if (swappedHotbarSlot < 0 || swappedHotbarSlot >= 9) {
-                    clear();
-                    return;
-                }
-                SafeSlotManager.selectSlot(client, swappedHotbarSlot);
-                timer = 1;
-                state = State.SWAP_OFFHAND;
             }
 
             case SWAP_OFFHAND -> {
@@ -330,90 +306,39 @@ public final class BufferPipelineController {
                     timer--;
                     return;
                 }
-                sendOffhandSwap(client);
-                swapLocalHands(client.player);
-                if (savedMainSlot >= 0 && savedMainSlot != swappedHotbarSlot) {
-                    timer = 1;
-                    state = State.RESTORE_MAIN_SLOT;
-                } else {
+                if (player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                     state = State.ACTIVE;
-                }
-            }
-
-            case RESTORE_MAIN_SLOT -> {
-                if (timer > 0) {
-                    timer--;
                     return;
                 }
-                if (savedMainSlot >= 0 && savedMainSlot < 9) {
-                    SafeSlotManager.selectSlot(client, savedMainSlot);
-                }
+                triggerOffhandTotem(client);
                 state = State.ACTIVE;
             }
 
             case ACTIVE -> {
-                boolean offhandHasTotem = client.player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING);
+                boolean offhandHasTotem = player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING);
 
                 if (!offhandHasTotem) {
-                    if (BufferPipelineConfig.autoRefill && findInventoryTotem(client.player) >= 0) {
-                        int targetRefill = resolveRefillTargetSlot(client.player, swappedHotbarSlot);
+                    if (BufferPipelineConfig.autoRefill && findInventoryTotem(player) >= 0) {
+                        int targetRefill = resolveRefillTargetSlot(player, swappedHotbarSlot);
                         if (targetRefill >= 0) {
                             startRefill(client, targetRefill);
                             return;
                         }
                     }
-                    int returnSlot = resolveReturnSlot(client.player);
-                    if (returnSlot >= 0 && returnSlot < 9 && client.player.getInventory().getSelectedSlot() != returnSlot) {
-                        SafeSlotManager.selectSlot(client, returnSlot);
-                    }
+                    releaseTotemLease(true);
                     clear();
                     awaitingHealAfterPop = true;
                     return;
                 }
 
-                if (BufferPipelineConfig.restoreHearts > 0.0 && hp >= restoreHp) {
-                    if (BufferPipelineConfig.returnItem && swappedHotbarSlot >= 0) {
-                        state = State.RESTORE_SWAP_SELECT;
-                    } else {
+                if (!BufferPipelineConfig.alwaysOffhand) {
+                    boolean canRestore = (BufferPipelineConfig.restoreHearts > 0.0 && hp >= restoreHp)
+                            || (BufferPipelineConfig.restoreHearts <= 0.0 && !isThreat);
+                    if (canRestore && now - lastThreatTime > (long)(BufferPipelineConfig.swapBackDelay * 1000.0)) {
+                        releaseTotemLease(true);
                         clear();
                     }
                 }
-            }
-
-            case RESTORE_SWAP_SELECT -> {
-                if (swappedHotbarSlot >= 0 && swappedHotbarSlot < 9) {
-                    SafeSlotManager.selectSlot(client, swappedHotbarSlot);
-                    timer = 1;
-                    state = State.RESTORE_SWAP_OFFHAND;
-                } else {
-                    clear();
-                }
-            }
-
-            case RESTORE_SWAP_OFFHAND -> {
-                if (timer > 0) {
-                    timer--;
-                    return;
-                }
-                sendOffhandSwap(client);
-                swapLocalHands(client.player);
-                if (savedMainSlot >= 0 && savedMainSlot != swappedHotbarSlot) {
-                    timer = 1;
-                    state = State.RESTORE_SWAP_MAIN;
-                } else {
-                    clear();
-                }
-            }
-
-            case RESTORE_SWAP_MAIN -> {
-                if (timer > 0) {
-                    timer--;
-                    return;
-                }
-                if (savedMainSlot >= 0 && savedMainSlot < 9) {
-                    SafeSlotManager.selectSlot(client, savedMainSlot);
-                }
-                clear();
             }
 
             case REFILL_WAIT_OPEN -> {
@@ -421,19 +346,7 @@ public final class BufferPipelineController {
                     timer--;
                     return;
                 }
-                if (client.currentScreen != null && !(client.currentScreen instanceof InventoryScreen)) {
-                    clear();
-                    return;
-                }
-                if (client.currentScreen == null) {
-                    client.setScreen(new InventoryScreen(client.player));
-                    openedByRefill = true;
-                } else {
-                    openedByRefill = false;
-                }
-                long swapMs = GaussianTimingEngine.getDelay(120.0D, 25.0D, 60L, 250L);
-                timer = Math.max(2, (int) Math.round(swapMs / 50.0D));
-                state = State.REFILL_WAIT_SWAP;
+                executeContainerRefill(client);
             }
 
             case REFILL_WAIT_SWAP -> {
@@ -441,52 +354,7 @@ public final class BufferPipelineController {
                     timer--;
                     return;
                 }
-                if (openedByRefill && client.currentScreen == null) {
-                    clear();
-                    return;
-                }
-                int invTotem = findInventoryTotem(client.player);
-                if (invTotem < 0) {
-                    finishRefill(client);
-                    return;
-                }
-                int targetHotbar = refillTargetHotbarSlot;
-                if (targetHotbar < 0 || targetHotbar >= 9) {
-                    targetHotbar = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
-                }
-                if (targetHotbar < 0 || targetHotbar >= 9) {
-                    finishRefill(client);
-                    return;
-                }
-                refillTargetHotbarSlot = targetHotbar;
-
-                ItemStack currentStack = client.player.getInventory().getStack(targetHotbar);
-                if (currentStack.isOf(Items.TOTEM_OF_UNDYING)) {
-                    finishRefill(client);
-                    return;
-                }
-
-                if (client.player.isSprinting()) {
-                    client.player.setSprinting(false);
-                    if (client.getNetworkHandler() != null) {
-                        client.getNetworkHandler().sendPacket(new net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket(
-                            client.player,
-                            net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket.Mode.STOP_SPRINTING
-                        ));
-                    }
-                }
-
-                client.interactionManager.clickSlot(
-                    client.player.playerScreenHandler.syncId,
-                    invTotem,
-                    targetHotbar,
-                    SlotActionType.SWAP,
-                    client.player
-                );
-                lastTotemHotbarSlot = targetHotbar;
-                long closeMs = GaussianTimingEngine.getDelay(90.0D, 20.0D, 40L, 200L);
-                timer = Math.max(1, (int) Math.round(closeMs / 50.0D));
-                state = State.REFILL_WAIT_CLOSE;
+                finishRefill(client);
             }
 
             case REFILL_WAIT_CLOSE -> {
@@ -502,136 +370,209 @@ public final class BufferPipelineController {
                     return;
                 }
                 if (awaitingHealAfterPop) {
-                    float effHp = client.player.getHealth() + client.player.getAbsorptionAmount();
+                    float effHp = player.getHealth() + player.getAbsorptionAmount();
                     if (now - lastPopTime < POST_POP_GRACE_MS && effHp > 2.0F) {
                         return;
                     }
                 }
-                if (hp <= triggerHp) {
-                    if (BufferPipelineConfig.mode == 3) {
 
-                        int crystalSlot = getDesignatedCrystalSlot(client.player);
-                        ItemStack slotStack = client.player.getInventory().getStack(crystalSlot);
+                if (BufferPipelineConfig.alwaysOffhand && !player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+                    triggerOffhandTotem(client);
+                    return;
+                }
+
+                if (isThreat) {
+                    if (!chancePassedForCurrentThreat) {
+                        return;
+                    }
+
+                    if (BufferPipelineConfig.mode == 2 || BufferPipelineConfig.alwaysOffhand) {
+                        triggerOffhandTotem(client);
+                        return;
+                    }
+
+                    if (BufferPipelineConfig.mode == 3) {
+                        int crystalSlot = getDesignatedCrystalSlot(player);
+                        ItemStack slotStack = player.getInventory().getStack(crystalSlot);
                         if (slotStack.isOf(Items.TOTEM_OF_UNDYING)) {
-                            if (BufferPipelineConfig.chance < 100) {
-                                int roll = java.util.concurrent.ThreadLocalRandom.current().nextInt(100);
-                                if (roll >= BufferPipelineConfig.chance) {
-                                    return;
-                                }
-                            }
-                            int currentSlot = client.player.getInventory().getSelectedSlot();
-                            if (currentSlot != crystalSlot && !client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
+                            int currentSlot = player.getInventory().getSelectedSlot();
+                            if (currentSlot != crystalSlot && !player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
                                 savedMainSlot = currentSlot;
                             } else if (savedMainSlot < 0 || savedMainSlot == crystalSlot) {
-                                savedMainSlot = resolveReturnSlot(client.player);
+                                savedMainSlot = resolveReturnSlot(player);
                             }
                             heldTotemHotbarSlot = crystalSlot;
                             lastTotemHotbarSlot = crystalSlot;
                             lastControllerAssignedSlot = crystalSlot;
                             userOverrideCount = 0;
-                            net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
-                            SafeSlotManager.selectSlot(client, crystalSlot);
+                            acquireTotemLease(EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT));
+                            if (activeLease != null) {
+                                SlotArbiter.selectSlot(client, activeLease, crystalSlot);
+                            } else {
+                                SafeSlotManager.selectSlot(client, crystalSlot);
+                            }
                             state = State.HOLD_IN_HAND;
                             return;
                         } else {
-
                             if (BufferPipelineConfig.autoRefill && now - lastRefillTime >= REFILL_COOLDOWN_MS
-                                    && findInventoryTotem(client.player) >= 0) {
+                                    && findInventoryTotem(player) >= 0) {
                                 startRefill(client, crystalSlot);
                             }
                             return;
                         }
-                    } else if (BufferPipelineConfig.mode == 1) {
-
-                        if (client.player.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+                    } else {
+                        if (player.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                             return;
                         }
-                        int totemSlot = findHotbarTotem(client.player);
+                        int totemSlot = findHotbarTotem(player);
                         if (totemSlot >= 0) {
-                            if (BufferPipelineConfig.chance < 100) {
-                                int roll = java.util.concurrent.ThreadLocalRandom.current().nextInt(100);
-                                if (roll >= BufferPipelineConfig.chance) {
-                                    return;
-                                }
-                            }
-                            int currentSlot = client.player.getInventory().getSelectedSlot();
-                            if (!client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
+                            int currentSlot = player.getInventory().getSelectedSlot();
+                            if (!player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
                                 savedMainSlot = currentSlot;
                             } else if (savedMainSlot < 0 || savedMainSlot == totemSlot) {
-                                savedMainSlot = resolveReturnSlot(client.player);
+                                savedMainSlot = resolveReturnSlot(player);
                             }
                             heldTotemHotbarSlot = totemSlot;
                             lastTotemHotbarSlot = totemSlot;
                             lastControllerAssignedSlot = totemSlot;
                             userOverrideCount = 0;
-                            net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
-                            SafeSlotManager.selectSlot(client, totemSlot);
+                            acquireTotemLease(EnumSet.of(SlotArbiter.Resource.HOTBAR_SELECT));
+                            if (activeLease != null) {
+                                SlotArbiter.selectSlot(client, activeLease, totemSlot);
+                            } else {
+                                SafeSlotManager.selectSlot(client, totemSlot);
+                            }
                             state = State.HOLD_IN_HAND;
                             return;
                         } else {
                             if (BufferPipelineConfig.autoRefill && now - lastRefillTime >= REFILL_COOLDOWN_MS
-                                    && findInventoryTotem(client.player) >= 0) {
-                                int targetRefill = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
+                                    && findInventoryTotem(player) >= 0) {
+                                int targetRefill = resolveRefillTargetSlot(player, lastTotemHotbarSlot);
                                 if (targetRefill >= 0) {
                                     startRefill(client, targetRefill);
                                 }
                             }
-                            return;
                         }
-                    } else {
-                        if (client.player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
-                            return;
-                        }
-                        int totemSlot = findHotbarTotem(client.player);
-                        if (totemSlot < 0) {
-                            if (BufferPipelineConfig.autoRefill && now - lastRefillTime >= REFILL_COOLDOWN_MS
-                                    && findInventoryTotem(client.player) >= 0) {
-                                int targetRefill = resolveRefillTargetSlot(client.player, lastTotemHotbarSlot);
-                                if (targetRefill >= 0) {
-                                    startRefill(client, targetRefill);
-                                }
-                            }
-                            return;
-                        }
-                        if (BufferPipelineConfig.chance < 100) {
-                            int roll = java.util.concurrent.ThreadLocalRandom.current().nextInt(100);
-                            if (roll >= BufferPipelineConfig.chance) {
-                                return;
-                            }
-                        }
-                        int currentSlot = client.player.getInventory().getSelectedSlot();
-                        if (!client.player.getInventory().getStack(currentSlot).isOf(Items.TOTEM_OF_UNDYING)) {
-                            savedMainSlot = currentSlot;
-                        }
-                        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
-
-                        swappedHotbarSlot = totemSlot;
-                        lastTotemHotbarSlot = totemSlot;
-                        SafeSlotManager.selectSlot(client, swappedHotbarSlot);
-                        sendOffhandSwap(client);
-                        swapLocalHands(client.player);
-                        if (savedMainSlot >= 0 && savedMainSlot != swappedHotbarSlot) {
-                            timer = 1;
-                            state = State.RESTORE_MAIN_SLOT;
-                        } else {
-                            state = State.ACTIVE;
-                        }
-                        return;
                     }
                 }
             }
+
+            default -> {}
+        }
+    }
+
+    private void triggerOffhandTotem(MinecraftClient client) {
+        if (client == null || client.player == null || client.interactionManager == null) return;
+        if (pendingOffhandTicks > 0) return;
+
+        ClientPlayerEntity player = client.player;
+        if (player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+            state = State.ACTIVE;
+            return;
+        }
+
+        int invTotemSlot = findBestTotemSlot(player, true);
+        if (invTotemSlot < 0) {
+            return;
+        }
+
+        acquireTotemLease(EnumSet.of(SlotArbiter.Resource.OFFHAND, SlotArbiter.Resource.INVENTORY_CLICKS));
+
+        int screenSlot = (invTotemSlot >= 0 && invTotemSlot < 9) ? (36 + invTotemSlot) : invTotemSlot;
+
+        client.interactionManager.clickSlot(
+                player.playerScreenHandler.syncId,
+                screenSlot,
+                40,
+                SlotActionType.SWAP,
+                player
+        );
+        pendingOffhandTicks = 4;
+        state = State.ACTIVE;
+    }
+
+    private void executeContainerRefill(MinecraftClient client) {
+        if (client == null || client.player == null || client.interactionManager == null) {
+            finishRefill(client);
+            return;
+        }
+
+        ClientPlayerEntity player = client.player;
+        int invTotem = findInventoryTotem(player);
+        if (invTotem < 0) {
+            finishRefill(client);
+            return;
+        }
+
+        int targetHotbar = refillTargetHotbarSlot;
+        if (targetHotbar < 0 || targetHotbar >= 9) {
+            targetHotbar = resolveRefillTargetSlot(player, lastTotemHotbarSlot);
+        }
+        if (targetHotbar < 0 || targetHotbar >= 9) {
+            finishRefill(client);
+            return;
+        }
+
+        ItemStack currentStack = player.getInventory().getStack(targetHotbar);
+        if (currentStack.isOf(Items.TOTEM_OF_UNDYING)) {
+            finishRefill(client);
+            return;
+        }
+
+        client.interactionManager.clickSlot(
+                player.playerScreenHandler.syncId,
+                invTotem,
+                targetHotbar,
+                SlotActionType.SWAP,
+                player
+        );
+        lastTotemHotbarSlot = targetHotbar;
+        timer = 1;
+        state = State.REFILL_WAIT_CLOSE;
+    }
+
+    private void acquireTotemLease(EnumSet<SlotArbiter.Resource> resources) {
+        CombatLockManager.setLock("pvp.totem_active", true);
+        if (activeLease == null || !activeLease.isActive()) {
+            activeLease = SlotArbiter.acquire("pvp.totem", SlotArbiter.Priority.EMERGENCY, resources, 60, false);
+        }
+    }
+
+    private void releaseTotemLease(boolean restore) {
+        CombatLockManager.setLock("pvp.totem_active", false);
+        if (activeLease != null) {
+            SlotArbiter.release(activeLease, restore);
+            activeLease = null;
+        }
+    }
+
+    private void checkTotemQuantityNotification(ClientPlayerEntity player) {
+        if (!BufferPipelineConfig.lowTotemNotify || player == null) return;
+        int total = 0;
+        if (player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) total++;
+        if (player.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) total++;
+        for (int i = 0; i < player.getInventory().size(); i++) {
+            if (player.getInventory().getStack(i).isOf(Items.TOTEM_OF_UNDYING)) {
+                total++;
+            }
+        }
+        if ((total == 1 || total == 2) && total != lastWarnedTotemCount) {
+            lastWarnedTotemCount = total;
+            player.sendMessage(Text.translatable("activity.totem.low_warning", total), true);
+        } else if (total > 2) {
+            lastWarnedTotemCount = -1;
         }
     }
 
     private void startRefill(MinecraftClient client, int targetHotbar) {
-        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, true);
+        CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, true);
         refillTargetHotbarSlot = targetHotbar;
         timer = 1;
         state = State.REFILL_WAIT_OPEN;
     }
 
     private void finishRefill(MinecraftClient client) {
-        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, false);
+        CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, false);
         if (client != null && openedByRefill && client.currentScreen instanceof InventoryScreen) {
             if (client.player != null) {
                 client.player.closeHandledScreen();
@@ -644,68 +585,7 @@ public final class BufferPipelineController {
         refillTargetHotbarSlot = -1;
         refillInvSlot = -1;
         timer = 0;
-
-        if (client != null && client.player != null && client.player.isAlive()) {
-            float hp = getEffectiveHealth(client.player);
-            float triggerHp = (float) (BufferPipelineConfig.triggerHearts * 2.0);
-
-            if (BufferPipelineConfig.mode == 3) {
-                net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
-                int returnSlot = resolveReturnSlot(client.player);
-                if (returnSlot >= 0 && returnSlot < 9 && client.player.getInventory().getSelectedSlot() != returnSlot) {
-                    SafeSlotManager.selectSlot(client, returnSlot);
-                }
-                clear();
-                awaitingHealAfterPop = false;
-                return;
-            }
-
-            if (hp <= triggerHp) {
-                if (BufferPipelineConfig.mode == 1) {
-                    int slotToHold = (refilledSlot >= 0 && refilledSlot < 9) ? refilledSlot : findHotbarTotem(client.player);
-                    if (slotToHold >= 0) {
-                        heldTotemHotbarSlot = slotToHold;
-                        lastTotemHotbarSlot = slotToHold;
-                        lastControllerAssignedSlot = slotToHold;
-                        userOverrideCount = 0;
-                        userCancelled = false;
-                        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", true);
-                        if (client.player.getInventory().getSelectedSlot() != slotToHold) {
-                            SafeSlotManager.selectSlot(client, slotToHold);
-                        }
-                        state = State.HOLD_IN_HAND;
-                        awaitingHealAfterPop = false;
-                        return;
-                    }
-                } else if (BufferPipelineConfig.mode == 2) {
-                    boolean offhandHasTotem = client.player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING);
-                    if (!offhandHasTotem) {
-                        int slotToSwap = (refilledSlot >= 0 && refilledSlot < 9) ? refilledSlot : findHotbarTotem(client.player);
-                        if (slotToSwap >= 0) {
-                            if (savedMainSlot < 0 || savedMainSlot == slotToSwap) {
-                                savedMainSlot = resolveReturnSlot(client.player);
-                            }
-                            if (savedMainSlot == slotToSwap) {
-                                savedMainSlot = findPreferredWeaponSlot(client.player);
-                            }
-                            swappedHotbarSlot = slotToSwap;
-                            lastTotemHotbarSlot = slotToSwap;
-                            SafeSlotManager.selectSlot(client, slotToSwap);
-                            timer = 1;
-                            state = State.SWAP_OFFHAND;
-                            awaitingHealAfterPop = false;
-                            return;
-                        }
-                    }
-                }
-            }
-
-            int returnSlot = resolveReturnSlot(client.player);
-            if (returnSlot >= 0 && returnSlot < 9 && client.player.getInventory().getSelectedSlot() != returnSlot) {
-                SafeSlotManager.selectSlot(client, returnSlot);
-            }
-        }
-        clear();
+        state = State.IDLE;
         awaitingHealAfterPop = false;
     }
 
@@ -719,7 +599,8 @@ public final class BufferPipelineController {
                 return 8;
             }
             for (int i = 8; i >= 0; i--) {
-                if (player.getInventory().getStack(i).isOf(Items.TOTEM_OF_UNDYING)) {
+                ItemStack stack = player.getInventory().getStack(i);
+                if (stack.isOf(Items.TOTEM_OF_UNDYING) || stack.isEmpty()) {
                     return i;
                 }
             }
@@ -727,22 +608,45 @@ public final class BufferPipelineController {
         return 8;
     }
 
-    private void sendOffhandSwap(MinecraftClient client) {
-        if (client.getNetworkHandler() != null) {
-            client.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
-                PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND,
-                BlockPos.ORIGIN,
-                Direction.DOWN
-            ));
-        }
+    private static int getTotemCost(ItemStack stack) {
+        if (stack.isEmpty() || !stack.isOf(Items.TOTEM_OF_UNDYING)) return 9999;
+        int cost = 0;
+        if (stack.contains(net.minecraft.component.DataComponentTypes.CUSTOM_NAME)) cost += 100;
+        if (stack.hasEnchantments()) cost += 200;
+        if (stack.hasGlint()) cost += 50;
+        return cost;
     }
 
-    private void swapLocalHands(ClientPlayerEntity player) {
-        if (player == null) return;
-        ItemStack main = player.getMainHandStack();
-        ItemStack off = player.getOffHandStack();
-        player.setStackInHand(Hand.MAIN_HAND, off);
-        player.setStackInHand(Hand.OFF_HAND, main);
+    private int findBestTotemSlot(ClientPlayerEntity player, boolean includeHotbar) {
+        if (player == null) return -1;
+        int bestSlot = -1;
+        int lowestCost = 99999;
+
+        for (int i = 9; i < 36; i++) {
+            ItemStack stack = player.getInventory().getStack(i);
+            if (stack.isOf(Items.TOTEM_OF_UNDYING)) {
+                int cost = getTotemCost(stack);
+                if (cost < lowestCost) {
+                    lowestCost = cost;
+                    bestSlot = i;
+                }
+            }
+        }
+
+        if (includeHotbar) {
+            for (int i = 0; i < 9; i++) {
+                ItemStack stack = player.getInventory().getStack(i);
+                if (stack.isOf(Items.TOTEM_OF_UNDYING)) {
+                    int cost = getTotemCost(stack);
+                    if (cost < lowestCost) {
+                        lowestCost = cost;
+                        bestSlot = i;
+                    }
+                }
+            }
+        }
+
+        return bestSlot;
     }
 
     private int findHotbarTotem(ClientPlayerEntity player) {
@@ -779,14 +683,7 @@ public final class BufferPipelineController {
     }
 
     private int findInventoryTotem(ClientPlayerEntity player) {
-        if (player == null) return -1;
-
-        for (int s = 9; s < 36; s++) {
-            if (player.getInventory().getStack(s).isOf(Items.TOTEM_OF_UNDYING)) {
-                return s;
-            }
-        }
-        return -1;
+        return findBestTotemSlot(player, false);
     }
 
     private int findEmptyHotbarSlot(ClientPlayerEntity player) {
@@ -833,41 +730,22 @@ public final class BufferPipelineController {
         heldTotemHotbarSlot = -1;
         savedMainSlot = -1;
         lastControllerAssignedSlot = -1;
-        reactionUntil = 0L;
         timer = 0;
         openedByRefill = false;
         refillTargetHotbarSlot = -1;
         refillInvSlot = -1;
-        net.fabricmc.pack.api.CombatLockManager.setLock("pvp.totem_active", false);
-        net.fabricmc.pack.api.CombatLockManager.setLock(net.fabricmc.pack.api.CombatLockManager.INVENTORY_ACTION, false);
-    }
-
-    private int findPreferredWeaponSlot(ClientPlayerEntity player) {
-        if (player == null) return 0;
-        int sword = activity.client.module.service.InventoryScanService.findSwordSlot(player);
-        if (sword >= 0 && sword < 9) return sword;
-        int axe = activity.client.module.service.InventoryScanService.findAxeSlot(player);
-        if (axe >= 0 && axe < 9) return axe;
-        int mace = activity.client.module.service.InventoryScanService.findMaceSlot(player);
-        if (mace >= 0 && mace < 9) return mace;
-
-        for (int i = 0; i < 9; i++) {
-            ItemStack stack = player.getInventory().getStack(i);
-            if (!stack.isEmpty() && !stack.isOf(Items.TOTEM_OF_UNDYING)) {
-                return i;
-            }
-        }
-        return 0;
+        pendingOffhandTicks = 0;
+        releaseTotemLease(false);
     }
 
     public int resolveReturnSlot(ClientPlayerEntity player) {
         if (player == null || player.getInventory() == null) return 0;
 
-        int anchorSlot = dev.lighting.LightmapFilterController.getLastAnchorOriginalSlot();
-        if (anchorSlot >= 0 && anchorSlot < 9) {
-            ItemStack s = player.getInventory().getStack(anchorSlot);
-            if (!s.isEmpty() && (s.isOf(net.minecraft.block.Blocks.RESPAWN_ANCHOR.asItem()) || s.isOf(Items.END_CRYSTAL))) {
-                return anchorSlot;
+        int arbiterSlot = SlotArbiter.getLastUserSelectedSlot();
+        if (arbiterSlot >= 0 && arbiterSlot < 9) {
+            ItemStack s = player.getInventory().getStack(arbiterSlot);
+            if (!s.isEmpty() && !s.isOf(Items.TOTEM_OF_UNDYING)) {
+                return arbiterSlot;
             }
         }
 
@@ -887,15 +765,6 @@ public final class BufferPipelineController {
             }
         }
 
-        if (lastNonTotemItem != null) {
-            for (int i = 0; i < 9; i++) {
-                ItemStack s = player.getInventory().getStack(i);
-                if (!s.isEmpty() && s.isOf(lastNonTotemItem)) {
-                    return i;
-                }
-            }
-        }
-
         if (savedMainSlot >= 0 && savedMainSlot < 9) {
             ItemStack s = player.getInventory().getStack(savedMainSlot);
             if (!s.isEmpty() && !s.isOf(Items.TOTEM_OF_UNDYING)) {
@@ -903,23 +772,12 @@ public final class BufferPipelineController {
             }
         }
 
-        if (BufferPipelineConfig.mode == 3) {
-            for (int i = 0; i < 9; i++) {
-                ItemStack s = player.getInventory().getStack(i);
-                if (!s.isEmpty() && (s.isOf(net.minecraft.block.Blocks.RESPAWN_ANCHOR.asItem()) || s.isOf(Items.END_CRYSTAL))) {
-                    return i;
-                }
-            }
-        }
+        int sword = activity.client.module.service.InventoryScanService.findSwordSlot(player);
+        if (sword >= 0 && sword < 9) return sword;
+        int axe = activity.client.module.service.InventoryScanService.findAxeSlot(player);
+        if (axe >= 0 && axe < 9) return axe;
 
-        if (lastNonTotemSlot >= 0 && lastNonTotemSlot < 9) {
-            ItemStack s = player.getInventory().getStack(lastNonTotemSlot);
-            if (!s.isOf(Items.TOTEM_OF_UNDYING)) {
-                return lastNonTotemSlot;
-            }
-        }
-
-        return findPreferredWeaponSlot(player);
+        return 0;
     }
 
     public void setLastNonTotemSlotForTest(int slot, net.minecraft.item.Item item) {
