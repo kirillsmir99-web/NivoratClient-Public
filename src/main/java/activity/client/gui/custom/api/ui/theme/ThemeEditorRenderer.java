@@ -153,6 +153,10 @@ public final class ThemeEditorRenderer {
         return this.pendingLeaveConfirm;
     }
 
+    public boolean isInputActive() {
+        return this.isOpen() && this.nameFocused;
+    }
+
     public ThemeDraft getDraft() {
         return this.draft;
     }

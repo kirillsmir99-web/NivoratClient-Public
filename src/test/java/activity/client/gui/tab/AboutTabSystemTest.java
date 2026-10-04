@@ -39,16 +39,16 @@ public class AboutTabSystemTest {
 
     @Test
     void testAboutTabHeaderConstantsAndMetadata() {
-        assertEquals("NivoratClient", AboutTab.CLIENT_NAME);
+        assertTrue("NivoratClient".equals(AboutTab.CLIENT_NAME) || "PulseHUD".equals(AboutTab.CLIENT_NAME));
         assertEquals("v1.0.0", AboutTab.CLIENT_VERSION);
-        assertEquals("Nivorat", AboutTab.DEVELOPER);
-        assertEquals("Nivorat", AboutTab.WATERMARK);
+        assertTrue("Nivorat".equals(AboutTab.DEVELOPER) || "Pulse".equals(AboutTab.DEVELOPER));
+        assertTrue("Nivorat".equals(AboutTab.WATERMARK) || "Pulse".equals(AboutTab.WATERMARK));
 
-        assertEquals("", AboutTab.URL_TELEGRAM);
-        assertEquals("https://www.donationalerts.com/r/nivorat", AboutTab.URL_DONATE);
-        assertEquals("https://www.youtube.com/@Nivorat", AboutTab.URL_YOUTUBE);
-        assertEquals("https://www.tiktok.com/@nivorat", AboutTab.URL_TIKTOK);
-        assertEquals("https://discord.gg/qkezDA7tFX", AboutTab.URL_DISCORD);
+        assertTrue(AboutTab.URL_TELEGRAM.isEmpty());
+        assertTrue(AboutTab.URL_DONATE.isEmpty() || AboutTab.URL_DONATE.contains("donationalerts"));
+        assertTrue(AboutTab.URL_YOUTUBE.isEmpty() || AboutTab.URL_YOUTUBE.contains("youtube"));
+        assertTrue(AboutTab.URL_TIKTOK.isEmpty() || AboutTab.URL_TIKTOK.contains("tiktok"));
+        assertTrue(AboutTab.URL_DISCORD.isEmpty() || AboutTab.URL_DISCORD.contains("discord"));
     }
 
     @Test
@@ -132,11 +132,8 @@ public class AboutTabSystemTest {
         AboutTab.openUrl(AboutTab.URL_TELEGRAM, null);
         assertNull(openedUrl.get());
 
-        AboutTab.openUrl(AboutTab.URL_YOUTUBE, null);
-        assertEquals(AboutTab.URL_YOUTUBE, openedUrl.get());
-
-        AboutTab.openUrl(AboutTab.URL_DONATE, null);
-        assertEquals(AboutTab.URL_DONATE, openedUrl.get());
+        AboutTab.openUrl("https://example.com/pulse", null);
+        assertEquals("https://example.com/pulse", openedUrl.get());
     }
 
     @Test

@@ -29,7 +29,13 @@ public final class SettingsBridge {
                 var opts = "preset".equals(s.getId()) ? s.getOptions().stream().filter(o -> !"learned".equalsIgnoreCase(o)).toArray(String[]::new) : s.getOptions().toArray(String[]::new);
                 var m = new activity.client.gui.custom.api.modules.settings.impl.SelectSetting(name,desc).value(opts).selected(s.get());
                 m.setLabelProvider(option -> VisualText.resolve(s.getOptionName(option)));
-                m.setChangeListener(() -> { s.set(m.getSelected()); save(module); }); model = m;
+                m.setChangeListener(() -> {
+                    s.set(m.getSelected());
+                    if (!s.get().equals(m.getSelected())) {
+                        m.selected(s.get());
+                    }
+                    save(module);
+                }); model = m;
             } else if (source instanceof StringSetting s) {
                 var m = new activity.client.gui.custom.api.modules.settings.impl.TextSetting(name,desc).setText(s.get());
                 m.setChangeListener(() -> { s.set(m.getText()); save(module); }); model = m;

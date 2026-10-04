@@ -259,7 +259,8 @@ public final class PresetRenderer {
         Fonts.NV.msdf(NvIcons.IMPORT, lastImpX + 5.0f, lastImpY + 3.8f, 6.0f, hoverImp ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 200, alpha));
         Fonts.MONTSERRAT_MEDIUM.draw(tr("Импорт", "Import"), lastImpX + 15.0f, lastImpY + 3.5f, 5.2f, hoverImp ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 200, alpha));
 
-        this.lastCreateW = 58.0f;
+        float createTextW = Fonts.MONTSERRAT_MEDIUM.width(tr("Создать", "Create"), 5.2f);
+        this.lastCreateW = 6.0f + 6.0f + 4.0f + createTextW + 6.0f;
         this.lastCreateH = btnH;
         this.lastCreateX = lastImpX - this.lastCreateW - 4.0f;
         this.lastCreateY = btnY;
@@ -268,8 +269,10 @@ public final class PresetRenderer {
         if (hoverCreate) {
             Render2D.glow(new BuiltGlow(lastCreateX, lastCreateY, lastCreateW, lastCreateH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(255.0f * alpha), 0.35f, 4.0f, alpha));
         }
-        Fonts.NV.msdf(NvIcons.ADD, lastCreateX + 5.5f, lastCreateY + 3.8f, 6.0f, color(255, 255, 255, 255, alpha));
-        Fonts.MONTSERRAT_MEDIUM.draw(tr("Создать", "Create"), lastCreateX + 15.5f, lastCreateY + 3.5f, 5.2f, color(255, 255, 255, 255, alpha));
+        float createIconY = lastCreateY + (btnH - 6.0f) * 0.5f;
+        float createTextY = lastCreateY + (btnH - 5.2f) * 0.5f - 0.2f;
+        Fonts.NV.msdf(NvIcons.ADD, lastCreateX + 6.0f, createIconY, 6.0f, color(255, 255, 255, 255, alpha));
+        Fonts.MONTSERRAT_MEDIUM.draw(tr("Создать", "Create"), lastCreateX + 16.0f, createTextY, 5.2f, color(255, 255, 255, 255, alpha));
 
         Fonts.MONTSERRAT_SEMIBOLD.draw(tr("Пресеты конфигурации", "Configuration presets"), contentX + 1.0f, btnY + 3.5f, 6.2f, color(255, 255, 255, 210, alpha));
 
@@ -362,28 +365,40 @@ public final class PresetRenderer {
                 float actionY = cardY + cardH - actionH - 5.0f;
 
                 boolean isDeletingThis = this.deletingPath != null && this.deletingPath.equals(entry.path());
-                float delW = isDeletingThis ? 36.0f : 12.0f;
+                float delW = isDeletingThis ? 36.0f : 14.0f;
                 float delX = cardX + cardW - delW - 6.0f;
                 boolean hovDel = mx >= delX && mx <= delX + delW && my >= actionY && my <= actionY + actionH;
                 Render2D.rect(delX, actionY, delW, actionH, 2.5f, hovDel ? (isDeletingThis ? ThemeManager.rgba(0xaa2222, 220.0f * alpha) : ThemeManager.rgba(0xffffff, 25.0f * alpha)) : (isDeletingThis ? ThemeManager.rgba(0x882222, 170.0f * alpha) : ThemeManager.rgba(0xffffff, 10.0f * alpha)));
                 if (isDeletingThis) {
-                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Удалить", "Delete"), delX + 3.0f, actionY + 2.5f, 4.5f, color(255, 255, 255, 255, alpha));
+                    float delTextW = Fonts.MONTSERRAT_MEDIUM.width(tr("Удалить", "Delete"), 4.5f);
+                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Удалить", "Delete"), delX + (delW - delTextW) * 0.5f, actionY + 2.5f, 4.5f, color(255, 255, 255, 255, alpha));
                 } else {
-                    Fonts.NV.msdf(NvIcons.DELETE, delX + 3.0f, actionY + 2.5f, 5.0f, hovDel ? ThemeManager.rgba(0xff6666, 255.0f * alpha) : color(255, 255, 255, 140, alpha));
+                    float delIconSize = 7.0f;
+                    float iconX = delX + (delW - delIconSize) * 0.5f;
+                    float iconY = actionY + (actionH - delIconSize) * 0.5f;
+                    int delCol = hovDel ? ThemeManager.rgba(0xff6666, 255.0f * alpha) : color(255, 255, 255, 210, alpha);
+                    Fonts.NV.msdf(NvIcons.DELETE, iconX, iconY, delIconSize, delCol);
+                    Fonts.NV.msdf(NvIcons.DELETE, iconX + 0.3f, iconY, delIconSize, delCol);
                 }
 
-                float expW = 12.0f;
+                float expW = 14.0f;
                 float expX = delX - expW - 4.0f;
                 boolean hovExp = mx >= expX && mx <= expX + expW && my >= actionY && my <= actionY + actionH;
                 Render2D.rect(expX, actionY, expW, actionH, 2.5f, hovExp ? ThemeManager.rgba(0xffffff, 25.0f * alpha) : ThemeManager.rgba(0xffffff, 10.0f * alpha));
-                Fonts.NV.msdf(NvIcons.EXPORT, expX + 3.0f, actionY + 2.5f, 5.0f, hovExp ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 140, alpha));
+                float expIconSize = 7.0f;
+                float expIconX = expX + (expW - expIconSize) * 0.5f;
+                float expIconY = actionY + (actionH - expIconSize) * 0.5f;
+                int expCol = hovExp ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 210, alpha);
+                Fonts.NV.msdf(NvIcons.EXPORT, expIconX, expIconY, expIconSize, expCol);
+                Fonts.NV.msdf(NvIcons.EXPORT, expIconX + 0.3f, expIconY, expIconSize, expCol);
 
                 if (isActive) {
-                    float actBadgeW = 38.0f;
+                    float actTextW = Fonts.MONTSERRAT_MEDIUM.width(tr("Активен", "Active"), 4.5f);
+                    float actBadgeW = actTextW + 8.0f;
                     float actBadgeX = cardX + 8.0f;
                     Render2D.rect(actBadgeX, actionY, actBadgeW, actionH, 2.5f, ClientAccent.accent(40.0f * alpha));
                     Render2D.outline(actBadgeX, actionY, actBadgeW, actionH, 2.5f, 0.5f, ClientAccent.accent(160.0f * alpha));
-                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Активен", "Active"), actBadgeX + 5.5f, actionY + 2.5f, 4.5f, ClientAccent.accentBright(255.0f * alpha));
+                    Fonts.MONTSERRAT_MEDIUM.draw(tr("Активен", "Active"), actBadgeX + 4.0f, actionY + 2.5f, 4.5f, ClientAccent.accentBright(255.0f * alpha));
                 }
             }
 
@@ -778,10 +793,10 @@ public final class PresetRenderer {
                 float actionY = cardY + cardH - actionH - 5.0f;
 
                 boolean isDeletingThis = this.deletingPath != null && this.deletingPath.equals(entry.path());
-                float delW = isDeletingThis ? 36.0f : 12.0f;
+                float delW = isDeletingThis ? 36.0f : 14.0f;
                 float delX = cardX + cardW - delW - 6.0f;
 
-                float expW = 12.0f;
+                float expW = 14.0f;
                 float expX = delX - expW - 4.0f;
 
                 if (mx >= delX && mx <= delX + delW && my >= actionY && my <= actionY + actionH) {

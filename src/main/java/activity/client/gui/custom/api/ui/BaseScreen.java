@@ -55,6 +55,12 @@ extends Screen {
         this.renderScreen(context, mouseX, mouseY, deltaTicks);
         activity.client.gui.custom.CustomRender.leave();
         GuiLayerBlurRenderer.markPanelEnd(context);
+        try {
+            var notif = activity.client.gui.custom.api.modules.ModuleManager.get().get(activity.client.gui.custom.api.modules.impl.Interface.NotificationsModule.class);
+            if (notif != null) {
+                notif.renderHud(context);
+            }
+        } catch (Throwable ignored) {}
     }
 
     public boolean shouldPause() {

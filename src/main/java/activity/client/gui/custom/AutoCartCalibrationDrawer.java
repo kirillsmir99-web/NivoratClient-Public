@@ -203,7 +203,7 @@ public final class AutoCartCalibrationDrawer {
                 renderTelemetryCard(x + 12.0f + (cardW + cardGap) * 2.0f, cardY, cardW, cardH, "СЭМПЛЫ МОТОРИКИ", String.valueOf(profile.getSampleCount()), 0xffcbd5e1);
                 renderTelemetryCard(x + 12.0f + (cardW + cardGap) * 3.0f, cardY, cardW, cardH, "ПЛАВНОСТЬ НАВОДКИ", Math.round(profile.getLearnedCameraSmoothness()) + " мс", accentRgb);
 
-                String statusHint = profile.isCalibrated() ? ("Нейросетевая модель откалибрована • точность " + Math.round(confidence * 100.0f) + "%") : "Идёт адаптивная запись движений при установке и взрыве";
+                String statusHint = profile.isCalibrated() ? ("Адаптивная модель откалибрована • точность " + Math.round(confidence * 100.0f) + "%") : "Идёт адаптивная запись движений при установке и взрыве";
                 Fonts.MONTSERRAT_MEDIUM.draw(statusHint, x + 14.0f, y + 93.0f, 5.5f, 0xff8fa0b5);
             }
         }

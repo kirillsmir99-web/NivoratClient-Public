@@ -23,14 +23,14 @@ import java.net.URI;
 public class AboutTab extends ActivityTab {
 
     public static final String URL_TELEGRAM = "";
-    public static final String URL_DONATE = "https://www.donationalerts.com/r/nivorat";
-    public static final String URL_YOUTUBE = "https://www.youtube.com/@Nivorat";
-    public static final String URL_TIKTOK = "https://www.tiktok.com/@nivorat";
-    public static final String URL_DISCORD = "https://discord.gg/qkezDA7tFX";
-    public static final String WATERMARK = "Nivorat";
-    public static final String CLIENT_NAME = "NivoratClient";
+    public static final String URL_DONATE = "";
+    public static final String URL_YOUTUBE = "";
+    public static final String URL_TIKTOK = "";
+    public static final String URL_DISCORD = "";
+    public static final String WATERMARK = "Pulse";
+    public static final String CLIENT_NAME = "PulseHUD";
     public static final String CLIENT_VERSION = "v1.0.0";
-    public static final String DEVELOPER = "Nivorat";
+    public static final String DEVELOPER = "Pulse";
 
     public static final Identifier TEXTURE_TELEGRAM = Identifier.of("nivoratclient", "textures/gui/social/telegram.png");
     public static final Identifier TEXTURE_DONATE = Identifier.of("nivoratclient", "textures/gui/social/donate.png");

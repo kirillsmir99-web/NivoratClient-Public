@@ -1392,16 +1392,24 @@ implements GuiCapture.Source {
         int textCol = UI.color(255, 255, 255, hoverLang ? 255 : 220, f4);
         Fonts.MONTSERRAT_MEDIUM.draw(langCode, langX + langW - codeW - 4.5f, langY + 3.2f, 5.5f, textCol);
 
-        float centerLogoSize = 22.0f;
+        float centerLogoSize = 44.0f;
         float logoCenterX = f7 + f9 * 0.5f;
         float logoCenterY = f8 + f12 * 0.5f;
-        Render2D.glow(new BuiltGlow(logoCenterX - 9.0f, logoCenterY - 9.0f, 18.0f, 18.0f, new float[]{9.0f, 9.0f, 9.0f, 9.0f}, ClientAccent.accent(160.0f), 0.35f, 5.0f, f4));
+        Render2D.glow(new BuiltGlow(logoCenterX - 20.0f, logoCenterY - 20.0f, 40.0f, 40.0f, new float[]{20.0f, 20.0f, 20.0f, 20.0f}, ClientAccent.accent(160.0f), 0.35f, 6.0f, f4));
         BrandMark.draw(logoCenterX - centerLogoSize * 0.5f, logoCenterY - centerLogoSize * 0.5f, centerLogoSize, f4);
 
         float searchX = f7 + 6.0f;
         float maxSearchW = Math.max(50.0f, (logoCenterX - centerLogoSize * 0.5f - 10.0f) - searchX);
         float targetExpandedW = Math.min(105.0f, maxSearchW);
         this.search.render(drawContext, searchX, f13, targetExpandedW, f11, f4, Position.mouseX(), Position.mouseY(), f5);
+    }
+
+    public boolean isTextInputFocused() {
+        if (this.search != null && this.search.isTyping()) return true;
+        if (activity.client.gui.custom.api.ui.settings.impl.TextSetting.isAnyFocused()) return true;
+        if (this.presetRenderer != null && this.presetRenderer.isInputActive()) return true;
+        if (this.themesRenderer != null && this.themesRenderer.getEditor() != null && this.themesRenderer.getEditor().isInputActive()) return true;
+        return false;
     }
 
     @Override

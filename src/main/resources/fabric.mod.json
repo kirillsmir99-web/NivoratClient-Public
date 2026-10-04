@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "activity",
   "version": "${version}",
-  "name": "NivoratClient",
-  "description": "NivoratClient: клиентский интерфейс, HUD и игровые модули для Minecraft 1.21.11.",
+  "name": "PulseHUD",
+  "description": "PulseHUD: продвинутый клиентский интерфейс, HUD и боевые механики для Minecraft 1.21.11.",
   "authors": [
-    "Nivorat"
+    "Pulse"
   ],
   "contact": {},
   "license": "MIT",

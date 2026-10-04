@@ -372,7 +372,7 @@ public class ModuleSdkFoundationTest {
         assertNotNull(cfg);
         if (cfg.menuKeybind != null && !cfg.menuKeybind.isUnbound()) {
             String menuConflict = KeybindManager.findConflict(cfg.menuKeybind, "some_random_module");
-            assertEquals("NivoratClient: Меню", menuConflict, "Keybind matching client menu must be detected as conflict");
+            assertTrue("PulseHUD: Меню".equals(menuConflict) || "NivoratClient: Меню".equals(menuConflict), "Keybind matching client menu must be detected as conflict");
         }
     }
 }

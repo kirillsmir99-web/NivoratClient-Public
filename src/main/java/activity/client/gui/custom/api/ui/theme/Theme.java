@@ -25,7 +25,7 @@ public enum Theme implements ITheme {
     VELVET("Velvet", "DARK", ThemeProfile.SOFT, new int[]{0x360033, 0x0B8793, 0x4A00E0, 0x8E2DE2});
 
 
-    public static final Theme NV = NIVORA;
+    public static final Theme NV = CLIENT;
 
     @Override
     public String id() {
@@ -113,7 +113,7 @@ public enum Theme implements ITheme {
             case "CHRISTMAS" -> VERDANT;
             case "REVOLUT" -> ARC;
             case "WATERMEL" -> BLOOM;
-            default -> NIVORA;
+            default -> CLIENT;
         };
     }
 

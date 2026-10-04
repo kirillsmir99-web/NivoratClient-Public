@@ -20,7 +20,7 @@ import java.util.Locale;
 
 public final class ActivityHudOverlay {
 
-    public static final String DEFAULT_TITLE = "NivoratClient";
+    public static final String DEFAULT_TITLE = "PulseHUD";
     public static final int PILL_HEIGHT = 15;
     public static final int MODULE_ROW_HEIGHT = 12;
     public static final int ROW_GAP = 2;

@@ -5,11 +5,11 @@ import activity.client.config.ActivityConfigManager;
 public final class ThemeManager {
     private static final long SWITCH_MS = 320L;
     private static final int SHADE_COUNT = 7;
-    private static ITheme current = Theme.NIVORA;
-    private static int[] currentShades = Theme.NIVORA.shades();
-    private static float[] fromShades = ThemeManager.unpack(Theme.NIVORA.shades());
-    private static int[] fromPalette = Theme.NIVORA.palette();
-    private static ThemeProfile fromProfile = Theme.NIVORA.profile();
+    private static ITheme current = Theme.CLIENT;
+    private static int[] currentShades = Theme.CLIENT.shades();
+    private static float[] fromShades = ThemeManager.unpack(Theme.CLIENT.shades());
+    private static int[] fromPalette = Theme.CLIENT.palette();
+    private static ThemeProfile fromProfile = Theme.CLIENT.profile();
     private static long switchStart = System.currentTimeMillis() - 10000L;
     private static ITheme liveOverride = null;
     private static ThemeProfile frameProfile;

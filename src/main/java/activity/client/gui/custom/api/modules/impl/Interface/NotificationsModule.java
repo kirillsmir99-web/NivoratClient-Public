@@ -68,7 +68,7 @@ extends Module {
             return;
         }
         NotificationsModule notificationsModule2 = notificationsModule = instance != null ? instance : ModuleManager.get().get(NotificationsModule.class);
-        if (notificationsModule != null && notificationsModule.isEnabled() && string != null && !string.isBlank()) {
+        if (notificationsModule != null && string != null && !string.isBlank()) {
             long now=System.currentTimeMillis();
             Long previous=notificationsModule.lastMessage.put(string,now);
             if(previous!=null && now-previous<10000L)return;
@@ -172,7 +172,6 @@ extends Module {
         while ((pending = this.pending.poll()) != null) {
             this.spawn(pending.segs(), pending.duration(), l, false);
         }
-        if(this.mc.currentScreen instanceof activity.client.gui.custom.api.ui.UI)return;
         if (this.notifs.isEmpty()) {
             return;
         }
