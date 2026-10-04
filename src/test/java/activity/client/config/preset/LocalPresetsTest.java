@@ -53,4 +53,14 @@ class LocalPresetsTest {
         assertFalse(settings.has("autoMaceEnabled"));
         assertTrue(settings.getAsJsonObject("modules").has("hp_reaper"));
     }
+    @Test void granularModuleSelectionCapturesOnlySelectedModules() throws Exception {
+        JsonObject root = LocalPresets.capture("Только комбат", LocalPresets.Template.DEFAULTS, EnumSet.of(LocalPresets.Part.MODULES), java.util.Set.of("auto_totem", "auto_mace"));
+        var preview = LocalPresets.parse(root.toString());
+        var modules = preview.sections().getAsJsonObject("modules").getAsJsonObject("modules");
+        assertTrue(modules.has("auto_totem"));
+        assertTrue(modules.has("auto_mace"));
+        assertFalse(modules.has("auto_anchor"));
+        assertFalse(modules.has("auto_cart"));
+        assertFalse(modules.has("auto_shieldbreaker"));
+    }
 }

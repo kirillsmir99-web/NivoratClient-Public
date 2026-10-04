@@ -3,7 +3,6 @@ package activity.client.gui.custom;
 import activity.client.config.preset.LocalPresets;
 import activity.client.gui.custom.api.drags.Position;
 import activity.client.gui.custom.api.ui.UI;
-import activity.client.gui.custom.api.ui.module.SearchField;
 import activity.client.gui.custom.api.ui.settings.RenderHelper;
 import activity.client.gui.custom.api.ui.theme.ClientAccent;
 import activity.client.gui.custom.api.ui.theme.ThemeManager;
@@ -29,9 +28,27 @@ public final class PresetRenderer {
     private static final float HEADER_HEIGHT = 22.0f;
     private static final float FOOTER_HEIGHT = 28.0f;
 
+    public static final List<String> ALL_FEATURE_MODULES = List.of(
+        "auto_totem",
+        "auto_mace",
+        "auto_stun_slam",
+        "auto_shieldbreaker",
+        "auto_anchor",
+        "auto_cart",
+        "auto_spear",
+        "auto_pearl_catch",
+        "click_pearl",
+        "cart_refill",
+        "hp_reaper",
+        "auto_tool",
+        "auto_gg",
+        "cart_hud",
+        "cooldown_hud",
+        "water_drop"
+    );
+
     private List<LocalPresets.Entry> entries = List.of();
     private Set<String> favorites = Set.of();
-    private final SearchField search = new SearchField();
 
     private float scroll = 0.0f;
     private float scrollTarget = 0.0f;
@@ -50,6 +67,7 @@ public final class PresetRenderer {
     private boolean autoActivate = true;
     private LocalPresets.Template drawerTemplate = LocalPresets.Template.CURRENT;
     private final EnumSet<LocalPresets.Part> drawerParts = EnumSet.allOf(LocalPresets.Part.class);
+    private final Set<String> drawerModules = new LinkedHashSet<>(ALL_FEATURE_MODULES);
 
     private float drawerScroll = 0.0f;
     private float drawerScrollTarget = 0.0f;
@@ -70,7 +88,9 @@ public final class PresetRenderer {
     private float lastNameBoxX, lastNameBoxY, lastNameBoxW, lastNameBoxH;
     private float lastPill1X, lastPill1Y, lastPillW, lastPillH;
     private float lastPill2X, lastPill2Y;
-    private final float[] lastPartRowY = new float[8];
+    private final float[] lastPartRowY = new float[7];
+    private final float[] lastModRowY = new float[16];
+    private float lastToggleAllModsX, lastToggleAllModsY, lastToggleAllModsW;
     private float lastAutoActY;
     private float lastToggleAllX, lastToggleAllY, lastToggleAllW;
 
@@ -99,6 +119,28 @@ public final class PresetRenderer {
         return tr("«Для всех серверов»", "«For all servers»");
     }
 
+    private String getModuleLabel(String id) {
+        return switch (id) {
+            case "auto_totem" -> tr("Авто-тотем (AutoTotem)", "Auto Totem");
+            case "auto_mace" -> tr("Авто-мейс (AutoMace)", "Auto Mace");
+            case "auto_stun_slam" -> tr("Стан-слэм (StunSlam)", "Stun Slam");
+            case "auto_shieldbreaker" -> tr("Щит-брейкер (ShieldBreaker)", "Shield Breaker");
+            case "auto_anchor" -> tr("Авто-якорь (AutoAnchor)", "Auto Anchor");
+            case "auto_cart" -> tr("Авто-тележка (AutoCart)", "Auto Cart");
+            case "auto_spear" -> tr("Авто-гарпун (AutoSpear)", "Auto Spear");
+            case "auto_pearl_catch" -> tr("Ловля перлов (PearlCatch)", "Pearl Catch");
+            case "click_pearl" -> tr("Клик-перл (ClickPearl)", "Click Pearl");
+            case "cart_refill" -> tr("Рефилл тележек (CartRefill)", "Cart Refill");
+            case "hp_reaper" -> tr("ХП Рипер (HPReaper)", "HP Reaper");
+            case "auto_tool" -> tr("Авто-тул (AutoTool)", "Auto Tool");
+            case "auto_gg" -> tr("Авто-ГГ (AutoGG)", "Auto GG");
+            case "cart_hud" -> tr("Карт HUD (CartHUD)", "Cart HUD");
+            case "cooldown_hud" -> tr("Кулдаун HUD (CooldownHUD)", "Cooldown HUD");
+            case "water_drop" -> tr("Авто-сейв (AutoSave)", "Auto Save");
+            default -> id;
+        };
+    }
+
     private static int color(int r, int g, int b, int a, float alpha) {
         int finalA = Math.max(0, Math.min(255, Math.round((float) a * alpha)));
         return (finalA << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
@@ -107,8 +149,6 @@ public final class PresetRenderer {
     public void open() {
         this.scroll = 0.0f;
         this.scrollTarget = 0.0f;
-        this.search.setText("");
-        this.search.collapse();
         this.drawerOpen = false;
         this.drawerAnim.setDirection(Direction.BACKWARDS);
         this.drawerAnim.counter.setTime(System.currentTimeMillis() - 10000L);
@@ -144,7 +184,7 @@ public final class PresetRenderer {
     }
 
     public boolean isInputActive() {
-        return (this.drawerOpen && this.nameFocused) || this.search.isTyping();
+        return this.drawerOpen && this.nameFocused;
     }
 
     public void openDrawer() {
@@ -162,6 +202,9 @@ public final class PresetRenderer {
         this.drawerTemplate = LocalPresets.Template.CURRENT;
         this.drawerParts.clear();
         this.drawerParts.addAll(EnumSet.allOf(LocalPresets.Part.class));
+        this.drawerParts.remove(LocalPresets.Part.APPEARANCE);
+        this.drawerModules.clear();
+        this.drawerModules.addAll(ALL_FEATURE_MODULES);
         this.autoActivate = true;
         this.drawerScroll = 0.0f;
         this.drawerScrollTarget = 0.0f;
@@ -228,17 +271,14 @@ public final class PresetRenderer {
         Fonts.NV.msdf(NvIcons.ADD, lastCreateX + 5.5f, lastCreateY + 3.8f, 6.0f, color(255, 255, 255, 255, alpha));
         Fonts.MONTSERRAT_MEDIUM.draw(tr("Создать", "Create"), lastCreateX + 15.5f, lastCreateY + 3.5f, 5.2f, color(255, 255, 255, 255, alpha));
 
-        float searchX = contentX;
-        float maxSearchW = Math.max(50.0f, (lastCreateX - 6.0f) - searchX);
-        float targetExpandedW = Math.min(105.0f, maxSearchW);
-        this.search.render(drawContext, searchX, btnY, targetExpandedW, btnH, alpha, mx, my, dt);
+        Fonts.MONTSERRAT_SEMIBOLD.draw(tr("Пресеты конфигурации", "Configuration presets"), contentX + 1.0f, btnY + 3.5f, 6.2f, color(255, 255, 255, 210, alpha));
 
         float cardsStartY = y + headerH + 5.0f;
         float cardsH = h - headerH - 8.0f;
 
         List<LocalPresets.Entry> filtered = new ArrayList<>();
-        String query = this.search.getText().trim().toLowerCase(Locale.ROOT);
-        boolean hasSearchText = this.search.hasText();
+        String query = UI.INSTANCE != null ? UI.INSTANCE.getSearchText().trim().toLowerCase(Locale.ROOT) : "";
+        boolean hasSearchText = UI.INSTANCE != null && UI.INSTANCE.hasSearchText();
         for (LocalPresets.Entry e : this.entries) {
             if (query.isEmpty() || e.name().toLowerCase(Locale.ROOT).contains(query)) {
                 filtered.add(e);
@@ -531,17 +571,8 @@ public final class PresetRenderer {
         curY += lastPillH + 9.0f;
 
         Fonts.MONTSERRAT_MEDIUM.draw(tr("Включить в пресет", "Include in preset"), bodyX + 1.0f, curY, 5.5f, ThemeManager.rgba(0xa0a5b9, 190.0f * effectiveAlpha));
-        boolean allSelected = this.drawerParts.size() == 8;
-        String toggleAllStr = allSelected ? tr("Снять всё", "Deselect all") : tr("Выбрать всё", "Select all");
-        this.lastToggleAllW = Fonts.MONTSERRAT_MEDIUM.width(toggleAllStr, 5.0f);
-        this.lastToggleAllX = bodyX + bodyW - this.lastToggleAllW - 2.0f;
-        this.lastToggleAllY = curY;
-        boolean hovToggle = mx >= lastToggleAllX - 2.0f && mx <= lastToggleAllX + lastToggleAllW + 2.0f && my >= curY - 1.0f && my <= curY + 9.0f;
-        Fonts.MONTSERRAT_MEDIUM.draw(toggleAllStr, lastToggleAllX, curY, 5.0f, hovToggle ? ClientAccent.accentBright(255.0f * effectiveAlpha) : ThemeManager.rgba(0xa0a5b9, 160.0f * effectiveAlpha));
-        curY += 8.5f;
-
         LocalPresets.Part[] partsList = new LocalPresets.Part[]{
-            LocalPresets.Part.MODULES, LocalPresets.Part.BINDS, LocalPresets.Part.HUD, LocalPresets.Part.THEMES, LocalPresets.Part.SOUNDS, LocalPresets.Part.APPEARANCE, LocalPresets.Part.CART_PROFILE, LocalPresets.Part.MENU
+            LocalPresets.Part.MODULES, LocalPresets.Part.BINDS, LocalPresets.Part.HUD, LocalPresets.Part.THEMES, LocalPresets.Part.SOUNDS, LocalPresets.Part.CART_PROFILE, LocalPresets.Part.MENU
         };
         String[] partsLabels = new String[]{
             tr("Модули и параметры", "Modules & settings"),
@@ -549,10 +580,24 @@ public final class PresetRenderer {
             tr("Позиции HUD элементов", "HUD positions"),
             tr("Цветовая тема", "Color theme"),
             tr("Звуки клиента", "Client sounds"),
-            tr("Внешний вид и анимации", "Appearance & animations"),
             tr("Профиль авто-тележки", "Auto-Cart profile"),
             tr("Настройки меню", "Menu settings")
         };
+
+        boolean allSelected = true;
+        for (LocalPresets.Part p : partsList) {
+            if (!this.drawerParts.contains(p)) {
+                allSelected = false;
+                break;
+            }
+        }
+        String toggleAllStr = allSelected ? tr("Снять всё", "Deselect all") : tr("Выбрать всё", "Select all");
+        this.lastToggleAllW = Fonts.MONTSERRAT_MEDIUM.width(toggleAllStr, 5.0f);
+        this.lastToggleAllX = bodyX + bodyW - this.lastToggleAllW - 2.0f;
+        this.lastToggleAllY = curY;
+        boolean hovToggle = mx >= lastToggleAllX - 2.0f && mx <= lastToggleAllX + lastToggleAllW + 2.0f && my >= curY - 1.0f && my <= curY + 9.0f;
+        Fonts.MONTSERRAT_MEDIUM.draw(toggleAllStr, lastToggleAllX, curY, 5.0f, hovToggle ? ClientAccent.accentBright(255.0f * effectiveAlpha) : ThemeManager.rgba(0xa0a5b9, 160.0f * effectiveAlpha));
+        curY += 8.5f;
 
         for (int i = 0; i < partsList.length; i++) {
             LocalPresets.Part p = partsList[i];
@@ -576,6 +621,43 @@ public final class PresetRenderer {
 
             Fonts.MONTSERRAT_MEDIUM.draw(partsLabels[i], cbX + cbSize + 6.0f, rowY + 2.0f, 5.0f, color(255, 255, 255, checked ? 240 : 160, effectiveAlpha));
             curY += 15.0f;
+        }
+
+        if (this.drawerParts.contains(LocalPresets.Part.MODULES)) {
+            curY += 3.0f;
+            Fonts.MONTSERRAT_MEDIUM.draw(tr("Выбор функционала", "Select features"), bodyX + 1.0f, curY, 5.2f, ThemeManager.rgba(0xa0a5b9, 190.0f * effectiveAlpha));
+            boolean allModsSelected = this.drawerModules.size() == ALL_FEATURE_MODULES.size();
+            String toggleAllModsStr = allModsSelected ? tr("Снять всё", "Deselect all") : tr("Выбрать всё", "Select all");
+            this.lastToggleAllModsW = Fonts.MONTSERRAT_MEDIUM.width(toggleAllModsStr, 4.8f);
+            this.lastToggleAllModsX = bodyX + bodyW - this.lastToggleAllModsW - 2.0f;
+            this.lastToggleAllModsY = curY;
+            boolean hovToggleMods = mx >= lastToggleAllModsX - 2.0f && mx <= lastToggleAllModsX + lastToggleAllModsW + 2.0f && my >= curY - 1.0f && my <= curY + 8.0f;
+            Fonts.MONTSERRAT_MEDIUM.draw(toggleAllModsStr, lastToggleAllModsX, curY, 4.8f, hovToggleMods ? ClientAccent.accentBright(255.0f * effectiveAlpha) : ThemeManager.rgba(0xa0a5b9, 160.0f * effectiveAlpha));
+            curY += 8.0f;
+
+            for (int i = 0; i < ALL_FEATURE_MODULES.size(); i++) {
+                String modId = ALL_FEATURE_MODULES.get(i);
+                boolean modChecked = this.drawerModules.contains(modId);
+                float rowY = curY;
+                this.lastModRowY[i] = rowY;
+                float cbSize = 7.5f;
+                float cbX = bodyX + 5.0f;
+                float cbY = rowY + 1.5f;
+
+                boolean hoverRow = mx >= bodyX && mx <= bodyX + bodyW && my >= rowY && my <= rowY + 13.0f;
+                if (hoverRow) {
+                    Render2D.rect(bodyX, rowY - 1.0f, bodyW, 13.0f, 2.5f, ThemeManager.rgba(0xFFFFFF, 8.0f * effectiveAlpha));
+                }
+
+                Render2D.rect(cbX, cbY, cbSize, cbSize, 2.0f, modChecked ? ClientAccent.accent(220.0f * effectiveAlpha) : ThemeManager.rgba(0x0a0c10, 200.0f * effectiveAlpha));
+                Render2D.outline(cbX, cbY, cbSize, cbSize, 2.0f, 0.6f, modChecked ? ClientAccent.accent(255.0f * effectiveAlpha) : ThemeManager.rgba(0xFFFFFF, 25.0f * effectiveAlpha));
+                if (modChecked) {
+                    Fonts.NV.msdf(NvIcons.CHECK, cbX + 1.2f, cbY + 1.2f, 5.0f, color(255, 255, 255, 255, effectiveAlpha));
+                }
+
+                Fonts.MONTSERRAT_MEDIUM.draw(getModuleLabel(modId), cbX + cbSize + 5.0f, rowY + 1.8f, 4.8f, color(255, 255, 255, modChecked ? 240 : 150, effectiveAlpha));
+                curY += 13.5f;
+            }
         }
 
         curY += 4.0f;
@@ -633,10 +715,6 @@ public final class PresetRenderer {
         float w = this.lastW;
         float h = this.lastH;
 
-        if (this.search.mouseClicked(mx, my, button)) {
-            return true;
-        }
-
         if (mx >= lastImpX && mx <= lastImpX + lastImpW && my >= lastImpY && my <= lastImpY + lastImpH) {
             this.importPresetFromClipboard();
             Sounds.play("buttonclick");
@@ -656,7 +734,7 @@ public final class PresetRenderer {
         float contentX = x + (w - contentW) * 0.5f;
 
         List<LocalPresets.Entry> filtered = new ArrayList<>();
-        String query = this.search.getText().trim().toLowerCase(Locale.ROOT);
+        String query = UI.INSTANCE != null ? UI.INSTANCE.getSearchText().trim().toLowerCase(Locale.ROOT) : "";
         for (LocalPresets.Entry e : this.entries) {
             if (query.isEmpty() || e.name().toLowerCase(Locale.ROOT).contains(query)) {
                 filtered.add(e);
@@ -799,19 +877,26 @@ public final class PresetRenderer {
         float bodyH = h - HEADER_HEIGHT - FOOTER_HEIGHT - 6.0f;
 
         if (my >= bodyY && my <= bodyY + bodyH) {
+            LocalPresets.Part[] partsList = new LocalPresets.Part[]{
+                LocalPresets.Part.MODULES, LocalPresets.Part.BINDS, LocalPresets.Part.HUD, LocalPresets.Part.THEMES, LocalPresets.Part.SOUNDS, LocalPresets.Part.CART_PROFILE, LocalPresets.Part.MENU
+            };
             if (mx >= lastToggleAllX - 3.0f && mx <= lastToggleAllX + lastToggleAllW + 3.0f && my >= lastToggleAllY - 2.0f && my <= lastToggleAllY + 11.0f) {
-                if (this.drawerParts.size() == 8) {
+                boolean allSelected = true;
+                for (LocalPresets.Part p : partsList) {
+                    if (!this.drawerParts.contains(p)) {
+                        allSelected = false;
+                        break;
+                    }
+                }
+                if (allSelected) {
                     this.drawerParts.clear();
                 } else {
-                    this.drawerParts.addAll(EnumSet.allOf(LocalPresets.Part.class));
+                    this.drawerParts.addAll(Arrays.asList(partsList));
                 }
                 Sounds.play("buttonclick");
                 return true;
             }
 
-            LocalPresets.Part[] partsList = new LocalPresets.Part[]{
-                LocalPresets.Part.MODULES, LocalPresets.Part.BINDS, LocalPresets.Part.HUD, LocalPresets.Part.THEMES, LocalPresets.Part.SOUNDS, LocalPresets.Part.APPEARANCE, LocalPresets.Part.CART_PROFILE, LocalPresets.Part.MENU
-            };
             for (int i = 0; i < partsList.length; i++) {
                 float rowY = this.lastPartRowY[i];
                 if (mx >= lastNameBoxX && mx <= lastNameBoxX + lastNameBoxW && my >= rowY && my <= rowY + 14.0f) {
@@ -823,6 +908,32 @@ public final class PresetRenderer {
                     }
                     Sounds.play("buttonclick");
                     return true;
+                }
+            }
+
+            if (this.drawerParts.contains(LocalPresets.Part.MODULES)) {
+                if (mx >= lastToggleAllModsX - 3.0f && mx <= lastToggleAllModsX + lastToggleAllModsW + 3.0f && my >= lastToggleAllModsY - 2.0f && my <= lastToggleAllModsY + 10.0f) {
+                    if (this.drawerModules.size() == ALL_FEATURE_MODULES.size()) {
+                        this.drawerModules.clear();
+                    } else {
+                        this.drawerModules.addAll(ALL_FEATURE_MODULES);
+                    }
+                    Sounds.play("buttonclick");
+                    return true;
+                }
+
+                for (int i = 0; i < ALL_FEATURE_MODULES.size(); i++) {
+                    float rowY = this.lastModRowY[i];
+                    if (mx >= lastNameBoxX && mx <= lastNameBoxX + lastNameBoxW && my >= rowY && my <= rowY + 13.0f) {
+                        String modId = ALL_FEATURE_MODULES.get(i);
+                        if (this.drawerModules.contains(modId)) {
+                            this.drawerModules.remove(modId);
+                        } else {
+                            this.drawerModules.add(modId);
+                        }
+                        Sounds.play("buttonclick");
+                        return true;
+                    }
                 }
             }
 
@@ -974,7 +1085,7 @@ public final class PresetRenderer {
             return;
         }
         try {
-            Path file = LocalPresets.create(name, this.drawerTemplate, this.drawerParts);
+            Path file = LocalPresets.create(name, this.drawerTemplate, this.drawerParts, this.drawerParts.contains(LocalPresets.Part.MODULES) ? this.drawerModules : null);
             this.reload();
             if (this.autoActivate) {
                 for (LocalPresets.Entry e : this.entries) {
@@ -1035,21 +1146,14 @@ public final class PresetRenderer {
     }
 
     public boolean charTyped(CharInput input) {
-        if (this.search.charTyped(input)) {
-            return true;
-        }
         return false;
     }
 
     public boolean keyPressed(KeyInput input) {
-        if (this.search.keyPressed(input)) {
-            return true;
-        }
         return false;
     }
 
     public boolean mouseReleased(int button) {
-        this.search.mouseReleased(button);
         return false;
     }
 }

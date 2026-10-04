@@ -149,10 +149,10 @@ implements GuiCapture.Source {
     private static final float CAT_SUB_ROW_H = 13.5f;
     private static final float CAT_OTHERS_GAP = 8.0f;
     private static final float CAT_OTHER_ROW_H = 17.0f;
-    private Category targetCategory = null;
-    private Category contentCategory = null;
-    private String oldSubText = "\u041d\u0435 \u0432\u044b\u0431\u0440\u0430\u043d\u043e";
-    private String newSubText = "\u041d\u0435 \u0432\u044b\u0431\u0440\u0430\u043d\u043e";
+    private Category targetCategory = Category.VISUALS;
+    private Category contentCategory = Category.VISUALS;
+    private String oldSubText = Category.VISUALS.getDisplayName();
+    private String newSubText = Category.VISUALS.getDisplayName();
     private final Map<Category, Decelerate> categoryAnims = new EnumMap<Category, Decelerate>(Category.class);
     private final Decelerate subTextAnim = UI.createAnim(300);
     private final Decelerate modulesHeaderAnim = UI.createAnim(200);
@@ -209,6 +209,8 @@ implements GuiCapture.Source {
 
     public activity.client.gui.custom.api.ui.theme.ThemesRenderer getThemesRenderer(){return themesRenderer;}
     public void setSearchText(String text){search.setText(text);}
+    public String getSearchText(){return search!=null?search.getText():"";}
+    public boolean hasSearchText(){return search!=null&&search.hasText();}
     public void navigateToModule(String id){Module m=ModuleManager.get().findByName(id);if(m!=null){selectCategory(Category.VISUALS);openModuleSettings(m);}}
     public void setSelectedTab(int i){selectCategoryFromWorkspace(i==activity.client.gui.tab.ThemesTab.TAB_INDEX?Category.THEMES:i==4?Category.DISPLAY:Category.VISUALS);}
     public void openModuleInspector(String id){navigateToModule(id);}
@@ -260,7 +262,6 @@ implements GuiCapture.Source {
     private static float popupBlurOriginY;
     private static float guiCaptureScale;
     private static float guiCaptureBlurMainPx;
-    private final Decelerate placeholderAnim = UI.createAnim(200);
     private final activity.client.capitulation.HoldConfirmation capitulationHold = new activity.client.capitulation.HoldConfirmation(2_000_000_000L);
     private Screen integrationParent;
     private String integrationGroup;
@@ -325,8 +326,6 @@ implements GuiCapture.Source {
 
     private UI() {
         super(Text.literal("NC"));
-        this.placeholderAnim.setDirection(Direction.FORWARDS);
-
     }
 
     static {
@@ -354,21 +353,6 @@ implements GuiCapture.Source {
             return 0;
         }
         return n5 << 24 | (n & 255) << 16 | (n2 & 255) << 8 | n3 & 255;
-    }
-
-    private void renderNoCategoryPlaceholder(DrawContext drawContext, float f, float f2, float f3, float f4) {
-        float f5 = f + contentXOff();
-        float f6 = f2 + CONTENT_Y_OFFSET;
-        float f7 = f3 - contentInset();
-        float f8 = CONTENT_HEIGHT;
-        float f9 = 76.0f;
-        float f10 = f5 + (f7 - f9) * 0.5f;
-        float f11 = f6 + (f8 - f9) * 0.5f - 12.0f;
-        BrandMark.draw(f10, f11, f9, f4);
-        String string = "Выбери раздел слева или найди функцию в поиске";
-        float f12 = 6.0f;
-        float f13 = Fonts.MONTSERRAT_MEDIUM.width(string, f12);
-        Fonts.MONTSERRAT_MEDIUM.draw(string, f5 + (f7 - f13) * 0.5f, f11 + f9 + 10.0f, f12, UI.color(255, 255, 255, 110, f4));
     }
 
     public void warmupRender() {
@@ -534,10 +518,15 @@ implements GuiCapture.Source {
         if (!this.search.hasText()) {
             this.search.collapse();
         }
-        if (this.targetCategory == null && this.contentCategory == null) {
-            Category start = this.resolveStartCategory();
-            this.selectCategory(start);
+        if (this.targetCategory == null) {
+            this.targetCategory = Category.VISUALS;
         }
+        if (this.contentCategory == null) {
+            this.contentCategory = Category.VISUALS;
+        }
+        Category start = this.resolveStartCategory();
+        if (start == null) start = Category.VISUALS;
+        this.selectCategory(start);
         if (this.screenAnim.isClosing()) {
             WorldGuiCloseAnimation.reverse();
             GuiShatterAnimation.gather(WorldGuiCloseAnimation.isReversing() ? WorldGuiCloseAnimation.remainingNanos() : 0L);
@@ -723,7 +712,7 @@ implements GuiCapture.Source {
         if (this.inspector.isOpen() && this.inspector.mouseClicked(f5, f6, click.button())) {
             return true;
         }
-        if (this.isModuleView() && this.search.mouseClicked(f5, f6, click.button())) {
+        if (this.search.mouseClicked(f5, f6, click.button())) {
             return true;
         }
         if (this.presetRenderer.isDrawerOpen() && this.presetRenderer.drawerMouseClicked(f5, f6, click.button())) {
@@ -1355,6 +1344,7 @@ implements GuiCapture.Source {
         this.themesRenderer.finishTransition();
         this.presetDropdownOpen = false;
         this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+        if (category == null) category = Category.VISUALS;
         this.contentCategory = category;
         if (this.presetRenderer.isDrawerOpen()) {
             this.presetRenderer.closeDrawer();
@@ -1362,10 +1352,6 @@ implements GuiCapture.Source {
         if (category == Category.PRESETS) this.presetRenderer.open();
         if (category == Category.THEMES) {
             this.themesRenderer.open(false);
-        }
-        if (category == null) {
-            this.placeholderAnim.setDirection(Direction.FORWARDS);
-            this.placeholderAnim.counter.resetCounter();
         }
     }
 
@@ -1761,13 +1747,14 @@ implements GuiCapture.Source {
                 return Category.valueOf(savedStartCategoryName);
             } catch (Exception ignored) {}
         }
-        return PinManager.getPinnedCount() > 0 ? Category.PINNED : Category.VISUALS;
+        return Category.VISUALS;
     }
 
     private void selectCategory(Category category) {
-        Category category2;
-        Category category3 = category2 = category == this.targetCategory ? null : category;
-        if (category2 == this.targetCategory) {
+        if (category == null) {
+            category = Category.VISUALS;
+        }
+        if (category == this.targetCategory && category == this.contentCategory) {
             return;
         }
         this.search.collapse();
@@ -1780,26 +1767,18 @@ implements GuiCapture.Source {
         if (this.presetRenderer.isDrawerOpen()) {
             this.presetRenderer.closeDrawer();
         }
-        this.targetCategory = category2;
-        if (category2 != null) {
-            savedStartCategoryName = category2.name();
-            activity.client.gui.custom.api.config.ConfigManager.markDirty();
-        }
+        this.targetCategory = category;
+        savedStartCategoryName = category.name();
+        activity.client.gui.custom.api.config.ConfigManager.markDirty();
         this.oldSubText = this.newSubText;
-        this.newSubText = category2 == null ? "\u041d\u0435 \u0432\u044b\u0431\u0440\u0430\u043d\u043e" : category2.getDisplayName();
+        this.newSubText = category.getDisplayName();
         this.subTextAnim.setDirection(Direction.FORWARDS);
         this.subTextAnim.counter.resetCounter();
         this.subTextAnimDone = false;
         for (Category category4 : Category.values()) {
-            this.getCategoryAnim(category4).setDirection(category4 == category2 ? Direction.FORWARDS : Direction.BACKWARDS);
+            this.getCategoryAnim(category4).setDirection(category4 == category ? Direction.FORWARDS : Direction.BACKWARDS);
         }
-        this.modulesHeaderAnim.setDirection(UI.isMainCategory(category2) ? Direction.FORWARDS : Direction.BACKWARDS);
-        if (category2 == null) {
-            this.placeholderAnim.setDirection(Direction.FORWARDS);
-            this.placeholderAnim.counter.resetCounter();
-        } else {
-            this.placeholderAnim.setDirection(Direction.BACKWARDS);
-        }
+        this.modulesHeaderAnim.setDirection(UI.isMainCategory(category) ? Direction.FORWARDS : Direction.BACKWARDS);
     }
 
     private void updateCategoryCrossfade(float f) {
@@ -1966,10 +1945,6 @@ implements GuiCapture.Source {
             Render2D.pushScissor(drawContext, f, f17, f18, f19);
             this.renderModuleHeader(drawContext, f9, f10, PANEL_W, f20, this.contentCategory, f12, 0.0f);
             Render2D.popScissor(drawContext);
-        }
-        f = this.placeholderAnim.getOutput().floatValue();
-        if (this.contentCategory == null && this.targetCategory == null && f > 0.01f) {
-            this.renderNoCategoryPlaceholder(drawContext, f9, f10, PANEL_W, f6 * f);
         }
 
         if (this.inspector.isOpen()) {

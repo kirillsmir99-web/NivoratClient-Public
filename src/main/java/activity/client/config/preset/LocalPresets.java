@@ -72,10 +72,15 @@ public final class LocalPresets {
         JsonObject sections = new JsonObject();
         for (Part part : List.of(Part.MODULES, Part.BINDS, Part.HUD)) if (parts.contains(part)) {
             JsonObject selected = filter(source, part);
-            if (moduleIds != null && part == Part.MODULES) {
-                JsonObject modules = selected.getAsJsonObject("modules");
-                for (String id : new ArrayList<>(modules.keySet())) if (!moduleIds.contains(id)) modules.remove(id);
-                selected = new JsonObject(); selected.add("modules", modules);
+            if (moduleIds != null && (part == Part.MODULES || part == Part.HUD)) {
+                if (selected.has("modules") && selected.get("modules").isJsonObject()) {
+                    JsonObject modules = selected.getAsJsonObject("modules");
+                    for (String id : new ArrayList<>(modules.keySet())) if (!moduleIds.contains(id)) modules.remove(id);
+                    if (part == Part.MODULES) {
+                        selected = new JsonObject();
+                        selected.add("modules", modules);
+                    }
+                }
             }
             sections.add(part.name().toLowerCase(Locale.ROOT), selected);
         }
