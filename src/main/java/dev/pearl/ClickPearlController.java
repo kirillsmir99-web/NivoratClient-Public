@@ -79,7 +79,6 @@ public final class ClickPearlController {
         lastTriggerTimeMs = now;
         dev.impact.SurfaceImpactController.recordPearlThrown();
         CombatLockManager.setLock(CombatLockManager.INVENTORY_ACTION, true);
-        activity.client.diagnostic.CapabilityLogManager.log("click_pearl", "trigger", true, "slot=" + hotbar + " inv=" + inventory);
         try {
             if (inventory >= 9) {
                 sourceInvSlot = inventory;
@@ -141,7 +140,6 @@ public final class ClickPearlController {
                 && success.swingSource() == ActionResult.SwingSource.CLIENT) client.player.swingHand(hand);
         boolean accepted = result.isAccepted();
         activity.client.diagnostic.DiagnosticEngine.recordAction("click_pearl", "use_pearl", accepted, "hand=" + hand + " result=" + result);
-        activity.client.diagnostic.CapabilityLogManager.log("click_pearl", "use_pearl", accepted, "hand=" + hand);
         return accepted;
     }
 

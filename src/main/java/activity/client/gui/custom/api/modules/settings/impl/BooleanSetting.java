@@ -43,7 +43,18 @@ extends Setting {
         return this;
     }
 
+    private java.util.function.Consumer<Runnable> confirmEnablePrompt;
+
+    public BooleanSetting onEnableConfirm(java.util.function.Consumer<Runnable> prompt) {
+        this.confirmEnablePrompt = prompt;
+        return this;
+    }
+
     public BooleanSetting toggle() {
+        if (!this.value && this.confirmEnablePrompt != null) {
+            this.confirmEnablePrompt.accept(() -> this.setValue(true));
+            return this;
+        }
         return this.setValue(!this.value);
     }
 

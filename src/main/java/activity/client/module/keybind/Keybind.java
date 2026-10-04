@@ -104,9 +104,7 @@ public final class Keybind {
 
     public boolean matchesKey(int key, int modifiers) {
         if (isUnbound() || isMouseButton()) return false;
-        boolean keyMatches = this.keyCode == key ||
-            ((this.keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT || this.keyCode == GLFW.GLFW_KEY_LEFT_SHIFT) &&
-             (key == GLFW.GLFW_KEY_RIGHT_SHIFT || key == GLFW.GLFW_KEY_LEFT_SHIFT));
+        boolean keyMatches = this.keyCode == key;
         if (!keyMatches) return false;
 
         boolean ctrlDown = (modifiers & GLFW.GLFW_MOD_CONTROL) != 0;
@@ -142,10 +140,6 @@ public final class Keybind {
         if (isMouseButton()) {
             int button = getMouseButton();
             return button >= 0 && button <= GLFW.GLFW_MOUSE_BUTTON_LAST && GLFW.glfwGetMouseButton(window.getHandle(), button) == GLFW.GLFW_PRESS;
-        }
-
-        if (this.keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT || this.keyCode == GLFW.GLFW_KEY_LEFT_SHIFT) {
-            return shiftDown || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT) || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT);
         }
 
         return InputUtil.isKeyPressed(window, this.keyCode);

@@ -16,6 +16,27 @@ public final class SettingsBridge {
             Setting model = null;
             if (source instanceof BooleanSetting s) {
                 var m = new activity.client.gui.custom.api.modules.settings.impl.BooleanSetting(name,desc,Boolean.TRUE.equals(s.get()));
+                if (s.hasConfirmation()) {
+                    m.onEnableConfirm(action -> {
+                        boolean ru = activity.client.i18n.LocalizationService.isRussianPreferred();
+                        String title = s.getConfirmTitle() != null ? s.getConfirmTitle() : (ru ? "Предупреждение" : "Warning");
+                        String line1 = s.getConfirmLine1();
+                        String line2 = s.getConfirmLine2();
+                        String confirmText = ru ? "Включить" : "Enable";
+                        String cancelText = ru ? "Отмена" : "Cancel";
+                        activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.show(
+                                title,
+                                line1,
+                                line2,
+                                0xFFAA28,
+                                List.of(
+                                        new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(cancelText, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.SECONDARY, () -> {}),
+                                        new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(confirmText, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.PRIMARY, action)
+                                ),
+                                () -> {}
+                        );
+                    });
+                }
                 m.setChangeListener(() -> { s.set(m.getValue()); save(module); }); model = m;
             } else if (source instanceof IntegerSetting s) {
                 var m = new activity.client.gui.custom.api.modules.settings.impl.SliderSetting(name,desc).range(s.getMin(),s.getMax()).increment(s.getStep()).setValue(s.get().floatValue());
@@ -50,5 +71,10 @@ public final class SettingsBridge {
         }
         return models;
     }
-    private static void save(IModule module) { module.saveToConfig(ActivityConfigManager.getConfig());ActivityConfigManager.markDirty(); }
+    private static void save(IModule module) {
+        module.saveToConfig(ActivityConfigManager.getConfig());
+        activity.client.config.CooldownConfigManager.syncToModules(ActivityConfigManager.getConfig());
+        ActivityConfigManager.markDirty();
+        ActivityConfigManager.save();
+    }
 }

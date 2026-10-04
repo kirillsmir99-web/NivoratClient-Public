@@ -55,7 +55,10 @@ tasks.register('obfuscateJar', JavaExec) {
 	def inJar = remapJar.archiveFile.get().asFile
 	def outDir = layout.buildDirectory.dir("protection/obfuscated").get().asFile
 	def intermediateJar = new File(outDir, inJar.name)
+	inputs.file(remapJar.archiveFile)
+	inputs.file(file("protection/proguard/project.pro"))
 	outputs.file(intermediateJar)
+	outputs.upToDateWhen { intermediateJar.exists() && inJar.exists() && intermediateJar.lastModified() >= inJar.lastModified() }
 	
 	doFirst {
 		outDir.mkdirs()
@@ -255,10 +258,13 @@ profile=DashO-Standard-Java-v1.0
 tasks.register("protectedJar") {
     dependsOn "obfuscateJar", "prepareProtection"
     def protectedJarFile = layout.buildDirectory.file("libs/${project.archives_base_name}-Protected.jar")
+    def intermediateJarFile = layout.buildDirectory.file("protection/obfuscated/${project.archives_base_name}.jar")
+    inputs.file(intermediateJarFile)
+    inputs.dir(protectedResourcesDir)
     outputs.file(protectedJarFile)
 
     doLast {
-        File intermediateJar = layout.buildDirectory.file("protection/obfuscated/${project.archives_base_name}.jar").get().asFile
+        File intermediateJar = intermediateJarFile.get().asFile
         File targetJar = protectedJarFile.get().asFile
         if (targetJar.exists()) targetJar.delete()
 

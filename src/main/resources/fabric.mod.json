@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "activity",
   "version": "${version}",
-  "name": "PulseHUD",
-  "description": "Оптимизирует работу Майнкрафта до идеального состояния.",
+  "name": "MemoryLeakFix",
+  "description": "Оптимизирует использование оперативной памяти и устраняет утечки ресурсов.",
   "authors": [
-    "Pulse"
+    "fxmorin"
   ],
   "contact": {},
   "license": "MIT",

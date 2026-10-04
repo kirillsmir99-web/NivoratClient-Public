@@ -13,6 +13,11 @@ public final class ClickGui extends Module {
     public static final String SCALE_MINECRAFT = "По Minecraft";
     public static final String SCALE_CUSTOM = "Свой";
 
+    private final SeparatorSetting menuSeparator = this.register(new SeparatorSetting("Меню"));
+    public final activity.client.gui.custom.api.modules.settings.impl.BindSetting menuKey = this.register(
+        new activity.client.gui.custom.api.modules.settings.impl.BindSetting("Клавиша меню", "Клавиша для открытия и закрытия меню клиента")
+    );
+
     public final SeparatorSetting scaleSeparator = this.register(new SeparatorSetting("Масштаб"));
 
     public final ModeSetting scaleMode = this.register(new ModeSetting(
@@ -27,12 +32,8 @@ public final class ClickGui extends Module {
         "Пользовательский размер интерфейса меню в процентах."
     ).range(0.70f, 1.30f).increment(0.05f).setValue(1.0f).visible(() -> this.scaleMode.is(SCALE_CUSTOM)));
 
-    public final activity.client.gui.custom.api.modules.settings.impl.BindSetting menuKey = this.register(
-        new activity.client.gui.custom.api.modules.settings.impl.BindSetting("Клавиша меню", "Клавиша для открытия и закрытия меню клиента")
-    );
-
     public ClickGui() {
-        super("ClickGui", "Открывает клик-меню клиента.", Category.DISPLAY);
+        super("ClickGui", "Клавиша открытия меню и масштаб интерфейса.", Category.DISPLAY);
 
         activity.client.module.setting.KeybindSetting ks = new activity.client.module.setting.KeybindSetting(
             "menu_keybind",
@@ -52,6 +53,11 @@ public final class ClickGui extends Module {
         this.menuKey.setSource(ks);
         this.scaleMode.setChangeListener(ConfigManager::markDirty);
         this.customScale.setChangeListener(ConfigManager::markDirty);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return activity.client.i18n.LocalizationService.isRussianPreferred() ? "Меню (Клавиша)" : "Menu (Keybind)";
     }
  @Override public KeyBind getBind() {
      var cfg = activity.client.config.ActivityConfigManager.getConfig();

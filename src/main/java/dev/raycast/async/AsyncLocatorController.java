@@ -256,7 +256,7 @@ public final class AsyncLocatorController {
 
     public boolean isHeldOrActive() {
         ActivityConfig cfg = ActivityConfigManager.getConfig();
-        if (cfg == null || !cfg.autoPearlCatchEnabled || !"semi_auto".equals(cfg.autoPearlCatchMode)) {
+        if (cfg == null || !cfg.autoPearlCatchEnabled || "full_auto".equalsIgnoreCase(cfg.autoPearlCatchMode)) {
             return false;
         }
         return state != 0 || isHeld(client) || manualTriggered;
@@ -273,8 +273,11 @@ public final class AsyncLocatorController {
     public boolean isHeld(MinecraftClient client) {
         if (client == null || client.getWindow() == null || client.currentScreen != null) return false;
         ActivityConfig cfg = ActivityConfigManager.getConfig();
-        if (cfg == null || !cfg.autoPearlCatchEnabled || !"semi_auto".equals(cfg.autoPearlCatchMode)) return false;
-        Keybind kb = cfg.autoPearlCatchThrowKeybind;
+        if (cfg == null || !cfg.autoPearlCatchEnabled || "full_auto".equalsIgnoreCase(cfg.autoPearlCatchMode)) return false;
+        Keybind kb = cfg.autoPearlCatchKeybind;
+        if (kb == null || kb.isUnbound()) {
+            kb = cfg.autoPearlCatchThrowKeybind;
+        }
         if (kb == null || kb.isUnbound()) {
             kb = cfg.autoPearlCatchAsyncKeybind;
         }

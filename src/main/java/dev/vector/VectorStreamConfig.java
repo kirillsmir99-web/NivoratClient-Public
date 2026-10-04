@@ -20,6 +20,7 @@ public final class VectorStreamConfig {
     public static boolean maxSpeed = false;
     public static boolean checkCharge = false;
     public static boolean autoRepeat = true;
+    public static boolean fastSwap = false;
 
     private VectorStreamConfig() {}
 

@@ -136,9 +136,10 @@ public final class ThemesRenderer {
         }
 
 
+        float langW = 34.0f;
         float btnW = 82.0f;
         float btnH = 16.0f;
-        float btnX = f6 + f8 - btnW - 6.0f;
+        float btnX = f6 + f8 - langW - 12.0f - btnW;
         float btnY = f7 + (HEADER_BAR_H - btnH) * 0.5f;
         if (f4 >= btnX && f4 <= btnX + btnW && f5 >= btnY && f5 <= btnY + btnH) {
             this.editor.openNew();
@@ -156,8 +157,11 @@ public final class ThemesRenderer {
             if (!(f4 >= f14) || !(f4 <= f14 + f11) || !(f5 >= f15) || !(f5 <= f15 + CARD_H)) continue;
 
 
-            float pinX = f14 + f11 - 30f;
-            if(f4 >= pinX - 2 && f4 <= pinX + 8 && f5 >= f15 + 3 && f5 <= f15 + 16){ThemePins.toggle(th);return true;}
+            float pinX = f14 + f11 - 32.0f;
+            if (f4 >= pinX - 4.0f && f4 <= pinX + 12.0f && f5 >= f15 + 2.0f && f5 <= f15 + 18.0f) {
+                ThemePins.toggle(th);
+                return true;
+            }
             if (th.isCustom()) {
                 CustomTheme ct = (CustomTheme) th;
 
@@ -304,14 +308,12 @@ public final class ThemesRenderer {
         float f18 = Position.mouseY();
 
 
+        float langW = 34.0f;
         float btnW = 82.0f;
         float btnH = 16.0f;
-        float btnX = f7 + f9 - btnW - 6.0f;
+        float btnX = f7 + f9 - langW - 12.0f - btnW;
         float btnY = f8 + (HEADER_BAR_H - btnH) * 0.5f;
         boolean btnHover = f17 >= btnX && f17 <= btnX + btnW && f18 >= btnY && f18 <= btnY + btnH;
-
-        String headerTitle = Lang.get("category.themes", "Темы");
-        Fonts.MONTSERRAT_MEDIUM.draw(headerTitle, f7 + 6.0f, f8 + 4.5f, 7.5f, ThemeManager.rgba(0xFFFFFF, 230.0f * f4));
 
         int btnBg = btnHover ? ClientAccent.accent(50.0f * f4) : ThemeManager.rgba(0xFFFFFF, 14.0f * f4);
         Render2D.rect(btnX, btnY, btnW, btnH, 3.5f, btnBg);
@@ -413,7 +415,19 @@ public final class ThemesRenderer {
             Fonts.MONTSERRAT_MEDIUM.draw(descriptor, f34, f25 + 16.5f, 5.0f, ThemeManager.rgba(0x9E9E9E, (155.0f + 35.0f * f26) * f32));
 
 
-            Fonts.NV.msdf(NvIcons.PINNED, f24 + f13 - 30f, f25 + 6.5f, 6f, ThemePins.isPinned(theme2) ? ClientAccent.accentBright(255 * f32) : ThemeManager.rgba(0xffffff, 90 * f32));
+            float pinX = f24 + f13 - 32.0f;
+            float pinY = f25 + 5.2f;
+            float pinSize = 8.5f;
+            boolean isPinned = ThemePins.isPinned(theme2);
+            boolean pinHover = f17 >= pinX - 4.0f && f17 <= pinX + 12.0f && f18 >= pinY - 3.0f && f18 <= pinY + 15.0f;
+            int pinCol = isPinned
+                ? ClientAccent.accentBright(255.0f * f32)
+                : ThemeManager.rgba(0xFFFFFF, (pinHover ? 180.0f : 95.0f) * f32);
+            if (isPinned) {
+                Render2D.glow(new BuiltGlow(pinX - 1.0f, pinY - 1.0f, pinSize + 2.0f, pinSize + 2.0f, new float[]{3.0f, 3.0f, 3.0f, 3.0f}, ClientAccent.accent(180.0f * f32), 0.25f, 3.5f, f32));
+            }
+            Fonts.NV.msdf(NvIcons.PINNED, pinX, pinY, pinSize, pinCol);
+            Fonts.NV.msdf(NvIcons.PINNED, pinX + 0.35f, pinY, pinSize, pinCol);
             if (theme2.isCustom()) {
 
                 float delX = f24 + f13 - 10.0f;

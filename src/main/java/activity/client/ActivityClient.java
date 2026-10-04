@@ -36,49 +36,12 @@ public class ActivityClient implements ClientModInitializer {
 
 
 
-        KeyBinding.Category cooldownCategory = KeyBinding.Category.create(net.minecraft.util.Identifier.of("cooldown_hud", "main"));
-        openCooldownHudKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.cooldown_hud.open",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_H,
-                cooldownCategory
-        ));
-
-        openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.activity.open_menu",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_RIGHT_SHIFT,
-                KeyBinding.Category.create(net.minecraft.util.Identifier.of("activity", "main"))
-        ));
-        syncOpenMenuKey();
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             activity.client.module.service.CooldownTrackerService.tick(client);
 
             if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
                 menuKeyDown = false;
                 return;
-            }
-
-            while (openCooldownHudKey != null && openCooldownHudKey.wasPressed()) {
-                if (client != null && client.currentScreen == null) {
-                    client.setScreen(new CooldownHudStandaloneScreen(null));
-                }
-            }
-
-            while (openMenuKey != null && openMenuKey.wasPressed()) {
-                if (client != null && client.currentScreen == null) {
-                    menuKeyDown = true;
-                    try {
-                        client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
-                    } catch (Throwable t) {
-                        try {
-                            ActivityScreen.clearSession();
-                            client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
-                        } catch (Throwable ignored) {
-                        }
-                    }
-                }
             }
 
             if (client == null || client.player == null) {
@@ -108,9 +71,6 @@ public class ActivityClient implements ClientModInitializer {
             boolean configMatches = (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound())
                     && config.menuKeybind.matchesWindow(window, ctrl, shift, alt);
 
-            boolean isShiftBound = menuKeyCode == GLFW.GLFW_KEY_RIGHT_SHIFT || menuKeyCode == GLFW.GLFW_KEY_LEFT_SHIFT;
-            boolean shiftPressed = isShiftBound && shift;
-
             boolean rawPressed = false;
             if (config != null && config.menuKeybind != null && config.menuKeybind.isMouseButton()) {
                 int btn = config.menuKeybind.getMouseButton();
@@ -119,8 +79,8 @@ public class ActivityClient implements ClientModInitializer {
                 rawPressed = InputUtil.isKeyPressed(window, menuKeyCode);
             }
 
-            boolean requiresModifiers = config != null && config.menuKeybind != null && (config.menuKeybind.isCtrl() || config.menuKeybind.isAlt());
-            boolean isDown = configMatches || shiftPressed || (rawPressed && !requiresModifiers);
+            boolean requiresModifiers = config != null && config.menuKeybind != null && (config.menuKeybind.isCtrl() || config.menuKeybind.isAlt() || config.menuKeybind.isShift());
+            boolean isDown = configMatches || (rawPressed && !requiresModifiers);
 
             if (client.currentScreen != null) {
                 if (!isDown) {
@@ -175,5 +135,6 @@ public class ActivityClient implements ClientModInitializer {
         } else if (code > 0) {
             openMenuKey.setBoundKey(InputUtil.Type.KEYSYM.createFromCode(code));
         }
+        KeyBinding.updateKeysByCode();
     }
 }

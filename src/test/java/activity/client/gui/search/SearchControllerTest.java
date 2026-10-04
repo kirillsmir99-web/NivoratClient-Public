@@ -267,9 +267,9 @@ public class SearchControllerTest {
 
     @Test
     void testRussianSettingNamesSearch() {
-        List<SearchController.SearchResult> swapType = SearchController.search("Тип Swap", 5);
+        List<SearchController.SearchResult> swapType = SearchController.search("Задержка возврата", 5);
         assertFalse(swapType.isEmpty());
-        assertEquals("swap_type", swapType.get(0).entry().settingId());
+        assertEquals("restore_delay", swapType.get(0).entry().settingId());
 
         List<SearchController.SearchResult> slamPreset = SearchController.search("Пресет логики", 5);
         assertFalse(slamPreset.isEmpty());

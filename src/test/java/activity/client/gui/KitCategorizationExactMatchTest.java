@@ -52,7 +52,7 @@ class KitCategorizationExactMatchTest {
     void testMaceMesaKitExactMatch() {
         Set<String> expected = Set.of(
                 "auto_mace", "auto_spear", "auto_stun_slam", "auto_pearl_catch",
-                "click_pearl", "auto_totem", "hp_reaper", "auto_gg", "cooldown_hud"
+                "click_pearl", "elytra_swap", "auto_totem", "hp_reaper", "auto_gg", "cooldown_hud"
         );
         assertKitExactMatch(PvpKit.MACE, Category.MACE, expected);
         assertFalse(PvpKit.MACE.matchesId("auto_shieldbreaker"));

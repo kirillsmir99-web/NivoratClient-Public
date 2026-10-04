@@ -77,11 +77,6 @@ public final class RaycastInterpolator {
             }
         }
 
-        client.player.setPitch(finalPitch);
-        client.player.setYaw(finalYaw);
-        client.player.lastPitch = finalPitch;
-        client.player.lastYaw = finalYaw;
-
         this.lastAppliedPitch = finalPitch;
         this.lastAppliedYaw = finalYaw;
     }
@@ -128,10 +123,6 @@ public final class RaycastInterpolator {
                 }
             }
 
-            client.player.setPitch(clampedPitch);
-            client.player.setYaw(targetQuantizedYaw);
-            client.player.lastPitch = clampedPitch;
-            client.player.lastYaw = targetQuantizedYaw;
             this.lastAppliedPitch = clampedPitch;
             this.lastAppliedYaw = targetQuantizedYaw;
         }

@@ -37,7 +37,7 @@ public final class AutoCartLogger {
         String ts = LocalDateTime.now().format(TIME_FMT);
         String formatted = String.format("[%s] [%s] %s%s", ts, phase, details, success ? "" : " [FAIL]");
         append(formatted);
-        activity.client.diagnostic.CapabilityLogManager.log("auto_cart", phase, success, details);
+        activity.client.diagnostic.DiagnosticEngine.recordAction("auto_cart", phase, success, details);
     }
 
     public static void logMacroStart(int drawTicks, int slot) {

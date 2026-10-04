@@ -174,7 +174,10 @@ public final class ThemeEditorRenderer {
         this.lastDragX = Float.NaN;
         this.lastDragY = Float.NaN;
         this.originalTheme = ThemeManager.currentTheme();
-        this.draft.resetToNew();
+        this.draft.loadFromTheme(this.originalTheme);
+        this.draft.setEditingTheme(null);
+        this.draft.setName(activity.client.gui.custom.api.localization.Lang.get("theme.editor.new_name", "Новая тема"));
+        this.draft.setDirty(false);
         this.advancedOpen = false;
         this.advancedAnim.setDirection(Direction.BACKWARDS);
         this.pendingLeaveConfirm = false;
@@ -184,7 +187,6 @@ public final class ThemeEditorRenderer {
         this.syncHsbFromActiveSlot();
         this.open = true;
         this.anim.setDirection(Direction.FORWARDS);
-        applyLiveToThemeManager();
         try { Sounds.play("module_settings_open"); } catch (Throwable ignored) {}
     }
 
@@ -212,7 +214,6 @@ public final class ThemeEditorRenderer {
         this.syncHsbFromActiveSlot();
         this.open = true;
         this.anim.setDirection(Direction.FORWARDS);
-        applyLiveToThemeManager();
         try { Sounds.play("module_settings_open"); } catch (Throwable ignored) {}
     }
 
@@ -254,7 +255,45 @@ public final class ThemeEditorRenderer {
         }
         this.pendingLeaveCategory = target;
         this.pendingLeaveConfirm = true;
-        try { Sounds.play("click"); } catch (Throwable ignored) {}
+        boolean ru = activity.client.i18n.LocalizationService.isRussianPreferred();
+        String title = ru ? "Сохранить изменения?" : "Save changes?";
+        String desc = ru ? "В теме есть несохраненные параметры" : "There are unsaved parameters in the theme";
+        String cancelStr = ru ? "Отмена" : "Cancel";
+        String discardStr = ru ? "Не сохранять" : "Don't save";
+        String saveStr = ru ? "Сохранить" : "Save";
+
+        activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.show(
+            title,
+            desc,
+            null,
+            0,
+            List.of(
+                new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(cancelStr, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.SECONDARY, () -> {
+                    this.pendingLeaveConfirm = false;
+                    this.pendingLeaveCategory = null;
+                }),
+                new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(discardStr, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.DANGER, () -> {
+                    this.pendingLeaveConfirm = false;
+                    Category tgt = this.pendingLeaveCategory;
+                    this.pendingLeaveCategory = null;
+                    this.cancelEdit();
+                    if (tgt != null && UI.INSTANCE != null) UI.INSTANCE.selectCategoryFromWorkspace(tgt);
+                }),
+                new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(saveStr, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.PRIMARY, () -> {
+                    if (saveTheme()) {
+                        this.pendingLeaveConfirm = false;
+                        Category tgt = this.pendingLeaveCategory;
+                        this.pendingLeaveCategory = null;
+                        this.close();
+                        if (tgt != null && UI.INSTANCE != null) UI.INSTANCE.selectCategoryFromWorkspace(tgt);
+                    }
+                })
+            ),
+            () -> {
+                this.pendingLeaveConfirm = false;
+                this.pendingLeaveCategory = null;
+            }
+        );
     }
 
     private void syncHsbFromActiveSlot() {
@@ -886,11 +925,7 @@ public final class ThemeEditorRenderer {
         }
 
 
-        if (this.pendingLeaveConfirm) {
-            float mouseX = Position.mouseX();
-            float mouseY = Position.mouseY();
-            renderConfirmModal(drawContext, screenW, screenH, alpha, mouseX, mouseY);
-        }
+
 
 
         if (this.pendingTooltipTitle != null && alpha > 0.1f) {
@@ -1025,29 +1060,6 @@ public final class ThemeEditorRenderer {
 
 
         if (this.pendingLeaveConfirm) {
-            if (mouseX >= confSaveX && mouseX <= confSaveX + confBtnW && mouseY >= confBtnY && mouseY <= confBtnY + confBtnH) {
-                if (!saveTheme()) return true;
-                this.pendingLeaveConfirm = false;
-                Category tgt = this.pendingLeaveCategory;
-                this.pendingLeaveCategory = null;
-                this.close();
-                if (tgt != null && UI.INSTANCE != null) UI.INSTANCE.selectCategoryFromWorkspace(tgt);
-                return true;
-            }
-            if (mouseX >= confDiscardX && mouseX <= confDiscardX + confBtnW && mouseY >= confBtnY && mouseY <= confBtnY + confBtnH) {
-                this.pendingLeaveConfirm = false;
-                Category tgt = this.pendingLeaveCategory;
-                this.pendingLeaveCategory = null;
-                this.cancelEdit();
-                if (tgt != null && UI.INSTANCE != null) UI.INSTANCE.selectCategoryFromWorkspace(tgt);
-                return true;
-            }
-            if (mouseX >= confCancelX && mouseX <= confCancelX + confBtnW && mouseY >= confBtnY && mouseY <= confBtnY + confBtnH) {
-                this.pendingLeaveConfirm = false;
-                this.pendingLeaveCategory = null;
-                try { Sounds.play("click"); } catch (Throwable ignored) {}
-                return true;
-            }
             return true;
         }
 

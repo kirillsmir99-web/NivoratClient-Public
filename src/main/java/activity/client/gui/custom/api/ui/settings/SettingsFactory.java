@@ -59,10 +59,49 @@ public final class SettingsFactory {
         return null;
     }
 
-    public static List<Setting> build(activity.client.gui.custom.api.modules.Module module){if(module.delegate!=null)return build(module.delegate);TextSetting.unfocusAll();List<Setting> result=new ArrayList<>();for(var model:module.getSettings().all()){Setting widget=create(model);if(widget!=null)result.add(widget);}return result;}
+    public static boolean shouldHaveToggleKeybind(IModule module) {
+        if (module == null) return false;
+        String id = module.getId().toLowerCase(java.util.Locale.ROOT).replace("_", "");
+        return !id.equals("cooldownhud")
+            && !id.equals("autogg")
+            && !id.equals("hpreaper")
+            && !id.equals("carthud");
+    }
+
+    public static List<Setting> build(activity.client.gui.custom.api.modules.Module module) {
+        if (module.delegate != null) return build(module.delegate);
+        TextSetting.unfocusAll();
+        List<Setting> result = new ArrayList<>();
+        for (var model : module.getSettings().all()) {
+            Setting widget = create(model);
+            if (widget != null) result.add(widget);
+        }
+        return result;
+    }
+
     public static List<Setting> build(IModule module) {
         TextSetting.unfocusAll();
         ArrayList<Setting> arrayList = new ArrayList<Setting>();
+        if (shouldHaveToggleKeybind(module)) {
+            var toggleBind = new activity.client.gui.custom.api.modules.settings.impl.BindSetting(
+                "Клавиша включения",
+                "Клавиша для быстрого включения и выключения модуля"
+            );
+            toggleBind.setTextProviders(
+                () -> activity.client.i18n.LocalizationService.isRussianPreferred() ? "Клавиша включения" : "Toggle Keybind",
+                () -> activity.client.i18n.LocalizationService.isRussianPreferred() ? "Клавиша для быстрого включения и выключения модуля" : "Keybind to toggle module on or off"
+            );
+            toggleBind.setBoundKeybind(module.getKeybind());
+            toggleBind.setChangeListener(() -> {
+                module.saveToConfig(activity.client.config.ActivityConfigManager.getConfig());
+                activity.client.config.CooldownConfigManager.syncToModules(activity.client.config.ActivityConfigManager.getConfig());
+                activity.client.config.ActivityConfigManager.markDirty();
+                activity.client.config.ActivityConfigManager.save();
+                activity.client.module.keybind.KeybindManager.rebuildBoundKeybinds();
+            });
+            Setting widget = create(toggleBind);
+            if (widget != null) arrayList.add(widget);
+        }
         for (activity.client.gui.custom.api.modules.settings.Setting setting : activity.client.gui.custom.SettingsBridge.models(module)) {
             Setting setting2 = SettingsFactory.create(setting);
             if (setting2 == null) continue;

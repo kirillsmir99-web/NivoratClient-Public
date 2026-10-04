@@ -37,14 +37,9 @@ public class AutoMaceGuiBridgeTest {
 
         var models = SettingsBridge.models(mod);
         assertFalse(models.isEmpty(), "SettingsBridge must produce setting models for AutoMace");
-        assertTrue(models.size() >= 8, "AutoMace must have all customizable settings in GUI");
+        assertTrue(models.size() >= 7, "AutoMace must have all customizable settings in GUI");
 
-        var swapTypeModel = models.stream()
-                .filter(m -> "Тип Swap".equals(m.getName()) || "Swap Type".equals(m.getName()))
-                .findFirst()
-                .orElse(null);
-        assertNotNull(swapTypeModel, "swap_type setting must exist in GUI models");
-        assertTrue(swapTypeModel.isVisible(), "swap_type must always be visible in GUI");
+        assertNull(mod.getSetting("swap_type"), "Bridge swap / swap_type must be removed from AutoMace");
 
         var restoreDelayModel = models.stream()
                 .filter(m -> "Задержка возврата".equals(m.getName()) || "Restore Delay".equals(m.getName()))
@@ -52,18 +47,6 @@ public class AutoMaceGuiBridgeTest {
                 .orElse(null);
         assertNotNull(restoreDelayModel, "restore_delay setting must exist in GUI models");
         assertTrue(restoreDelayModel.isVisible(), "restore_delay must be visible in GUI models");
-
-        EnumSetting swapSetting = (EnumSetting) mod.getSetting("swap_type");
-        assertNotNull(swapSetting);
-        assertEquals("new", swapSetting.get());
-
-        swapSetting.set("old");
-        assertEquals("old", config.autoMaceSwapType);
-        assertTrue(restoreDelayModel.isVisible(), "restore_delay must be visible when swap type is old");
-
-        swapSetting.set("new");
-        assertEquals("new", config.autoMaceSwapType);
-        assertTrue(restoreDelayModel.isVisible(), "restore_delay must be visible when swap type is new");
     }
 
     @Test

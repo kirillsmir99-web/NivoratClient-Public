@@ -168,22 +168,14 @@ implements GuiCapture.Source {
     private final ThemesRenderer themesRenderer = new ThemesRenderer();
     private final activity.client.gui.custom.PresetRenderer presetRenderer = new activity.client.gui.custom.PresetRenderer();
     public activity.client.gui.custom.PresetRenderer getPresetRenderer() { return presetRenderer; }
+    private String selectedPresetName = null;
+    private boolean menuBindListening = false;
     private boolean presetDropdownOpen = false;
     private final Decelerate presetDropdownAnim = UI.createAnim(180);
-    private List<activity.client.config.preset.LocalPresets.Entry> cachedPresetEntries = List.of();
-    private String selectedPresetName = null;
-    private int presetScrollOffset = 0;
     private float lastPresetBtnX, lastPresetBtnY, lastPresetBtnW, lastPresetBtnH;
     private float lastPresetDropX, lastPresetDropY, lastPresetDropW, lastPresetDropH;
-
-    private void reloadPresetDropdown() {
-        try {
-            this.cachedPresetEntries = activity.client.config.preset.LocalPresets.list();
-        } catch (Exception e) {
-            this.cachedPresetEntries = List.of();
-        }
-        this.presetScrollOffset = 0;
-    }
+    private int presetScrollOffset = 0;
+    private List<activity.client.config.preset.LocalPresets.Entry> cachedPresetEntries = new ArrayList<>();
 
     public void applyPreset(activity.client.config.preset.LocalPresets.Entry entry) {
         try {
@@ -194,8 +186,6 @@ implements GuiCapture.Source {
         } catch (Exception e) {
             activity.client.gui.custom.utils.sounds.Sounds.play("command_error");
         }
-        this.presetDropdownOpen = false;
-        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
     }
 
     public String getSelectedPresetName() {
@@ -408,8 +398,6 @@ implements GuiCapture.Source {
             this.presetRenderer.closeDrawer();
         }
         this.search.collapse();
-        this.presetDropdownOpen = false;
-        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
         Sounds.play("gui_close");
         if (MinecraftClient.getInstance().currentScreen == this) {
             Screen parent = integrationParent;
@@ -419,21 +407,37 @@ implements GuiCapture.Source {
     }
 
     private static boolean isMenuKeyMatch(int pressedKey, int boundKey) {
-        if (pressedKey == boundKey) return true;
-        if ((boundKey == 344 || boundKey == 340) && (pressedKey == 344 || pressedKey == 340)) return true;
-        if ((boundKey == 345 || boundKey == 341) && (pressedKey == 345 || pressedKey == 341)) return true;
-        if ((boundKey == 346 || boundKey == 342) && (pressedKey == 346 || pressedKey == 342)) return true;
-        return false;
+        return pressedKey == boundKey;
     }
 
     public boolean keyPressed(KeyInput input) {
-        capitulationHold.cancel();
+        if (this.menuBindListening) {
+            this.menuBindListening = false;
+            if (input.key() == 256) {
+                activity.client.gui.custom.utils.sounds.Sounds.play("click");
+                return true;
+            }
+            var cfg = activity.client.config.ActivityConfigManager.getConfig();
+            if (cfg != null && cfg.menuKeybind != null) {
+                if (input.key() == 259 || input.key() == 261) {
+                    cfg.menuKeybind.clear();
+                } else {
+                    cfg.menuKeybind.setKey(input.key(), input.modifiers());
+                }
+                activity.client.ActivityClient.syncOpenMenuKey();
+                activity.client.config.ActivityConfigManager.markDirty();
+                activity.client.config.ActivityConfigManager.save();
+            }
+            activity.client.gui.custom.utils.sounds.Sounds.play("click");
+            return true;
+        }
         if (this.presetDropdownOpen && input.key() == 256) {
             this.presetDropdownOpen = false;
             this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
-            activity.client.gui.custom.utils.sounds.Sounds.play("settings_close");
             return true;
         }
+        if (activity.client.gui.custom.TotemConfirmModal.keyPressed(input.key())) return true;
+        if (activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.keyPressed(input.key())) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) { activity.client.gui.custom.CollectionDrawer.screen().keyPressed(input); return true; }
         if (activity.client.gui.custom.NativeBindAssignment.keyPressed(input.key())) return true;
         if (activity.client.gui.custom.AutoCartCalibrationDrawer.keyPressed(input.key())) return true;
@@ -515,6 +519,7 @@ implements GuiCapture.Source {
         }
         ThemeManager.clearLiveOverride();
         this.releaseAllDrags();
+        this.menuBindListening = false;
         super.removed();
     }
 
@@ -535,6 +540,10 @@ implements GuiCapture.Source {
         Category start = this.resolveStartCategory();
         if (start == null) start = Category.VISUALS;
         this.selectCategory(start);
+        this.presetDropdownOpen = false;
+        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+        this.modulesHeaderAnim.setDirection(Direction.FORWARDS);
+        this.modulesHeaderAnim.counter.setTime(System.currentTimeMillis());
         if (this.screenAnim.isClosing()) {
             WorldGuiCloseAnimation.reverse();
             GuiShatterAnimation.gather(WorldGuiCloseAnimation.isReversing() ? WorldGuiCloseAnimation.remainingNanos() : 0L);
@@ -559,13 +568,45 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseClicked(Click click, boolean doubled) {
+        if (this.menuBindListening) {
+            this.menuBindListening = false;
+            var cfg = activity.client.config.ActivityConfigManager.getConfig();
+            int modifiers = 0;
+            var window = net.minecraft.client.MinecraftClient.getInstance().getWindow();
+            if (window != null && window.getHandle() != 0L) {
+                if (net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL) || net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL)) modifiers |= org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
+                if (net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT) || net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT)) modifiers |= org.lwjgl.glfw.GLFW.GLFW_MOD_SHIFT;
+                if (net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT) || net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_ALT)) modifiers |= org.lwjgl.glfw.GLFW.GLFW_MOD_ALT;
+            }
+            if (click.button() == 0 && modifiers == 0) {
+                activity.client.gui.custom.utils.sounds.Sounds.play("click");
+                return true;
+            }
+            if (cfg != null && cfg.menuKeybind != null) {
+                cfg.menuKeybind.setMouseButton(click.button(), modifiers);
+                activity.client.ActivityClient.syncOpenMenuKey();
+                activity.client.config.ActivityConfigManager.markDirty();
+                activity.client.config.ActivityConfigManager.save();
+            }
+            activity.client.gui.custom.utils.sounds.Sounds.play("click");
+            return true;
+        }
         if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseClicked(click)) return true;
         if (activity.client.gui.custom.api.drags.DragSystem.get().mouseClicked(click)) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseClicked(click, doubled);
         if (activity.client.gui.custom.NativeBindAssignment.click(Position.mouseX(), Position.mouseY(), click.button())) return true;
         if (this.inspector.captureMouse(click.button())) return true;
         if (this.bindPopup.mouseBind(click.button())) return true;
-        if(click.button()==2&&isModuleView()){Module m=moduleAtCursor();if(m!=null){bindPopup.open(m,Position.mouseX(),Position.mouseY());return true;}}
+        if (click.button() == 2 && isModuleView()) {
+            Module m = moduleAtCursor();
+            if (m != null) {
+                String mid = m.getId().toLowerCase(java.util.Locale.ROOT).replace("_", "");
+                if (!mid.equals("cooldownhud") && !mid.equals("autogg") && !mid.equals("hpreaper") && !mid.equals("carthud")) {
+                    bindPopup.open(m, Position.mouseX(), Position.mouseY());
+                    return true;
+                }
+            }
+        }
         ClickGui clickGui = ModuleManager.get().get(ClickGui.class);
         if (this.screenAnim.isClosing()) {
             if (clickGui != null && clickGui.getBind().getType() == activity.client.gui.custom.utils.key.InputType.MOUSE
@@ -586,32 +627,48 @@ implements GuiCapture.Source {
             this.close();
             return true;
         }
+        if (activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.click(Position.mouseX(), Position.mouseY(), click.button())) {
+            return true;
+        }
+        if (activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.isOpen()) {
+            return true;
+        }
+        if (activity.client.gui.custom.TotemConfirmModal.click(Position.mouseX(), Position.mouseY(), click.button())) {
+            return true;
+        }
+        if (activity.client.gui.custom.TotemConfirmModal.isOpen()) {
+            return true;
+        }
         if (this.presetDropdownOpen && click.button() == 0) {
             float mx = Position.mouseX();
             float my = Position.mouseY();
             if (mx >= this.lastPresetDropX && mx <= this.lastPresetDropX + this.lastPresetDropW
                 && my >= this.lastPresetDropY && my <= this.lastPresetDropY + this.lastPresetDropH) {
-                float itemH = 15.0f;
                 float startY = this.lastPresetDropY + 4.0f;
+                float itemH = 15.0f;
                 int totalEntries = this.cachedPresetEntries.size();
-                int visibleCount = totalEntries == 0 ? 0 : Math.min(totalEntries, 6);
+                int visibleCount = totalEntries == 0 ? 1 : Math.min(totalEntries, 6);
                 int startIdx = Math.max(0, Math.min(this.presetScrollOffset, Math.max(0, totalEntries - visibleCount)));
                 for (int i = 0; i < visibleCount; i++) {
-                    float rowY = startY + i * itemH;
-                    if (my >= rowY && my < rowY + itemH) {
-                        int entryIdx = startIdx + i;
-                        if (entryIdx < totalEntries) {
-                            applyPreset(this.cachedPresetEntries.get(entryIdx));
-                        }
+                    int entryIdx = startIdx + i;
+                    if (entryIdx >= totalEntries) break;
+                    float curY = startY + i * itemH;
+                    if (my >= curY && my <= curY + itemH) {
+                        activity.client.config.preset.LocalPresets.Entry entry = this.cachedPresetEntries.get(entryIdx);
+                        this.applyPreset(entry);
+                        this.presetDropdownOpen = false;
+                        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
+                        Sounds.play("select_category");
                         return true;
                     }
                 }
-                float footerY = startY + (totalEntries == 0 ? itemH : visibleCount * itemH) + 1.0f;
-                if (my >= footerY && my <= footerY + 16.0f) {
+                float footerY = startY + visibleCount * itemH + 1.0f;
+                float footerH = 16.0f;
+                if (my >= footerY && my <= footerY + footerH) {
                     this.presetDropdownOpen = false;
                     this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
-                    selectCategoryFromWorkspace(Category.PRESETS);
-                    activity.client.gui.custom.utils.sounds.Sounds.play("select_category");
+                    this.selectCategory(Category.PRESETS);
+                    Sounds.play("select_category");
                     return true;
                 }
                 return true;
@@ -620,23 +677,24 @@ implements GuiCapture.Source {
                 && my >= this.lastPresetBtnY && my <= this.lastPresetBtnY + this.lastPresetBtnH) {
                 this.presetDropdownOpen = false;
                 this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
-                activity.client.gui.custom.utils.sounds.Sounds.play("settings_close");
+                Sounds.play("select_category");
                 return true;
             }
             this.presetDropdownOpen = false;
             this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
-            activity.client.gui.custom.utils.sounds.Sounds.play("settings_close");
-            return true;
-        }
-        if (!this.presetDropdownOpen && click.button() == 0) {
+        } else if (!this.presetDropdownOpen && click.button() == 0) {
             float mx = Position.mouseX();
             float my = Position.mouseY();
             if (mx >= this.lastPresetBtnX && mx <= this.lastPresetBtnX + this.lastPresetBtnW
                 && my >= this.lastPresetBtnY && my <= this.lastPresetBtnY + this.lastPresetBtnH) {
-                reloadPresetDropdown();
                 this.presetDropdownOpen = true;
                 this.presetDropdownAnim.setDirection(Direction.FORWARDS);
-                activity.client.gui.custom.utils.sounds.Sounds.play("settings_open");
+                try {
+                    this.cachedPresetEntries = activity.client.config.preset.LocalPresets.list();
+                } catch (Exception ignored) {
+                    this.cachedPresetEntries = java.util.List.of();
+                }
+                Sounds.play("select_category");
                 return true;
             }
         }
@@ -768,19 +826,6 @@ implements GuiCapture.Source {
                         if (layout == null || !layout.visible) continue;
                         if (!layout.containsCard(f5, f6)) continue;
 
-                        if (module instanceof activity.client.gui.custom.PresetSettingsModule) {
-                            this.selectCategoryFromWorkspace(Category.PRESETS);
-                            return true;
-                        }
-                        if (module instanceof activity.client.gui.custom.CapabilityLogsModule logsModule) {
-                            float baseH = this.moduleList.baseCardHeight(module, layout.cardW);
-                            if (f6 > layout.cardY + baseH) {
-                                this.moduleList.clickSettings(module, layout.cardX, layout.cardY, layout.cardW, f5, f6, click.button());
-                            } else {
-                                logsModule.copyLogsToClipboard();
-                            }
-                            return true;
-                        }
                         if (module instanceof activity.client.integration.CompanionSettingsModule companion) {
                             activity.client.integration.NivoratEcosystem.open(companion.group(), this);
                             return true;
@@ -806,7 +851,7 @@ implements GuiCapture.Source {
                         }
 
                         if (click.button() == 1) {
-                            if (!module.getSettings().all().isEmpty()) {
+                            if (module.hasSettings()) {
                                 if (this.inspector.getFocusedModule() == module && this.inspector.isOpen()) {
                                     this.inspector.close();
                                 } else {
@@ -836,7 +881,11 @@ implements GuiCapture.Source {
                                     this.inspector.open(module);
                                 }
                             } else {
-                                module.toggle();
+                                if ("auto_totem".equalsIgnoreCase(module.getId()) && !module.isEnabled()) {
+                                    activity.client.gui.custom.TotemConfirmModal.open(module);
+                                } else {
+                                    module.toggle();
+                                }
                             }
                             return true;
                         }
@@ -860,6 +909,27 @@ implements GuiCapture.Source {
             float langH = 14.0f;
             float langX = profileLeft - langW;
             float langY = f8 + (HEADER_H - langH) * 0.5f;
+            if (this.contentCategory == Category.DISPLAY) {
+                var cfg = activity.client.config.ActivityConfigManager.getConfig();
+                boolean isRu = activity.client.gui.custom.api.localization.LocalizationManager.getCurrentLanguage() == activity.client.gui.custom.api.localization.LocalizationManager.Language.RU;
+                String bindLabel;
+                if (this.menuBindListening) {
+                    bindLabel = isRu ? "Нажмите кнопку..." : "Press key...";
+                } else {
+                    String keyStr = (cfg != null && cfg.menuKeybind != null) ? cfg.menuKeybind.format() : "RSHIFT";
+                    bindLabel = (isRu ? "Меню: " : "Menu: ") + keyStr;
+                }
+                float bindTextW = Fonts.MONTSERRAT_MEDIUM.width(bindLabel, 6.0f);
+                float menuBindW = Math.max(88.0f, bindTextW + 16.0f);
+                float menuBindH = 14.0f;
+                float menuBindX = langX - 6.0f - menuBindW;
+                float menuBindY = langY;
+                if (f5 >= menuBindX && f5 <= menuBindX + menuBindW && f6 >= menuBindY && f6 <= menuBindY + menuBindH) {
+                    this.menuBindListening = !this.menuBindListening;
+                    Sounds.play("click");
+                    return true;
+                }
+            }
 
             if (f5 >= langX && f5 <= langX + langW && f6 >= langY && f6 <= langY + langH) {
                 boolean isCurrentlyRu = activity.client.gui.custom.api.localization.LocalizationManager.getCurrentLanguage() == activity.client.gui.custom.api.localization.LocalizationManager.Language.RU;
@@ -886,17 +956,22 @@ implements GuiCapture.Source {
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (this.presetDropdownOpen && mouseX >= this.lastPresetDropX && mouseX <= this.lastPresetDropX + this.lastPresetDropW && mouseY >= this.lastPresetDropY && mouseY <= this.lastPresetDropY + this.lastPresetDropH) {
+            if (verticalAmount > 0.0) {
+                this.presetScrollOffset = Math.max(0, this.presetScrollOffset - 1);
+            } else if (verticalAmount < 0.0) {
+                int totalEntries = this.cachedPresetEntries.size();
+                this.presetScrollOffset = Math.min(Math.max(0, totalEntries - 6), this.presetScrollOffset + 1);
+            }
+            return true;
+        }
         if (activity.client.gui.custom.AutoCartCalibrationDrawer.mouseScrolled(mouseX, mouseY, verticalAmount)) return true;
         if (activity.client.gui.custom.CollectionDrawer.isOpen()) return activity.client.gui.custom.CollectionDrawer.screen().mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         if (activity.client.gui.custom.NativeBindAssignment.isOpen()) return true;
         if (!this.screenAnim.canInteract()) {
             return true;
         }
-        if (this.presetDropdownOpen && Position.mouseX() >= this.lastPresetDropX && Position.mouseX() <= this.lastPresetDropX + this.lastPresetDropW && Position.mouseY() >= this.lastPresetDropY && Position.mouseY() <= this.lastPresetDropY + this.lastPresetDropH) {
-            if (verticalAmount > 0 && this.presetScrollOffset > 0) this.presetScrollOffset--;
-            else if (verticalAmount < 0 && this.presetScrollOffset + 6 < this.cachedPresetEntries.size()) this.presetScrollOffset++;
-            return true;
-        }
+
         if (this.bindPopup.isOpen()) {
             this.bindPopup.close();
             return true;
@@ -1367,8 +1442,6 @@ implements GuiCapture.Source {
     private void swapContentCategory(Category category) {
         this.moduleList.finishTransition();
         this.themesRenderer.finishTransition();
-        this.presetDropdownOpen = false;
-        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
         if (category == null) category = Category.VISUALS;
         this.contentCategory = category;
         if (this.presetRenderer.isDrawerOpen()) {
@@ -1417,16 +1490,63 @@ implements GuiCapture.Source {
         int textCol = UI.color(255, 255, 255, hoverLang ? 255 : 220, f4);
         Fonts.MONTSERRAT_MEDIUM.draw(langCode, langX + langW - codeW - 4.5f, langY + 3.2f, 5.5f, textCol);
 
+        if (category == Category.DISPLAY) {
+            var cfg = activity.client.config.ActivityConfigManager.getConfig();
+            String bindLabel;
+            if (this.menuBindListening) {
+                bindLabel = isRu ? "Нажмите кнопку..." : "Press key...";
+            } else {
+                String keyStr = (cfg != null && cfg.menuKeybind != null) ? cfg.menuKeybind.format() : "RSHIFT";
+                bindLabel = (isRu ? "Меню: " : "Menu: ") + keyStr;
+            }
+            float bindTextW = Fonts.MONTSERRAT_MEDIUM.width(bindLabel, 6.0f);
+            float menuBindW = Math.max(88.0f, bindTextW + 16.0f);
+            float menuBindH = 14.0f;
+            float menuBindX = langX - 6.0f - menuBindW;
+            float menuBindY = langY;
+            boolean hoverBind = mouseX >= menuBindX && mouseX <= menuBindX + menuBindW && mouseY >= menuBindY && mouseY <= menuBindY + menuBindH;
+
+            int bgCol = this.menuBindListening 
+                ? ClientAccent.accent(75.0f * f4) 
+                : ThemeManager.rgba(0, (55.0f + (hoverBind ? 25.0f : 0.0f)) * f4);
+            int outlineCol = this.menuBindListening 
+                ? ClientAccent.accentBright(255.0f * f4) 
+                : (hoverBind ? ClientAccent.accent(160.0f * f4) : ThemeManager.rgba(0xFFFFFF, (18.0f + (hoverBind ? 16.0f : 0.0f)) * f4));
+
+            Render2D.rect(menuBindX, menuBindY, menuBindW, menuBindH, 3.5f, bgCol);
+            Render2D.outline(menuBindX, menuBindY, menuBindW, menuBindH, 3.5f, 0.6f, outlineCol);
+            if (hoverBind || this.menuBindListening) {
+                Render2D.glow(new BuiltGlow(menuBindX, menuBindY, menuBindW, menuBindH, new float[]{3.5f, 3.5f, 3.5f, 3.5f}, ClientAccent.accent(200.0f), 0.25f, 3.5f, f4));
+            }
+
+            float iconSizeBind = 7.0f;
+            int iconColBind = (hoverBind || this.menuBindListening) ? ClientAccent.accentBright(255.0f * f4) : ClientAccent.accentSoft(210.0f * f4);
+            Fonts.NV.msdf(NvIcons.SETTINGS, menuBindX + 4.5f, menuBindY + (menuBindH - iconSizeBind) * 0.5f, iconSizeBind, iconColBind);
+
+            int textColBind = this.menuBindListening 
+                ? ClientAccent.accentBright(255.0f * f4) 
+                : UI.color(255, 255, 255, hoverBind ? 255 : 220, f4);
+            Fonts.MONTSERRAT_MEDIUM.draw(bindLabel, menuBindX + 14.0f, menuBindY + 3.2f, 6.0f, textColBind);
+        }
+
         float centerLogoSize = 22.0f;
         float logoCenterX = f7 + f9 * 0.5f;
         float logoCenterY = f8 + f12 * 0.5f;
         Render2D.glow(new BuiltGlow(logoCenterX - 10.0f, logoCenterY - 10.0f, 20.0f, 20.0f, new float[]{10.0f, 10.0f, 10.0f, 10.0f}, ClientAccent.accent(160.0f), 0.35f, 6.0f, f4));
         BrandMark.draw(logoCenterX - centerLogoSize * 0.5f, logoCenterY - centerLogoSize * 0.5f, centerLogoSize, f4);
 
-        float searchX = f7 + 6.0f;
-        float maxSearchW = Math.max(50.0f, (logoCenterX - centerLogoSize * 0.5f - 10.0f) - searchX);
-        float targetExpandedW = Math.min(105.0f, maxSearchW);
-        this.search.render(drawContext, searchX, f13, targetExpandedW, f11, f4, Position.mouseX(), Position.mouseY(), f5);
+        if (category == Category.THEMES) {
+            activity.client.gui.custom.api.ui.header.SectionHeader.render(drawContext, isRu ? "Темы" : "Themes", f7 + 6.0f, f8 + 4.5f, f4);
+        } else if (category == Category.PRESETS) {
+            activity.client.gui.custom.api.ui.header.SectionHeader.render(drawContext, isRu ? "Пресеты" : "Presets", f7 + 6.0f, f8 + 4.5f, f4);
+        } else if (category == Category.DISPLAY) {
+            activity.client.gui.custom.api.ui.header.SectionHeader.render(drawContext, isRu ? "Настройки" : "Settings", f7 + 6.0f, f8 + 4.5f, f4);
+        } else {
+            float searchX = f7 + 6.0f;
+            float maxSearchW = Math.max(50.0f, (logoCenterX - centerLogoSize * 0.5f - 10.0f) - searchX);
+            float targetExpandedW = Math.min(105.0f, maxSearchW);
+            this.search.render(drawContext, searchX, f13, targetExpandedW, f11, f4, Position.mouseX(), Position.mouseY(), f5);
+        }
     }
 
     public boolean isTextInputFocused() {
@@ -1480,7 +1600,6 @@ implements GuiCapture.Source {
         float headerY = f2 + 3.0f;
         float headerH = HEADER_H;
         RenderHelper.drawPanelBg(sidebarX, headerY, sidebarW, headerH, 12.0f, 0.0f, 0.0f, 0.0f, f4);
-        float headerCenterY = headerY + headerH * 0.5f;
 
         float btnW = isCompact ? (sidebarW - 7.0f) : Math.min(sidebarW - 10.0f, 76.0f);
         float btnX = sidebarX + (sidebarW - btnW) * 0.5f;
@@ -1522,6 +1641,7 @@ implements GuiCapture.Source {
             Fonts.MONTSERRAT_MEDIUM.draw(presetLabel, btnX + 4.5f + pIconSize + 3.5f, btnY + (btnH - fontH) * 0.5f + 0.5f, fontH, textCol);
             Fonts.NV.msdf(NvIcons.CHEVRON_DOWN, btnX + btnW - 9.5f, btnY + (btnH - 5.0f) * 0.5f, 5.0f, pIconCol);
         }
+
 
         float catStartY = headerY + headerH + 6.0f;
         for (int i = 0; i < MAIN_CATEGORIES.length; ++i) {
@@ -1790,8 +1910,6 @@ implements GuiCapture.Source {
         }
         this.search.collapse();
         this.settingsPopup.close();
-        this.presetDropdownOpen = false;
-        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
         if (this.inspector.isOpen()) {
             this.inspector.close();
         }
@@ -1809,7 +1927,9 @@ implements GuiCapture.Source {
         for (Category category4 : Category.values()) {
             this.getCategoryAnim(category4).setDirection(category4 == category ? Direction.FORWARDS : Direction.BACKWARDS);
         }
-        this.modulesHeaderAnim.setDirection(UI.isMainCategory(category) ? Direction.FORWARDS : Direction.BACKWARDS);
+        this.modulesHeaderAnim.setDirection(Direction.FORWARDS);
+        this.presetDropdownOpen = false;
+        this.presetDropdownAnim.setDirection(Direction.BACKWARDS);
     }
 
     private void updateCategoryCrossfade(float f) {
@@ -1964,8 +2084,7 @@ implements GuiCapture.Source {
             }
         }
         float f16 = this.modulesHeaderAnim.getOutput().floatValue();
-        boolean bl4 = bl = this.contentCategory != null && this.contentCategory != Category.THEMES
-            && this.contentCategory != Category.PRESETS;
+        boolean bl4 = bl = this.contentCategory != null;
         if (bl && f6 > 0.01f && f16 > 0.004f) {
             f = f9 + contentXOff();
             float f17 = f10 + CONTENT_Y_OFFSET;
@@ -2029,6 +2148,8 @@ implements GuiCapture.Source {
             if(!activity.client.gui.custom.CollectionDrawer.isOpen()) { if(this.inspector.isOpen())this.inspector.renderExplanation(drawContext, f6);else if(this.isModuleView())this.moduleList.renderExplanation(drawContext, f6); }
         }
         activity.client.gui.custom.NativeBindAssignment.render(drawContext, f6);
+        activity.client.gui.custom.TotemConfirmModal.render(drawContext, f6);
+        activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.render(drawContext, f6);
         this.renderPresetDropdown(drawContext, f6);
         drawContext.getMatrices().popMatrix();
         activity.client.gui.custom.CollectionDrawer.render(drawContext, (int) Position.mouseX(), (int) Position.mouseY(), 0);
@@ -2039,101 +2160,6 @@ implements GuiCapture.Source {
             this.stagePopupBlur();
             this.stageCardBlur(f9, f10, f7);
         }
-    }
-
-    private void renderPresetDropdown(DrawContext drawContext, float alpha) {
-        float dropT = this.presetDropdownAnim.getOutput().floatValue();
-        if (dropT <= 0.005f) return;
-        float totalAlpha = alpha * dropT;
-
-        float dropW = Math.max(this.lastPresetBtnW + 12.0f, 90.0f);
-        float dropX = this.lastPresetBtnX + (this.lastPresetBtnW - dropW) * 0.5f;
-        float dropY = this.lastPresetBtnY + this.lastPresetBtnH + 3.0f;
-        boolean isRu = activity.client.gui.custom.api.localization.LocalizationManager.getCurrentLanguage() == activity.client.gui.custom.api.localization.LocalizationManager.Language.RU;
-
-        int totalEntries = this.cachedPresetEntries.size();
-        int visibleCount = totalEntries == 0 ? 1 : Math.min(totalEntries, 6);
-        float itemH = 15.0f;
-        float footerH = 16.0f;
-        float dropH = 4.0f + visibleCount * itemH + 1.0f + footerH + 4.0f;
-        this.lastPresetDropX = dropX;
-        this.lastPresetDropY = dropY;
-        this.lastPresetDropW = dropW;
-        this.lastPresetDropH = dropH;
-
-        float animY = dropY - (1.0f - dropT) * 6.0f;
-        float scale = 0.94f + 0.06f * dropT;
-        float originX = dropX + dropW * 0.5f;
-        float originY = dropY;
-
-        drawContext.getMatrices().pushMatrix();
-        drawContext.getMatrices().translate(originX, originY);
-        drawContext.getMatrices().scale(scale, scale);
-        drawContext.getMatrices().translate(-originX, -originY);
-
-        Render2D.glow(new BuiltGlow(dropX, animY, dropW, dropH, new float[]{6.0f, 6.0f, 6.0f, 6.0f}, ClientAccent.accent(110.0f * totalAlpha), 0.5f, 10.0f, totalAlpha));
-        Render2D.rect(dropX, animY, dropW, dropH, 6.0f, ThemeManager.rgba(0x0e1117, 245.0f * totalAlpha));
-        Render2D.outline(dropX, animY, dropW, dropH, 6.0f, 0.75f, ClientAccent.accent(150.0f * totalAlpha));
-
-        float mx = Position.mouseX();
-        float my = Position.mouseY();
-        float curY = animY + 4.0f;
-
-        if (totalEntries == 0) {
-            String emptyLabel = isRu ? "Нет пресетов" : "No presets";
-            Fonts.MONTSERRAT_MEDIUM.draw(emptyLabel, dropX + 8.0f, curY + 4.0f, 6.0f, UI.color(255, 255, 255, 120, totalAlpha));
-            curY += itemH;
-        } else {
-            int startIdx = Math.max(0, Math.min(this.presetScrollOffset, Math.max(0, totalEntries - visibleCount)));
-            for (int i = 0; i < visibleCount; i++) {
-                int entryIdx = startIdx + i;
-                if (entryIdx >= totalEntries) break;
-                activity.client.config.preset.LocalPresets.Entry entry = this.cachedPresetEntries.get(entryIdx);
-                boolean hoverItem = mx >= dropX + 2.0f && mx <= dropX + dropW - 2.0f && my >= curY && my <= curY + itemH;
-                boolean isSelected = entry.name().equalsIgnoreCase(this.selectedPresetName);
-
-                if (hoverItem || isSelected) {
-                    Render2D.rect(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, itemH - 2.0f, 3.5f,
-                        isSelected ? ClientAccent.accent(50.0f * totalAlpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * totalAlpha));
-                    if (isSelected) {
-                        Render2D.outline(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, itemH - 2.0f, 3.5f, 0.6f, ClientAccent.accent(130.0f * totalAlpha));
-                    }
-                }
-
-                float rowIconSize = 6.0f;
-                int rowIconCol = isSelected ? ClientAccent.accentBright(255.0f * totalAlpha) : (hoverItem ? UI.color(255, 255, 255, 240, totalAlpha) : UI.color(255, 255, 255, 140, totalAlpha));
-                Fonts.NV.msdf(isSelected ? NvIcons.CHECK : NvIcons.PROFILE, dropX + 7.0f, curY + (itemH - rowIconSize) * 0.5f, rowIconSize, rowIconCol);
-
-                String name = entry.name();
-                float maxNameW = dropW - 22.0f;
-                float nameFontH = 6.0f;
-                if (Fonts.MONTSERRAT_MEDIUM.width(name, nameFontH) > maxNameW && name.length() > 6) {
-                    while (name.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(name + "…", nameFontH) > maxNameW) {
-                        name = name.substring(0, name.length() - 1);
-                    }
-                    name += "…";
-                }
-                int nameCol = isSelected ? ClientAccent.accentBright(255.0f * totalAlpha) : (hoverItem ? UI.color(255, 255, 255, 255, totalAlpha) : UI.color(255, 255, 255, 190, totalAlpha));
-                Fonts.MONTSERRAT_MEDIUM.draw(name, dropX + 16.5f, curY + (itemH - nameFontH) * 0.5f + 0.5f, nameFontH, nameCol);
-
-                curY += itemH;
-            }
-        }
-
-        Render2D.rect(dropX + 6.0f, curY, dropW - 12.0f, 0.6f, 0.3f, ThemeManager.rgba(0xFFFFFF, 20.0f * totalAlpha));
-        curY += 1.0f;
-
-        boolean hoverManage = mx >= dropX + 2.0f && mx <= dropX + dropW - 2.0f && my >= curY && my <= curY + footerH;
-        if (hoverManage) {
-            Render2D.rect(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, footerH - 2.0f, 3.5f, ClientAccent.accent(35.0f * totalAlpha));
-        }
-        String manageText = isRu ? "Все пресеты" : "All presets";
-        float mFontH = 6.0f;
-        int mCol = hoverManage ? ClientAccent.accentBright(255.0f * totalAlpha) : ClientAccent.accentSoft(200.0f * totalAlpha);
-        Fonts.NV.msdf(NvIcons.PROFILE, dropX + 7.0f, curY + (footerH - 6.0f) * 0.5f, 6.0f, mCol);
-        Fonts.MONTSERRAT_MEDIUM.draw(manageText, dropX + 16.5f, curY + (footerH - mFontH) * 0.5f + 0.5f, mFontH, mCol);
-
-        drawContext.getMatrices().popMatrix();
     }
 
     private static String layoutNormalize(String string) {
@@ -2278,6 +2304,98 @@ implements GuiCapture.Source {
         }
     }
 
+    private void renderPresetDropdown(DrawContext drawContext, float alpha) {
+        float dropT = this.presetDropdownAnim.getOutput().floatValue();
+        if (dropT <= 0.005f) return;
+        float totalAlpha = alpha * dropT;
 
+        float dropW = Math.max(this.lastPresetBtnW + 12.0f, 90.0f);
+        float dropX = this.lastPresetBtnX + (this.lastPresetBtnW - dropW) * 0.5f;
+        float dropY = this.lastPresetBtnY + this.lastPresetBtnH + 3.0f;
+        boolean isRu = activity.client.gui.custom.api.localization.LocalizationManager.getCurrentLanguage() == activity.client.gui.custom.api.localization.LocalizationManager.Language.RU;
 
+        int totalEntries = this.cachedPresetEntries.size();
+        int visibleCount = totalEntries == 0 ? 1 : Math.min(totalEntries, 6);
+        float itemH = 15.0f;
+        float footerH = 16.0f;
+        float dropH = 4.0f + visibleCount * itemH + 1.0f + footerH + 4.0f;
+        this.lastPresetDropX = dropX;
+        this.lastPresetDropY = dropY;
+        this.lastPresetDropW = dropW;
+        this.lastPresetDropH = dropH;
+
+        float animY = dropY - (1.0f - dropT) * 6.0f;
+        float scale = 0.94f + 0.06f * dropT;
+        float originX = dropX + dropW * 0.5f;
+        float originY = dropY;
+
+        drawContext.getMatrices().pushMatrix();
+        drawContext.getMatrices().translate(originX, originY);
+        drawContext.getMatrices().scale(scale, scale);
+        drawContext.getMatrices().translate(-originX, -originY);
+
+        Render2D.glow(new BuiltGlow(dropX, animY, dropW, dropH, new float[]{6.0f, 6.0f, 6.0f, 6.0f}, ClientAccent.accent(110.0f * totalAlpha), 0.5f, 10.0f, totalAlpha));
+        Render2D.rect(dropX, animY, dropW, dropH, 6.0f, ThemeManager.rgba(0x0e1117, 245.0f * totalAlpha));
+        Render2D.outline(dropX, animY, dropW, dropH, 6.0f, 0.75f, ClientAccent.accent(150.0f * totalAlpha));
+
+        float mx = Position.mouseX();
+        float my = Position.mouseY();
+        float curY = animY + 4.0f;
+
+        if (totalEntries == 0) {
+            String emptyLabel = isRu ? "Нет пресетов" : "No presets";
+            Fonts.MONTSERRAT_MEDIUM.draw(emptyLabel, dropX + 8.0f, curY + 4.0f, 6.0f, UI.color(255, 255, 255, 120, totalAlpha));
+            curY += itemH;
+        } else {
+            int startIdx = Math.max(0, Math.min(this.presetScrollOffset, Math.max(0, totalEntries - visibleCount)));
+            for (int i = 0; i < visibleCount; i++) {
+                int entryIdx = startIdx + i;
+                if (entryIdx >= totalEntries) break;
+                activity.client.config.preset.LocalPresets.Entry entry = this.cachedPresetEntries.get(entryIdx);
+                boolean hoverItem = mx >= dropX + 2.0f && mx <= dropX + dropW - 2.0f && my >= curY && my <= curY + itemH;
+                boolean isSelected = entry.name().equalsIgnoreCase(this.selectedPresetName);
+
+                if (hoverItem || isSelected) {
+                    Render2D.rect(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, itemH - 2.0f, 3.5f,
+                        isSelected ? ClientAccent.accent(50.0f * totalAlpha) : ThemeManager.rgba(0xFFFFFF, 18.0f * totalAlpha));
+                    if (isSelected) {
+                        Render2D.outline(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, itemH - 2.0f, 3.5f, 0.6f, ClientAccent.accent(130.0f * totalAlpha));
+                    }
+                }
+
+                float rowIconSize = 6.0f;
+                int rowIconCol = isSelected ? ClientAccent.accentBright(255.0f * totalAlpha) : (hoverItem ? UI.color(255, 255, 255, 240, totalAlpha) : UI.color(255, 255, 255, 140, totalAlpha));
+                Fonts.NV.msdf(isSelected ? NvIcons.CHECK : NvIcons.PROFILE, dropX + 7.0f, curY + (itemH - rowIconSize) * 0.5f, rowIconSize, rowIconCol);
+
+                String name = entry.name();
+                float maxNameW = dropW - 22.0f;
+                float nameFontH = 6.0f;
+                if (Fonts.MONTSERRAT_MEDIUM.width(name, nameFontH) > maxNameW && name.length() > 6) {
+                    while (name.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(name + "…", nameFontH) > maxNameW) {
+                        name = name.substring(0, name.length() - 1);
+                    }
+                    name += "…";
+                }
+                int nameCol = isSelected ? ClientAccent.accentBright(255.0f * totalAlpha) : (hoverItem ? UI.color(255, 255, 255, 255, totalAlpha) : UI.color(255, 255, 255, 190, totalAlpha));
+                Fonts.MONTSERRAT_MEDIUM.draw(name, dropX + 16.5f, curY + (itemH - nameFontH) * 0.5f + 0.5f, nameFontH, nameCol);
+
+                curY += itemH;
+            }
+        }
+
+        Render2D.rect(dropX + 6.0f, curY, dropW - 12.0f, 0.6f, 0.3f, ThemeManager.rgba(0xFFFFFF, 20.0f * totalAlpha));
+        curY += 1.0f;
+
+        boolean hoverManage = mx >= dropX + 2.0f && mx <= dropX + dropW - 2.0f && my >= curY && my <= curY + footerH;
+        if (hoverManage) {
+            Render2D.rect(dropX + 3.0f, curY + 1.0f, dropW - 6.0f, footerH - 2.0f, 3.5f, ClientAccent.accent(35.0f * totalAlpha));
+        }
+        String manageText = isRu ? "Все пресеты" : "All presets";
+        float mFontH = 6.0f;
+        int mCol = hoverManage ? ClientAccent.accentBright(255.0f * totalAlpha) : ClientAccent.accentSoft(200.0f * totalAlpha);
+        Fonts.NV.msdf(NvIcons.PROFILE, dropX + 7.0f, curY + (footerH - 6.0f) * 0.5f, 6.0f, mCol);
+        Fonts.MONTSERRAT_MEDIUM.draw(manageText, dropX + 16.5f, curY + (footerH - mFontH) * 0.5f + 0.5f, mFontH, mCol);
+
+        drawContext.getMatrices().popMatrix();
+    }
 }

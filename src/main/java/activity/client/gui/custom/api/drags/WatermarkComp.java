@@ -25,7 +25,7 @@ import dev.nivorat.arc.ArcMotorCalibrationService;
 
 public final class WatermarkComp extends Draggable {
     private static final float H = 20.0f;
-    private static final String INFO_FONT = "montserrat-medium";
+    private static final String INFO_FONT = "montserrat-bold";
     private static final String FALLBACK_NAME = "Player";
     private static final DateTimeFormatter TIME_FORMAT_24 = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter TIME_FORMAT_12 = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);

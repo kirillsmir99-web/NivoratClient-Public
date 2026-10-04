@@ -73,11 +73,12 @@ public enum Theme implements ITheme {
         if (name == null || name.isEmpty()) {
             return NIVORA;
         }
-        try {
-            return Theme.valueOf(name);
-        } catch (IllegalArgumentException ignored) {
+        for (Theme t : values()) {
+            if (t.name().equalsIgnoreCase(name)) {
+                return t;
+            }
         }
-        return switch (name.toUpperCase()) {
+        return switch (name.toUpperCase(java.util.Locale.ROOT)) {
             case "NV" -> NIVORA;
             case "BLUEPINK" -> AETHER;
             case "BLUEGREEN" -> VERDANT;

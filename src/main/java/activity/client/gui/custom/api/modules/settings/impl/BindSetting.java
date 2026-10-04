@@ -6,8 +6,11 @@ import activity.client.gui.custom.utils.key.KeyBind;
 public class BindSetting
 extends Setting {
     private activity.client.module.setting.KeybindSetting source;
+    private activity.client.module.keybind.Keybind boundKeybind;
     public void setSource(activity.client.module.setting.KeybindSetting value){source=value;}
     public activity.client.module.setting.KeybindSetting source(){return source;}
+    public void setBoundKeybind(activity.client.module.keybind.Keybind value){boundKeybind=value;}
+    public activity.client.module.keybind.Keybind boundKeybind(){return boundKeybind;}
     public int requestedKey(){return key;}
     private int key = -1;
     private int defaultKey = -1;
@@ -30,6 +33,7 @@ extends Setting {
     }
 
     public int getKey() {
+        if(boundKeybind!=null) return boundKeybind.isMouseButton()?boundKeybind.getMouseButton():boundKeybind.getKeyCode();
         if(source!=null){var binding=source.get();return binding.isMouseButton()?binding.getMouseButton():binding.getKeyCode();}
         return this.key;
     }
@@ -43,6 +47,7 @@ extends Setting {
     }
 
     public boolean isBound() {
+        if(boundKeybind!=null) return !boundKeybind.isUnbound();
         return this.key != -1;
     }
 

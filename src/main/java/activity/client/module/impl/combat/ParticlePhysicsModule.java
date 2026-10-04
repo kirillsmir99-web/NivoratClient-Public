@@ -15,8 +15,6 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.World;
-import dev.mace.prestige.PrestigeAutoMaceConfig;
-import dev.mace.prestige.PrestigeAutoMaceController;
 import net.redstone.optimizer.config.RedstoneOptimizerConfig;
 import net.redstone.optimizer.engine.RedstoneTickEngine;
 
@@ -36,7 +34,7 @@ public class ParticlePhysicsModule extends NivoratModule {
                 .version("2.5.0")
                 .icon(ActivityIcon.COMBAT)
                 .keybind(keybind)
-                .aliases("automace", "mace", "булава", "автобулава", "авто-булава", "авто булава", "свап", "swap", "bridge", "bridge swap", "бридж")
+                .aliases("automace", "mace", "булава", "автобулава", "авто-булава", "авто булава", "свап", "swap")
                 .build();
 
         registerEnum("source_mode", Text.translatable("activity.setting.combat.source_mode"),
@@ -51,25 +49,6 @@ public class ParticlePhysicsModule extends NivoratModule {
                     ActivityConfig c = ActivityConfigManager.getConfig();
                     if (c != null) {
                         c.autoMaceSourceMode = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        );
-
-        registerEnum("swap_type", Text.translatable("activity.setting.combat.swap_type"),
-                Text.translatable("activity.setting.combat.swap_type.desc"), SettingGroup.GENERAL,
-                List.of("new", "old"), "new",
-                opt -> Text.translatable("activity.dropdown.swap_type." + opt),
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null && "old".equals(c.autoMaceSwapType) ? "old" : "new";
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceSwapType = val;
-                        c.autoMaceEngineMode = val;
                         syncEngineConfig(c);
                         ActivityConfigManager.markDirty();
                     }
@@ -183,8 +162,6 @@ public class ParticlePhysicsModule extends NivoratModule {
 
     private void syncEngineConfig(ActivityConfig c) {
         if (c == null) return;
-        boolean isNew = "new".equals(c.autoMaceSwapType);
-
         RedstoneOptimizerConfig.enabled = c.autoMaceEnabled;
         RedstoneOptimizerConfig.restoreDelayMs = (int) c.autoMaceRestoreDelayMs;
         RedstoneOptimizerConfig.randomDelay = c.autoMaceRandomDelay;
@@ -216,21 +193,6 @@ public class ParticlePhysicsModule extends NivoratModule {
         } else {
             RedstoneOptimizerConfig.missBehavior = RedstoneOptimizerConfig.MISS_SWORD_HIT;
         }
-
-        PrestigeAutoMaceConfig pc = PrestigeAutoMaceController.getInstance().getConfig();
-        pc.enabled = c.autoMaceEnabled && isNew;
-        pc.sourceMode = c.autoMaceSourceMode;
-        pc.enchantMode = c.autoMaceEnchantMode;
-        pc.minFallDistance = 1.25;
-        pc.attackDelayMs = 0.0;
-        pc.autoSwitch = true;
-        pc.predictSwitch = true;
-        pc.shieldBreak = false;
-        pc.stayOnMace = false;
-        pc.targetPlayers = true;
-        pc.targetMobs = false;
-        pc.silentAim = false;
-        pc.movementFix = false;
     }
 
     @Override
@@ -247,29 +209,20 @@ public class ParticlePhysicsModule extends NivoratModule {
     @Override
     public void onDisable() {
         engine.reset();
-        PrestigeAutoMaceController.getInstance().reset();
         net.fabricmc.pack.api.CombatLockManager.setLock("pvp.mace_active", false);
     }
 
     @Override
     public void onTick(MinecraftClient client) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c != null && "new".equals(c.autoMaceSwapType)) {
-                PrestigeAutoMaceController.getInstance().tick(client);
-            } else {
-                engine.tick(client);
-            }
+            engine.tick(client);
         }
     }
 
     @Override
     public ActionResult onAttackEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c == null || !"new".equals(c.autoMaceSwapType)) {
-                return engine.onAttackEntity(player, world, hand, entity, hitResult);
-            }
+            return engine.onAttackEntity(player, world, hand, entity, hitResult);
         }
         return ActionResult.PASS;
     }

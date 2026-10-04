@@ -360,8 +360,25 @@ public final class ModuleListRenderer {
                 badgeW = bw + 5.0f;
             }
 
+            boolean isTotemWip = "auto_totem".equalsIgnoreCase(module.getId());
+            float wipBadgeW = 0.0f;
+            if (isTotemWip) {
+                boolean isRu = activity.client.i18n.LocalizationService.isRussianPreferred();
+                String wipLabel = isRu ? "Недоработано" : "WIP";
+                float tw = Fonts.MONTSERRAT_MEDIUM.width(wipLabel, 4.2f);
+                float ww = tw + 6.0f;
+                float wx = cardX + PAD_X + 2.0f + badgeW;
+                float wy = cardY + 7.0f;
+                int bgCol = ModuleListRenderer.rgba(245, 165, 35, 20.0f * finalAlpha);
+                int borderCol = ModuleListRenderer.rgba(255, 185, 55, 60.0f * finalAlpha);
+                int textCol = ModuleListRenderer.rgba(255, 205, 90, 240.0f * finalAlpha);
+                Render2D.rect(wx, wy, ww, 7.0f, 3.5f, bgCol);
+                Render2D.outline(wx, wy, ww, 7.0f, 3.5f, 0.5f, borderCol);
+                Fonts.MONTSERRAT_MEDIUM.draw(wipLabel, wx + (ww - tw) * 0.5f, wy + 1.2f, 4.2f, textCol);
+                wipBadgeW = ww + 4.0f;
+            }
 
-            float titleX = cardX + PAD_X + 2.0f + badgeW;
+            float titleX = cardX + PAD_X + 2.0f + badgeW + wipBadgeW;
             float rightBound = layout.pinX;
             float maxTitleW = Math.max(10.0f, (rightBound - 6.0f) - titleX);
             String fittedTitle = RenderHelper.fitText(Fonts.MONTSERRAT_MEDIUM, module.getDisplayName(), maxTitleW, NAME_SIZE);
@@ -549,7 +566,7 @@ public final class ModuleListRenderer {
         boolean inView = (cardY + CARD_H >= contentY - 5.0f) && (cardY <= contentY + viewH + 5.0f);
         boolean visible = inView && rowProg >= 0.001f && finalAlpha > 0.01f && !this.transitioning;
 
-        boolean hasSettings = module != null && !module.getSettings().all().isEmpty();
+        boolean hasSettings = module != null && module.hasSettings();
         float gearW = 10.0f;
         float gearH = 10.0f;
         float gearX = cardX + colW - 9.0f - gearW;
@@ -588,7 +605,7 @@ public final class ModuleListRenderer {
     }
 
     public boolean hitSettingsIcon(float mouseX, float mouseY, float cardX, float cardY, float colW, Module module) {
-        if (module == null || module.getSettings().all().isEmpty()) return false;
+        if (module == null || !module.hasSettings()) return false;
         float gearX = cardX + colW - 9.0f - 10.0f;
         float gearY = cardY + (CARD_H - 10.0f) * 0.5f;
         return mouseX >= gearX - 4.0f && mouseX <= gearX + 14.0f

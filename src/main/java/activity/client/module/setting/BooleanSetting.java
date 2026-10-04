@@ -24,6 +24,33 @@ public class BooleanSetting extends Setting<Boolean> {
         this.setter = setter;
     }
 
+    private String confirmTitle;
+    private String confirmLine1;
+    private String confirmLine2;
+
+    public BooleanSetting requireConfirm(String title, String line1, String line2) {
+        this.confirmTitle = title;
+        this.confirmLine1 = line1;
+        this.confirmLine2 = line2;
+        return this;
+    }
+
+    public boolean hasConfirmation() {
+        return confirmLine1 != null;
+    }
+
+    public String getConfirmTitle() {
+        return confirmTitle;
+    }
+
+    public String getConfirmLine1() {
+        return confirmLine1;
+    }
+
+    public String getConfirmLine2() {
+        return confirmLine2;
+    }
+
     @Override
     public Boolean get() {
         return getter != null ? getter.get() : getDefaultValue();

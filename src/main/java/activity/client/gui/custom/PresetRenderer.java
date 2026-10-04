@@ -38,6 +38,7 @@ public final class PresetRenderer {
         "auto_spear",
         "auto_pearl_catch",
         "click_pearl",
+        "elytra_swap",
         "cart_refill",
         "hp_reaper",
         "auto_tool",
@@ -89,7 +90,7 @@ public final class PresetRenderer {
     private float lastPill1X, lastPill1Y, lastPillW, lastPillH;
     private float lastPill2X, lastPill2Y;
     private final float[] lastPartRowY = new float[7];
-    private final float[] lastModRowY = new float[16];
+    private final float[] lastModRowY = new float[ALL_FEATURE_MODULES.size()];
     private float lastToggleAllModsX, lastToggleAllModsY, lastToggleAllModsW;
     private float lastAutoActY;
     private float lastToggleAllX, lastToggleAllY, lastToggleAllW;
@@ -130,6 +131,7 @@ public final class PresetRenderer {
             case "auto_spear" -> tr("Авто-гарпун (AutoSpear)", "Auto Spear");
             case "auto_pearl_catch" -> tr("Ловля перлов (PearlCatch)", "Pearl Catch");
             case "click_pearl" -> tr("Клик-перл (ClickPearl)", "Click Pearl");
+            case "elytra_swap" -> tr("Свап элитры (ElytraSwap)", "Elytra Swap");
             case "cart_refill" -> tr("Рефилл тележек (CartRefill)", "Cart Refill");
             case "hp_reaper" -> tr("ХП Рипер (HPReaper)", "HP Reaper");
             case "auto_tool" -> tr("Авто-тул (AutoTool)", "Auto Tool");
@@ -213,6 +215,47 @@ public final class PresetRenderer {
         try { Sounds.play("module_settings_open"); } catch (Throwable ignored) {}
     }
 
+    public boolean hasUnsavedChanges() {
+        return this.drawerOpen && this.drawerName != null && !this.drawerName.trim().isEmpty();
+    }
+
+    public void promptCloseDrawer(Runnable onProceed) {
+        if (!this.drawerOpen) {
+            if (onProceed != null) onProceed.run();
+            return;
+        }
+        if (this.drawerName == null || this.drawerName.trim().isEmpty()) {
+            this.closeDrawer();
+            if (onProceed != null) onProceed.run();
+            return;
+        }
+        boolean ru = activity.client.i18n.LocalizationService.isRussianPreferred();
+        String title = ru ? "Выход из меню пресетов" : "Exit preset menu";
+        String desc = ru ? "Вы уверены, что хотите выйти из меню пресетов?" : "Are you sure you want to exit the presets menu?";
+        String cancelStr = ru ? "Отмена" : "Cancel";
+        String discardStr = ru ? "Не сохранять" : "Don't save";
+        String saveStr = ru ? "Сохранить" : "Save";
+
+        activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.show(
+            title,
+            desc,
+            null,
+            0,
+            List.of(
+                new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(cancelStr, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.SECONDARY, () -> {}),
+                new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(discardStr, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.DANGER, () -> {
+                    this.closeDrawer();
+                    if (onProceed != null) onProceed.run();
+                }),
+                new activity.client.gui.custom.api.ui.modal.UnifiedConfirmModal.ModalButton(saveStr, activity.client.gui.custom.api.ui.button.UnifiedButton.Variant.PRIMARY, () -> {
+                    this.saveDrawerPreset();
+                    if (!this.drawerOpen && onProceed != null) onProceed.run();
+                })
+            ),
+            null
+        );
+    }
+
     public void closeDrawer() {
         this.drawerOpen = false;
         this.nameFocused = false;
@@ -241,16 +284,19 @@ public final class PresetRenderer {
         float my = Position.mouseY();
         float dt = 0.016f;
 
-        float contentW = Math.min(276.0f, w - 24.0f);
+        float contentW = w - 24.0f;
         float contentX = x + (w - contentW) * 0.5f;
 
         float headerH = 26.0f;
         float btnH = 14.0f;
         float btnY = y + (headerH - btnH) * 0.5f;
 
-        this.lastImpW = 52.0f;
+        float langX = x + w - 40.0f;
+
+        float impTextW = Fonts.MONTSERRAT_MEDIUM.width(tr("Импорт", "Import"), 5.2f);
+        this.lastImpW = 6.0f + 6.0f + 4.0f + impTextW + 6.0f;
         this.lastImpH = btnH;
-        this.lastImpX = contentX + contentW - this.lastImpW;
+        this.lastImpX = langX - 6.0f - this.lastImpW;
         this.lastImpY = btnY;
         boolean hoverImp = mx >= lastImpX && mx <= lastImpX + lastImpW && my >= lastImpY && my <= lastImpY + lastImpH;
         Render2D.rect(lastImpX, lastImpY, lastImpW, lastImpH, 3.5f, hoverImp ? ClientAccent.accent(45.0f * alpha) : ThemeManager.rgba(0xFFFFFF, 14.0f * alpha));
@@ -264,7 +310,7 @@ public final class PresetRenderer {
         float createTextW = Fonts.MONTSERRAT_MEDIUM.width(tr("Создать", "Create"), 5.2f);
         this.lastCreateW = 6.0f + 6.0f + 4.0f + createTextW + 6.0f;
         this.lastCreateH = btnH;
-        this.lastCreateX = lastImpX - this.lastCreateW - 4.0f;
+        this.lastCreateX = lastImpX - 4.0f - this.lastCreateW;
         this.lastCreateY = btnY;
         boolean hoverCreate = mx >= lastCreateX && mx <= lastCreateX + lastCreateW && my >= lastCreateY && my <= lastCreateY + lastCreateH;
         Render2D.rect(lastCreateX, lastCreateY, lastCreateW, lastCreateH, 3.5f, ClientAccent.accent(hoverCreate ? 220.0f * alpha : 175.0f * alpha));
@@ -275,8 +321,6 @@ public final class PresetRenderer {
         float createTextY = lastCreateY + (btnH - 5.2f) * 0.5f - 0.2f;
         Fonts.NV.msdf(NvIcons.ADD, lastCreateX + 6.0f, createIconY, 6.0f, color(255, 255, 255, 255, alpha));
         Fonts.MONTSERRAT_MEDIUM.draw(tr("Создать", "Create"), lastCreateX + 16.0f, createTextY, 5.2f, color(255, 255, 255, 255, alpha));
-
-        Fonts.MONTSERRAT_SEMIBOLD.draw(tr("Пресеты конфигурации", "Configuration presets"), contentX + 1.0f, btnY + 3.5f, 6.2f, color(255, 255, 255, 210, alpha));
 
         float cardsStartY = y + headerH + 5.0f;
         float cardsH = h - headerH - 8.0f;
@@ -337,31 +381,36 @@ public final class PresetRenderer {
                     Render2D.glow(new BuiltGlow(cardX, cardY, cardW, cardH, new float[]{4.0f, 4.0f, 4.0f, 4.0f}, ClientAccent.accent(80.0f * alpha), 0.2f, 3.5f, alpha));
                 }
 
-                float iconSize = 7.0f;
+                float iconSize = 8.0f;
                 int iconCol = isActive ? ClientAccent.accentBright(255.0f * alpha) : color(255, 255, 255, 220, alpha);
-                Fonts.NV.msdf(isActive ? NvIcons.CHECK : NvIcons.PRESETS, cardX + 8.0f, cardY + 8.0f, iconSize, iconCol);
+                Fonts.NV.msdf(isActive ? NvIcons.CHECK : NvIcons.PRESETS, cardX + 8.0f, cardY + 7.5f, iconSize, iconCol);
 
-                float nameFont = 6.5f;
+                float nameFont = 8.0f;
                 String displayName = entry.name();
-                float maxNameW = cardW - 46.0f;
+                float maxNameW = cardW - 44.0f;
                 if (Fonts.MONTSERRAT_MEDIUM.width(displayName, nameFont) > maxNameW && displayName.length() > 6) {
                     while (displayName.length() > 4 && Fonts.MONTSERRAT_MEDIUM.width(displayName + "...", nameFont) > maxNameW) {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
                     displayName += "...";
                 }
-                Fonts.MONTSERRAT_MEDIUM.draw(displayName, cardX + 18.0f, cardY + 7.5f, nameFont, color(255, 255, 255, isActive ? 255 : 230, alpha));
+                Fonts.MONTSERRAT_MEDIUM.draw(displayName, cardX + 19.0f, cardY + 7.0f, nameFont, color(255, 255, 255, isActive ? 255 : 230, alpha));
 
                 String metaStr = resolvePresetServerTag(entry.name());
-                Fonts.MONTSERRAT_MEDIUM.draw(metaStr, cardX + 8.0f, cardY + 22.5f, 5.2f, isActive ? ClientAccent.accentBright(200.0f * alpha) : color(255, 255, 255, 140, alpha));
+                Fonts.MONTSERRAT_MEDIUM.draw(metaStr, cardX + 8.0f, cardY + 22.5f, 5.8f, isActive ? ClientAccent.accentBright(200.0f * alpha) : color(255, 255, 255, 140, alpha));
 
-                float favBtnW = 10.0f;
-                float favBtnH = 10.0f;
-                float favX = cardX + cardW - 14.0f;
-                float favY = cardY + 6.0f;
-                boolean hovFav = mx >= favX - 2.0f && mx <= favX + favBtnW + 2.0f && my >= favY - 2.0f && my <= favY + favBtnH + 2.0f;
+                float favBtnW = 12.0f;
+                float favBtnH = 12.0f;
+                float favSize = 8.0f;
+                float favX = cardX + cardW - 16.0f;
+                float favY = cardY + 5.5f;
+                boolean hovFav = mx >= favX - 3.0f && mx <= favX + favBtnW + 3.0f && my >= favY - 3.0f && my <= favY + favBtnH + 3.0f;
                 int favCol = isFav ? ClientAccent.accentBright(255.0f * alpha) : (hovFav ? color(255, 255, 255, 220, alpha) : color(255, 255, 255, 80, alpha));
-                Fonts.NV.msdf(NvIcons.PINNED, favX, favY, 6.0f, favCol);
+                if (isFav) {
+                    Render2D.glow(new BuiltGlow(favX - 1.0f, favY - 1.0f, favSize + 2.0f, favSize + 2.0f, new float[]{3.0f, 3.0f, 3.0f, 3.0f}, ClientAccent.accent(180.0f * alpha), 0.25f, 3.5f, alpha));
+                }
+                Fonts.NV.msdf(NvIcons.PINNED, favX, favY, favSize, favCol);
+                Fonts.NV.msdf(NvIcons.PINNED, favX + 0.35f, favY, favSize, favCol);
 
                 float actionH = 11.5f;
                 float actionY = cardY + cardH - actionH - 5.0f;
@@ -542,7 +591,7 @@ public final class PresetRenderer {
                 }
             }
         } else {
-            Fonts.MONTSERRAT_MEDIUM.draw(tr("Например: Ranked PVP", "e.g. Ranked PVP"), textStartX, lastNameBoxY + 4.2f, 5.5f, color(255, 255, 255, Math.round(90.0f + 30.0f * this.nameHoverT), effectiveAlpha));
+            Fonts.MONTSERRAT_MEDIUM.draw(tr("Например: Дуэли", "e.g. Duels"), textStartX, lastNameBoxY + 4.2f, 5.5f, color(255, 255, 255, Math.round(90.0f + 30.0f * this.nameHoverT), effectiveAlpha));
         }
 
         float cursorTargetX = Fonts.MONTSERRAT_MEDIUM.width(this.drawerName, 5.5f);
@@ -747,7 +796,7 @@ public final class PresetRenderer {
         float cardsStartY = y + headerH + 5.0f;
         float cardsH = h - headerH - 8.0f;
 
-        float contentW = Math.min(276.0f, w - 24.0f);
+        float contentW = w - 24.0f;
         float contentX = x + (w - contentW) * 0.5f;
 
         List<LocalPresets.Entry> filtered = new ArrayList<>();
@@ -780,9 +829,9 @@ public final class PresetRenderer {
             if (mx >= cardX && mx <= cardX + cardW && my >= cardY && my <= cardY + cardH) {
                 float favBtnW = 12.0f;
                 float favBtnH = 12.0f;
-                float favX = cardX + cardW - 14.0f;
-                float favY = cardY + 6.0f;
-                if (mx >= favX - 2.0f && mx <= favX + favBtnW + 2.0f && my >= favY - 2.0f && my <= favY + favBtnH + 2.0f) {
+                float favX = cardX + cardW - 16.0f;
+                float favY = cardY + 5.5f;
+                if (mx >= favX - 3.0f && mx <= favX + favBtnW + 3.0f && my >= favY - 3.0f && my <= favY + favBtnH + 3.0f) {
                     try {
                         LocalPresets.toggleFavorite(entry.path());
                         this.reload();
@@ -851,16 +900,20 @@ public final class PresetRenderer {
         float h = this.lastDrawerH;
 
         if (mx < x || mx > x + w || my < y || my > y + h) {
+            if (this.drawerName != null && !this.drawerName.trim().isEmpty()) {
+                this.promptCloseDrawer(null);
+                return true;
+            }
             return false;
         }
 
         if (mx >= lastCloseX - 3.0f && mx <= lastCloseX + lastCloseW + 3.0f && my >= lastCloseY - 3.0f && my <= lastCloseY + lastCloseH + 3.0f) {
-            this.closeDrawer();
+            this.promptCloseDrawer(null);
             return true;
         }
 
         if (mx >= lastCancelX && mx <= lastCancelX + lastCancelW && my >= lastCancelY && my <= lastCancelY + lastCancelH) {
-            this.closeDrawer();
+            this.promptCloseDrawer(null);
             return true;
         }
 
@@ -983,7 +1036,7 @@ public final class PresetRenderer {
         if (!this.isDrawerOpen()) return false;
 
         if (input.key() == GLFW.GLFW_KEY_ESCAPE) {
-            this.closeDrawer();
+            this.promptCloseDrawer(null);
             return true;
         }
 
@@ -1101,6 +1154,7 @@ public final class PresetRenderer {
             Sounds.play("command_error");
             return;
         }
+        String curTheme = activity.client.gui.custom.api.ui.theme.ThemeManager.currentThemeId();
         try {
             Path file = LocalPresets.create(name, this.drawerTemplate, this.drawerParts, this.drawerParts.contains(LocalPresets.Part.MODULES) ? this.drawerModules : null);
             this.reload();
@@ -1111,6 +1165,9 @@ public final class PresetRenderer {
                         break;
                     }
                 }
+            }
+            if (!this.drawerParts.contains(LocalPresets.Part.THEMES)) {
+                activity.client.gui.custom.api.ui.theme.ThemeManager.setById(curTheme);
             }
             this.closeDrawer();
             this.showToast(tr("Пресет «" + name + "» сохранён!", "Preset \"" + name + "\" saved!"));

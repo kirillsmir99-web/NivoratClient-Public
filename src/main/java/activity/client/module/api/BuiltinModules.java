@@ -28,6 +28,7 @@ public final class BuiltinModules {
         ModuleRegistry.register(new MatrixTransformModule());
         ModuleRegistry.register(new RaycastPredictorModule());
         ModuleRegistry.register(new ClickPearlModule());
+        ModuleRegistry.register(new activity.client.module.impl.combat.ElytraSwapModule());
 
         ModuleRegistry.register(new BufferPipelineModule());
         ModuleRegistry.register(new OcclusionCacheModule());

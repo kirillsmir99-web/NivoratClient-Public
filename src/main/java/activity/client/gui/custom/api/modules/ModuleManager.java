@@ -63,8 +63,6 @@ public final class ModuleManager {
                 for (var section : activity.client.integration.NivoratEcosystem.sections()) {
                     display.add(new activity.client.integration.CompanionSettingsModule(section));
                 }
-                display.add(new activity.client.gui.custom.PresetSettingsModule());
-                display.add(new activity.client.gui.custom.CapabilityLogsModule());
                 displaySnapshot = List.copyOf(display);
             }
             return displaySnapshot;

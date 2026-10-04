@@ -29,6 +29,19 @@ implements Setting {
 
     public void capture(int code, int modifiers, boolean mouse) {
         this.listening = false;
+        var kb = this.backend.boundKeybind();
+        if (kb != null) {
+            var next = new activity.client.module.keybind.Keybind();
+            if (mouse) next.setMouseButton(code, modifiers);
+            else if (code != 256 && code != 259 && code != 261) next.setKey(code, modifiers);
+            activity.client.gui.custom.NativeBindAssignment.request(kb, next, () -> {
+                kb.copyFrom(next);
+                this.backend.setKey(kb.getKeyCode());
+                activity.client.module.keybind.KeybindManager.rebuildBoundKeybinds();
+                activity.client.config.ActivityConfigManager.markDirty();
+            });
+            return;
+        }
         var source = this.backend.source();
         if (source == null) { setKey(mouse ? (code == 2 ? 1002 : code) : code); return; }
         var current = source.get();
@@ -38,12 +51,14 @@ implements Setting {
         activity.client.gui.custom.NativeBindAssignment.request(current, next, () -> {
             current.copyFrom(next);
             source.set(current);
+            activity.client.module.keybind.KeybindManager.rebuildBoundKeybinds();
             activity.client.config.ActivityConfigManager.markDirty();
         });
     }
 
     private String label() {
         if (listening) return activity.client.i18n.LocalizationService.isRussianPreferred() ? "Нажмите кнопку…" : "Press a button…";
+        if (backend.boundKeybind() != null) return backend.boundKeybind().format();
         return backend.source() == null ? new KeyBind(backend.getKey()).getDisplayName() : backend.source().get().format();
     }
 

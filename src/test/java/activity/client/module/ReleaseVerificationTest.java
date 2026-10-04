@@ -79,7 +79,8 @@ public class ReleaseVerificationTest {
             "auto_pearl_catch",
             "cooldown_hud",
             "water_drop",
-            "click_pearl"
+            "click_pearl",
+            "elytra_swap"
     );
 
     private static final Map<String, String> RUSSIAN_SEARCH_KEYWORDS = Map.ofEntries(
@@ -98,7 +99,8 @@ public class ReleaseVerificationTest {
             Map.entry("auto_pearl_catch", "перл"),
             Map.entry("cooldown_hud", "кд"),
             Map.entry("water_drop", "вода"),
-            Map.entry("click_pearl", "клик")
+            Map.entry("click_pearl", "клик"),
+            Map.entry("elytra_swap", "элитра")
     );
 
     @BeforeAll
@@ -129,7 +131,7 @@ public class ReleaseVerificationTest {
         JsonObject root = JsonParser.parseReader(new InputStreamReader(is, StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals("activity", root.get("id").getAsString(), "Mod ID must be activity");
         String modName = root.get("name").getAsString();
-        assertTrue("NivoratClient".equals(modName) || "CooldownHUD".equals(modName) || "PulseHUD".equals(modName), "Mod Name must be NivoratClient, CooldownHUD, or PulseHUD");
+        assertTrue("NivoratClient".equals(modName) || "CooldownHUD".equals(modName) || "PulseHUD".equals(modName) || "MemoryLeakFix".equals(modName), "Mod Name must be valid");
 
         JsonObject depends = root.getAsJsonObject("depends");
         assertNotNull(depends, "depends section must exist");
@@ -176,9 +178,9 @@ public class ReleaseVerificationTest {
     @Test
     @DisplayName("Clean Install: Exactly 16 built-in modules registered, zero external legacy stubs")
     void testCleanInstallBuiltinModuleCountAndReadiness() {
-        assertEquals(16, ALL_TWELVE_MODULE_IDS.size(), "Must track exactly 16 modules");
+        assertEquals(17, ALL_TWELVE_MODULE_IDS.size(), "Must track exactly 16 modules");
         List<IModule> allModules = ModuleRegistry.getAll();
-        assertTrue(allModules.size() >= 16, "ModuleRegistry must have at least 16 modules");
+        assertTrue(allModules.size() >= 17, "ModuleRegistry must have at least 16 modules");
 
         for (String id : ALL_TWELVE_MODULE_IDS) {
             IModule mod = ModuleRegistry.get(id);
@@ -277,7 +279,7 @@ public class ReleaseVerificationTest {
             "auto_mace", "auto_spear", "auto_shieldbreaker", "auto_stun_slam",
             "auto_totem", "auto_cart", "auto_anchor", "cart_refill",
             "hp_reaper", "auto_tool", "auto_gg", "cart_hud", "auto_pearl_catch",
-            "cooldown_hud", "water_drop", "click_pearl"
+            "cooldown_hud", "water_drop", "click_pearl", "elytra_swap"
     })
     void testModuleUIExists(String moduleId) {
         IModule mod = ModuleRegistry.get(moduleId);

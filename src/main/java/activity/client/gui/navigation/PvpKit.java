@@ -9,7 +9,7 @@ public enum PvpKit {
     CRYSTAL("КПВП", "Crystal", "click_pearl auto_totem auto_anchor hp_reaper cooldown_hud auto_gg"),
     UHC("УХК", "UHC", "auto_shieldbreaker auto_gg cooldown_hud auto_tool"),
     SMP("СМП", "SMP", "auto_shieldbreaker click_pearl auto_totem hp_reaper auto_tool auto_gg cooldown_hud"),
-    MACE("МЕЙСЫ", "Mace", "auto_mace auto_spear auto_stun_slam auto_pearl_catch click_pearl auto_totem hp_reaper auto_gg cooldown_hud"),
+    MACE("МЕЙСЫ", "Mace", "auto_mace auto_spear auto_stun_slam auto_pearl_catch click_pearl elytra_swap auto_totem hp_reaper auto_gg cooldown_hud"),
     BEAST("БИСТЫ", "Beast", "auto_gg hp_reaper"),
     SWORD("OP", "OP", "click_pearl hp_reaper cooldown_hud auto_gg"),
     AXE("ТОПОРЫ", "Axe", "auto_shieldbreaker auto_tool auto_gg hp_reaper cooldown_hud"),

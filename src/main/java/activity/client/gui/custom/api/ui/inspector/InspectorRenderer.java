@@ -318,6 +318,15 @@ public final class InspectorRenderer {
             return false;
         }
 
+        for (Setting setting : this.widgets) {
+            if (setting instanceof activity.client.gui.custom.api.ui.settings.impl.BindSetting bindSetting) {
+                if (bindSetting.isListening() && button != 0) {
+                    bindSetting.capture(button, 0, true);
+                    return true;
+                }
+            }
+        }
+
 
         float bodyY = y + HEADER_HEIGHT + 2.0f;
         float bodyH = h - HEADER_HEIGHT - 6.0f;
@@ -360,7 +369,11 @@ public final class InspectorRenderer {
             float toggleY = y + 6.5f;
             if (mouseX >= toggleX && mouseX <= toggleX + ModuleListRenderer.TOGGLE_W && mouseY >= toggleY && mouseY <= toggleY + ModuleListRenderer.TOGGLE_H) {
                 if (!(this.focusedModule instanceof ClickGui) && !(this.focusedModule instanceof VisualMaterial)) {
-                    this.focusedModule.toggle();
+                    if ("auto_totem".equalsIgnoreCase(this.focusedModule.getId()) && !this.focusedModule.isEnabled()) {
+                        activity.client.gui.custom.TotemConfirmModal.open(this.focusedModule);
+                    } else {
+                        this.focusedModule.toggle();
+                    }
                 }
                 return true;
             }
@@ -457,10 +470,17 @@ public final class InspectorRenderer {
     }
 
     public boolean captureMouse(int button) {
-        if (!isOpen()) return false;
+        if (!isOpen() || button == 0) return false;
         for (Setting setting : widgets) {
             if (setting instanceof activity.client.gui.custom.api.ui.settings.impl.BindSetting bind && bind.isListening()) {
-                bind.capture(button, 0, true);
+                int modifiers = 0;
+                var window = net.minecraft.client.MinecraftClient.getInstance().getWindow();
+                if (window != null && window.getHandle() != 0L) {
+                    if (net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL) || net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL)) modifiers |= org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
+                    if (net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT) || net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT)) modifiers |= org.lwjgl.glfw.GLFW.GLFW_MOD_SHIFT;
+                    if (net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT) || net.minecraft.client.util.InputUtil.isKeyPressed(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_ALT)) modifiers |= org.lwjgl.glfw.GLFW.GLFW_MOD_ALT;
+                }
+                bind.capture(button, modifiers, true);
                 return true;
             }
         }

@@ -43,6 +43,7 @@ public final class VectorStreamController {
     private State state = State.IDLE;
     private int originalSlot = -1;
     private int spearSlot = -1;
+    private int intermediateSlot = -1;
     private int lastNonSpearSlot = 0;
     private int targetEntityId = -1;
     private int targetDelayTicks = 1;
@@ -178,6 +179,12 @@ public final class VectorStreamController {
                 return;
             }
 
+            if (state == State.PRE_SWAP) {
+                suppressInputs(client);
+                handlePreSwap(client, player);
+                return;
+            }
+
             if (spearSlot >= 0 && currentSlot != spearSlot) {
                 clearState();
                 return;
@@ -261,6 +268,30 @@ public final class VectorStreamController {
         originalSlot = curSlot;
         lastNonSpearSlot = curSlot;
         spearSlot = targetSpearSlot;
+
+        if (VectorStreamConfig.fastSwap) {
+            int prepSlot = findPrepSlot(player, curSlot, targetSpearSlot);
+            if (prepSlot >= 0) {
+                intermediateSlot = prepSlot;
+                lastSwapTimeMs = System.currentTimeMillis();
+                swapStartTick = clientTickCount;
+                CombatLockManager.setLock("pvp.spear_active", true);
+                selectSlot(client, intermediateSlot);
+
+                if (VectorStreamConfig.maxSpeed) {
+                    selectSlot(client, targetSpearSlot);
+                    executeSpearStrike(client, player);
+                    restoreSlot(client);
+                    clearState();
+                    cooldownTicks = getCooldownTicks();
+                    return;
+                }
+
+                state = State.PRE_SWAP;
+                return;
+            }
+        }
+
         startSpearActive(client, player, targetSpearSlot, true);
     }
 
@@ -847,10 +878,89 @@ public final class VectorStreamController {
         state = State.IDLE;
         spearSlot = -1;
         originalSlot = -1;
+        intermediateSlot = -1;
         targetEntityId = -1;
         targetRestoreDelayMs = 185;
         CombatLockManager.setLock("pvp.spear_active", false);
         System.clearProperty("pvp.spear_active");
+    }
+
+    private void handlePreSwap(MinecraftClient client, ClientPlayerEntity player) {
+        if (spearSlot < 0 || spearSlot >= 9) {
+            clearState();
+            return;
+        }
+
+        long elapsedTicks = clientTickCount - swapStartTick;
+        boolean differentTick = (clientTickCount != lastSlotChangeTick);
+
+        if (elapsedTicks >= 1 && differentTick) {
+            selectSlot(client, spearSlot);
+            executeSpearStrike(client, player);
+
+            restoreDelayTicks = getRestoreDelayTicks();
+            targetRestoreDelayMs = calculateDelay();
+
+            if (VectorStreamConfig.maxSpeed || (targetRestoreDelayMs <= 0 && restoreDelayTicks <= 0)) {
+                restoreSlot(client);
+                clearState();
+                cooldownTicks = getCooldownTicks();
+                return;
+            }
+
+            state = State.WAITING_RESTORE;
+            strikeTick = clientTickCount;
+            lastStrikeTimeMs = System.currentTimeMillis();
+        }
+    }
+
+    private int findPrepSlot(ClientPlayerEntity player, int curSlot, int targetSpearSlot) {
+        int foodSlot = -1;
+        int emptySlot = -1;
+        int fallbackSlot = -1;
+
+        for (int i = 0; i < 9; i++) {
+            if (i == targetSpearSlot || i == curSlot) continue;
+            ItemStack stack = player.getInventory().getStack(i);
+            if (stack.isEmpty()) {
+                if (emptySlot < 0) emptySlot = i;
+                continue;
+            }
+            if (isWindCharge(stack)) {
+                return i;
+            }
+            if (isFoodOrSteak(stack)) {
+                if (foodSlot < 0) foodSlot = i;
+                continue;
+            }
+            if (fallbackSlot < 0) {
+                fallbackSlot = i;
+            }
+        }
+        if (foodSlot >= 0) return foodSlot;
+        if (emptySlot >= 0) return emptySlot;
+        if (fallbackSlot >= 0) return fallbackSlot;
+        return -1;
+    }
+
+    private static boolean isWindCharge(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (stack.isOf(Items.WIND_CHARGE)) return true;
+        try {
+            String id = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).getPath().toLowerCase(Locale.ROOT);
+            return id.contains("wind_charge") || id.contains("windcharge");
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isFoodOrSteak(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (stack.isOf(Items.COOKED_BEEF) || stack.isOf(Items.BEEF) || stack.isOf(Items.GOLDEN_CARROT)
+                || stack.isOf(Items.BREAD) || stack.isOf(Items.GOLDEN_APPLE) || stack.isOf(Items.ENCHANTED_GOLDEN_APPLE)) {
+            return true;
+        }
+        return stack.contains(DataComponentTypes.FOOD);
     }
 
     private void resetAll() {
@@ -860,6 +970,7 @@ public final class VectorStreamController {
 
     private enum State {
         IDLE,
+        PRE_SWAP,
         SWAPPED_TO_SPEAR,
         WAITING_RESTORE
     }

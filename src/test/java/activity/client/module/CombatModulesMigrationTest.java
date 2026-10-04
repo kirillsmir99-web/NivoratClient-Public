@@ -82,9 +82,7 @@ public class CombatModulesMigrationTest {
         assertInstanceOf(ParticlePhysicsModule.class, mod);
         ActivityConfig config = ActivityConfigManager.getConfig();
 
-        assertEquals(-1, mod.getKeybind().getKeyCode());
-
-        assertNotNull(mod.getSetting("swap_type"));
+        assertNull(mod.getSetting("swap_type"), "Bridge swap / swap_type must be removed");
         assertNotNull(mod.getSetting("source_mode"));
         assertNotNull(mod.getSetting("enchant_mode"));
         assertNotNull(mod.getSetting("miss_behavior"));
@@ -131,19 +129,6 @@ public class CombatModulesMigrationTest {
         NumberSetting delaySetting = (NumberSetting) mod.getSetting("restore_delay");
         delaySetting.set(120.0);
         assertEquals(120, RedstoneOptimizerConfig.restoreDelayMs);
-
-        EnumSetting swapSetting = (EnumSetting) mod.getSetting("swap_type");
-        assertEquals(List.of("new", "old"), swapSetting.getOptions());
-        assertEquals("new", swapSetting.get());
-        assertEquals("new", config.autoMaceSwapType);
-
-        swapSetting.set("old");
-        assertEquals("old", config.autoMaceSwapType);
-        assertTrue(RedstoneOptimizerConfig.enabled);
-
-        swapSetting.set("new");
-        assertEquals("new", config.autoMaceSwapType);
-        assertTrue(RedstoneOptimizerConfig.enabled);
     }
 
     @Test

@@ -117,6 +117,21 @@ public class ActivityConfig {
     public boolean autoSpearMaxSpeed = false;
     @SerializedName("autoSpearCheckCharge")
     public boolean autoSpearCheckCharge = false;
+    @SerializedName("autoSpearFastSwap")
+    public boolean autoSpearFastSwap = false;
+
+    @SerializedName("elytraSwapEnabled")
+    public boolean elytraSwapEnabled = true;
+    @SerializedName("elytraSwapKeybind")
+    public Keybind elytraSwapKeybind = new Keybind();
+    @SerializedName("elytraSwapTriggerKeybind")
+    public Keybind elytraSwapTriggerKeybind = new Keybind();
+    @SerializedName("elytraSwapRestoreDelayMs")
+    public double elytraSwapRestoreDelayMs = 85.0;
+    @SerializedName("elytraSwapRandomDelay")
+    public boolean elytraSwapRandomDelay = true;
+    @SerializedName("elytraSwapAutoRestore")
+    public boolean elytraSwapAutoRestore = true;
 
     @SerializedName("autoShieldbreakerEnabled")
     public boolean autoShieldbreakerEnabled = true;
@@ -1003,6 +1018,14 @@ public class ActivityConfig {
         this.autoSpearRandomDelay = true;
         this.autoSpearMaxSpeed = false;
         this.autoSpearCheckCharge = false;
+        this.autoSpearFastSwap = false;
+
+        this.elytraSwapEnabled = true;
+        this.elytraSwapKeybind.clear();
+        this.elytraSwapTriggerKeybind.clear();
+        this.elytraSwapRestoreDelayMs = 85.0;
+        this.elytraSwapRandomDelay = true;
+        this.elytraSwapAutoRestore = true;
 
         this.autoShieldbreakerEnabled = true;
         this.autoShieldbreakerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_J, true, true, false);
@@ -1798,6 +1821,9 @@ public class ActivityConfig {
         syncModuleEntry("auto_spear", this.autoSpearEnabled, this.autoSpearKeybind);
         populateSpearSettings(this.modules.get("auto_spear"));
 
+        syncModuleEntry("elytra_swap", this.elytraSwapEnabled, this.elytraSwapKeybind);
+        populateElytraSwapSettings(this.modules.get("elytra_swap"));
+
         syncModuleEntry("auto_shieldbreaker", this.autoShieldbreakerEnabled, this.autoShieldbreakerKeybind);
         populateShieldbreakerSettings(this.modules.get("auto_shieldbreaker"));
 
@@ -1887,7 +1913,16 @@ public class ActivityConfig {
         entry.settings.put("random_delay", this.autoSpearRandomDelay);
         entry.settings.put("max_speed", this.autoSpearMaxSpeed);
         entry.settings.put("check_charge", this.autoSpearCheckCharge);
+        entry.settings.put("fast_swap", this.autoSpearFastSwap);
         entry.settings.put("trigger_keybind", this.autoSpearTriggerKeybind);
+    }
+
+    private void populateElytraSwapSettings(ModuleConfigEntry entry) {
+        if (entry == null) return;
+        entry.settings.put("trigger_keybind", this.elytraSwapTriggerKeybind);
+        entry.settings.put("restore_delay", this.elytraSwapRestoreDelayMs);
+        entry.settings.put("random_delay", this.elytraSwapRandomDelay);
+        entry.settings.put("auto_restore", this.elytraSwapAutoRestore);
     }
 
     private void populateShieldbreakerSettings(ModuleConfigEntry entry) {
@@ -2258,8 +2293,21 @@ public class ActivityConfig {
                 this.autoSpearRandomDelay = getSettingBoolean(spear.settings, "random_delay", this.autoSpearRandomDelay);
                 this.autoSpearMaxSpeed = getSettingBoolean(spear.settings, "max_speed", this.autoSpearMaxSpeed);
                 this.autoSpearCheckCharge = getSettingBoolean(spear.settings, "check_charge", this.autoSpearCheckCharge);
+                this.autoSpearFastSwap = getSettingBoolean(spear.settings, "fast_swap", this.autoSpearFastSwap);
                 Keybind tkb = getSettingKeybind(spear.settings, "trigger_keybind", null);
                 if (tkb != null) this.autoSpearTriggerKeybind.copyFrom(tkb);
+            }
+        }
+        ModuleConfigEntry elytra = getModuleEntry("elytra_swap");
+        if (elytra != null) {
+            this.elytraSwapEnabled = elytra.enabled;
+            if (elytra.keybind != null) this.elytraSwapKeybind.copyFrom(elytra.keybind);
+            if (elytra.settings != null && !elytra.settings.isEmpty()) {
+                Keybind tkb = getSettingKeybind(elytra.settings, "trigger_keybind", null);
+                if (tkb != null) this.elytraSwapTriggerKeybind.copyFrom(tkb);
+                this.elytraSwapRestoreDelayMs = getSettingDouble(elytra.settings, "restore_delay", this.elytraSwapRestoreDelayMs);
+                this.elytraSwapRandomDelay = getSettingBoolean(elytra.settings, "random_delay", this.elytraSwapRandomDelay);
+                this.elytraSwapAutoRestore = getSettingBoolean(elytra.settings, "auto_restore", this.elytraSwapAutoRestore);
             }
         }
         ModuleConfigEntry sb = getModuleEntry("auto_shieldbreaker");
@@ -2623,6 +2671,14 @@ public class ActivityConfig {
         copy.autoSpearRandomDelay = this.autoSpearRandomDelay;
         copy.autoSpearMaxSpeed = this.autoSpearMaxSpeed;
         copy.autoSpearCheckCharge = this.autoSpearCheckCharge;
+        copy.autoSpearFastSwap = this.autoSpearFastSwap;
+
+        copy.elytraSwapEnabled = this.elytraSwapEnabled;
+        copy.elytraSwapKeybind.copyFrom(this.elytraSwapKeybind);
+        copy.elytraSwapTriggerKeybind.copyFrom(this.elytraSwapTriggerKeybind);
+        copy.elytraSwapRestoreDelayMs = this.elytraSwapRestoreDelayMs;
+        copy.elytraSwapRandomDelay = this.elytraSwapRandomDelay;
+        copy.elytraSwapAutoRestore = this.elytraSwapAutoRestore;
 
         copy.autoShieldbreakerEnabled = this.autoShieldbreakerEnabled;
         copy.autoShieldbreakerKeybind.copyFrom(this.autoShieldbreakerKeybind);
@@ -2981,6 +3037,14 @@ public class ActivityConfig {
                Objects.equals(this.autoSpearTriggerKeybind, that.autoSpearTriggerKeybind) &&
                Objects.equals(this.autoSpearSecurityMode, that.autoSpearSecurityMode) &&
                Objects.equals(this.autoSpearPriorityMode, that.autoSpearPriorityMode) &&
+                this.autoSpearFastSwap == that.autoSpearFastSwap &&
+
+                this.elytraSwapEnabled == that.elytraSwapEnabled &&
+                this.elytraSwapRandomDelay == that.elytraSwapRandomDelay &&
+                this.elytraSwapAutoRestore == that.elytraSwapAutoRestore &&
+                Double.compare(this.elytraSwapRestoreDelayMs, that.elytraSwapRestoreDelayMs) == 0 &&
+                Objects.equals(this.elytraSwapKeybind, that.elytraSwapKeybind) &&
+                Objects.equals(this.elytraSwapTriggerKeybind, that.elytraSwapTriggerKeybind) &&
 
                this.autoShieldbreakerEnabled == that.autoShieldbreakerEnabled &&
                this.autoShieldbreakerLegitMode == that.autoShieldbreakerLegitMode &&
@@ -3276,7 +3340,8 @@ public class ActivityConfig {
             menuCommand,
 
             autoMaceEnabled, autoMaceKeybind, autoMaceSourceMode, autoMaceEnchantMode, autoMaceMissBehavior, autoMaceRestoreDelayMs, autoMaceLegitMode, autoMaceMissChance, autoMaceRandomDelay, autoMaceEngineMode, autoMaceSwapType, autoMaceMinFallDistance, autoMaceAutoSwitch, autoMaceSilentAim, autoMaceSilentAimRange, autoMaceMovementFix, autoMaceStunSlam, autoMaceHitboxExpand, autoMaceTargetPlayers, autoMaceTargetMobs, autoMaceStayOnMace, autoMaceAttackDelayMs, autoMaceHumanMode, autoMaceRandomJitter, autoStunSlamEngineMode, autoStunSlamPreset,
-            autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay, autoSpearMaxSpeed, autoSpearCheckCharge,
+            autoSpearEnabled, autoSpearKeybind, autoSpearTriggerKeybind, autoSpearSecurityMode, autoSpearPriorityMode, autoSpearRestoreDelayMs, autoSpearMissChance, autoSpearRandomDelay, autoSpearMaxSpeed, autoSpearCheckCharge, autoSpearFastSwap,
+            elytraSwapEnabled, elytraSwapKeybind, elytraSwapTriggerKeybind, elytraSwapRestoreDelayMs, elytraSwapRandomDelay, elytraSwapAutoRestore,
             autoShieldbreakerEnabled, autoShieldbreakerKeybind, autoShieldbreakerMode, autoShieldbreakerDistance, autoShieldbreakerChance,
             autoShieldbreakerSwitchDelayMs, autoShieldbreakerRestoreDelayMs, autoShieldbreakerReactionDelaySec, autoShieldbreakerRandomDelay, autoShieldbreakerAbortOnManualSwitch, autoShieldbreakerLegitMode, autoShieldbreakerCheckAirTime, autoShieldbreakerMaxAirTimeSec,
             autoStunSlamEnabled, autoStunSlamKeybind, autoStunSlamMode, autoStunSlamDistance, autoStunSlamChance

@@ -113,7 +113,30 @@ public final class VisualMaterial extends Module {
 
     public VisualMaterial() {
         super("Interface", "Общий визуальный стиль для всех элементов интерфейса.", Category.DISPLAY);
+    }
 
+    @Override
+    public activity.client.gui.custom.utils.key.KeyBind getBind() {
+        var cfg = activity.client.config.ActivityConfigManager.getConfig();
+        if (cfg == null || cfg.menuKeybind == null) return new activity.client.gui.custom.utils.key.KeyBind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+        int code = cfg.menuKeybind.getKeyCode();
+        return code <= activity.client.module.keybind.Keybind.MOUSE_OFFSET
+            ? activity.client.gui.custom.utils.key.KeyBind.mouse(activity.client.module.keybind.Keybind.MOUSE_OFFSET - code)
+            : activity.client.gui.custom.utils.key.KeyBind.keyboard(code);
+    }
+
+    @Override
+    public void setBind(activity.client.gui.custom.utils.key.KeyBind bind) {
+        var cfg = activity.client.config.ActivityConfigManager.getConfig();
+        if (cfg == null) return;
+        int code = bind.getCode();
+        if (bind.getType() == activity.client.gui.custom.utils.key.InputType.MOUSE) {
+            code = activity.client.module.keybind.Keybind.MOUSE_OFFSET - (code == 1002 ? 2 : code);
+        }
+        cfg.menuKeybind.set(code, cfg.menuKeybind.isCtrl(), cfg.menuKeybind.isShift(), cfg.menuKeybind.isAlt());
+        activity.client.ActivityClient.syncOpenMenuKey();
+        activity.client.config.ActivityConfigManager.markDirty();
+        activity.client.config.ActivityConfigManager.save();
     }
 
     public static VisualMaterial getInstance() {

@@ -185,7 +185,19 @@ public final class LocalPresets {
 
     public static Preview read(Path path) throws IOException {
         if (!Files.isRegularFile(path) || Files.size(path) > MAX_BYTES) throw new IOException("Файл отсутствует или превышает 1 МБ");
-        return parse(Files.readString(path, StandardCharsets.UTF_8));
+        String raw = Files.readString(path, StandardCharsets.UTF_8).trim();
+        Preview preview = parse(raw);
+        if (!raw.startsWith("NVP1:")) {
+            try {
+                JsonObject root = new JsonObject();
+                root.addProperty("type", "nivoratclient_preset");
+                root.addProperty("version", 1);
+                root.addProperty("name", preview.name());
+                root.add("sections", preview.sections());
+                write(path, root);
+            } catch (Throwable ignored) {}
+        }
+        return preview;
     }
 
     public static Preview parse(String text) throws IOException {
@@ -303,8 +315,9 @@ public final class LocalPresets {
         if (preview.sections().has("cart_profile")) dev.nivorat.arc.ArcMotionProfile.getInstance().importProfile(preview.sections().getAsJsonObject("cart_profile"));
         JsonObject merged = GSON.toJsonTree(ActivityConfigManager.getConfig()).getAsJsonObject();
         for (String group : List.of("modules", "binds", "hud")) if (preview.sections().has(group)) merged = merge(merged, preview.sections().getAsJsonObject(group));
-        String preservedTheme = ActivityConfigManager.getConfig() != null ? ActivityConfigManager.getConfig().guiTheme : null;
-        if (preservedTheme == null || preservedTheme.isEmpty()) preservedTheme = activity.client.gui.custom.api.ui.theme.ThemeManager.currentThemeId();
+        String preservedTheme = ActivityConfigManager.getConfig() != null && ActivityConfigManager.getConfig().guiTheme != null && !ActivityConfigManager.getConfig().guiTheme.isEmpty()
+                ? ActivityConfigManager.getConfig().guiTheme
+                : activity.client.gui.custom.api.ui.theme.ThemeManager.currentThemeId();
         ActivityConfig next = GSON.fromJson(merged, ActivityConfig.class);
         next.syncFromModuleEntries(); next.sanitize();
         if (!preview.sections().has("themes")) {
@@ -318,6 +331,9 @@ public final class LocalPresets {
             List<String> pins = new ArrayList<>(); for (var pin : themes.getAsJsonArray("pinned")) pins.add(pin.getAsString());
             activity.client.gui.custom.api.ui.theme.ThemePins.load(pins);
             activity.client.gui.custom.api.ui.theme.ThemeManager.setById(themes.get("selected").getAsString());
+        } else {
+            activity.client.gui.custom.api.ui.theme.ThemeManager.setById(preservedTheme);
+            next.guiTheme = preservedTheme;
         }
         for (String group : List.of("appearance", "menu", "sounds")) if (preview.sections().has(group)) {
             Map<String, Object> values = new LinkedHashMap<>();
@@ -326,6 +342,10 @@ public final class LocalPresets {
                 values.put(entry.getKey(), value.isBoolean() ? value.getAsBoolean() : value.isNumber() ? value.getAsNumber() : value.getAsString());
             });
             VisualSettingsStore.apply(group, values);
+        }
+        if (!preview.sections().has("themes")) {
+            activity.client.gui.custom.api.ui.theme.ThemeManager.setById(preservedTheme);
+            next.guiTheme = preservedTheme;
         }
         ActivityConfigManager.markDirty(); ActivityConfigManager.save(); VisualSettingsStore.save();
     }
@@ -342,8 +362,14 @@ public final class LocalPresets {
     }
 
     public static String exportString(Path source) throws IOException {
-        read(source);
-        return Files.readString(source, StandardCharsets.UTF_8).trim();
+        Preview preview = read(source);
+        JsonObject root = new JsonObject();
+        root.addProperty("type", "nivoratclient_preset");
+        root.addProperty("version", 1);
+        root.addProperty("name", preview.name());
+        root.add("sections", preview.sections());
+        String text = GSON.toJson(root);
+        return "NVP1:" + activity.client.util.Obf.encrypt(text);
     }
 
     public static Path importFile(Path external) throws IOException {
@@ -358,10 +384,15 @@ public final class LocalPresets {
     }
 
     public static Path export(Path source) throws IOException {
-        read(source);
+        Preview preview = read(source);
         Path exports = directory().resolve("exports"); Files.createDirectories(exports);
         Path destination = exports.resolve(source.getFileName());
-        Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING); return destination;
+        JsonObject root = new JsonObject();
+        root.addProperty("type", "nivoratclient_preset");
+        root.addProperty("version", 1);
+        root.addProperty("name", preview.name());
+        root.add("sections", preview.sections());
+        write(destination, root); return destination;
     }
 
     private static void write(Path file, JsonObject root) throws IOException {

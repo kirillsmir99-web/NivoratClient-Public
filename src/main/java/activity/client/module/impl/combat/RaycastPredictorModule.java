@@ -92,7 +92,7 @@ public class RaycastPredictorModule extends NivoratModule {
                 }
         ).onPress(client -> {
             if (isEnabled()) {
-                controller.trigger(client, RaycastPredictorController.Mode.VERTICAL);
+                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
             }
         }).visibleWhen(modeSetting, "full_auto");
 
@@ -237,34 +237,19 @@ public class RaycastPredictorModule extends NivoratModule {
 
     public void trigger(MinecraftClient client) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
-                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
-            } else {
-                controller.trigger(client, RaycastPredictorController.Mode.VERTICAL);
-            }
+            dev.raycast.async.AsyncLocatorController.getInstance().trigger();
         }
     }
 
     public void trigger(MinecraftClient client, RaycastPredictorController.Mode mode) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
-                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
-            } else {
-                controller.trigger(client, mode);
-            }
+            dev.raycast.async.AsyncLocatorController.getInstance().trigger();
         }
     }
 
     public void triggerHorizontal(MinecraftClient client) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
-                dev.raycast.async.AsyncLocatorController.getInstance().trigger();
-            } else {
-                controller.trigger(client, RaycastPredictorController.Mode.HORIZONTAL);
-            }
+            dev.raycast.async.AsyncLocatorController.getInstance().trigger();
         }
     }
 
@@ -295,11 +280,11 @@ public class RaycastPredictorModule extends NivoratModule {
     @Override
     public void onTick(MinecraftClient client) {
         if (isEnabled()) {
-            ActivityConfig c = ActivityConfigManager.getConfig();
-            if (c != null && "semi_auto".equals(c.autoPearlCatchMode)) {
-                dev.raycast.async.AsyncLocatorController.getInstance().tick(client);
-            } else {
+            ActivityConfig cfg = ActivityConfigManager.getConfig();
+            if (cfg != null && "full_auto".equalsIgnoreCase(cfg.autoPearlCatchMode)) {
                 controller.onTick(client);
+            } else {
+                dev.raycast.async.AsyncLocatorController.getInstance().tick(client);
             }
         }
     }

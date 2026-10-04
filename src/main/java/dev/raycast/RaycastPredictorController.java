@@ -223,10 +223,8 @@ public final class RaycastPredictorController {
                 pearlPitch = -89.5f;
                 targetWindPitch = -89.5f;
                 targetWindYaw = initialYaw;
-                cameraInterpolator.start(initialPitch, pearlPitch, initialYaw, initialYaw, rotDuration, legit);
-                state = State.ROTATING_TO_PEARL;
+                state = State.THROW_PEARL;
             } else {
-
                 RaycastTrajectory.Solution sol = RaycastTrajectory.solve3D(
                         effectiveDelay,
                         initialYaw,
@@ -238,20 +236,12 @@ public final class RaycastPredictorController {
                 pearlPitch = sol.pearlPitch();
                 targetWindPitch = sol.windPitch();
                 targetWindYaw = sol.windYaw();
-
-                cameraInterpolator.start(initialPitch, pearlPitch, initialYaw, initialYaw, Math.max(60L, rotDuration - 20L), legit);
-                state = State.ROTATING_TO_PEARL;
+                state = State.THROW_PEARL;
             }
         }
     }
 
     public void onRender(MinecraftClient client) {
-        ActivityConfig config = ActivityConfigManager.getConfig();
-        boolean fullAuto = sequenceFullAuto;
-        if (client != null && client.player == owner && client.world == ownerWorld
-                && client.currentScreen == null && fullAuto && cameraInterpolator.isActive()) {
-            cameraInterpolator.onRender(client);
-        }
     }
 
     public void onTick(MinecraftClient client) {
@@ -284,15 +274,9 @@ public final class RaycastPredictorController {
 
         boolean fullAuto = sequenceFullAuto;
         boolean legit = sequenceLegit;
-        if (fullAuto && cameraInterpolator.isActive()) cameraInterpolator.onRender(client);
 
         if (state == State.ROTATING_TO_PEARL) {
-            if (!cameraInterpolator.isActive() || stateLifetimeTicks >= rotationLimit) {
-                if (cameraInterpolator.isActive()) {
-                    cameraInterpolator.finalizeInterpolation(client, pearlPitch, initialYaw);
-                }
-                state = State.THROW_PEARL;
-            }
+            state = State.THROW_PEARL;
             return;
         }
 
@@ -314,7 +298,17 @@ public final class RaycastPredictorController {
             pearlAge = 0;
 
             Hand hand = pearlInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
+            float realPitch = client.player.getPitch();
+            float realYaw = client.player.getYaw();
+            if (fullAuto) {
+                client.player.setPitch(pearlPitch);
+                client.player.setYaw(initialYaw);
+            }
             ActionResult res = client.interactionManager.interactItem(client.player, hand);
+            if (fullAuto) {
+                client.player.setPitch(realPitch);
+                client.player.setYaw(realYaw);
+            }
             swingIfNeeded(client.player, hand, res);
             dev.impact.SurfaceImpactController.recordPearlThrown();
 
@@ -322,11 +316,6 @@ public final class RaycastPredictorController {
                 holdTicksRemaining = 2;
                 state = State.POST_THROW_HOLD;
                 return;
-            }
-
-            if (fullAuto && currentMode == Mode.HORIZONTAL) {
-                long dipDuration = Math.max(40L, activeEffectiveDelay * 50L - 10L);
-                cameraInterpolator.start(client.player.getPitch(), targetWindPitch, client.player.getYaw(), targetWindYaw, dipDuration, legit);
             }
 
             delayTicksRemaining = activeEffectiveDelay;
@@ -360,7 +349,6 @@ public final class RaycastPredictorController {
         }
 
         if (state == State.THROW_WIND) {
-
             if (fullAuto && thrownPearlOrigin != null && thrownPearlVelocity != null) {
                 Vec3d movement = client.player.getMovement();
                 Vec3d inherited = new Vec3d(movement.x, client.player.isOnGround() ? 0 : movement.y, movement.z);
@@ -369,7 +357,6 @@ public final class RaycastPredictorController {
                 if (!solution.valid()) { reset(); return; }
                 targetWindPitch = solution.windPitch();
                 targetWindYaw = solution.windYaw();
-                cameraInterpolator.finalizeInterpolation(client, targetWindPitch, targetWindYaw);
             }
 
             if (!windInOffhand && windSlot >= 0 && windSlot < 9) {
@@ -382,7 +369,17 @@ public final class RaycastPredictorController {
             Hand hand = windInOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
             if (client.player.getItemCooldownManager().isCoolingDown(Items.WIND_CHARGE.getDefaultStack())) { reset(); return; }
             if (!readyItem(client, hand, Items.WIND_CHARGE)) { reset(); return; }
+            float realPitch = client.player.getPitch();
+            float realYaw = client.player.getYaw();
+            if (fullAuto) {
+                client.player.setPitch(targetWindPitch);
+                client.player.setYaw(targetWindYaw);
+            }
             ActionResult res = client.interactionManager.interactItem(client.player, hand);
+            if (fullAuto) {
+                client.player.setPitch(realPitch);
+                client.player.setYaw(realYaw);
+            }
             swingIfNeeded(client.player, hand, res);
 
             holdTicksRemaining = 2;
@@ -395,10 +392,7 @@ public final class RaycastPredictorController {
             holdTicksRemaining--;
             long elapsed = System.currentTimeMillis() - (windThrowTimeMs > 0 ? windThrowTimeMs : pearlThrowTimeMs);
             if (holdTicksRemaining <= 0 && elapsed >= 100L) {
-                if (fullAuto && config.autoPearlCatchRestoreCamera) {
-                    cameraInterpolator.start(client.player.getPitch(), initialPitch, client.player.getYaw(), initialYaw, 125L, legit);
-                    state = State.ROTATING_BACK;
-                } else if (config.autoPearlCatchRestoreSlot && initialSlot >= 0 && initialSlot < 9 && initialSlot != client.player.getInventory().getSelectedSlot()) {
+                if (config.autoPearlCatchRestoreSlot && initialSlot >= 0 && initialSlot < 9 && initialSlot != client.player.getInventory().getSelectedSlot()) {
                     state = State.RESTORE_SLOT;
                 } else {
                     reset();
@@ -408,15 +402,10 @@ public final class RaycastPredictorController {
         }
 
         if (state == State.ROTATING_BACK) {
-            if (!cameraInterpolator.isActive() || stateLifetimeTicks >= 25) {
-                if (cameraInterpolator.isActive()) {
-                    cameraInterpolator.finalizeInterpolation(client, initialPitch, initialYaw);
-                }
-                if (config.autoPearlCatchRestoreSlot && initialSlot >= 0 && initialSlot < 9 && initialSlot != client.player.getInventory().getSelectedSlot()) {
-                    state = State.RESTORE_SLOT;
-                } else {
-                    reset();
-                }
+            if (config.autoPearlCatchRestoreSlot && initialSlot >= 0 && initialSlot < 9 && initialSlot != client.player.getInventory().getSelectedSlot()) {
+                state = State.RESTORE_SLOT;
+            } else {
+                reset();
             }
             return;
         }

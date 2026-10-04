@@ -183,6 +183,30 @@ public class VectorStreamModule extends NivoratModule {
                     }
                 }
         );
+
+        activity.client.module.setting.BooleanSetting fastSwapSetting = registerBoolean("fast_swap",
+                Text.translatable("activity.setting.combat.fast_swap"),
+                Text.translatable("activity.setting.combat.fast_swap.desc"),
+                SettingGroup.ADVANCED,
+                false,
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null && c.autoSpearFastSwap;
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoSpearFastSwap = val;
+                        syncControllerConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+        fastSwapSetting.requireConfirm(
+                "Предупреждение",
+                "Вы уверены, что хотите включить?",
+                "Это экспериментальная функция."
+        );
     }
 
     private void syncControllerConfig(ActivityConfig c) {
@@ -193,6 +217,7 @@ public class VectorStreamModule extends NivoratModule {
         VectorStreamConfig.missChance = (int) c.autoSpearMissChance;
         VectorStreamConfig.maxSpeed = c.autoSpearMaxSpeed;
         VectorStreamConfig.checkCharge = c.autoSpearCheckCharge;
+        VectorStreamConfig.fastSwap = c.autoSpearFastSwap;
 
         if ("semi_legit".equals(c.autoSpearSecurityMode)) {
             VectorStreamConfig.securityMode = VectorStreamConfig.MODE_SEMI_LEGIT;
