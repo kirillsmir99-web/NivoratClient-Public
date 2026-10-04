@@ -864,10 +864,7 @@ public class ActivityScreen extends Screen {
             int headTextY = layout.headerY + (layout.headerHeight - this.textRenderer.fontHeight) / 2;
             int controlsStartX = this.controlButtons != null ? this.controlButtons.getStartX(layout) : layout.headerX + layout.headerWidth - 6;
             int logoSize = Math.min(22, layout.headerHeight - 4);
-            context.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-                CLIENT_LOGO, layout.headerX + 6, layout.headerY + (layout.headerHeight - logoSize) / 2,
-                0, 0, logoSize, logoSize, 1024, 1024, 1024, 1024,
-                ActivityColors.scaleAlpha(0xFFFFFFFF, alphaFactor));
+            activity.client.gui.custom.api.ui.BrandMark.draw(layout.headerX + 6, layout.headerY + (layout.headerHeight - logoSize) / 2.0f, logoSize, alphaFactor);
             int maxHeaderTitleW = Math.max(0, controlsStartX - layout.headerX - logoSize - 20);
 
             Text displayHeader;

@@ -62,7 +62,6 @@ final class PresetSmoke {
         if (ticks == 60) capture(client, "presets-modules-ru.png");
         if (ticks == 70) {
             var changed = originalConfig.copy(); changed.autoMaceRestoreDelayMs += 50; ActivityConfigManager.setConfig(changed);
-            screen.showPreview(saved, false);
             require(!LocalPresets.changes(LocalPresets.read(saved)).isEmpty(), "Preview failed to show changed setting");
         }
         if (ticks == 90) capture(client, "presets-preview-ru.png");

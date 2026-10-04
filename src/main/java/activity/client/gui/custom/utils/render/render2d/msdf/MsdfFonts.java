@@ -6,7 +6,7 @@ import activity.client.gui.custom.utils.render.render2d.msdf.MsdfFont;
 import activity.client.gui.custom.utils.render.render2d.msdf.MsdfFontLoader;
 
 public final class MsdfFonts {
-    public static final String DEFAULT = "montserrat";
+    public static final String DEFAULT = "nvsans-regular";
     private static final Map<String, String> PATHS = new HashMap<String, String>();
     private static final Map<String, MsdfFont> CACHE = new HashMap<String, MsdfFont>();
     private static final Map<String, Boolean> FAILED = new HashMap<String, Boolean>();
@@ -15,7 +15,14 @@ public final class MsdfFonts {
     }
 
     static {
-        MsdfFonts.register(DEFAULT, "fonts/monsterat/montserrat-regular");
+        MsdfFonts.register(DEFAULT, "fonts/nvsans/nvsans-regular");
+        MsdfFonts.register("nvsans", "fonts/nvsans/nvsans-regular");
+        MsdfFonts.register("nvsans-regular", "fonts/nvsans/nvsans-regular");
+        MsdfFonts.register("nvsans-medium", "fonts/nvsans/nvsans-medium");
+        MsdfFonts.register("nvsans-semibold", "fonts/nvsans/nvsans-semibold");
+        MsdfFonts.register("nvsans-bold", "fonts/nvsans/nvsans-bold");
+
+        MsdfFonts.register("montserrat", "fonts/monsterat/montserrat-regular");
         MsdfFonts.register("montserrat-regular", "fonts/monsterat/montserrat-regular");
         MsdfFonts.register("montserrat-medium", "fonts/monsterat/montserrat-medium");
         MsdfFonts.register("montserrat-semibold", "fonts/monsterat/montserrat-semibold");
@@ -33,10 +40,10 @@ public final class MsdfFonts {
         MsdfFonts.register("heart", "fonts/heart/heart");
         MsdfFonts.register("mainmenu", "fonts/mainmenu/mainmenu");
 
-        MsdfFonts.register("sf", "fonts/monsterat/montserrat-regular");
-        MsdfFonts.register("sf-regular", "fonts/monsterat/montserrat-regular");
-        MsdfFonts.register("sf-medium", "fonts/monsterat/montserrat-medium");
-        MsdfFonts.register("sf-bold", "fonts/monsterat/montserrat-bold");
+        MsdfFonts.register("sf", "fonts/sf-pro/sf-pro-regular");
+        MsdfFonts.register("sf-regular", "fonts/sf-pro/sf-pro-regular");
+        MsdfFonts.register("sf-medium", "fonts/sf-pro/sf-pro-medium");
+        MsdfFonts.register("sf-bold", "fonts/sf-pro/sf-pro-bold");
         MsdfFonts.register("small-pixel", "fonts/smallpixel/small-pixel");
     }
 

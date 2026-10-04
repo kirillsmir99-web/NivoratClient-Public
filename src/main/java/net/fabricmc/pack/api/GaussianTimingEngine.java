@@ -1,5 +1,6 @@
 package net.fabricmc.pack.api;
 
+import activity.client.internal.timing.TimingDomain;
 import java.util.Random;
 
 public final class GaussianTimingEngine {
@@ -28,62 +29,62 @@ public final class GaussianTimingEngine {
     }
 
     public static long getCombatSwapDelay() {
-        return getDelay(135.0D, 20.0D, 115L, 190L);
+        return getDelay(TimingDomain.d(2259855304760987213L) , TimingDomain.d(2236176222345203277L) , TimingDomain.l(8893018580978572924L) , TimingDomain.l(8893018580978572977L) );
     }
 
     public static long getReactionDelay() {
-        return getDelay(160.0D, 30.0D, 120L, 240L);
+        return getDelay(TimingDomain.d(2258694220482055757L) , TimingDomain.d(2234487372484939341L) , TimingDomain.l(8893018580978572919L) , TimingDomain.l(8893018580978573055L) );
     }
 
     public static long getFastSwapDelay() {
-        return getDelay(140.0D, 22.0D, 120L, 200L);
+        return getDelay(TimingDomain.d(2260242332853964365L) , TimingDomain.d(2236739172298624589L) , TimingDomain.l(8893018580978572919L) , TimingDomain.l(8893018580978572999L) );
     }
 
     public static long getFastReactionDelay() {
-        return getDelay(150.0D, 25.0D, 110L, 220L);
+        return getDelay(TimingDomain.d(2260453439086497357L) , TimingDomain.d(2235331797415071309L) , TimingDomain.l(8893018580978572897L) , TimingDomain.l(8893018580978573011L) );
     }
 
     public static long getRefillOpenDelay() {
-        return getDelay(105.0D, 22.0D, 75L, 160L);
+        return getDelay(TimingDomain.d(2262564501411827277L) , TimingDomain.d(2236739172298624589L) , TimingDomain.l(8893018580978572868L) , TimingDomain.l(8893018580978572975L) );
     }
 
     public static long getRefillSwapDelay() {
-        return getDelay(115.0D, 25.0D, 80L, 175L);
+        return getDelay(TimingDomain.d(2261016389039918669L) , TimingDomain.d(2235331797415071309L) , TimingDomain.l(8893018580978572895L) , TimingDomain.l(8893018580978572960L) );
     }
 
     public static long getRefillCloseDelay() {
-        return getDelay(95.0D, 20.0D, 65L, 150L);
+        return getDelay(TimingDomain.d(2264112613783735885L) , TimingDomain.d(2236176222345203277L) , TimingDomain.l(8893018580978572878L) , TimingDomain.l(8893018580978572953L) );
     }
 
     public static long getShieldBreakerSwitchDelay() {
-        return getDelay(180.0D, 35.0D, 140L, 260L);
+        return getDelay(TimingDomain.d(2259397907923832397L) , TimingDomain.d(2269249532108705357L) , TimingDomain.l(8893018580978572931L) , TimingDomain.l(8893018580978573067L) );
     }
 
     public static long getShieldBreakerRestoreDelay() {
-        return getDelay(95.0D, 18.0D, 70L, 140L);
+        return getDelay(TimingDomain.d(2264112613783735885L) , TimingDomain.d(2237865072205467213L) , TimingDomain.l(8893018580978572873L) , TimingDomain.l(8893018580978572931L) );
     }
 
     public static long getMaceSwapDelay() {
-        return getDelay(145.0D, 25.0D, 120L, 220L);
+        return getDelay(TimingDomain.d(2260347885970230861L) , TimingDomain.d(2235331797415071309L) , TimingDomain.l(8893018580978572919L) , TimingDomain.l(8893018580978573011L) );
     }
 
     public static long getChatDelay() {
-        return getDelay(950.0D, 160.0D, 700L, 1450L);
+        return getDelay(TimingDomain.d(2283833454339526221L) , TimingDomain.d(2258694220482055757L) , TimingDomain.l(8893018580978572467L) , TimingDomain.l(8893018580978572197L) );
     }
 
-    public static final long FAST_LEGIT_MIN_MS = 60L;
-    public static final long FAST_LEGIT_MAX_MS = 180L;
+    public static final long FAST_LEGIT_MIN_MS = TimingDomain.l(8893018580978572851L) ;
+    public static final long FAST_LEGIT_MAX_MS = TimingDomain.l(8893018580978572987L) ;
     public static final int FAST_LEGIT_MIN_TICKS = 2;
     public static final int FAST_LEGIT_MAX_TICKS = 4;
 
-    public static final double REFILL_OPEN_MEAN_MS = 105.0D;
-    public static final double REFILL_OPEN_STD_DEV_MS = 22.0D;
+    public static final double REFILL_OPEN_MEAN_MS = TimingDomain.d(2262564501411827277L) ;
+    public static final double REFILL_OPEN_STD_DEV_MS = TimingDomain.d(2236739172298624589L) ;
 
-    public static final double REFILL_SWAP_MEAN_MS = 115.0D;
-    public static final double REFILL_SWAP_STD_DEV_MS = 25.0D;
+    public static final double REFILL_SWAP_MEAN_MS = TimingDomain.d(2261016389039918669L) ;
+    public static final double REFILL_SWAP_STD_DEV_MS = TimingDomain.d(2235331797415071309L) ;
 
-    public static final double REFILL_CLOSE_MEAN_MS = 95.0D;
-    public static final double REFILL_CLOSE_STD_DEV_MS = 20.0D;
+    public static final double REFILL_CLOSE_MEAN_MS = TimingDomain.d(2264112613783735885L) ;
+    public static final double REFILL_CLOSE_STD_DEV_MS = TimingDomain.d(2236176222345203277L) ;
 
     public static long getFastLegitDelay(double mean, double stdDev) {
         return getDelay(mean, stdDev, FAST_LEGIT_MIN_MS, FAST_LEGIT_MAX_MS);

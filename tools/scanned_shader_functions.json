@@ -1,0 +1,3452 @@
+[
+  {
+    "file": "assets\\nivorat\\shaders\\core\\arc_divider.fsh",
+    "name": "parabolaDistance",
+    "signature": "float parabolaDistance(vec2 p, float k, float halfW)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\arc_divider.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\baritone_path.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\baritone_path.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\batched_blur.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\batched_blur.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\checkbox.fsh",
+    "name": "segmentDistance",
+    "signature": "float segmentDistance(vec2 p, vec2 a, vec2 b)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\checkbox.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\circle.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\circle.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\effect_icon.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\effect_icon.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\glass.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\glass.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\image.fsh",
+    "name": "imageColor",
+    "signature": "vec4 imageColor(vec2 coord, vec4 topLeft, vec4 topRight, vec4 bottomRight, vec4 bottomLeft)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\image.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\item.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\item.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\kawase_down.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\kawase_down.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\kawase_up.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\line.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\line.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_shimmer.fsh",
+    "name": "median",
+    "signature": "float median(float r, float g, float b)",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_shimmer.fsh",
+    "name": "screenPxRange",
+    "signature": "float screenPxRange()",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_shimmer.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_text.fsh",
+    "name": "median",
+    "signature": "float median(float r, float g, float b)",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_text.fsh",
+    "name": "screenPxRange",
+    "signature": "float screenPxRange()",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_text.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_wave.fsh",
+    "name": "median",
+    "signature": "float median(float r, float g, float b)",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_wave.fsh",
+    "name": "screenPxRange",
+    "signature": "float screenPxRange()",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\msdf_wave.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "MSDF_FONT_RASTERIZATION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_360.fsh",
+    "name": "outlineAlpha",
+    "signature": "float outlineAlpha(vec2 coord, vec2 size, vec4 radius, float thickness, float smoothness)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_360.fsh",
+    "name": "contourAngleDegrees",
+    "signature": "float contourAngleDegrees(vec2 coord, vec2 size, vec4 radius, float thickness, float offsetDegrees)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_360.fsh",
+    "name": "rangeFactor",
+    "signature": "float rangeFactor(float angle, vec4 range, float blendDegrees, out float spanT)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_360.fsh",
+    "name": "color360",
+    "signature": "vec4 color360(float angle, vec4 baseColor, int rangeOffset, int rangeCount, float blendDegrees)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_360.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_default.fsh",
+    "name": "outlineColor",
+    "signature": "vec4 outlineColor(vec2 coord, vec4 topLeft, vec4 topRight, vec4 bottomRight, vec4 bottomLeft)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_default.fsh",
+    "name": "outlineAlpha",
+    "signature": "float outlineAlpha(vec2 coord, vec2 size, vec4 radius, float thickness, float smoothness)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_default.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_glass.fsh",
+    "name": "outlineAlpha",
+    "signature": "float outlineAlpha(vec2 coord, vec2 size, vec4 radius, float thickness, float smoothness)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\outline_glass.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\picker.fsh",
+    "name": "hueRamp",
+    "signature": "vec3 hueRamp(float h)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\picker.fsh",
+    "name": "roundedAlpha",
+    "signature": "float roundedAlpha(vec2 coord, vec2 size, float radius, float smoothness)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\picker.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "themeLayerCoverage",
+    "signature": "float themeLayerCoverage(vec4 wave, vec2 fragXY)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "themeWaveMix",
+    "signature": "void themeWaveMix(vec2 fragXY)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "themeBlend",
+    "signature": "vec3 themeBlend(vec3 base, vec3 a, vec3 b, vec3 c, vec3 d, vec3 e, vec3 f)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "paletteColorAt",
+    "signature": "vec3 paletteColorAt(int idx)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "paletteRamp",
+    "signature": "vec3 paletteRamp(float t)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "paletteLoop",
+    "signature": "vec3 paletteLoop(float t)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "roundedAlpha",
+    "signature": "float roundedAlpha(vec2 coord, vec2 size, vec4 radius, float smoothness)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.fsh",
+    "name": "rectangleColor",
+    "signature": "vec4 rectangleColor(vec2 coord, vec4 topLeft, vec4 topRight, vec4 bottomRight, vec4 bottomLeft)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_default.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_half_icon.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_half_icon.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_halftone.fsh",
+    "name": "rectangleColor",
+    "signature": "vec4 rectangleColor(vec2 coord, vec4 topLeft, vec4 topRight, vec4 bottomRight, vec4 bottomLeft)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_halftone.fsh",
+    "name": "hash21",
+    "signature": "float hash21(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_halftone.fsh",
+    "name": "squareMosaic",
+    "signature": "vec3 squareMosaic(vec2 cell, vec3 baseRgb)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\rect_halftone.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\ripple.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\ripple.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\shimmer.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\shimmer.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\terrain_wave.vsh",
+    "name": "minecraft_sample_lightmap",
+    "signature": "vec4 minecraft_sample_lightmap(sampler2D lightMap, ivec2 uv)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\terrain_wave.vsh",
+    "name": "nv_raw_wave",
+    "signature": "vec3 nv_raw_wave(vec3 p, float wind)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\text_atlas.fsh",
+    "name": "sampledCoverage",
+    "signature": "float sampledCoverage(vec2 uv)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\text_atlas.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\text_atlas_fade.fsh",
+    "name": "sampledCoverage",
+    "signature": "float sampledCoverage(vec2 uv)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\text_atlas_fade.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\underhand_rect.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\underhand_rect.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\world_border_fade.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\world_border_fade.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\zippy.fsh",
+    "name": "stanh",
+    "signature": "vec2 stanh(vec2 value)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\core\\zippy.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\frag_effect_scan\\frag_effect_scan.fsh",
+    "name": "scanlines",
+    "signature": "float scanlines()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\frag_effect_scan\\frag_effect_scan.fsh",
+    "name": "hash12",
+    "signature": "float hash12(vec2 value)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\frag_effect_scan\\frag_effect_scan.fsh",
+    "name": "surfaceProjection",
+    "signature": "vec2 surfaceProjection(vec3 worldPosition)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\frag_effect_scan\\frag_effect_scan.fsh",
+    "name": "reconstructWorldPos",
+    "signature": "vec3 reconstructWorldPos(float depth)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\frag_effect_scan\\frag_effect_scan.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\composite.fsh",
+    "name": "quickTrailAlpha",
+    "signature": "float quickTrailAlpha(vec2 uv, vec2 blurPx)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 6,
+    "samplers_count": 6,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\composite.fsh",
+    "name": "blurredTrailColor",
+    "signature": "vec4 blurredTrailColor(vec2 uv, vec2 blurPx)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 6,
+    "samplers_count": 6,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\composite.fsh",
+    "name": "handDepthMaskAt",
+    "signature": "float handDepthMaskAt(vec2 uv, float irisDepthMode)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 6,
+    "samplers_count": 6,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\fullscreen.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\restore.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": false
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "handGradUV",
+    "signature": "vec2 handGradUV(vec2 p)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "gradientColor",
+    "signature": "vec4 gradientColor(vec2 pos)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "hash12",
+    "signature": "float hash12(vec2 p)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "noise",
+    "signature": "float noise(vec2 p)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "fbm3",
+    "signature": "float fbm3(vec2 p)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "fbm2",
+    "signature": "float fbm2(vec2 p)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "handDepthMaskAt",
+    "signature": "float handDepthMaskAt(vec2 uv, float irisDepthMode)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "rawHandMaskColor",
+    "signature": "float rawHandMaskColor(vec2 uv, float itemOnly, float irisDepthMode, out vec3 outColor)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "nearbyDepthMaskFast",
+    "signature": "float nearbyDepthMaskFast(vec2 uv, vec2 px, float radiusPx, float irisDepthMode)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "frameDt",
+    "signature": "float frameDt()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "hintFade",
+    "signature": "float hintFade()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "previousTrailHint",
+    "signature": "float previousTrailHint(vec2 uv, vec2 histUv, vec2 px, float wobble)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "previousTrailColor",
+    "signature": "vec4 previousTrailColor(vec2 histUv, vec2 softPx)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_flame\\trail.fsh",
+    "name": "computeFlameField",
+    "signature": "void computeFlameField(vec2 uv, vec2 px, float radiusPx, float prevAlpha, vec3 prevColor, float itemOnly, float irisDepthMode,\n                       float centerMask, vec3 centerColor,\n                       out float envelope, out float currentMask, out vec3 itemColor)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 7,
+    "samplers_count": 7,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\fullscreen.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\hologram.fsh",
+    "name": "hash11",
+    "signature": "float hash11(float p)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\hologram.fsh",
+    "name": "hash12",
+    "signature": "float hash12(vec2 p)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\hologram.fsh",
+    "name": "handDepthMaskAt",
+    "signature": "float handDepthMaskAt(vec2 uv, float depthCompareMode)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\hologram.fsh",
+    "name": "handColorMaskAt",
+    "signature": "float handColorMaskAt(vec2 uv)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\hologram.fsh",
+    "name": "handMaskAt",
+    "signature": "float handMaskAt(vec2 uv, float depthCompareMode)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\hologram.fsh",
+    "name": "nearHandProbe",
+    "signature": "float nearHandProbe(vec2 uv, vec2 offset, float depthCompareMode)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\effects\\hands_hologram\\hologram.fsh",
+    "name": "dilatedMask",
+    "signature": "float dilatedMask(vec2 uv, vec2 offset, float depthCompareMode)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\frag_effect_scan_fragment.fsh",
+    "name": "scanlines",
+    "signature": "float scanlines()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\frag_effect_scan_fragment.fsh",
+    "name": "reconstructWorldPos",
+    "signature": "vec3 reconstructWorldPos(float depth)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\frag_effect_scan_vertex.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\common.glsl",
+    "name": "rdist",
+    "signature": "float rdist(vec2 pos, vec2 halfSize, vec4 radius)",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\common.glsl",
+    "name": "ralpha",
+    "signature": "float ralpha(vec2 size, vec2 coord, vec4 radius, float smoothness)",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\common.glsl",
+    "name": "rvertexcoord",
+    "signature": "vec2 rvertexcoord(int id)",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\releon_common.glsl",
+    "name": "rdist",
+    "signature": "float rdist(vec2 pos, vec2 size, vec4 radius)",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\releon_common.glsl",
+    "name": "ralpha",
+    "signature": "float ralpha(vec2 size, vec2 coord, vec4 radius, float smoothness)",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\releon_common.glsl",
+    "name": "rsmin",
+    "signature": "float rsmin(float a, float b, float k)",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\releon_common.glsl",
+    "name": "rvertexcoord",
+    "signature": "vec2 rvertexcoord(int id)",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvScreenSize",
+    "signature": "vec2 nvScreenSize()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvGuiScale",
+    "signature": "float nvGuiScale()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientStopCount",
+    "signature": "int nvClientStopCount()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientPhase",
+    "signature": "float nvClientPhase()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientStyleId",
+    "signature": "float nvClientStyleId()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientSweep",
+    "signature": "float nvClientSweep()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientPrevStyleId",
+    "signature": "float nvClientPrevStyleId()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientClosed",
+    "signature": "float nvClientClosed()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientScrollPhase",
+    "signature": "float nvClientScrollPhase()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvWaveActive",
+    "signature": "bool nvWaveActive()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvFragXYFromUV",
+    "signature": "vec2 nvFragXYFromUV(vec2 uv)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvFragXYMapped",
+    "signature": "vec2 nvFragXYMapped(vec2 local, vec4 map)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvFragXYMappedFlipY",
+    "signature": "vec2 nvFragXYMappedFlipY(vec2 local, vec4 map)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvThemeLayerCoverage",
+    "signature": "float nvThemeLayerCoverage(int layer, vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvThemeCoverageCache",
+    "signature": "void nvThemeCoverageCache(vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvThemeSlot",
+    "signature": "vec3 nvThemeSlot(int slot, vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientPrimary",
+    "signature": "vec3 nvClientPrimary(vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientSecondary",
+    "signature": "vec3 nvClientSecondary(vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientStop",
+    "signature": "vec3 nvClientStop(int index, vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientPaletteColor",
+    "signature": "vec3 nvClientPaletteColor(float t, vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\include\\theme_wave.glsl",
+    "name": "nvClientPaletteLoop",
+    "signature": "vec3 nvClientPaletteLoop(float t, vec2 fragXY)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\aurora.fsh",
+    "name": "hsv2rgb",
+    "signature": "vec3 hsv2rgb(vec3 c)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\aurora.fsh",
+    "name": "nmzHash33",
+    "signature": "vec3 nmzHash33(vec3 q)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\aurora.fsh",
+    "name": "hash21",
+    "signature": "float hash21(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\aurora.fsh",
+    "name": "vnoise",
+    "signature": "float vnoise(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\aurora.fsh",
+    "name": "fbm",
+    "signature": "float fbm(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\aurora.fsh",
+    "name": "starField",
+    "signature": "vec3 starField(vec3 dir, float time, float density, float twinkle)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\aurora.fsh",
+    "name": "skyTint",
+    "signature": "vec3 skyTint(float axis, float t, float time)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "hsv2rgb",
+    "signature": "vec3 hsv2rgb(vec3 c)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "nmzHash33",
+    "signature": "vec3 nmzHash33(vec3 q)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "hash21",
+    "signature": "float hash21(vec2 p)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "noise",
+    "signature": "float noise(vec3 x)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "discCoord",
+    "signature": "vec3 discCoord(float ang, float rad, float freq)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "octave",
+    "signature": "float octave(float ang, float rad, float freq, float aa)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "pcurve",
+    "signature": "float pcurve(float x, float a, float b)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "sdTorus",
+    "signature": "float sdTorus(vec3 p, vec2 t)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "encodeHDR",
+    "signature": "vec3 encodeHDR(vec3 c)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "starField",
+    "signature": "vec3 starField(vec3 dir, float time, float pixAngle)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "skyTint",
+    "signature": "vec3 skyTint(float axis, float t, float time)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "Haze",
+    "signature": "void Haze(inout vec3 color, vec3 pos, float alpha, vec3 mainColor)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "GasDisc",
+    "signature": "void GasDisc(inout vec3 color, inout float alpha, vec3 pos, float time, vec3 mainColor, float aa, vec3 eyevec)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "WarpSpace",
+    "signature": "void WarpSpace(inout vec3 eyevec, vec3 raypos)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "rayDir",
+    "signature": "vec3 rayDir(vec2 uv)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "toLocal",
+    "signature": "vec3 toLocal(vec3 dir, vec3 eX, vec3 eY, vec3 eZ)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\blackhole.fsh",
+    "name": "sampleHistory",
+    "signature": "vec3 sampleHistory(vec2 uv, vec2 res)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\bloom_down.fsh",
+    "name": "decodeHDR",
+    "signature": "vec3 decodeHDR(vec3 c)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\bloom_down.fsh",
+    "name": "encodeHDR",
+    "signature": "vec3 encodeHDR(vec3 c)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\bloom_down.fsh",
+    "name": "fetch",
+    "signature": "vec3 fetch(vec2 uv, float hdr)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\composite.fsh",
+    "name": "nmzHash33",
+    "signature": "vec3 nmzHash33(vec3 q)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 9,
+    "samplers_count": 9,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\composite.fsh",
+    "name": "bhStars",
+    "signature": "vec3 bhStars(vec3 dir, float time)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 9,
+    "samplers_count": 9,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\composite.fsh",
+    "name": "decodeHDR",
+    "signature": "vec3 decodeHDR(vec3 c)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 9,
+    "samplers_count": 9,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\composite.fsh",
+    "name": "cubic",
+    "signature": "vec4 cubic(float x)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 9,
+    "samplers_count": 9,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\composite.fsh",
+    "name": "bicubic",
+    "signature": "vec3 bicubic(sampler2D tex, vec2 uv)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 9,
+    "samplers_count": 9,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\composite.fsh",
+    "name": "blackHole",
+    "signature": "vec3 blackHole()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 9,
+    "samplers_count": 9,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\customsky.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "hsv2rgb",
+    "signature": "vec3 hsv2rgb(vec3 c)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "nmzHash33",
+    "signature": "vec3 nmzHash33(vec3 q)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "hash21",
+    "signature": "float hash21(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "vnoise",
+    "signature": "float vnoise(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "fbm",
+    "signature": "float fbm(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "skyTint",
+    "signature": "vec3 skyTint(float axis, float t, float time)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "starField",
+    "signature": "vec3 starField(vec3 dir, float time)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\customsky\\starfall.fsh",
+    "name": "meteors",
+    "signature": "vec3 meteors(vec3 rd, float time, vec3 themeTint)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\fogblur\\blur.fsh",
+    "name": "sampleScene",
+    "signature": "vec3 sampleScene(vec2 uv, vec2 axisStep)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\fogblur\\composite.fsh",
+    "name": "linearizeDepth",
+    "signature": "float linearizeDepth(float depth, float nearPlane, float farPlane)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\fogblur\\composite.fsh",
+    "name": "fogFor",
+    "signature": "float fogFor(float depth)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\fogblur\\fogblur.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\fogblur\\kawase.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glassvapor\\glassvapor.fsh",
+    "name": "linearizeDepth",
+    "signature": "float linearizeDepth(float d, float near, float far)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glassvapor\\glassvapor.fsh",
+    "name": "themePaletteFade",
+    "signature": "vec3 themePaletteFade(float t)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glassvapor\\glassvapor.fsh",
+    "name": "sn_permute",
+    "signature": "vec4 sn_permute(vec4 x)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glassvapor\\glassvapor.fsh",
+    "name": "sn_taylorInvSqrt",
+    "signature": "vec4 sn_taylorInvSqrt(vec4 r)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glassvapor\\glassvapor.fsh",
+    "name": "snoise",
+    "signature": "float snoise(vec3 v)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\composite.fsh",
+    "name": "gradientOf",
+    "signature": "vec4 gradientOf(vec2 p, float blend, vec4 c1, vec4 c2, vec4 c3, vec4 c4)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\composite.fsh",
+    "name": "themeOutlineGradient",
+    "signature": "vec4 themeOutlineGradient(vec2 p, float blend)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\composite.fsh",
+    "name": "linearize",
+    "signature": "float linearize(float d, float near, float far)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\composite.fsh",
+    "name": "sampleOccluded",
+    "signature": "float sampleOccluded(vec2 p, float near, float far, float bias, float slope, vec2 texel, float searchRadius)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\composite.fsh",
+    "name": "computeOutline",
+    "signature": "float computeOutline(vec2 texel, float outlineWidth, bool renderOutline)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\gauss.fsh",
+    "name": "getGradientColor",
+    "signature": "vec4 getGradientColor(vec2 p, float blend)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\glowesp.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\occlude.fsh",
+    "name": "linearize",
+    "signature": "float linearize(float d, float near, float far)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\glowesp\\solidify.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\composite.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\composite_world_occluded.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\fullscreen.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\gaussian.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\shard.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\shard.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\shard_occluded.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\slot_blit.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\world_backdrop.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\world_backdrop_slots.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guilayerblur\\world_quad.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guimotionblur\\composite.fsh",
+    "name": "roundedRectMask",
+    "signature": "float roundedRectMask(vec2 point, vec4 rect, float radius, float feather)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guimotionblur\\fullscreen.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guimotionblur\\gaussian.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guimotionblur\\mask.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\guimotionblur\\mask.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\hitbubbles\\hitbubbles.fsh",
+    "name": "colorAt",
+    "signature": "vec3 colorAt(int i)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\hitbubbles\\hitbubbles.fsh",
+    "name": "ringColorByAngle",
+    "signature": "vec3 ringColorByAngle(float ang)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\hitbubbles\\hitbubbles.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\hpfocus\\copy.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": false
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\hpfocus\\copy.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\itemoutline\\blur.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\itemoutline\\composite.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\itemoutline\\dt_h.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\itemoutline\\dt_v.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\itemoutline\\isoline.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\itemoutline\\itemoutline.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\itemoutline\\sobel.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\jumpdistort\\jumpdistort.fsh",
+    "name": "worldFromDepth",
+    "signature": "vec3 worldFromDepth(vec2 uv, float depth)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\jumpdistort\\jumpdistort.fsh",
+    "name": "ringColorByAngle",
+    "signature": "vec3 ringColorByAngle(int i, float ang)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\jumpdistort\\jumpdistort.fsh",
+    "name": "ringColor",
+    "signature": "vec3 ringColor(int i, vec2 dir)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\jumpdistort\\jumpdistort.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\killdistortion\\killdistortion.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\killdistortion\\killdistortion.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\liquidpanel\\liquidpanel.fsh",
+    "name": "sn_permute",
+    "signature": "vec4 sn_permute(vec4 x)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\liquidpanel\\liquidpanel.fsh",
+    "name": "sn_taylorInvSqrt",
+    "signature": "vec4 sn_taylorInvSqrt(vec4 r)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\liquidpanel\\liquidpanel.fsh",
+    "name": "snoise",
+    "signature": "float snoise(vec3 v)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\saturation\\saturation.fsh",
+    "name": "adjustSaturation",
+    "signature": "vec3 adjustSaturation(vec3 color, float saturationValue)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\saturation\\saturation.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\scarglass\\scarglass.fsh",
+    "name": "linearizeDepth",
+    "signature": "float linearizeDepth(float d, float near, float far)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\scarglass\\scarglass.fsh",
+    "name": "segDist",
+    "signature": "float segDist(vec2 p, vec2 a, vec2 b, float aspect, out float tOut, out vec2 perpDir)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\bounds_init.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\bounds_reduce.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\bounds_write.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": false
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "handGradUV",
+    "signature": "vec2 handGradUV(vec2 p)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "themeLayerCoverage",
+    "signature": "float themeLayerCoverage(vec4 wave, vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "themeWaveMix",
+    "signature": "void themeWaveMix(vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "themeBlend",
+    "signature": "vec3 themeBlend(vec3 base, vec3 a, vec3 b, vec3 c, vec3 d, vec3 e, vec3 f)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "paletteColorAt",
+    "signature": "vec3 paletteColorAt(int idx)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "paletteRamp",
+    "signature": "vec3 paletteRamp(float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "paletteLoop",
+    "signature": "vec3 paletteLoop(float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "boxGradient",
+    "signature": "vec3 boxGradient(vec2 uv, float phase)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "meshGradient",
+    "signature": "vec3 meshGradient(vec2 uv, float phase, float aspect)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "selectStyle",
+    "signature": "vec3 selectStyle(float id, vec3 ramp, vec3 mesh, vec3 box)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "sn_permute",
+    "signature": "vec4 sn_permute(vec4 x)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "sn_taylorInvSqrt",
+    "signature": "vec4 sn_taylorInvSqrt(vec4 r)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glass.fsh",
+    "name": "snoise",
+    "signature": "float snoise(vec3 v)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 4,
+    "samplers_count": 4,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glow_dilate.fsh",
+    "name": "handGradUV",
+    "signature": "vec2 handGradUV(vec2 p)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glow_dilate.fsh",
+    "name": "gradientColor",
+    "signature": "vec4 gradientColor(vec2 pos)",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glow_gauss.fsh",
+    "name": "handGradUV",
+    "signature": "vec2 handGradUV(vec2 p)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glow_gauss.fsh",
+    "name": "themeCorner",
+    "signature": "vec4 themeCorner(float t, vec2 fragXY)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\glow_gauss.fsh",
+    "name": "gradientColor",
+    "signature": "vec4 gradientColor(vec2 pos)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 3,
+    "samplers_count": 3,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\handmask.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\light_kawase_down.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\light_kawase_up.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\outline.fsh",
+    "name": "handGradUV",
+    "signature": "vec2 handGradUV(vec2 p)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\outline.fsh",
+    "name": "themeCorner",
+    "signature": "vec4 themeCorner(float t, vec2 fragXY)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\outline.fsh",
+    "name": "gradientColor",
+    "signature": "vec4 gradientColor(vec2 pos)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\outline.fsh",
+    "name": "innerEdge",
+    "signature": "float innerEdge(float centerMask)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\outline.fsh",
+    "name": "outlineBand",
+    "signature": "float outlineBand()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 5,
+    "samplers_count": 5,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\passthrough.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": false
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\shaderhands\\shaderhands.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\targetcircle\\composite.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\targetcircle\\fullscreen.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\targetcircle\\threshold.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\themeshock\\themeshock.fsh",
+    "name": "easeInOutSine",
+    "signature": "float easeInOutSine(float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\themeshock\\themeshock.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\trailglass\\trailglass.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\post\\trailglass\\trailglass.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\batched_blur\\batched_blur.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\batched_blur\\batched_blur.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "hash4",
+    "signature": "vec4 hash4(vec2 p)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "computeShards",
+    "signature": "ShardInfo computeShards(vec2 p, vec2 scale, float animTime, float mosaicMorph)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "themeLayerCoverage",
+    "signature": "float themeLayerCoverage(int base, vec4 wave, vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "themeWaveMix",
+    "signature": "void themeWaveMix(int base, vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "paletteColorAt",
+    "signature": "vec3 paletteColorAt(int base, int idx)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "paletteRamp",
+    "signature": "vec3 paletteRamp(int base, float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "paletteLoop",
+    "signature": "vec3 paletteLoop(int base, float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "boxGradient",
+    "signature": "vec3 boxGradient(int base, vec2 uv, float phase)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "selectStyle",
+    "signature": "vec3 selectStyle(float id, vec3 ramp, vec3 mesh, vec3 box)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "meshGradient",
+    "signature": "vec3 meshGradient(int base, vec2 uv, float phase, float aspect)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "gradientBeam",
+    "signature": "float gradientBeam(vec2 uv, float sweep)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.fsh",
+    "name": "hue2rgb",
+    "signature": "vec3 hue2rgb(float h)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glass\\glass.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_blur.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_blur_down.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_blur_up.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_composite.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_composite.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_cutout.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 2,
+    "samplers_count": 2,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "glowPaletteColorAt",
+    "signature": "vec3 glowPaletteColorAt(int idx)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "glowPaletteRamp",
+    "signature": "vec3 glowPaletteRamp(float t)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "glowPaletteLoop",
+    "signature": "vec3 glowPaletteLoop(float t)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "glowBox",
+    "signature": "vec3 glowBox(vec2 uv, float phase)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "glowSelect",
+    "signature": "vec3 glowSelect(float id, vec3 ramp, vec3 mesh, vec3 box)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "glowMesh",
+    "signature": "vec3 glowMesh(vec2 uv, float phase, float aspect)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "getSegment_glow",
+    "signature": "vec4 getSegment_glow(int i)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "roundedBoxSDF_glow",
+    "signature": "float roundedBoxSDF_glow(vec2 center, vec2 halfSize, vec4 r)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "resolveSegmentRadius_glow",
+    "signature": "vec4 resolveSegmentRadius_glow(int index, vec4 seg, int count, float r,\n                               float leftAligned, float bottomAnchored)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "boxesSDF",
+    "signature": "float boxesSDF(vec2 p, float spanCountF, float innerRadius, out vec2 boxUV)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.fsh",
+    "name": "staircaseSDF",
+    "signature": "float staircaseSDF(vec2 p, float spanCountF, float innerRadius,\n                   float leftAligned, float bottomAnchored)",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_shape.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\glow\\glow_source.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\kawase\\down.fsh",
+    "name": "sampleSource",
+    "signature": "vec4 sampleSource(vec2 coord)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\kawase\\down.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "VECTOR_RENDER_UTILITY",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\kawase\\up.fsh",
+    "name": "sampleSource",
+    "signature": "vec4 sampleSource(vec2 coord)",
+    "category": "CONVOLUTION_BLUR_KERNEL",
+    "ip": "HIGH_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "themeLayerCoverage",
+    "signature": "float themeLayerCoverage(vec4 wave, vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "themeWaveMix",
+    "signature": "void themeWaveMix(vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "themeBlend",
+    "signature": "vec3 themeBlend(vec3 base, vec3 a, vec3 b, vec3 c, vec3 d, vec3 e, vec3 f)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "paletteColorAt",
+    "signature": "vec3 paletteColorAt(int idx)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "paletteRamp",
+    "signature": "vec3 paletteRamp(float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "paletteLoop",
+    "signature": "vec3 paletteLoop(float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "boxGradient",
+    "signature": "vec3 boxGradient(vec2 uv, float phase)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "meshGradient",
+    "signature": "vec3 meshGradient(vec2 uv, float phase, float aspect)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.fsh",
+    "name": "selectStyle",
+    "signature": "vec3 selectStyle(float id, vec3 ramp, vec3 mesh, vec3 box)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\radialglass\\radialglass.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\sectormask\\sectormask.fsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\sectormask\\sectormask.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "COLOR_SPACE_INTERPOLATION",
+    "ip": "NORMAL_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "themeLayerCoverage",
+    "signature": "float themeLayerCoverage(vec4 wave, vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "themeWaveMix",
+    "signature": "void themeWaveMix(vec2 fragXY)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "themeBlend",
+    "signature": "vec3 themeBlend(vec3 base, vec3 a, vec3 b, vec3 c, vec3 d, vec3 e, vec3 f)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "paletteColorAt",
+    "signature": "vec3 paletteColorAt(int idx)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "paletteRamp",
+    "signature": "vec3 paletteRamp(float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "paletteLoop",
+    "signature": "vec3 paletteLoop(float t)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "boxGradient",
+    "signature": "vec3 boxGradient(vec2 uv, float phase)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "selectStyle",
+    "signature": "vec3 selectStyle(float id, vec3 ramp, vec3 mesh, vec3 box)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "meshGradient",
+    "signature": "vec3 meshGradient(vec2 uv, float phase, float aspect)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "gradientBeam",
+    "signature": "float gradientBeam(vec2 uv, float sweep)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "hue2rgb",
+    "signature": "vec3 hue2rgb(float h)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "rainbowColor",
+    "signature": "vec3 rainbowColor(float along, float phase, float spread, float sat)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "getSegment",
+    "signature": "vec4 getSegment(int base, int i)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "roundedBoxSDF",
+    "signature": "float roundedBoxSDF(vec2 center, vec2 halfSize, vec4 r)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "resolveSegmentRadius",
+    "signature": "vec4 resolveSegmentRadius(int index, vec4 seg, int count, float r,\n                          float leftAligned, float bottomAnchored, int base)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.fsh",
+    "name": "shapeSDF",
+    "signature": "float shapeSDF(vec2 p, int base, float spanCount, float innerRadius,\n               float leftAligned, float bottomAnchored)",
+    "category": "OPTICAL_FROST_DISPERSION",
+    "ip": "CRITICAL_IP",
+    "uniforms_count": 1,
+    "samplers_count": 1,
+    "has_math": true
+  },
+  {
+    "file": "assets\\nivorat\\shaders\\ui\\shape\\shape.vsh",
+    "name": "main",
+    "signature": "void main()",
+    "category": "SDF_GEOMETRICAL_MATH",
+    "ip": "HIGH_IP",
+    "uniforms_count": 0,
+    "samplers_count": 0,
+    "has_math": true
+  }
+]

@@ -35,6 +35,7 @@ import activity.client.gui.custom.utils.render.render2d.image.ImageRenderer;
 import activity.client.gui.custom.utils.render.render2d.line.BuiltLine;
 import activity.client.gui.custom.utils.render.render2d.line.LineRenderer;
 import activity.client.gui.custom.utils.render.render2d.msdf.BuiltMsdfText;
+import activity.client.gui.custom.utils.render.render2d.msdf.MsdfFonts;
 import activity.client.gui.custom.utils.render.render2d.msdf.MsdfTextRenderer;
 import activity.client.gui.custom.utils.render.render2d.outline.outline360.BuiltOutline360;
 import activity.client.gui.custom.utils.render.render2d.outline.outline360.Outline360Range;
@@ -148,6 +149,11 @@ public final class Render2D {
 
     public static void text(String string, String string2, float f, float f2, float f3, int n, int n2, int n3, int n4, float f4, float f5, float f6) {
         Render2D.imageBarrier();
+        String string3 = Render2D.msdfFontAlias(string);
+        if (string3 != null) {
+            Render2D.msdf().enqueue(new BuiltMsdfText(string3, string2, f, f2, f3, Render2D.normalizeTextColor(n), Render2D.normalizeTextColor(n2), Render2D.normalizeTextColor(n3), Render2D.normalizeTextColor(n4)));
+            return;
+        }
         Render2D.text().enqueue(new BuiltText(string, string2, f, f2, f3, n, n2, n3, n4, f4, f5, f6, false, false, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true));
     }
 
@@ -163,6 +169,11 @@ public final class Render2D {
 
     public static void text(String string, String string2, float f, float f2, float f3, int n, float f4, float f5, float f6) {
         Render2D.imageBarrier();
+        String string3 = Render2D.msdfFontAlias(string);
+        if (string3 != null) {
+            Render2D.msdf().enqueue(new BuiltMsdfText(string3, string2, f, f2, f3, Render2D.normalizeTextColor(n), f4, f5, f6));
+            return;
+        }
         Render2D.text().enqueue(new BuiltText(string, string2, f, f2, f3, n, n, n, n, f4, f5, f6, false, false, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true));
     }
 
@@ -300,25 +311,33 @@ public final class Render2D {
     private static String resolveMsdfFontAlias(String string) {
         String string2;
         if (string == null || string.isBlank()) {
-            return null;
+            return MsdfFonts.DEFAULT;
         }
         return switch (string2 = string.trim().toLowerCase(Locale.ROOT).replace('-', '_').replace(' ', '_')) {
-            case "montserrat", "montserrat_regular" -> "montserrat-regular";
-            case "montserrat_medium" -> "montserrat-medium";
-            case "montserrat_semibold", "montserrat_semi_bold" -> "montserrat-semibold";
-            case "montserrat_bold" -> "montserrat-bold";
+            case "nvsans", "nv_sans", "nvsans_regular", "nv_sans_regular" -> "nvsans-regular";
+            case "nvsans_medium", "nv_sans_medium" -> "nvsans-medium";
+            case "nvsans_semibold", "nv_sans_semibold", "nvsans_semi_bold", "nv_sans_semi_bold" -> "nvsans-semibold";
+            case "nvsans_bold", "nv_sans_bold" -> "nvsans-bold";
+            case "montserrat", "montserrat_regular" -> "nvsans-regular";
+            case "montserrat_medium" -> "nvsans-medium";
+            case "montserrat_semibold", "montserrat_semi_bold" -> "nvsans-semibold";
+            case "montserrat_bold" -> "nvsans-bold";
             case "montserrat_extrabold", "montserrat_extra_bold" -> "montserrat-extrabold";
             case "montserrat_black" -> "montserrat-black";
             case "montserrat_light" -> "montserrat-light";
             case "montserrat_extralight", "montserrat_extra_light" -> "montserrat-extralight";
             case "montserrat_thin" -> "montserrat-thin";
-            case "sf", "sf_regular" -> "sf-regular";
-            case "sf_medium" -> "sf-medium";
-            case "sf_bold" -> "sf-bold";
+            case "sf", "sf_regular", "sf_pro", "sf_pro_regular" -> "sf-regular";
+            case "sf_medium", "sf_pro_medium" -> "sf-medium";
+            case "sf_bold", "sf_pro_bold" -> "sf-bold";
             case "nv" -> "nv";
+            case "icons" -> "icons";
             case "event_icons", "events_icons", "eventicons" -> "event-icons";
             case "inv_icons", "inventory_icons", "invicons" -> "inv-icons";
-            default -> null;
+            case "heart" -> "heart";
+            case "mainmenu" -> "mainmenu";
+            case "small_pixel", "smallpixel" -> "small-pixel";
+            default -> MsdfFonts.DEFAULT;
         };
     }
 

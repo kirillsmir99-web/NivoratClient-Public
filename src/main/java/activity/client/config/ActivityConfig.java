@@ -1,5 +1,6 @@
 package activity.client.config;
 
+import com.google.gson.annotations.SerializedName;
 import activity.client.module.keybind.Keybind;
 
 import java.util.Objects;
@@ -8,8 +9,10 @@ public class ActivityConfig {
 
     public static final String PRESET_DEFAULT = "default";
 
+    @SerializedName("configVersion")
     public int configVersion = 2;
 
+    @SerializedName("pinnedModules")
     public java.util.List<String> pinnedModules = new java.util.ArrayList<>();
 
     public boolean isPinned(String moduleId) {
@@ -45,362 +48,696 @@ public class ActivityConfig {
         return java.util.Collections.unmodifiableList(this.pinnedModules);
     }
 
+    @SerializedName("autoMaceEnabled")
     public boolean autoMaceEnabled = true;
+    @SerializedName("autoMaceKeybind")
     public Keybind autoMaceKeybind = new Keybind();
+    @SerializedName("autoMaceSourceMode")
     public String autoMaceSourceMode = "sword_and_axe";
+    @SerializedName("autoMaceEnchantMode")
     public String autoMaceEnchantMode = "smart";
+    @SerializedName("autoMaceMissBehavior")
     public String autoMaceMissBehavior = "sword_hit";
+    @SerializedName("autoMaceRestoreDelayMs")
     public double autoMaceRestoreDelayMs = 90.0;
+    @SerializedName("autoMaceLegitMode")
     public boolean autoMaceLegitMode = true;
+    @SerializedName("autoMaceMissChance")
     public double autoMaceMissChance = 10.0;
+    @SerializedName("autoMaceRandomDelay")
     public boolean autoMaceRandomDelay = true;
+    @SerializedName("autoMaceSwapType")
     public String autoMaceSwapType = "new";
+    @SerializedName("autoMaceEngineMode")
     public String autoMaceEngineMode = "new";
+    @SerializedName("autoMaceMinFallDistance")
     public double autoMaceMinFallDistance = 1.25;
+    @SerializedName("autoMaceAutoSwitch")
     public boolean autoMaceAutoSwitch = true;
+    @SerializedName("autoMaceSilentAim")
     public boolean autoMaceSilentAim = true;
+    @SerializedName("autoMaceSilentAimRange")
     public double autoMaceSilentAimRange = 4.0;
+    @SerializedName("autoMaceMovementFix")
     public boolean autoMaceMovementFix = true;
+    @SerializedName("autoMaceStunSlam")
     public boolean autoMaceStunSlam = true;
+    @SerializedName("autoMaceHitboxExpand")
     public double autoMaceHitboxExpand = 1.5;
+    @SerializedName("autoMaceTargetPlayers")
     public boolean autoMaceTargetPlayers = true;
+    @SerializedName("autoMaceTargetMobs")
     public boolean autoMaceTargetMobs = true;
+    @SerializedName("autoMaceStayOnMace")
     public boolean autoMaceStayOnMace = false;
+    @SerializedName("autoMaceAttackDelayMs")
     public double autoMaceAttackDelayMs = 60.0;
+    @SerializedName("autoMaceHumanMode")
     public boolean autoMaceHumanMode = true;
+    @SerializedName("autoMaceRandomJitter")
     public boolean autoMaceRandomJitter = true;
 
+    @SerializedName("autoSpearEnabled")
     public boolean autoSpearEnabled = true;
+    @SerializedName("autoSpearKeybind")
     public Keybind autoSpearKeybind = new Keybind();
+    @SerializedName("autoSpearTriggerKeybind")
     public Keybind autoSpearTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB);
+    @SerializedName("autoSpearSecurityMode")
     public String autoSpearSecurityMode = "legit";
+    @SerializedName("autoSpearPriorityMode")
     public String autoSpearPriorityMode = "auto";
+    @SerializedName("autoSpearRestoreDelayMs")
     public double autoSpearRestoreDelayMs = 185.0;
+    @SerializedName("autoSpearMissChance")
     public double autoSpearMissChance = 0.0;
+    @SerializedName("autoSpearRandomDelay")
     public boolean autoSpearRandomDelay = true;
+    @SerializedName("autoSpearMaxSpeed")
     public boolean autoSpearMaxSpeed = false;
+    @SerializedName("autoSpearCheckCharge")
     public boolean autoSpearCheckCharge = false;
 
+    @SerializedName("autoShieldbreakerEnabled")
     public boolean autoShieldbreakerEnabled = true;
+    @SerializedName("autoShieldbreakerKeybind")
     public Keybind autoShieldbreakerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_J, true, true, false);
+    @SerializedName("autoShieldbreakerMode")
     public String autoShieldbreakerMode = "full_auto";
+    @SerializedName("autoShieldbreakerDistance")
     public double autoShieldbreakerDistance = 2.85;
+    @SerializedName("autoShieldbreakerChance")
     public double autoShieldbreakerChance = 100.0;
+    @SerializedName("autoShieldbreakerSwitchDelayMs")
     public double autoShieldbreakerSwitchDelayMs = 50.0;
+    @SerializedName("autoShieldbreakerRestoreDelayMs")
     public double autoShieldbreakerRestoreDelayMs = 50.0;
+    @SerializedName("autoShieldbreakerReactionDelaySec")
     public double autoShieldbreakerReactionDelaySec = 0.0;
+    @SerializedName("autoShieldbreakerRandomDelay")
     public boolean autoShieldbreakerRandomDelay = true;
+    @SerializedName("autoShieldbreakerAbortOnManualSwitch")
     public boolean autoShieldbreakerAbortOnManualSwitch = true;
+    @SerializedName("autoShieldbreakerLegitMode")
     public boolean autoShieldbreakerLegitMode = true;
+    @SerializedName("autoShieldbreakerCheckAirTime")
     public boolean autoShieldbreakerCheckAirTime = true;
+    @SerializedName("autoShieldbreakerMaxAirTimeSec")
     public double autoShieldbreakerMaxAirTimeSec = 1.0;
 
+    @SerializedName("autoStunSlamEnabled")
     public boolean autoStunSlamEnabled = true;
+    @SerializedName("autoStunSlamKeybind")
     public Keybind autoStunSlamKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_M, true, true, false);
+    @SerializedName("autoStunSlamPreset")
     public String autoStunSlamPreset = "new";
+    @SerializedName("autoStunSlamEngineMode")
     public String autoStunSlamEngineMode = "new";
+    @SerializedName("autoStunSlamMode")
     public String autoStunSlamMode = "full_auto";
+    @SerializedName("autoStunSlamDistance")
     public double autoStunSlamDistance = 2.85;
+    @SerializedName("autoStunSlamChance")
     public double autoStunSlamChance = 100.0;
+    @SerializedName("autoStunSlamAirCondition")
     public String autoStunSlamAirCondition = "blocks";
+    @SerializedName("autoStunSlamMinFall")
     public double autoStunSlamMinFall = 3.0;
+    @SerializedName("autoStunSlamAirTimeSec")
     public double autoStunSlamAirTimeSec = 1.0;
+    @SerializedName("autoStunSlamAxeDelayMs")
     public double autoStunSlamAxeDelayMs = 0.0;
+    @SerializedName("autoStunSlamAxeRandomizer")
     public boolean autoStunSlamAxeRandomizer = true;
+    @SerializedName("autoStunSlamAxeJitterMs")
     public double autoStunSlamAxeJitterMs = 10.0;
+    @SerializedName("autoStunSlamMaceDelayMs")
     public double autoStunSlamMaceDelayMs = 0.0;
+    @SerializedName("autoStunSlamMaceRandomizer")
     public boolean autoStunSlamMaceRandomizer = true;
+    @SerializedName("autoStunSlamMaceJitterMs")
     public double autoStunSlamMaceJitterMs = 15.0;
+    @SerializedName("autoStunSlamEnchantPreference")
     public String autoStunSlamEnchantPreference = "auto";
+    @SerializedName("autoStunSlamRestoreDelayMs")
     public double autoStunSlamRestoreDelayMs = 50.0;
+    @SerializedName("autoStunSlamRestoreRandomizer")
     public boolean autoStunSlamRestoreRandomizer = true;
+    @SerializedName("autoStunSlamStayOnWeapon")
     public boolean autoStunSlamStayOnWeapon = false;
+    @SerializedName("autoStunSlamRandomDelay")
     public boolean autoStunSlamRandomDelay = true;
+    @SerializedName("autoStunSlamLegitMode")
     public boolean autoStunSlamLegitMode = true;
+    @SerializedName("autoStunSlamNewDistance")
     public double autoStunSlamNewDistance = 3.0;
+    @SerializedName("autoStunSlamNewMode")
     public String autoStunSlamNewMode = "full_auto";
+    @SerializedName("autoStunSlamNewChance")
     public double autoStunSlamNewChance = 100.0;
+    @SerializedName("autoStunSlamNewAttackDelayMs")
     public double autoStunSlamNewAttackDelayMs = 0.0;
+    @SerializedName("autoStunSlamNewAirCondition")
     public String autoStunSlamNewAirCondition = "blocks";
+    @SerializedName("autoStunSlamNewMinFall")
     public double autoStunSlamNewMinFall = 3.0;
+    @SerializedName("autoStunSlamNewAirTimeSec")
     public double autoStunSlamNewAirTimeSec = 1.0;
+    @SerializedName("autoStunSlamNewEnchant")
     public String autoStunSlamNewEnchant = "smart";
+    @SerializedName("autoStunSlamNewSilentAim")
     public boolean autoStunSlamNewSilentAim = true;
+    @SerializedName("autoStunSlamNewRandomizer")
     public boolean autoStunSlamNewRandomizer = true;
+    @SerializedName("autoStunSlamNewJitter")
     public double autoStunSlamNewJitter = 15.0;
+    @SerializedName("autoStunSlamNewStayOnMace")
     public boolean autoStunSlamNewStayOnMace = false;
 
+    @SerializedName("autoPearlCatchEnabled")
     public boolean autoPearlCatchEnabled = true;
+    @SerializedName("autoPearlCatchKeybind")
     public Keybind autoPearlCatchKeybind = new Keybind();
+    @SerializedName("autoPearlCatchActionKeybind")
     public Keybind autoPearlCatchActionKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+    @SerializedName("autoPearlCatchHorizontalKeybind")
     public Keybind autoPearlCatchHorizontalKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_C, false, false, false);
+    @SerializedName("autoPearlCatchThrowKeybind")
     public Keybind autoPearlCatchThrowKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+    @SerializedName("autoPearlCatchAsyncKeybind")
     public Keybind autoPearlCatchAsyncKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+    @SerializedName("autoPearlCatchMode")
     public String autoPearlCatchMode = "semi_auto";
+    @SerializedName("autoPearlCatchDirection")
     public String autoPearlCatchDirection = "vertical";
+    @SerializedName("autoPearlCatchThrowDelay")
     public double autoPearlCatchThrowDelay = 2.0;
+    @SerializedName("autoPearlCatchRestoreSlot")
     public boolean autoPearlCatchRestoreSlot = true;
+    @SerializedName("autoPearlCatchRestoreCamera")
     public boolean autoPearlCatchRestoreCamera = false;
+    @SerializedName("autoPearlCatchRotationTimeMs")
     public double autoPearlCatchRotationTimeMs = 135.0;
+    @SerializedName("autoPearlCatchLegitMode")
     public boolean autoPearlCatchLegitMode = true;
+    @SerializedName("autoPearlCatchHorizontalOffset")
     public double autoPearlCatchHorizontalOffset = 8.0;
+    @SerializedName("autoPearlCatchRandomDelay")
     public boolean autoPearlCatchRandomDelay = true;
+    @SerializedName("autoPearlCatchRandomSpreadMs")
     public double autoPearlCatchRandomSpreadMs = 15.0;
 
+    @SerializedName("autoStunSlimeEnabled")
     public Boolean autoStunSlimeEnabled = null;
+    @SerializedName("autoStunSlimeKeybind")
     public Keybind autoStunSlimeKeybind = null;
+    @SerializedName("autoStunSlimeMode")
     public String autoStunSlimeMode = null;
+    @SerializedName("autoStunSlimeDistance")
     public Double autoStunSlimeDistance = null;
+    @SerializedName("autoStunSlimeChance")
     public Double autoStunSlimeChance = null;
+    @SerializedName("autoStunSlimeAirTimeSec")
     public Double autoStunSlimeAirTimeSec = null;
+    @SerializedName("autoStunSlimeAxeDelayMs")
     public Double autoStunSlimeAxeDelayMs = null;
+    @SerializedName("autoStunSlimeMaceDelayMs")
     public Double autoStunSlimeMaceDelayMs = null;
+    @SerializedName("autoStunSlimeRestoreDelayMs")
     public Double autoStunSlimeRestoreDelayMs = null;
+    @SerializedName("autoStunSlimeRandomDelay")
     public Boolean autoStunSlimeRandomDelay = null;
+    @SerializedName("autoStunSlimeLegitMode")
     public Boolean autoStunSlimeLegitMode = null;
 
+    @SerializedName("autoTotemEnabled")
     public boolean autoTotemEnabled = true;
+    @SerializedName("autoTotemKeybind")
     public Keybind autoTotemKeybind = new Keybind();
+    @SerializedName("autoTotemMode")
     public String autoTotemMode = "main_hand";
+    @SerializedName("autoTotemTriggerHearts")
     public double autoTotemTriggerHearts = 3.0;
+    @SerializedName("autoTotemRestoreHearts")
     public double autoTotemRestoreHearts = 6.0;
+    @SerializedName("autoTotemMainhandTriggerHearts")
     public double autoTotemMainhandTriggerHearts = 3.0;
+    @SerializedName("autoTotemMainhandRestoreHearts")
     public double autoTotemMainhandRestoreHearts = 6.0;
+    @SerializedName("autoTotemOffhandTriggerHearts")
     public double autoTotemOffhandTriggerHearts = 2.0;
+    @SerializedName("autoTotemOffhandRestoreHearts")
     public double autoTotemOffhandRestoreHearts = 5.0;
+    @SerializedName("autoTotemCrystalTriggerHearts")
     public double autoTotemCrystalTriggerHearts = 3.0;
+    @SerializedName("autoTotemCrystalRestoreHearts")
     public double autoTotemCrystalRestoreHearts = 6.0;
+    @SerializedName("autoTotemChance")
     public double autoTotemChance = 100.0;
+    @SerializedName("autoTotemReturnItem")
     public boolean autoTotemReturnItem = true;
+    @SerializedName("autoTotemReturnOnPop")
     public boolean autoTotemReturnOnPop = true;
+    @SerializedName("autoTotemAutoRefill")
     public boolean autoTotemAutoRefill = true;
+    @SerializedName("autoTotemRefillSlot")
     public String autoTotemRefillSlot = "auto";
+    @SerializedName("autoTotemCountAbsorption")
     public boolean autoTotemCountAbsorption = false;
+    @SerializedName("autoTotemSwapBackDelay")
     public double autoTotemSwapBackDelay = 3.0;
+    @SerializedName("autoTotemAlwaysOffhand")
     public boolean autoTotemAlwaysOffhand = true;
+    @SerializedName("autoTotemIgnoreWhenUsing")
     public boolean autoTotemIgnoreWhenUsing = true;
+    @SerializedName("autoTotemPredictiveDamage")
     public boolean autoTotemPredictiveDamage = true;
+    @SerializedName("autoTotemPredictCrystals")
     public boolean autoTotemPredictCrystals = true;
+    @SerializedName("autoTotemPredictFall")
     public boolean autoTotemPredictFall = true;
+    @SerializedName("autoTotemPredictMace")
     public boolean autoTotemPredictMace = true;
+    @SerializedName("autoTotemPredictTrident")
     public boolean autoTotemPredictTrident = true;
+    @SerializedName("autoTotemLowTotemNotify")
     public boolean autoTotemLowTotemNotify = true;
+    @SerializedName("autoTotemInventorySource")
     public String autoTotemInventorySource = "rage";
 
+    @SerializedName("autoCartEnabled")
     public boolean autoCartEnabled = true;
+    @SerializedName("autoCartKeybind")
     public Keybind autoCartKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_I, true, true, false);
+    @SerializedName("autoCartMacroKeybind")
     public Keybind autoCartMacroKeybind = new Keybind();
+    @SerializedName("autoCartMacroDrawTicks")
     public double autoCartMacroDrawTicks = 6.0;
+    @SerializedName("autoCartMode")
     public String autoCartMode = "classic";
+    @SerializedName("autoCartPreset")
     public String autoCartPreset = "medium";
+    @SerializedName("autoCartPlacementChance")
     public double autoCartPlacementChance = 100.0;
+    @SerializedName("autoCartMaxDistance")
     public double autoCartMaxDistance = 4.4;
+    @SerializedName("autoCartMinDelayMs")
     public double autoCartMinDelayMs = 50.0;
+    @SerializedName("autoCartMaxDelayMs")
     public double autoCartMaxDelayMs = 80.0;
+    @SerializedName("autoCartAllowSelfCart")
     public boolean autoCartAllowSelfCart = false;
+    @SerializedName("autoCartAllowPitPlacement")
     public boolean autoCartAllowPitPlacement = true;
+    @SerializedName("autoCartRandomDelay")
     public boolean autoCartRandomDelay = true;
+    @SerializedName("autoCartLegitMode")
     public boolean autoCartLegitMode = true;
+    @SerializedName("autoCartRailDelay")
     public double autoCartRailDelay = 2.0;
+    @SerializedName("autoCartCartDelay")
     public double autoCartCartDelay = 2.0;
+    @SerializedName("autoCartRestoreDelay")
     public double autoCartRestoreDelay = 2.0;
+    @SerializedName("autoCartUseMainHand")
     public boolean autoCartUseMainHand = true;
+    @SerializedName("autoCartCameraMode")
     public String autoCartCameraMode = "auto";
+    @SerializedName("autoCartAutoCamera")
     public boolean autoCartAutoCamera = true;
+    @SerializedName("autoCartCameraSmoothness")
     public double autoCartCameraSmoothness = 110.0;
+    @SerializedName("autoCartCameraReturn")
     public boolean autoCartCameraReturn = true;
+    @SerializedName("autoCartCameraReturnSmoothness")
     public double autoCartCameraReturnSmoothness = 100.0;
+    @SerializedName("autoCartCameraCurve")
     public double autoCartCameraCurve = 40.0;
+    @SerializedName("autoCartCameraRandomness")
     public double autoCartCameraRandomness = 35.0;
+    @SerializedName("autoCartCameraMouseGcd")
     public boolean autoCartCameraMouseGcd = true;
+    @SerializedName("autoCartAdaptiveAim")
     public boolean autoCartAdaptiveAim = true;
+    @SerializedName("autoCartAutonomousPlacement")
     public boolean autoCartAutonomousPlacement = true;
 
+    @SerializedName("autoAnchorEnabled")
     public boolean autoAnchorEnabled = true;
+    @SerializedName("autoAnchorKeybind")
     public Keybind autoAnchorKeybind = new Keybind();
+    @SerializedName("autoAnchorMode")
     public String autoAnchorMode = "smart";
+    @SerializedName("autoAnchorPreset")
     public String autoAnchorPreset = "balanced";
+    @SerializedName("autoAnchorPresetDouble")
     public String autoAnchorPresetDouble = "fast";
+    @SerializedName("autoAnchorDoubleDelay")
     public double autoAnchorDoubleDelay = 1.0;
+    @SerializedName("autoAnchorDoubleAutoExplode")
     public boolean autoAnchorDoubleAutoExplode = true;
+    @SerializedName("autoAnchorDoubleChain")
     public boolean autoAnchorDoubleChain = true;
+    @SerializedName("autoAnchorAutoExplode")
     public boolean autoAnchorAutoExplode = false;
+    @SerializedName("autoAnchorAutoReturn")
     public boolean autoAnchorAutoReturn = true;
+    @SerializedName("autoAnchorChargeDelay")
     public double autoAnchorChargeDelay = 1.0;
+    @SerializedName("autoAnchorExplodeDelay")
     public double autoAnchorExplodeDelay = 1.0;
+    @SerializedName("autoAnchorChance")
     public double autoAnchorChance = 85.0;
+    @SerializedName("autoAnchorTargetCharges")
     public double autoAnchorTargetCharges = 1.0;
+    @SerializedName("autoAnchorLegitMode")
     public boolean autoAnchorLegitMode = true;
 
+    @SerializedName("cartRefillEnabled")
     public boolean cartRefillEnabled = true;
+    @SerializedName("cartRefillKeybind")
     public Keybind cartRefillKeybind = new Keybind();
+    @SerializedName("cartRefillDelayTicks")
     public double cartRefillDelayTicks = 2.0;
+    @SerializedName("cartRefillChance")
     public double cartRefillChance = 100.0;
+    @SerializedName("cartRefillAutoClose")
     public boolean cartRefillAutoClose = true;
+    @SerializedName("cartRefillRandomDelay")
     public boolean cartRefillRandomDelay = true;
+    @SerializedName("cartRefillRandomSpreadTicks")
     public double cartRefillRandomSpreadTicks = 1.0;
+    @SerializedName("cartRefillLegitMode")
     public boolean cartRefillLegitMode = true;
 
+    @SerializedName("hpReaperEnabled")
     public boolean hpReaperEnabled = true;
+    @SerializedName("hpReaperShowArmor")
     public boolean hpReaperShowArmor = true;
+    @SerializedName("hpReaperShowDifference")
     public boolean hpReaperShowDifference = true;
+    @SerializedName("hpReaperLowHealthHearts")
     public boolean hpReaperLowHealthHearts = true;
+    @SerializedName("hpReaperLowHealthThreshold")
     public int hpReaperLowHealthThreshold = 8;
+    @SerializedName("hpReaperKeybind")
     public Keybind hpReaperKeybind = new Keybind();
+    @SerializedName("hpReaperMode")
     public String hpReaperMode = "target_hp";
+    @SerializedName("hpReaperTargetFilter")
     public String hpReaperTargetFilter = "all_entities";
+    @SerializedName("hpReaperOwnHealthX")
     public int hpReaperOwnHealthX = -1;
+    @SerializedName("hpReaperOwnHealthY")
     public int hpReaperOwnHealthY = -1;
+    @SerializedName("hpReaperCrosshairTargetX")
     public int hpReaperCrosshairTargetX = -1;
+    @SerializedName("hpReaperCrosshairTargetY")
     public int hpReaperCrosshairTargetY = -1;
+    @SerializedName("hpReaperTargetHealthX")
     public int hpReaperTargetHealthX = -1;
+    @SerializedName("hpReaperTargetHealthY")
     public int hpReaperTargetHealthY = -1;
+    @SerializedName("hpReaperDiffX")
     public int hpReaperDiffX = -1;
+    @SerializedName("hpReaperDiffY")
     public int hpReaperDiffY = -1;
 
+    @SerializedName("autoToolEnabled")
     public boolean autoToolEnabled = true;
+    @SerializedName("autoToolKeybind")
     public Keybind autoToolKeybind = new Keybind();
+    @SerializedName("autoToolCombatGuard")
     public boolean autoToolCombatGuard = true;
+    @SerializedName("autoToolWeaponSwitch")
     public boolean autoToolWeaponSwitch = true;
+    @SerializedName("autoToolDurabilitySaver")
     public boolean autoToolDurabilitySaver = true;
+    @SerializedName("autoToolDurabilityThreshold")
     public double autoToolDurabilityThreshold = 5.0;
+    @SerializedName("autoToolPreferSilkTouch")
     public boolean autoToolPreferSilkTouch = false;
+    @SerializedName("autoToolRestorePrevious")
     public boolean autoToolRestorePrevious = true;
+    @SerializedName("autoToolLegitMode")
     public boolean autoToolLegitMode = true;
+    @SerializedName("autoToolSingleSlotMode")
     public boolean autoToolSingleSlotMode = false;
+    @SerializedName("autoToolSingleSlot")
     public int autoToolSingleSlot = 0;
+    @SerializedName("autoToolIgnoreInstantBreak")
     public boolean autoToolIgnoreInstantBreak = true;
+    @SerializedName("autoToolLockWhileMining")
     public boolean autoToolLockWhileMining = true;
 
+    @SerializedName("autoGGEnabled")
     public boolean autoGGEnabled = true;
+    @SerializedName("autoGGKeybind")
     public Keybind autoGGKeybind = new Keybind();
+    @SerializedName("autoGGMenuKeybind")
     public Keybind autoGGMenuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_G);
+    @SerializedName("autoGGPhrase")
     public String autoGGPhrase = "GGWP";
+    @SerializedName("autoGGSendOnKill")
     public boolean autoGGSendOnKill = true;
+    @SerializedName("autoGGSendOnOwnDeath")
     public boolean autoGGSendOnOwnDeath = true;
+    @SerializedName("autoGGRandomOrder")
     public boolean autoGGRandomOrder = false;
+    @SerializedName("autoGGDelayMs")
     public double autoGGDelayMs = 950.0;
 
+    @SerializedName("cartHudEnabled")
     public boolean cartHudEnabled = true;
+    @SerializedName("cartHudKeybind")
     public Keybind cartHudKeybind = new Keybind();
+    @SerializedName("cartHudCustomX")
     public int cartHudCustomX = -1;
+    @SerializedName("cartHudCustomY")
     public int cartHudCustomY = -1;
 
+    @SerializedName("cooldownHudEnabled")
     public boolean cooldownHudEnabled = true;
+    @SerializedName("cooldownHudKeybind")
     public Keybind cooldownHudKeybind = new Keybind();
+    @SerializedName("cooldownHudCustomX")
     public int cooldownHudCustomX = -1;
+    @SerializedName("cooldownHudCustomY")
     public int cooldownHudCustomY = -1;
+    @SerializedName("cooldownHudVertical")
     public boolean cooldownHudVertical = false;
+    @SerializedName("cooldownHudMinDuration")
     public double cooldownHudMinDuration = 2.5;
 
+    @SerializedName("waterDropEnabled")
     public boolean waterDropEnabled = true;
+    @SerializedName("waterDropKeybind")
     public Keybind waterDropKeybind = new Keybind();
+    @SerializedName("waterDropMode")
     public String waterDropMode = "inventory";
+    @SerializedName("waterDropFallThreshold")
     public double waterDropFallThreshold = 4.0;
+    @SerializedName("waterDropPickupWater")
     public boolean waterDropPickupWater = true;
+    @SerializedName("waterDropSwitchBack")
     public boolean waterDropSwitchBack = true;
+    @SerializedName("waterDropCameraMode")
     public String waterDropCameraMode = "off";
+    @SerializedName("waterDropPitchThreshold")
     public double waterDropPitchThreshold = 45.0;
+    @SerializedName("waterDropPickupDelayMs")
     public double waterDropPickupDelayMs = 85.0;
+    @SerializedName("waterDropSwitchDelayMs")
     public double waterDropSwitchDelayMs = 130.0;
+    @SerializedName("waterDropRandomDelay")
     public boolean waterDropRandomDelay = true;
+    @SerializedName("waterDropTargetSlot")
     public String waterDropTargetSlot = "9";
+    @SerializedName("waterDropCombatGuard")
     public boolean waterDropCombatGuard = true;
+    @SerializedName("waterDropPearlGuard")
     public boolean waterDropPearlGuard = true;
+    @SerializedName("waterDropNetherAdapter")
     public boolean waterDropNetherAdapter = true;
+    @SerializedName("waterDropEnableWater")
     public boolean waterDropEnableWater = true;
+    @SerializedName("waterDropEnableWindCharge")
     public boolean waterDropEnableWindCharge = false;
+    @SerializedName("waterDropEnableHayBlock")
     public boolean waterDropEnableHayBlock = true;
+    @SerializedName("waterDropEnableSlimeBlock")
     public boolean waterDropEnableSlimeBlock = true;
+    @SerializedName("waterDropEnableCobweb")
     public boolean waterDropEnableCobweb = true;
+    @SerializedName("waterDropEnablePowderSnow")
     public boolean waterDropEnablePowderSnow = true;
 
+    @SerializedName("clickPearlEnabled")
     public boolean clickPearlEnabled = true;
+    @SerializedName("clickPearlKeybind")
     public Keybind clickPearlKeybind = new Keybind();
+    @SerializedName("clickPearlTriggerKeybind")
     public Keybind clickPearlTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
+    @SerializedName("clickPearlMode")
     public String clickPearlMode = "fast";
+    @SerializedName("clickPearlSearchMode")
     public String clickPearlSearchMode = "hotbar";
+    @SerializedName("clickPearlSwitchBack")
     public boolean clickPearlSwitchBack = true;
+    @SerializedName("clickPearlReturnPearl")
     public boolean clickPearlReturnPearl = false;
+    @SerializedName("clickPearlSwitchDelayMs")
     public double clickPearlSwitchDelayMs = 50.0;
+    @SerializedName("clickPearlCheckCooldown")
     public boolean clickPearlCheckCooldown = true;
+    @SerializedName("clickPearlPreferOffhand")
     public boolean clickPearlPreferOffhand = true;
+    @SerializedName("clickPearlRandomDelay")
     public boolean clickPearlRandomDelay = true;
+    @SerializedName("clickPearlSwingHand")
     public boolean clickPearlSwingHand = true;
+    @SerializedName("clickPearlTargetSlot")
     public String clickPearlTargetSlot = "9";
+    @SerializedName("clickPearlCombatGuard")
     public boolean clickPearlCombatGuard = true;
 
+    @SerializedName("overlayEnabled")
     public boolean overlayEnabled = true;
+    @SerializedName("darkThemeEnabled")
     public boolean darkThemeEnabled = true;
+    @SerializedName("hudPosition")
     public String hudPosition = "top_right";
+    @SerializedName("overlayOpacity")
     public double overlayOpacity = 85.0;
+    @SerializedName("autoHideOnChat")
     public boolean autoHideOnChat = false;
+    @SerializedName("hideInF3")
     public boolean hideInF3 = true;
+    @SerializedName("searchFilter")
     public String searchFilter = "";
+    @SerializedName("filterCategory")
     public String filterCategory = "Все категории";
+    @SerializedName("matchCase")
     public boolean matchCase = false;
 
+    @SerializedName("showCoordinates")
     public boolean showCoordinates = true;
+    @SerializedName("showFps")
     public boolean showFps = true;
+    @SerializedName("showBiome")
     public boolean showBiome = true;
+    @SerializedName("showWorldTime")
     public boolean showWorldTime = false;
+    @SerializedName("showDirection")
     public boolean showDirection = true;
+    @SerializedName("coordFormat")
     public String coordFormat = "X, Y, Z";
+    @SerializedName("hudPadding")
     public double hudPadding = 8.0;
+    @SerializedName("customTitle")
     public String customTitle = "Activity HUD";
+    @SerializedName("textShadow")
     public boolean textShadow = true;
+    @SerializedName("hudCustomX")
     public int hudCustomX = -1;
+    @SerializedName("hudCustomY")
     public int hudCustomY = -1;
+    @SerializedName("hudShowActiveModules")
     public boolean hudShowActiveModules = false;
 
+    @SerializedName("activeProfile")
     public String activeProfile = PRESET_DEFAULT;
+    @SerializedName("themeVariant")
     public String themeVariant = "Фирменная тёмная";
+    @SerializedName("compactMode")
     public boolean compactMode = false;
+    @SerializedName("tooltipsEnabled")
     public boolean tooltipsEnabled = true;
+    @SerializedName("showKeyHints")
     public boolean showKeyHints = true;
+    @SerializedName("smoothTransitions")
     public boolean smoothTransitions = true;
+    @SerializedName("soundVolume")
     public double soundVolume = 70.0;
+    @SerializedName("audioClicks")
     public boolean audioClicks = true;
+    @SerializedName("customPrefix")
     public String customPrefix = "ACT";
+    @SerializedName("toastStyle")
     public String toastStyle = "Компактно справа";
 
+    @SerializedName("debugLogging")
     public boolean debugLogging = false;
+    @SerializedName("profilerActive")
     public boolean profilerActive = false;
+    @SerializedName("asyncTickEnabled")
     public boolean asyncTickEnabled = true;
+    @SerializedName("logLevel")
     public String logLevel = "INFO";
+    @SerializedName("benchmarksEnabled")
     public boolean benchmarksEnabled = false;
+    @SerializedName("maxCacheEntries")
     public double maxCacheEntries = 256.0;
+    @SerializedName("scissorOpt")
     public boolean scissorOpt = true;
+    @SerializedName("filterRegex")
     public String filterRegex = ".*";
+    @SerializedName("gcPolicy")
     public String gcPolicy = "Консервативный";
 
+    @SerializedName("menuKeybind")
     public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+    @SerializedName("menuCommand")
     public String menuCommand = "nt";
+    @SerializedName("guiTheme")
     public String guiTheme = "client";
+    @SerializedName("fontFamily")
     public String fontFamily = "minecraft";
+    @SerializedName("typographySize")
     public String typographySize = "normal";
+    @SerializedName("language")
     public String language = "auto";
+    @SerializedName("windowOpacity")
     public double windowOpacity = 85.0;
+    @SerializedName("panelOpacity")
     public double panelOpacity = 65.0;
+    @SerializedName("glassEffect")
     public boolean glassEffect = true;
+    @SerializedName("windowPosX")
     public int windowPosX = -1;
+    @SerializedName("windowPosY")
     public int windowPosY = -1;
+    @SerializedName("windowWidth")
     public int windowWidth = -1;
+    @SerializedName("windowHeight")
     public int windowHeight = -1;
+    @SerializedName("windowMaximized")
     public boolean windowMaximized = false;
+    @SerializedName("unmaximizedX")
     public int unmaximizedX = -1;
+    @SerializedName("unmaximizedY")
     public int unmaximizedY = -1;
+    @SerializedName("unmaximizedWidth")
     public int unmaximizedWidth = -1;
+    @SerializedName("unmaximizedHeight")
     public int unmaximizedHeight = -1;
+    @SerializedName("soundEnabled")
     public boolean soundEnabled = true;
+    @SerializedName("soundProfile")
     public String soundProfile = "serene";
+    @SerializedName("sliderSoundEnabled")
     public boolean sliderSoundEnabled = true;
+    @SerializedName("animationsEnabled")
     public boolean animationsEnabled = true;
+    @SerializedName("spatialOpenAnimation")
     public boolean spatialOpenAnimation = true;
 
     public static class ModuleConfigEntry {
+        @SerializedName("enabled")
         public boolean enabled = true;
+        @SerializedName("keybind")
         public Keybind keybind = new Keybind();
+        @SerializedName("settings")
         public java.util.Map<String, Object> settings = new java.util.LinkedHashMap<>();
 
         public ModuleConfigEntry() {}
@@ -427,39 +764,71 @@ public class ActivityConfig {
         }
     }
 
+    @SerializedName("modules")
     public java.util.Map<String, ModuleConfigEntry> modules = new java.util.LinkedHashMap<>();
 
     public static class UiSection {
+        @SerializedName("overlayEnabled")
         public boolean overlayEnabled = true;
+        @SerializedName("darkThemeEnabled")
         public boolean darkThemeEnabled = true;
+        @SerializedName("hudPosition")
         public String hudPosition = "top_right";
+        @SerializedName("overlayOpacity")
         public double overlayOpacity = 85.0;
+        @SerializedName("autoHideOnChat")
         public boolean autoHideOnChat = false;
+        @SerializedName("hideInF3")
         public boolean hideInF3 = true;
+        @SerializedName("showCoordinates")
         public boolean showCoordinates = true;
+        @SerializedName("showFps")
         public boolean showFps = true;
+        @SerializedName("showBiome")
         public boolean showBiome = true;
+        @SerializedName("showWorldTime")
         public boolean showWorldTime = false;
+        @SerializedName("showDirection")
         public boolean showDirection = true;
+        @SerializedName("coordFormat")
         public String coordFormat = "X, Y, Z";
+        @SerializedName("hudPadding")
         public double hudPadding = 8.0;
+        @SerializedName("customTitle")
         public String customTitle = "Activity HUD";
+        @SerializedName("textShadow")
         public boolean textShadow = true;
+        @SerializedName("themeVariant")
         public String themeVariant = "Фирменная тёмная";
+        @SerializedName("compactMode")
         public boolean compactMode = false;
+        @SerializedName("tooltipsEnabled")
         public boolean tooltipsEnabled = true;
+        @SerializedName("showKeyHints")
         public boolean showKeyHints = true;
+        @SerializedName("smoothTransitions")
         public boolean smoothTransitions = true;
+        @SerializedName("animationsEnabled")
         public boolean animationsEnabled = true;
+        @SerializedName("spatialOpenAnimation")
         public boolean spatialOpenAnimation = true;
+        @SerializedName("windowOpacity")
         public double windowOpacity = 85.0;
+        @SerializedName("panelOpacity")
         public double panelOpacity = 65.0;
+        @SerializedName("glassEffect")
         public boolean glassEffect = true;
+        @SerializedName("hudCustomX")
         public int hudCustomX = -1;
+        @SerializedName("hudCustomY")
         public int hudCustomY = -1;
+        @SerializedName("hudShowActiveModules")
         public boolean hudShowActiveModules = false;
+        @SerializedName("menuKeybind")
         public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+        @SerializedName("menuCommand")
         public String menuCommand = "nt";
+        @SerializedName("language")
         public String language = "auto";
         @Override
         public boolean equals(Object o) {
@@ -510,10 +879,15 @@ public class ActivityConfig {
     }
 
     public static class SoundSection {
+        @SerializedName("soundEnabled")
         public boolean soundEnabled = true;
+        @SerializedName("soundProfile")
         public String soundProfile = "serene";
+        @SerializedName("soundVolume")
         public double soundVolume = 70.0;
+        @SerializedName("audioClicks")
         public boolean audioClicks = true;
+        @SerializedName("sliderSoundEnabled")
         public boolean sliderSoundEnabled = true;
 
         @Override
@@ -534,7 +908,9 @@ public class ActivityConfig {
     }
 
     public static class FontsSection {
+        @SerializedName("fontFamily")
         public String fontFamily = "minecraft";
+        @SerializedName("typographySize")
         public String typographySize = "normal";
 
         @Override
@@ -552,8 +928,11 @@ public class ActivityConfig {
     }
 
     public static class ClientSection {
+        @SerializedName("ui")
         public UiSection ui = new UiSection();
+        @SerializedName("sound")
         public SoundSection sound = new SoundSection();
+        @SerializedName("fonts")
         public FontsSection fonts = new FontsSection();
 
         @Override
@@ -571,9 +950,12 @@ public class ActivityConfig {
         }
     }
 
+    @SerializedName("client")
     public ClientSection client = new ClientSection();
 
+    @SerializedName("legacyMigrationDone")
     public boolean legacyMigrationDone = false;
+    @SerializedName("legacyMigrationVersion")
     public int legacyMigrationVersion = 0;
 
     public ActivityConfig() {}

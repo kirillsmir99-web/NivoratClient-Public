@@ -1,6 +1,6 @@
 package activity.visualsmoke;
 
-import activity.client.gui.custom.AutoCartCalibrationScreen;
+import activity.client.gui.custom.AutoCartCalibrationDrawer;
 import activity.client.module.api.ModuleRegistry;
 import activity.client.module.impl.defense.OcclusionCacheModule;
 import dev.nivorat.arc.ArcMotorCalibrationService;
@@ -89,13 +89,15 @@ final class AutoCartSmoke {
             require(!CombatLockManager.isLocked(), "Macro retained combat lock");
             require(!client.options.useKey.isPressed(), "Macro retained virtual use key");
             System.out.println("AUTOCART_SMOKE passed: physical shot, smooth camera, server placement, slot/key/lock cleanup");
-            client.setScreen(new AutoCartCalibrationScreen(null));
+            client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
+            AutoCartCalibrationDrawer.open();
         }
         if (tick == 155) {
-            require(client.currentScreen instanceof AutoCartCalibrationScreen, "Calibration menu disappeared");
+            require(AutoCartCalibrationDrawer.isOpen(), "Calibration menu not open");
             capture(client, "autocart-calibration-ready.png");
         }
         if (tick == 170) {
+            AutoCartCalibrationDrawer.close();
             client.setScreen(null);
             clearEntities(client);
             stack(client, 12, ItemStack.EMPTY);
@@ -132,12 +134,14 @@ final class AutoCartSmoke {
             ArcMotorCalibrationService.start();
             ArcMotorCalibrationService.pause();
             require(ArcMotorCalibrationService.hasSession() && !ArcMotorCalibrationService.isActive(), "Calibration pause lost session");
-            client.setScreen(new AutoCartCalibrationScreen(null));
+            client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
+            AutoCartCalibrationDrawer.open();
             System.out.println("AUTOCART_GUARDS passed: missing physical shot and GUI cancellation");
         }
         if (tick == 250) capture(client, "autocart-calibration-paused.png");
         if (tick == 260) {
             ArcMotorCalibrationService.stop();
+            AutoCartCalibrationDrawer.close();
             client.setScreen(null);
             VisualSmoke.writeResult(true, "AutoCart physical arrow gate, macro, smooth camera, cancellation and calibration menu");
             client.scheduleStop();

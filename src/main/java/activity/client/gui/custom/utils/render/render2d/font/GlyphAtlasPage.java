@@ -14,7 +14,7 @@ implements AutoCloseable {
     private final int size;
     private final NativeImage image;
     private final NativeImageBackedTexture texture;
-    private final TextureSetup textureSetup;
+    private TextureSetup textureSetup;
     private int cursorX = 1;
     private int cursorY = 1;
     private int rowHeight;
@@ -24,7 +24,15 @@ implements AutoCloseable {
         this.size = n;
         this.image = new NativeImage(n, n, true);
         this.texture = new NativeImageBackedTexture(() -> "nv_font_atlas_" + nextId++, this.image);
-        this.textureSetup = TextureSetup.of((GpuTextureView)(Object)this.texture.getGlTextureView(), (GpuSampler)RenderSystem.getSamplerCache().get(FilterMode.LINEAR));
+        this.texture.upload();
+        this.updateTextureSetup();
+    }
+
+    private void updateTextureSetup() {
+        GpuTextureView view = (GpuTextureView)(Object)this.texture.getGlTextureView();
+        if (view != null) {
+            this.textureSetup = TextureSetup.of(view, (GpuSampler)RenderSystem.getSamplerCache().get(FilterMode.LINEAR));
+        }
     }
 
     void copy(BufferedImage bufferedImage, int n, int n2) {
@@ -73,6 +81,10 @@ implements AutoCloseable {
     }
 
     TextureSetup textureSetup() {
+        this.uploadIfDirty();
+        if (this.textureSetup == null) {
+            this.updateTextureSetup();
+        }
         return this.textureSetup;
     }
 
@@ -81,6 +93,7 @@ implements AutoCloseable {
             return;
         }
         this.texture.upload();
+        this.updateTextureSetup();
         this.dirty = false;
     }
 

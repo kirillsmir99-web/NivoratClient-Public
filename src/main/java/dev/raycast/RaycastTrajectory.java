@@ -1,14 +1,15 @@
 package dev.raycast;
 
+import activity.client.util.Obf;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public final class RaycastTrajectory {
-    public static final double PEARL_SPEED = 1.5;
-    public static final double PEARL_GRAVITY = 0.03;
-    public static final double PEARL_DRAG = 0.99;
-    public static final double WIND_CHARGE_SPEED = 1.5;
-    public static final double BURST_OFFSET_Y = 0.38;
+    public static final double PEARL_SPEED = dev.raycast.internal.RaycastDomain.d(207900655223733530L);
+    public static final double PEARL_GRAVITY = dev.raycast.internal.RaycastDomain.d(181310406754263970L);
+    public static final double PEARL_DRAG = dev.raycast.internal.RaycastDomain.d(213132216485493428L);
+    public static final double WIND_CHARGE_SPEED = dev.raycast.internal.RaycastDomain.d(207900655223733530L);
+    public static final double BURST_OFFSET_Y = dev.raycast.internal.RaycastDomain.d(198947149418906952L);
 
     private RaycastTrajectory() {}
 
@@ -30,21 +31,24 @@ public final class RaycastTrajectory {
 
     public static Solution solveIntercept(Vec3d pearlOrigin, Vec3d pearlVelocity, int pearlAge,
                                           Vec3d windOrigin, Vec3d inheritedWindVelocity) {
-        double previousTime = .25;
+        double dtStep = dev.raycast.internal.RaycastDomain.d(201145255782677786L);
+        double previousTime = dtStep;
         double previousError = speedError(pearlOrigin, pearlVelocity, pearlAge, windOrigin, inheritedWindVelocity, previousTime);
         double bestTime = previousTime;
         double bestError = Math.abs(previousError);
-        for (double time = .5; time <= 30; time += .25) {
+        double maxSearchTime = dev.raycast.internal.RaycastDomain.d(9017504476313845018L);
+        for (double time = dev.raycast.internal.RaycastDomain.d(214656054664789274L); time <= maxSearchTime; time += dtStep) {
             double error = speedError(pearlOrigin, pearlVelocity, pearlAge, windOrigin, inheritedWindVelocity, time);
             if (previousError * error <= 0) {
                 double lo = previousTime, hi = time;
-                for (int iteration = 0; iteration < 28; iteration++) {
-                    double mid = (lo + hi) * .5;
+                int maxIterations = dev.raycast.internal.RaycastDomain.i(1817922085);
+                for (int iteration = 0; iteration < maxIterations; iteration++) {
+                    double mid = (lo + hi) * dev.raycast.internal.RaycastDomain.d(214656054664789274L);
                     double midError = speedError(pearlOrigin, pearlVelocity, pearlAge, windOrigin, inheritedWindVelocity, mid);
                     if (previousError * midError <= 0) hi = mid;
                     else { lo = mid; previousError = midError; }
                 }
-                bestTime = (lo + hi) * .5;
+                bestTime = (lo + hi) * dev.raycast.internal.RaycastDomain.d(214656054664789274L);
                 bestError = 0;
                 break;
             }

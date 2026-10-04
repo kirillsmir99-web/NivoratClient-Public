@@ -8,14 +8,20 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Objects;
 
+import com.google.gson.annotations.SerializedName;
+
 public final class Keybind {
 
     public static final int UNBOUND = -1;
     public static final int MOUSE_OFFSET = -100;
 
+    @SerializedName("keyCode")
     private int keyCode;
+    @SerializedName("ctrl")
     private boolean ctrl;
+    @SerializedName("shift")
     private boolean shift;
+    @SerializedName("alt")
     private boolean alt;
 
     public Keybind() {

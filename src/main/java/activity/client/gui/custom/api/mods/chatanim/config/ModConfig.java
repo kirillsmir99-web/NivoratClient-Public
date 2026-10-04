@@ -1,5 +1,6 @@
 package activity.client.gui.custom.api.mods.chatanim.config;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.FileReader;
@@ -11,10 +12,15 @@ public final class ModConfig {
     private static ModConfig instance;
     private static final Gson GSON;
     private transient File configFile;
+    @SerializedName("enableMessageAnimation")
     public boolean enableMessageAnimation = true;
+    @SerializedName("enableTextFieldAnimation")
     public boolean enableTextFieldAnimation = true;
+    @SerializedName("removeMessageIndicator")
     public boolean removeMessageIndicator = true;
+    @SerializedName("fadeTimeMessage")
     public int fadeTimeMessage = 150;
+    @SerializedName("fadeTimeTextField")
     public int fadeTimeTextField = 170;
 
     static {

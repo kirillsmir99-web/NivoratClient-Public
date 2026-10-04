@@ -1,5 +1,6 @@
 package dev.nivorat.arc;
 
+import activity.client.util.Obf;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -180,9 +181,9 @@ public final class ArcMotionProfile {
             outputs[k] = (float) Math.tanh(sum);
         }
 
-        float velocityMod = 1.0f + outputs[0] * 0.15f * saccadeSpeedMultiplier;
-        float curvatureMod = curvatureBias * (1.0f + outputs[1] * 0.25f);
-        float tremorMod = tremorVolatility * (1.0f + outputs[2] * 0.20f);
+        float velocityMod = 1.0f + outputs[0] * Obf.f(0x6465A484) * saccadeSpeedMultiplier;
+        float curvatureMod = curvatureBias * (1.0f + outputs[1] * Obf.f(0x64FC3D1E));
+        float tremorMod = tremorVolatility * (1.0f + outputs[2] * Obf.f(0x6430F1D3));
 
         return new float[]{velocityMod, curvatureMod, tremorMod};
     }

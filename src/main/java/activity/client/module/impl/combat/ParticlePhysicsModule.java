@@ -39,6 +39,24 @@ public class ParticlePhysicsModule extends NivoratModule {
                 .aliases("automace", "mace", "булава", "автобулава", "авто-булава", "авто булава", "свап", "swap", "bridge", "bridge swap", "бридж")
                 .build();
 
+        registerEnum("source_mode", Text.translatable("activity.setting.combat.source_mode"),
+                Text.translatable("activity.setting.combat.source_mode.desc"), SettingGroup.GENERAL,
+                List.of("any", "sword_and_axe", "sword_only", "axe_only"), "sword_and_axe",
+                opt -> Text.translatable("activity.dropdown.source." + opt),
+                () -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    return c != null ? c.autoMaceSourceMode : "sword_and_axe";
+                },
+                val -> {
+                    ActivityConfig c = ActivityConfigManager.getConfig();
+                    if (c != null) {
+                        c.autoMaceSourceMode = val;
+                        syncEngineConfig(c);
+                        ActivityConfigManager.markDirty();
+                    }
+                }
+        );
+
         registerEnum("swap_type", Text.translatable("activity.setting.combat.swap_type"),
                 Text.translatable("activity.setting.combat.swap_type.desc"), SettingGroup.GENERAL,
                 List.of("new", "old"), "new",
@@ -52,24 +70,6 @@ public class ParticlePhysicsModule extends NivoratModule {
                     if (c != null) {
                         c.autoMaceSwapType = val;
                         c.autoMaceEngineMode = val;
-                        syncEngineConfig(c);
-                        ActivityConfigManager.markDirty();
-                    }
-                }
-        );
-
-        registerEnum("source_mode", Text.translatable("activity.setting.combat.source_mode"),
-                Text.translatable("activity.setting.combat.source_mode.desc"), SettingGroup.GENERAL,
-                List.of("any", "sword_and_axe", "sword_only", "axe_only"), "sword_and_axe",
-                opt -> Text.translatable("activity.dropdown.source." + opt),
-                () -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    return c != null ? c.autoMaceSourceMode : "sword_and_axe";
-                },
-                val -> {
-                    ActivityConfig c = ActivityConfigManager.getConfig();
-                    if (c != null) {
-                        c.autoMaceSourceMode = val;
                         syncEngineConfig(c);
                         ActivityConfigManager.markDirty();
                     }

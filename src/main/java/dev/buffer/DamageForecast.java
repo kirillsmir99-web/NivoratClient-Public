@@ -1,5 +1,6 @@
 package dev.buffer;
 
+import activity.client.util.Obf;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.client.MinecraftClient;
@@ -96,14 +97,14 @@ public final class DamageForecast {
         for (Entity entity : client.world.getOtherEntities(player, searchBox)) {
             float power = 0.0F;
             if (entity instanceof EndCrystalEntity) {
-                power = 6.0F;
+                power = Obf.f(0x1ABC3D1E);
             } else if (entity instanceof TntEntity tnt) {
                 if (tnt.getFuse() <= 6) {
-                    power = 4.0F;
+                    power = Obf.f(0x1AFC3D1E);
                 }
             } else if (entity instanceof CreeperEntity creeper) {
                 if (creeper.getFuseSpeed() > 0) {
-                    power = 3.0F;
+                    power = Obf.f(0x1A3C3D1E);
                 }
             }
 
@@ -153,15 +154,16 @@ public final class DamageForecast {
             return 0.0F;
         }
         double vy = player.getVelocity().y;
-        if (vy >= -0.3D) {
+        if (vy >= -Obf.d(0x65AF0E2D694F0E2DL)) {
             return 0.0F;
         }
 
-        float projectedDistance = (float) player.fallDistance + (float) (-vy * 3.0D);
-        if (projectedDistance <= 3.0F) {
+        float projectedDistance = (float) player.fallDistance + (float) (-vy * Obf.d(0x1A743D1E5A7C3D1EL));
+        float f3 = Obf.f(0x1A3C3D1E);
+        if (projectedDistance <= f3) {
             return 0.0F;
         }
-        return (projectedDistance - 3.0F);
+        return (projectedDistance - f3);
     }
 
     private static float calculateMaceRisk(MinecraftClient client, ClientPlayerEntity player) {

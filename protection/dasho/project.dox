@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dasho version="11.0.0">
+    <propertylist>
+        <property name="projectname" value="NivoratClient"/>
+    </propertylist>
+    <global>
+        <option>IGNORENOTFOUNDCLASSES</option>
+        <option>FORNAMEDETECTION</option>
+    </global>
+    
+    <inputpath>
+        <!-- Replaced dynamically at build time with remapped Fabric JAR -->
+        <pathelement location="${input.jar}"/>
+    </inputpath>
+    
+    <classpath>
+        <!-- Replaced dynamically at build time with Fabric compile classpath -->
+        <pathelement location="${compile.classpath}"/>
+    </classpath>
+    
+    <entrypoints>
+        <!-- ========================================== -->
+        <!-- TIER 0: FABRIC ENTRYPOINTS & API CONTRACTS -->
+        <!-- ========================================== -->
+        <classes name="activity.client.CooldownHudClient">
+            <method name="onInitializeClient" signature="()V"/>
+        </classes>
+        <classes name="activity.client.integration.ClientIntegrationProvider">
+            <method name="&lt;init&gt;" signature="()V"/>
+            <method name="getSettings" signature="**"/>
+        </classes>
+    </entrypoints>
+    
+    <!-- ============================================================== -->
+    <!-- RENAMING RULES (TIER 0 KEEP vs TIER 1/2/3 OBFUSCATION)        -->
+    <!-- ============================================================== -->
+    <renaming option="on">
+        <mapping>
+            <mapreport path="${mapping.file}"/>
+        </mapping>
+        <excludelist>
+            <!-- Tier 0: Fabric Entrypoints -->
+            <classes name="activity.client.CooldownHudClient"/>
+            <classes name="activity.client.integration.ClientIntegrationProvider"/>
+            
+            <!-- Tier 0: Mixin Classes, Accessors, and Invokers (All 5 configs) -->
+            <classes name="activity.client.mixin.pipeline.**"/>
+            <classes name="activity.client.mixin.audio.**"/>
+            <classes name="activity.client.mixin.dev.**"/>
+            <classes name="activity.client.mixin.cooldown.**"/>
+            <classes name="activity.client.gui.custom.mixin.**"/>
+            
+            <!-- Tier 0: Reflective Setting Fields for VisualSettingsStore -->
+            <classes name="activity.client.gui.custom.VisualMaterial">
+                <field name="*" type="activity.client.gui.custom.api.modules.settings.Setting"/>
+            </classes>
+            <classes name="activity.client.gui.custom.api.modules.impl.Interface.ClickGui">
+                <field name="*" type="activity.client.gui.custom.api.modules.settings.Setting"/>
+            </classes>
+            <classes name="activity.client.gui.custom.api.modules.impl.Utils.ClientSounds">
+                <field name="*" type="activity.client.gui.custom.api.modules.settings.Setting"/>
+            </classes>
+            <classes name="activity.client.gui.custom.api.modules.impl.Interface.WatermarkModule">
+                <field name="*" type="activity.client.gui.custom.api.modules.settings.Setting"/>
+            </classes>
+
+            <!-- Tier 0: Public Ecosystem APIs -->
+            <classes name="activity.client.module.api.IModule"/>
+            <classes name="activity.client.module.api.CooldownModule"/>
+            <classes name="activity.client.module.api.NivoratModule"/>
+        </excludelist>
+    </renaming>
+    
+    <!-- ============================================================== -->
+    <!-- CONTROL FLOW TRANSFORMATION                                    -->
+    <!-- ============================================================== -->
+    <controlflow option="on">
+        <excludelist>
+            <!-- Tier 0: Mixins cannot undergo destructive control-flow modifications -->
+            <classes name="activity.client.mixin.**"/>
+            <classes name="activity.client.gui.custom.mixin.**"/>
+            
+            <!-- Tier 1: Performance-critical GUI rendering hot paths excluded from heavy flow -->
+            <classes name="activity.client.gui.custom.utils.render.**"/>
+            <classes name="activity.client.gui.custom.utils.render.render2d.Render2D"/>
+            <classes name="activity.client.gui.custom.utils.render.render2d.msdf.**"/>
+            
+            <!-- Tier 1: High-frequency kinematics hot loop excluded from heavy flow -->
+            <classes name="dev.nivorat.arc.ArcMotionProfile">
+                <method name="forward" signature="**"/>
+            </classes>
+        </excludelist>
+    </controlflow>
+    
+    <!-- ============================================================== -->
+    <!-- STRING ENCRYPTION                                              -->
+    <!-- ============================================================== -->
+    <stringencrypt option="on">
+        <seInput path="${input.jar}"/>
+        <excludelist>
+            <!-- Exclude hot render loops to preserve frametime / 0 FPS drop -->
+            <classes name="activity.client.gui.custom.utils.render.**"/>
+            <classes name="activity.client.gui.custom.utils.render.render2d.msdf.**"/>
+        </excludelist>
+    </stringencrypt>
+    
+    <!-- Optimize/Dead-code removal disabled to prevent breaking dynamic lookups -->
+    <optimization option="off"/>
+    
+    <!-- Watermarking / Traceability -->
+    <premark option="on">
+        <watermark>NivoratClient-Release-${build.version}-${build.hash}</watermark>
+    </premark>
+    
+    <output>
+        <dir path="${output.dir}"/>
+    </output>
+</dasho>

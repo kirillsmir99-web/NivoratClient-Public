@@ -1,6 +1,7 @@
 package dev.audio;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -14,12 +15,19 @@ public final class AudioSyncConfig {
     public static final int MAX_PHRASES = 8;
     public static final List<String> DEFAULT_PHRASES = List.of("GGWP", "ez", "GG");
 
+    @SerializedName("enabled")
     public boolean enabled = true;
+    @SerializedName("sendOnKill")
     public boolean sendOnKill = true;
+    @SerializedName("sendOnOwnDeath")
     public boolean sendOnOwnDeath = true;
+    @SerializedName("randomOrder")
     public boolean randomOrder = false;
+    @SerializedName("phrases")
     public List<String> phrases = new ArrayList<>(DEFAULT_PHRASES);
+    @SerializedName("favorites")
     public List<String> favorites = new ArrayList<>();
+    @SerializedName("selected")
     public int selected = 0;
 
     private static final Gson G = new GsonBuilder().setPrettyPrinting().create();

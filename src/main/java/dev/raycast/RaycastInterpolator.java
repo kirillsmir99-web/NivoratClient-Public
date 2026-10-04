@@ -1,5 +1,6 @@
 package dev.raycast;
 
+import dev.raycast.internal.RaycastDomain;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.MathHelper;
 
@@ -48,7 +49,7 @@ public final class RaycastInterpolator {
 
         double t = Math.max(0.0, Math.min(1.0, progress));
 
-        double smooth = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+        double smooth = evaluateSmootherstep(t);
 
         float calculatedPitch = (float) (startPitch + (targetPitch - startPitch) * smooth);
         float calculatedYaw = (float) (startYaw + (targetYaw - startYaw) * smooth);
@@ -85,11 +86,18 @@ public final class RaycastInterpolator {
         this.lastAppliedYaw = finalYaw;
     }
 
+    private static double evaluateSmootherstep(double t) {
+        double c6 = RaycastDomain.d(9007934327105682714L) ;
+        double c15 = RaycastDomain.d(9022008075941215514L) ;
+        double c10 = RaycastDomain.d(9024822825708322074L) ;
+        return t * t * t * (t * (t * c6 - c15) + c10);
+    }
+
     public static double calculateMouseGcd(MinecraftClient client) {
-        if (client == null || client.options == null) return 0.0015;
+        if (client == null || client.options == null) return RaycastDomain.d(162710128242721760L) ;
         double sens = client.options.getMouseSensitivity().getValue();
-        double d = sens * 0.6000000238418579 + 0.20000000298023224;
-        return d * d * d * 8.0 * 0.15;
+        double d = sens * RaycastDomain.d(214395663899512361L)  + RaycastDomain.d(203511986363294848L) ;
+        return d * d * d * RaycastDomain.d(9023696925801479450L)  * RaycastDomain.d(205388464644771369L) ;
     }
 
     public boolean isActive() {

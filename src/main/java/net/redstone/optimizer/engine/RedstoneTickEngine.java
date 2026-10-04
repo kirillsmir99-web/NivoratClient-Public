@@ -423,20 +423,21 @@ public final class RedstoneTickEngine {
             double distSq = otherPlayer.squaredDistanceTo(eyePos);
             if (distSq <= bestDistSq) {
                 bestDistSq = distSq;
-                best = otherPlayer;
+                best = (Entity) otherPlayer;
             }
         }
         if (best != null) return best;
         Box searchBox = player.getBoundingBox().expand(3.8);
         List<Entity> mobs = client.world.getOtherEntities(player, searchBox, e -> e instanceof LivingEntity living && living.isAlive() && !(e instanceof ArmorStandEntity) && !(e instanceof BatEntity));
+        Entity bestMob = null;
         for (Entity mob : mobs) {
             double distSq = mob.squaredDistanceTo(eyePos);
             if (distSq <= bestDistSq) {
                 bestDistSq = distSq;
-                best = mob;
+                bestMob = mob;
             }
         }
-        return best;
+        return bestMob;
     }
 
     private static boolean isInCobweb(ClientPlayerEntity player) {

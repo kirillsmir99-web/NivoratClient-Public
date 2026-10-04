@@ -1,5 +1,6 @@
 package dev.nivorat.arc;
 
+import activity.client.util.Obf;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
@@ -58,15 +59,7 @@ public final class ArcMotorAnalysisEngine {
             quadrantCounts[quad]++;
         }
 
-        if (mag < 3.0f) {
-            magnitudeBins[0]++;
-        } else if (mag < 15.0f) {
-            magnitudeBins[1]++;
-        } else if (mag < 45.0f) {
-            magnitudeBins[2]++;
-        } else {
-            magnitudeBins[3]++;
-        }
+        magnitudeBins[resolveMagnitudeBin(mag)]++;
 
         if (velocitySamples.size() < 500) {
             velocitySamples.add(vel);
@@ -148,10 +141,18 @@ public final class ArcMotorAnalysisEngine {
             if (actionYawDeltas.size() < 100 && Float.isFinite(yawDelta)) {
                 actionYawDeltas.add(Math.abs(yawDelta));
             }
-            AutoCartLogger.logSampleQuality("rail", true, quality, "valid_timing");
+            AutoCartLogger.logSampleQuality(
+                Obf.s(new byte[] {(byte) 0x74, (byte) 0xBA, (byte) 0x64, (byte) 0xC0}),
+                true, quality,
+                Obf.s(new byte[] {(byte) 0x70, (byte) 0xBA, (byte) 0x61, (byte) 0xC5, (byte) 0x37, (byte) 0xAB, (byte) 0x38, (byte) 0x82, (byte) 0x41, (byte) 0x74, (byte) 0x1A, (byte) 0xA0})
+            );
         } else {
             rejectedSamplesCount++;
-            AutoCartLogger.logSampleQuality("rail", false, quality, "timing_outlier");
+            AutoCartLogger.logSampleQuality(
+                Obf.s(new byte[] {(byte) 0x74, (byte) 0xBA, (byte) 0x64, (byte) 0xC0}),
+                false, quality,
+                Obf.s(new byte[] {(byte) 0x72, (byte) 0xB2, (byte) 0x60, (byte) 0xC5, (byte) 0x3D, (byte) 0x93, (byte) 0x13, (byte) 0x84, (byte) 0x59, (byte) 0x69, (byte) 0x18, (byte) 0xAE, (byte) 0x5B, (byte) 0x5B})
+            );
         }
     }
 
@@ -183,10 +184,18 @@ public final class ArcMotorAnalysisEngine {
                 actionYawDeltas.add(Math.abs(yawDelta));
             }
             completedSequences++;
-            AutoCartLogger.logSampleQuality("cart", true, quality, "valid_timing");
+            AutoCartLogger.logSampleQuality(
+                Obf.s(new byte[] {(byte) 0x65, (byte) 0xBA, (byte) 0x7F, (byte) 0xD8}),
+                true, quality,
+                Obf.s(new byte[] {(byte) 0x70, (byte) 0xBA, (byte) 0x61, (byte) 0xC5, (byte) 0x37, (byte) 0xAB, (byte) 0x38, (byte) 0x82, (byte) 0x41, (byte) 0x74, (byte) 0x1A, (byte) 0xA0})
+            );
         } else {
             rejectedSamplesCount++;
-            AutoCartLogger.logSampleQuality("cart", false, quality, "timing_outlier");
+            AutoCartLogger.logSampleQuality(
+                Obf.s(new byte[] {(byte) 0x65, (byte) 0xBA, (byte) 0x7F, (byte) 0xD8}),
+                false, quality,
+                Obf.s(new byte[] {(byte) 0x72, (byte) 0xB2, (byte) 0x60, (byte) 0xC5, (byte) 0x3D, (byte) 0x93, (byte) 0x13, (byte) 0x84, (byte) 0x59, (byte) 0x69, (byte) 0x18, (byte) 0xAE, (byte) 0x5B, (byte) 0x5B})
+            );
         }
     }
 
@@ -208,17 +217,23 @@ public final class ArcMotorAnalysisEngine {
         }
     }
 
+    private static int resolveMagnitudeBin(float mag) {
+        if (mag < Obf.f(0x1A3C3D1E)) return 0;
+        if (mag < Obf.f(0x1B0C3D1E)) return 1;
+        return mag < Obf.f(0x18483D1E) ? 2 : 3;
+    }
+
     private static float evaluateTimingQuality(long dtMs) {
-        if (dtMs < ArcActionValidator.MIN_ACTION_DELAY_MS || dtMs > 3000L) {
-            return 0.1f;
+        if (dtMs < ArcActionValidator.MIN_ACTION_DELAY_MS || dtMs > Obf.l(0x5A7C3D1E5A7C36A6L)) {
+            return Obf.f(0x67B0F1D3);
         }
-        if (dtMs >= 35L && dtMs <= 400L) {
-            return 1.0f;
+        if (dtMs >= Obf.l(0x5A7C3D1E5A7C3D3DL) && dtMs <= Obf.l(0x5A7C3D1E5A7C3C8EL)) {
+            return Obf.f(0x65FC3D1E);
         }
-        if (dtMs <= 800L) {
-            return 0.75f;
+        if (dtMs <= Obf.l(0x5A7C3D1E5A7C3E3EL)) {
+            return Obf.f(0x653C3D1E);
         }
-        return 0.45f;
+        return Obf.f(0x649A5B78);
     }
 
     public synchronized float computeCameraCoverage() {
@@ -309,14 +324,39 @@ public final class ArcMotorAnalysisEngine {
         return MathHelper.clamp(totalFrames / 30.0f, 0.0f, 1.0f);
     }
 
-    public synchronized float computeRawMastery() {
-        float cam = computeCameraCoverage();
-        float timing = computeActionTimingCoverage();
-        float combined = computeCombinedMovementCoverage();
-        float realSamples = computeRealActionSamplesCoverage();
-        float stability = computeStabilityScore();
+    private static float accumulateWeightedMastery(float cam, float timing, float combined, float realSamples, float stability) {
+        float w20 = Obf.f(0x6430F1D3);
+        float w25 = Obf.f(0x64FC3D1E);
+        float w10 = Obf.f(0x67B0F1D3);
+        return ((cam + combined) * w20) + ((timing + realSamples) * w25) + (stability * w10);
+    }
 
-        return (cam * 0.20f) + (timing * 0.25f) + (combined * 0.20f) + (realSamples * 0.25f) + (stability * 0.10f);
+    public synchronized float computeRawMastery() {
+        return accumulateWeightedMastery(
+            computeCameraCoverage(),
+            computeActionTimingCoverage(),
+            computeCombinedMovementCoverage(),
+            computeRealActionSamplesCoverage(),
+            computeStabilityScore()
+        );
+    }
+
+    private static int evaluateMasteryCaps(float c1, float c2, float c3, float c4, float c5, float timeRatio, int rawMastery) {
+        int cap = rawMastery;
+        if (c4 <= Obf.f(0x6730F1D3)) {
+            cap = Math.min(cap, Obf.i(0x5A7C3D07));
+        } else if (c4 < Obf.f(0x64FC3D1E)) {
+            cap = Math.min(cap, Obf.i(0x5A7C3D3D));
+        } else if (c2 < Obf.f(0x64E5A484) || c4 < Obf.f(0x64E5A484)) {
+            cap = Math.min(cap, Obf.i(0x5A7C3D2C));
+        } else if (c2 < Obf.f(0x657C3D1E) || c4 < Obf.f(0x657C3D1E)) {
+            cap = Math.min(cap, Obf.i(0x5A7C3D54));
+        }
+
+        if (timeRatio < Obf.f(0x6530F1D3) || c1 < Obf.f(0x651A5B78) || c2 < Obf.f(0x651A5B78) || c3 < Obf.f(0x651A5B78) || c4 < Obf.f(0x651A5B78) || c5 < Obf.f(0x651A5B78)) {
+            cap = Math.min(cap, Obf.i(0x5A7C3D71));
+        }
+        return MathHelper.clamp(cap, 0, 100);
     }
 
     public synchronized int computeMasteryPercent(long elapsedMs, long targetDurationMs) {
@@ -326,27 +366,13 @@ public final class ArcMotorAnalysisEngine {
         float c4 = computeRealActionSamplesCoverage();
         float c5 = computeStabilityScore();
 
-        float raw = (c1 * 0.20f) + (c2 * 0.25f) + (c3 * 0.20f) + (c4 * 0.25f) + (c5 * 0.10f);
-        long safeTarget = Math.max(30000L, targetDurationMs);
+        float raw = accumulateWeightedMastery(c1, c2, c3, c4, c5);
+        long safeTarget = Math.max(Obf.l(0x5A7C3D1E5A7C482EL), targetDurationMs);
         float timeRatio = MathHelper.clamp((float) elapsedMs / (float) safeTarget, 0.0f, 1.0f);
 
-        int mastery = Math.round(raw * 100.0f);
+        int rawMastery = Math.round(raw * 100.0f);
+        int finalMastery = evaluateMasteryCaps(c1, c2, c3, c4, c5, timeRatio, rawMastery);
 
-        if (c4 <= 0.05f) {
-            mastery = Math.min(mastery, 25);
-        } else if (c4 < 0.25f) {
-            mastery = Math.min(mastery, 35);
-        } else if (c2 < 0.3f || c4 < 0.3f) {
-            mastery = Math.min(mastery, 50);
-        } else if (c2 < 0.5f || c4 < 0.5f) {
-            mastery = Math.min(mastery, 70);
-        }
-
-        if (timeRatio < 0.80f || c1 < 0.9f || c2 < 0.9f || c3 < 0.9f || c4 < 0.9f || c5 < 0.9f) {
-            mastery = Math.min(mastery, 95);
-        }
-
-        int finalMastery = MathHelper.clamp(mastery, 0, 100);
         AutoCartLogger.logMasteryCategories(c1, c2, c3, c4, c5, finalMastery);
         return finalMastery;
     }

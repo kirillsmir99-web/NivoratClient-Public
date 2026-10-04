@@ -29,6 +29,86 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+configurations {
+	proguard
+	cfr
+}
+
+dependencies {
+	proguard 'com.guardsquare:proguard-base:7.9.1'
+	cfr 'org.benf:cfr:0.152'
+}
+
+tasks.register('checkProguardClasspath') {
+	doLast {
+		logger.lifecycle("[ProGuard Classpath] Resolved ${configurations.proguard.files.size()} files:")
+		configurations.proguard.files.each { logger.lifecycle("  - ${it.name}") }
+		logger.lifecycle("[CFR Classpath] Resolved: ${configurations.cfr.asPath}")
+	}
+}
+
+tasks.register('obfuscateJar', JavaExec) {
+	dependsOn 'remapJar'
+	classpath = configurations.proguard
+	mainClass.set('proguard.ProGuard')
+	
+	def inJar = remapJar.archiveFile.get().asFile
+	def outDir = layout.buildDirectory.dir("protection/obfuscated").get().asFile
+	def intermediateJar = new File(outDir, inJar.name)
+	outputs.file(intermediateJar)
+	
+	doFirst {
+		outDir.mkdirs()
+		if (intermediateJar.exists()) intermediateJar.delete()
+		
+		def proFile = file("protection/proguard/project.pro")
+		def mappingFile = layout.buildDirectory.file("protection/mappings/release-mapping.txt").get().asFile
+		mappingFile.parentFile.mkdirs()
+		
+		def javaHome = System.getProperty("java.home")
+		def jmodsDir = new File(javaHome, "jmods")
+		if (!jmodsDir.exists()) {
+			jmodsDir = new File("C:/Program Files/Java/jdk-21.0.10/jmods")
+		}
+		
+		def runConfigFile = layout.buildDirectory.file("protection/proguard-run.pro").get().asFile
+		runConfigFile.parentFile.mkdirs()
+		
+		def proContent = new StringBuilder()
+		proContent.append("-injars '").append(inJar.absolutePath.replace('\\', '/')).append("'\n")
+		proContent.append("-outjars '").append(intermediateJar.absolutePath.replace('\\', '/')).append("'\n")
+		proContent.append("-printmapping '").append(mappingFile.absolutePath.replace('\\', '/')).append("'\n")
+		proContent.append("-include '").append(proFile.absolutePath.replace('\\', '/')).append("'\n")
+		
+		if (jmodsDir.exists()) {
+			proContent.append("-libraryjars '").append(new File(jmodsDir, "java.base.jmod").absolutePath.replace('\\', '/')).append("'\n")
+			proContent.append("-libraryjars '").append(new File(jmodsDir, "java.desktop.jmod").absolutePath.replace('\\', '/')).append("'\n")
+		}
+
+		fileTree("${System.getProperty('user.home')}/.gradle/caches/fabric-loom").matching {
+			include "**/minecraft-merged-intermediary*1.21.11*.jar"
+		}.files.each { mcIntermediaryJar ->
+			proContent.append("-libraryjars '").append(mcIntermediaryJar.absolutePath.replace('\\', '/')).append("'(!META-INF/versions/**)\n")
+		}
+
+		fileTree("${project.rootDir}/.gradle/loom-cache/remapped_mods").matching {
+			include "**/*.jar"
+		}.files.each { remappedJar ->
+			proContent.append("-libraryjars '").append(remappedJar.absolutePath.replace('\\', '/')).append("'(!META-INF/versions/**)\n")
+		}
+
+		configurations.compileClasspath.files.each { libFile ->
+			if (libFile.exists()) {
+				proContent.append("-libraryjars '").append(libFile.absolutePath.replace('\\', '/')).append("'(!META-INF/versions/**)\n")
+			}
+		}
+
+		runConfigFile.text = proContent.toString()
+		args = ["@" + runConfigFile.absolutePath]
+		logger.lifecycle("[Protection] Running ProGuard 7.9.1 bytecode obfuscation on ${inJar.name} using response file...")
+	}
+}
+
 test {
 	useJUnitPlatform()
 }
@@ -101,3 +181,168 @@ processResources.dependsOn("generateEditionResource", "verifyClientSpoofer")
 remapJar {
 	archiveFileName = isDev ? "${project.archives_base_name}-Dev.jar" : "${project.archives_base_name}.jar"
 }
+
+// ==============================================================================
+// PROTECTION PIPELINE (Phases 2, 3, 8, 10, 12, 14, 15, 16, 23, 24)
+// ==============================================================================
+
+def protectionClassesDir = layout.buildDirectory.dir("classes/protection")
+def protectedResourcesDir = layout.buildDirectory.dir("generated/protected-resources")
+
+tasks.register("compileProtection", JavaCompile) {
+    source = fileTree("protection") {
+        include "**/*.java"
+    }
+    classpath = sourceSets.main.compileClasspath
+    destinationDirectory = protectionClassesDir
+    options.encoding = "UTF-8"
+    options.release = 21
+}
+
+tasks.register("prepareProtection") {
+    dependsOn "compileProtection"
+    inputs.dir("src/main/resources/assets/nivorat/shaders")
+    outputs.dir(protectedResourcesDir)
+    outputs.dir(layout.buildDirectory.dir("protection"))
+    doLast {
+        def shadersSrc = file("src/main/resources/assets/nivorat/shaders")
+        def shadersDest = protectedResourcesDir.get().dir("assets/nivorat/shaders").asFile
+        shadersDest.mkdirs()
+
+        def classLoader = new URLClassLoader([protectionClassesDir.get().asFile.toURI().toURL()] as URL[], getClass().classLoader)
+        def hardenerClass = classLoader.loadClass("protection.shaders.GlslShaderHardener")
+        def processMethod = hardenerClass.getMethod("processDirectory", java.nio.file.Path, java.nio.file.Path)
+        int count = processMethod.invoke(null, shadersSrc.toPath(), shadersDest.toPath())
+        logger.lifecycle("[Protection] Hardened ${count} GLSL shaders into protected resources directory.")
+
+        def buildId = java.util.UUID.randomUUID().toString()
+        def gitCommit = "unknown"
+        try {
+            def proc = "git rev-parse HEAD".execute([], projectDir)
+            if (proc.waitFor() == 0) gitCommit = proc.text.trim()
+        } catch (Exception ignored) {}
+
+        def watermarkFile = layout.buildDirectory.file("protection/watermark.properties").get().asFile
+        watermarkFile.parentFile.mkdirs()
+        watermarkFile.text = """# NivoratClient Release Build Watermark
+version=${project.version}
+buildId=${buildId}
+gitCommit=${gitCommit}
+buildTimestamp=${java.time.Instant.now()}
+profile=DashO-Standard-Java-v1.0
+"""
+
+        def inputJar = remapJar.archiveFile.get().asFile.absolutePath
+        def outputDir = layout.buildDirectory.dir("protection/dasho-output").get().asFile.absolutePath
+        def mappingFile = layout.buildDirectory.file("protection/mappings/${project.version}-${buildId}/mapping.txt").get().asFile.absolutePath
+        def compileClasspath = sourceSets.main.compileClasspath.asPath
+
+        def template = file("protection/dasho/project.dox").text
+        def populated = template
+            .replace('${input.jar}', inputJar)
+            .replace('${output.dir}', outputDir)
+            .replace('${mapping.file}', mappingFile)
+            .replace('${compile.classpath}', compileClasspath)
+            .replace('${build.version}', project.version.toString())
+            .replace('${build.hash}', gitCommit.take(8))
+
+        def concreteDox = layout.buildDirectory.file("protection/dasho/project.dox").get().asFile
+        concreteDox.parentFile.mkdirs()
+        concreteDox.text = populated
+    }
+}
+
+tasks.register("protectedJar") {
+    dependsOn "obfuscateJar", "prepareProtection"
+    def protectedJarFile = layout.buildDirectory.file("libs/${project.archives_base_name}-Protected.jar")
+    outputs.file(protectedJarFile)
+
+    doLast {
+        File intermediateJar = layout.buildDirectory.file("protection/obfuscated/${project.archives_base_name}.jar").get().asFile
+        File targetJar = protectedJarFile.get().asFile
+        if (targetJar.exists()) targetJar.delete()
+
+        logger.lifecycle("[Protection] Finalizing protected artifact with minified shaders: ${targetJar.name}...")
+
+        def watermarkFile = layout.buildDirectory.file("protection/watermark.properties").get().asFile
+        def shadersDir = protectedResourcesDir.get().dir("assets/nivorat/shaders").asFile
+
+        def zipIn = new java.util.zip.ZipFile(intermediateJar)
+        def fos = new java.io.FileOutputStream(targetJar)
+        def zos = new java.util.zip.ZipOutputStream(new java.io.BufferedOutputStream(fos))
+
+        try {
+            def entries = zipIn.entries()
+            while (entries.hasMoreElements()) {
+                def entry = entries.nextElement()
+                String name = entry.name
+                if (name.startsWith("assets/nivorat/shaders/") && (name.endsWith(".fsh") || name.endsWith(".vsh") || name.endsWith(".glsl"))) {
+                    continue
+                }
+                zos.putNextEntry(new java.util.zip.ZipEntry(name))
+                zipIn.getInputStream(entry).transferTo(zos)
+                zos.closeEntry()
+            }
+
+            if (shadersDir.exists()) {
+                shadersDir.eachFileRecurse(groovy.io.FileType.FILES) { file ->
+                    def rel = shadersDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+                    def entryName = "assets/nivorat/shaders/" + rel
+                    zos.putNextEntry(new java.util.zip.ZipEntry(entryName))
+                    file.withInputStream { is -> is.transferTo(zos) }
+                    zos.closeEntry()
+                }
+            }
+
+            if (watermarkFile.exists()) {
+                zos.putNextEntry(new java.util.zip.ZipEntry("protection/watermark.properties"))
+                watermarkFile.withInputStream { is -> is.transferTo(zos) }
+                zos.closeEntry()
+            }
+        } finally {
+            zos.close()
+            zipIn.close()
+        }
+
+        def finalSha = java.security.MessageDigest.getInstance("SHA-256").digest(targetJar.bytes).encodeHex().toString()
+        logger.lifecycle("[Protection] Protected JAR created: ${targetJar.absolutePath}")
+        logger.lifecycle("[Protection] Artifact SHA-256: ${finalSha} (${targetJar.length()} bytes)")
+    }
+}
+
+tasks.register("verifyProtectedJar") {
+    dependsOn "protectedJar", "compileProtection"
+    doLast {
+        def targetJar = layout.buildDirectory.file("libs/${project.archives_base_name}-Protected.jar").get().asFile
+        def classLoader = new URLClassLoader([protectionClassesDir.get().asFile.toURI().toURL()] as URL[], getClass().classLoader)
+        def verifierClass = classLoader.loadClass("protection.verifier.JarSecurityVerifier")
+        def verifyMethod = verifierClass.getMethod("verify", File)
+        verifyMethod.invoke(null, targetJar)
+    }
+}
+
+tasks.register("verifyFunctionProtection") {
+    dependsOn "protectedJar", "compileProtection"
+    doLast {
+        def targetJar = layout.buildDirectory.file("libs/${project.archives_base_name}-Protected.jar").get().asFile
+        def mappingFile = layout.buildDirectory.file("protection/mappings/release-mapping.txt").get().asFile
+        def classLoader = new URLClassLoader([protectionClassesDir.get().asFile.toURI().toURL()] as URL[], getClass().classLoader)
+        def verifierClass = classLoader.loadClass("protection.verifier.FunctionSecurityVerifier")
+        def verifyMethod = verifierClass.getMethod("verify", File, File)
+        verifyMethod.invoke(null, targetJar, mappingFile)
+    }
+}
+
+tasks.register("protectedRelease") {
+    dependsOn "protectedJar", "verifyProtectedJar", "verifyFunctionProtection"
+    doLast {
+        def targetJar = layout.buildDirectory.file("libs/${project.archives_base_name}-Protected.jar").get().asFile
+        logger.lifecycle("================================================================================")
+        logger.lifecycle("[PROTECTED RELEASE READY]")
+        logger.lifecycle("Artifact: ${targetJar.absolutePath}")
+        logger.lifecycle("Size:     ${targetJar.length()} bytes")
+        logger.lifecycle("SHA-256:  ${java.security.MessageDigest.getInstance("SHA-256").digest(targetJar.bytes).encodeHex().toString()}")
+        logger.lifecycle("================================================================================")
+    }
+}
+

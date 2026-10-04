@@ -13,6 +13,25 @@ public final class Obf {
 
     private Obf() {}
 
+    public static final int K_INT = 0x5A7C3D1E;
+    public static final long K_LONG = 0x5A7C3D1E5A7C3D1EL;
+
+    public static float f(int maskedBits) {
+        return Float.intBitsToFloat(maskedBits ^ K_INT);
+    }
+
+    public static double d(long maskedBits) {
+        return Double.longBitsToDouble(maskedBits ^ K_LONG);
+    }
+
+    public static int i(int maskedVal) {
+        return maskedVal ^ K_INT;
+    }
+
+    public static long l(long maskedVal) {
+        return maskedVal ^ K_LONG;
+    }
+
     public static String s(byte[] data) {
         if (data == null) return "";
         byte[] out = new byte[data.length];

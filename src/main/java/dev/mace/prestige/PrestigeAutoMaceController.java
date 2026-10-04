@@ -1,5 +1,6 @@
 package dev.mace.prestige;
 
+import activity.client.util.Obf;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
@@ -122,7 +123,7 @@ public final class PrestigeAutoMaceController {
             }
             if (config.autoSwitch && !isHoldingMace(player) && isAllowedSource(player.getMainHandStack())) {
                 saveOriginalSlot(player);
-                int maceSlot = selectBestMaceSlot(player, fallDistance);
+                int maceSlot = resolveOptimalWeaponSlot(player, fallDistance);
                 if (maceSlot != -1) {
                     setSlotSafe(player, maceSlot);
                 }
@@ -166,7 +167,7 @@ public final class PrestigeAutoMaceController {
                     shieldBrokenInFall = true;
                 }
                 if (shieldBrokenInFall) {
-                    int maceSlot = selectBestMaceSlot(player, fallDistance);
+                    int maceSlot = resolveOptimalWeaponSlot(player, fallDistance);
                     if (maceSlot != -1 && setSlotForce(player, maceSlot)) {
                         executeAttack(client, player, currentTarget);
                         hasAttackedInFall = true;
@@ -186,7 +187,7 @@ public final class PrestigeAutoMaceController {
             }
             saveOriginalSlot(player);
             if (config.autoSwitch) {
-                int maceSlot = selectBestMaceSlot(player, fallDistance);
+                int maceSlot = resolveOptimalWeaponSlot(player, fallDistance);
                 if (maceSlot != -1) {
                     setSlotSafe(player, maceSlot);
                 }
@@ -216,14 +217,14 @@ public final class PrestigeAutoMaceController {
         Vec3d eyePos = player.getEyePos();
         Vec3d rotVec = player.getRotationVector(pitch, yaw);
         Vec3d reachEnd = eyePos.add(rotVec.x * reach, rotVec.y * reach, rotVec.z * reach);
-        Box box = target.getBoundingBox().expand(0.05D);
+        Box box = target.getBoundingBox().expand(Obf.d(0x65D5A487C3E5A484L));
         if (box.raycast(eyePos, reachEnd).isPresent()) {
             return true;
         }
         if (box.contains(eyePos)) {
             Vec3d targetCenter = target.getBoundingBox().getCenter();
             Vec3d toTarget = targetCenter.subtract(eyePos).normalize();
-            return rotVec.dotProduct(toTarget) > 0.25D;
+            return rotVec.dotProduct(toTarget) > Obf.d(0x65AC3D1E5A7C3D1EL);
         }
         return false;
     }
@@ -366,6 +367,10 @@ public final class PrestigeAutoMaceController {
     }
 
     public int selectBestMaceSlot(ClientPlayerEntity player, double fallDistance) {
+        return resolveOptimalWeaponSlot(player, fallDistance);
+    }
+
+    private int resolveOptimalWeaponSlot(ClientPlayerEntity player, double fallDistance) {
         int bestBreachSlot = -1;
         int bestDensitySlot = -1;
         int anyMaceSlot = -1;

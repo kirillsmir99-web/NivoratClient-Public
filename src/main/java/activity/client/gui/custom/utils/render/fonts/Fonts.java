@@ -3,6 +3,10 @@ import net.minecraft.client.gui.DrawContext;
 import activity.client.gui.custom.utils.render.render2d.Render2D;
 
 public enum Fonts {
+    NVSANS_REGULAR("nvsans-regular"),
+    NVSANS_MEDIUM("nvsans-medium"),
+    NVSANS_SEMIBOLD("nvsans-semibold"),
+    NVSANS_BOLD("nvsans-bold"),
     MONTSERRAT_REGULAR("montserrat-regular"),
     MONTSERRAT_MEDIUM("montserrat-medium"),
     MONTSERRAT_SEMIBOLD("montserrat-semibold"),
@@ -78,23 +82,25 @@ public enum Fonts {
     }
 
     public void draw(DrawContext drawContext, String string, float f, float f2, float f3, int n) {
-        Render2D.text(drawContext, this.id, string, f, f2, f3, n);
+        Render2D.beginFrame(drawContext);
+        Render2D.msdfText(this.id, string, f, f2, f3, n);
+        Render2D.flush();
     }
 
     public void draw(String string, float f, float f2, float f3, int n) {
-        Render2D.text(this.id, string, f, f2, f3, n);
+        Render2D.msdfText(this.id, string, f, f2, f3, n);
     }
 
     public void draw(String string, float f, float f2, float f3, int n, int n2, int n3, int n4, float f4, float f5, float f6) {
-        Render2D.text(this.id, string, f, f2, f3, n, n2, n3, n4, f4, f5, f6);
+        Render2D.msdfText(this.id, string, f, f2, f3, n, f4, f5, f6);
     }
 
     public void draw(String string, float f, float f2, float f3, int n, int n2, int n3, int n4) {
-        Render2D.text(this.id, string, f, f2, f3, n, n2, n3, n4);
+        Render2D.msdfText(this.id, string, f, f2, f3, n, n2, n3, n4);
     }
 
     public void draw(String string, float f, float f2, float f3, int n, float f4, float f5, float f6) {
-        Render2D.text(this.id, string, f, f2, f3, n, f4, f5, f6);
+        Render2D.msdfText(this.id, string, f, f2, f3, n, f4, f5, f6);
     }
 
     public void msdfFade(String string, float f, float f2, float f3, int n, float f4, float f5, float f6, float f7, float f8) {

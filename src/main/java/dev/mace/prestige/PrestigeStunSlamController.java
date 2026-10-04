@@ -100,8 +100,8 @@ public final class PrestigeStunSlamController {
                 macePendingTicks--;
             }
             if (macePendingTicks <= 0) {
-                if (currentTarget != null && isValidTarget(currentTarget, player) && canReach(player, currentTarget)) {
-                    int maceSlot = selectBestMaceSlot(player, fallDist);
+                if (currentTarget != null && isValidTarget(currentTarget, player) && validateReachCondition(player, currentTarget)) {
+                    int maceSlot = resolveOptimalMaceSlot(player, fallDist);
                     if (maceSlot != -1 && player.getInventory().getSelectedSlot() != maceSlot) {
                         selectSlot(client, maceSlot);
                     }
@@ -151,7 +151,7 @@ public final class PrestigeStunSlamController {
         if (player.isUsingItem() || player.isOnGround()) return;
         if (hasAttacked || macePending) return;
 
-        if (currentTarget == null || !isValidTarget(currentTarget, player) || !canReach(player, currentTarget)) {
+        if (currentTarget == null || !isValidTarget(currentTarget, player) || !validateReachCondition(player, currentTarget)) {
             return;
         }
 
@@ -168,7 +168,7 @@ public final class PrestigeStunSlamController {
                 attackTarget(client, player, currentTarget);
                 axeSwapped = true;
 
-                int maceSlot = selectBestMaceSlot(player, fallDist);
+                int maceSlot = resolveOptimalMaceSlot(player, fallDist);
                 if (maceSlot != -1) {
                     selectSlot(client, maceSlot);
                 }
@@ -182,7 +182,7 @@ public final class PrestigeStunSlamController {
             if (savedSlot == -1) {
                 savedSlot = player.getInventory().getSelectedSlot();
             }
-            int maceSlot = selectBestMaceSlot(player, fallDist);
+            int maceSlot = resolveOptimalMaceSlot(player, fallDist);
             if (maceSlot != -1 && player.getInventory().getSelectedSlot() != maceSlot) {
                 selectSlot(client, maceSlot);
             }
@@ -274,11 +274,13 @@ public final class PrestigeStunSlamController {
         }
     }
 
-    private boolean canReach(ClientPlayerEntity player, Entity target) {
+    private boolean validateReachCondition(ClientPlayerEntity player, Entity target) {
         if (player == null || target == null || !target.isAlive()) return false;
-        double reach = Math.min(3.5D, Math.max(3.0D, config.triggerDistance));
+        double maxDist = dev.mace.prestige.internal.MaceDomain.d(4364655692079861548L);
+        double minDist = dev.mace.prestige.internal.MaceDomain.d(4365781591986704172L);
+        double reach = Math.min(maxDist, Math.max(minDist, config.triggerDistance));
         Vec3d eyePos = lastPlayerEyePos != null ? lastPlayerEyePos : player.getEyePos();
-        Box targetBox = target.getBoundingBox().expand(0.2D);
+        Box targetBox = target.getBoundingBox().expand(dev.mace.prestige.internal.MaceDomain.d(4852565530073009964L));
         if (targetBox.contains(eyePos)) {
             return true;
         }
@@ -351,7 +353,7 @@ public final class PrestigeStunSlamController {
         double bestDistSq = Double.MAX_VALUE;
 
         for (Entity other : client.world.getEntities()) {
-            if (other != player && isValidTarget(other, player) && canReach(player, other)) {
+            if (other != player && isValidTarget(other, player) && validateReachCondition(player, other)) {
                 double distSq = other.squaredDistanceTo(player);
                 if (distSq < bestDistSq) {
                     bestDistSq = distSq;
@@ -409,7 +411,7 @@ public final class PrestigeStunSlamController {
         return -1;
     }
 
-    private int findDensityMace(ClientPlayerEntity player) {
+    private int locateDensityWeapon(ClientPlayerEntity player) {
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (stack != null && !stack.isEmpty() && stack.isOf(Items.MACE)) {
@@ -426,7 +428,7 @@ public final class PrestigeStunSlamController {
         return -1;
     }
 
-    private int findBreachMace(ClientPlayerEntity player) {
+    private int locateBreachWeapon(ClientPlayerEntity player) {
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (stack != null && !stack.isEmpty() && stack.isOf(Items.MACE)) {
@@ -443,26 +445,27 @@ public final class PrestigeStunSlamController {
         return -1;
     }
 
-    private int selectBestMaceSlot(ClientPlayerEntity player, double fallDist) {
+    private int resolveOptimalMaceSlot(ClientPlayerEntity player, double fallDist) {
         boolean smart = "smart".equalsIgnoreCase(config.enchantMode);
         boolean breachOnly = "breach".equalsIgnoreCase(config.enchantMode);
         boolean densityOnly = "density".equalsIgnoreCase(config.enchantMode);
 
         if (densityOnly) {
-            int slot = findDensityMace(player);
+            int slot = locateDensityWeapon(player);
             return slot != -1 ? slot : findFirstMace(player);
         }
         if (breachOnly) {
-            int slot = findBreachMace(player);
+            int slot = locateBreachWeapon(player);
             return slot != -1 ? slot : findFirstMace(player);
         }
 
         int maceSlot = -1;
         if (smart) {
-            maceSlot = fallDist >= 7.0 ? findDensityMace(player) : findBreachMace(player);
+            double threshold = dev.mace.prestige.internal.MaceDomain.d(4360152092452491052L);
+            maceSlot = fallDist >= threshold ? locateDensityWeapon(player) : locateBreachWeapon(player);
         }
         if (maceSlot == -1) {
-            maceSlot = findBreachMace(player);
+            maceSlot = locateBreachWeapon(player);
         }
         if (maceSlot == -1) {
             maceSlot = findFirstMace(player);

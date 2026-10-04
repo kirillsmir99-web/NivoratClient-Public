@@ -1,5 +1,6 @@
 package dev.mace.prestige;
 
+import activity.client.util.Obf;
 import dev.raycast.async.AsyncSilentRot;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -40,19 +41,20 @@ public final class PrestigeSilentAim {
         return targetEntityId;
     }
 
-    private float getGcdStep(MinecraftClient client) {
-        if (client == null || client.options == null) return 0.15f;
+    private float evaluateAimStep(MinecraftClient client) {
+        if (client == null || client.options == null) return dev.mace.prestige.internal.MaceDomain.f(1116194464);
         double sens = client.options.getMouseSensitivity().getValue();
-        double f = sens * 0.6 + 0.2;
-        double gcd = f * f * f * 8.0 * 0.15;
-        return (float) Math.max(0.001, gcd);
+        double f = sens * dev.mace.prestige.internal.MaceDomain.d(4863161960105938732L) + dev.mace.prestige.internal.MaceDomain.d(4852565530073009964L);
+        double gcd = f * f * f * dev.mace.prestige.internal.MaceDomain.d(4377040591055130412L) * dev.mace.prestige.internal.MaceDomain.d(4854154760065760287L);
+        return (float) Math.max(dev.mace.prestige.internal.MaceDomain.d(4865129878033452033L), gcd);
     }
 
     private boolean isRealLookOnTarget(ClientPlayerEntity player, Entity target) {
         Vec3d eyePos = player.getEyePos();
         Vec3d rotVec = player.getRotationVector(player.getPitch(), player.getYaw());
-        Vec3d reachEnd = eyePos.add(rotVec.x * 3.5D, rotVec.y * 3.5D, rotVec.z * 3.5D);
-        Box box = target.getBoundingBox().expand(0.1D);
+        double reach = dev.mace.prestige.internal.MaceDomain.d(4364655692079861548L);
+        Vec3d reachEnd = eyePos.add(rotVec.x * reach, rotVec.y * reach, rotVec.z * reach);
+        Box box = target.getBoundingBox().expand(dev.mace.prestige.internal.MaceDomain.d(4839054730243544758L));
         return box.contains(eyePos) || box.raycast(eyePos, reachEnd).isPresent();
     }
 
@@ -71,9 +73,10 @@ public final class PrestigeSilentAim {
         float targetYaw;
         float targetPitch;
 
+        float f90 = dev.mace.prestige.internal.MaceDomain.f(1042964282);
         if (isRealLookOnTarget(player, target)) {
             targetYaw = player.getYaw();
-            targetPitch = MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
+            targetPitch = MathHelper.clamp(player.getPitch(), -f90, f90);
         } else {
             Vec3d eyePos = player.getEyePos().add(player.getVelocity());
             Vec3d targetCenter = target.getBoundingBox().getCenter();
@@ -85,7 +88,7 @@ public final class PrestigeSilentAim {
                 targetYaw = player.getYaw();
                 targetPitch = player.getPitch();
             } else {
-                targetYaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
+                targetYaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - dev.mace.prestige.internal.MaceDomain.d(4379996078310592300L));
                 targetPitch = (float) (-Math.toDegrees(Math.atan2(dy, distHoriz)));
             }
         }
@@ -93,27 +96,29 @@ public final class PrestigeSilentAim {
         if (Float.isNaN(targetYaw) || Float.isNaN(targetPitch) || Float.isInfinite(targetYaw) || Float.isInfinite(targetPitch)) {
             return;
         }
-        targetPitch = MathHelper.clamp(targetPitch, -90.0f, 90.0f);
+        targetPitch = MathHelper.clamp(targetPitch, -f90, f90);
 
-        float gcd = getGcdStep(client);
+        float gcd = evaluateAimStep(client);
         float startYaw = active ? currentYaw : player.getYaw();
-        float startPitch = active ? currentPitch : MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
+        float startPitch = active ? currentPitch : MathHelper.clamp(player.getPitch(), -f90, f90);
 
         float deltaYaw = MathHelper.wrapDegrees(targetYaw - startYaw);
         float stepYaw = Math.round(deltaYaw / gcd) * gcd;
-
-        float deltaPitch = targetPitch - startPitch;
-        int pitchSteps = Math.round(deltaPitch / gcd);
-        int maxUp = (int) Math.floor((90.0f - startPitch) / gcd);
-        int maxDown = (int) Math.ceil((-90.0f - startPitch) / gcd);
-        pitchSteps = Math.max(maxDown, Math.min(maxUp, pitchSteps));
-        float stepPitch = pitchSteps * gcd;
+        float stepPitch = quantizePitchStep(targetPitch - startPitch, startPitch, gcd, f90);
 
         currentYaw = MathHelper.wrapDegrees(startYaw + stepYaw);
-        currentPitch = MathHelper.clamp(startPitch + stepPitch, -90.0f, 90.0f);
+        currentPitch = MathHelper.clamp(startPitch + stepPitch, -f90, f90);
 
         active = true;
         AsyncSilentRot.set(currentYaw, currentPitch, this);
+    }
+
+    private static float quantizePitchStep(float deltaPitch, float startPitch, float gcd, float f90) {
+        int pitchSteps = Math.round(deltaPitch / gcd);
+        int maxUp = (int) Math.floor((f90 - startPitch) / gcd);
+        int maxDown = (int) Math.ceil((-f90 - startPitch) / gcd);
+        pitchSteps = Math.max(maxDown, Math.min(maxUp, pitchSteps));
+        return pitchSteps * gcd;
     }
 
     public void decay(ClientPlayerEntity player, MinecraftClient client) {
@@ -127,9 +132,10 @@ public final class PrestigeSilentAim {
         }
         lastUpdateTick = player.age;
 
+        float f90 = dev.mace.prestige.internal.MaceDomain.f(1042964282);
         float realYaw = player.getYaw();
-        float realPitch = MathHelper.clamp(player.getPitch(), -90.0f, 90.0f);
-        float gcd = getGcdStep(client);
+        float realPitch = MathHelper.clamp(player.getPitch(), -f90, f90);
+        float gcd = evaluateAimStep(client);
 
         float deltaYaw = MathHelper.wrapDegrees(realYaw - currentYaw);
         float deltaPitch = realPitch - currentPitch;
@@ -140,14 +146,10 @@ public final class PrestigeSilentAim {
         }
 
         float stepYaw = Math.round(deltaYaw / gcd) * gcd;
-        int pitchSteps = Math.round(deltaPitch / gcd);
-        int maxUp = (int) Math.floor((90.0f - currentPitch) / gcd);
-        int maxDown = (int) Math.ceil((-90.0f - currentPitch) / gcd);
-        pitchSteps = Math.max(maxDown, Math.min(maxUp, pitchSteps));
-        float stepPitch = pitchSteps * gcd;
+        float stepPitch = quantizePitchStep(deltaPitch, currentPitch, gcd, f90);
 
         currentYaw = MathHelper.wrapDegrees(currentYaw + stepYaw);
-        currentPitch = MathHelper.clamp(currentPitch + stepPitch, -90.0f, 90.0f);
+        currentPitch = MathHelper.clamp(currentPitch + stepPitch, -f90, f90);
 
         AsyncSilentRot.set(currentYaw, currentPitch, this);
     }

@@ -1,5 +1,6 @@
 package net.fabricmc.pack.api;
 
+import net.fabricmc.pack.api.internal.CombatDomain;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -12,8 +13,8 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 public final class CombatRaytraceGuard {
-    public static final double MAX_COMBAT_REACH = 3.25D;
-    public static final double MAX_BLOCK_REACH = 4.20D;
+    public static final double MAX_COMBAT_REACH = CombatDomain.d(1018250555469504350L) ;
+    public static final double MAX_BLOCK_REACH = CombatDomain.d(1025485568484987795L) ;
 
     private static volatile boolean dispatcherManaged = false;
     private static long lastRaycastTick = -1L;
@@ -145,11 +146,11 @@ public final class CombatRaytraceGuard {
         }
         double limit = Math.min(MAX_COMBAT_REACH, maxRange);
         Vec3d eyePos = player.getEyePos();
-        Box box = target.getBoundingBox().expand(0.05D);
+        Box box = target.getBoundingBox().expand(CombatDomain.d(8179122849764804292L) );
         Vec3d lookVec = player.getRotationVec(1.0F);
         Vec3d reachEnd = eyePos.add(lookVec.multiply(limit));
 
-        var hitOpt = box.expand(0.1D).raycast(eyePos, reachEnd);
+        var hitOpt = box.expand(CombatDomain.d(8183626449392174788L) ).raycast(eyePos, reachEnd);
         if (hitOpt.isPresent()) {
             return eyePos.squaredDistanceTo(hitOpt.get()) <= limit * limit && hasLineOfSight(player, target);
         }
@@ -167,13 +168,14 @@ public final class CombatRaytraceGuard {
         }
         double limit = Math.min(MAX_BLOCK_REACH, maxRange);
         Vec3d eyePos = player.getEyePos();
-        Vec3d center = new Vec3d(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D);
+        double offsetHalf = CombatDomain.d(8199803111265181534L) ;
+        Vec3d center = new Vec3d(target.getX() + offsetHalf, target.getY() + offsetHalf, target.getZ() + offsetHalf);
         if (eyePos.squaredDistanceTo(center) > limit * limit) {
             return false;
         }
         Vec3d lookVec = player.getRotationVec(1.0F);
         Vec3d toTarget = center.subtract(eyePos).normalize();
-        return lookVec.dotProduct(toTarget) >= 0.4D && hasLineOfSight(player, target);
+        return lookVec.dotProduct(toTarget) >= CombatDomain.d(8210648047156397764L)  && hasLineOfSight(player, target);
     }
 
     public static boolean canReachBlock(ClientPlayerEntity player, BlockPos target) {

@@ -22,8 +22,9 @@ float screenPxRange() {
 }
 
 void main() {
-    vec3 msd = texture(Sampler0, TexCoord).rgb;
-    float sd = median(msd.r, msd.g, msd.b);
+    vec4 sample = texture(Sampler0, TexCoord);
+    float msdfDist = median(sample.r, sample.g, sample.b);
+    float sd = mix(msdfDist, sample.a, 0.28);
 
     const float EDGE_SHARPNESS = 1.45;
     float screenPxDistance = screenPxRange() * (sd - 0.5);

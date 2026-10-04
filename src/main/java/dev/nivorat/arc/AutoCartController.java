@@ -26,20 +26,20 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class AutoCartController {
-    private static final int TRAJECTORY_TICKS = 80;
-    private static final double ARROW_DRAG = 0.99D;
-    private static final double ARROW_GRAVITY = 0.05D;
-    private static final double HIT_FACE_INSET = 0.02D;
-    private static final double ENTITY_COLLISION_MARGIN = 0.15D;
-    private static final double REACH_SAFETY_MARGIN = 0.15D;
-    private static final double MIN_LEGIT_SAFE_DISTANCE = 2.0D;
-    private static final double MIN_NON_LEGIT_DISTANCE = 0.6D;
+    private static final int TRAJECTORY_TICKS = dev.nivorat.arc.internal.ArcDomain.i(1245457229);
+    private static final double ARROW_DRAG = dev.nivorat.arc.internal.ArcDomain.d(6080668990927871120L);
+    private static final double ARROW_GRAVITY = dev.nivorat.arc.internal.ArcDomain.d(6063208178848744100L);
+    private static final double HIT_FACE_INSET = dev.nivorat.arc.internal.ArcDomain.d(6059932834006716229L);
+    private static final double ENTITY_COLLISION_MARGIN = dev.nivorat.arc.internal.ArcDomain.d(6074930507809777677L);
+    private static final double REACH_SAFETY_MARGIN = dev.nivorat.arc.internal.ArcDomain.d(6074930507809777677L);
+    private static final double MIN_LEGIT_SAFE_DISTANCE = dev.nivorat.arc.internal.ArcDomain.d(3138250481166211902L);
+    private static final double MIN_NON_LEGIT_DISTANCE = dev.nivorat.arc.internal.ArcDomain.d(6083937707064518669L);
 
-    private static final int MIN_BOW_DRAW_TICKS = 3;
+    private static final int MIN_BOW_DRAW_TICKS = dev.nivorat.arc.internal.ArcDomain.i(1245457182);
     private static final int MAX_BOW_DRAW_TICKS = 72000;
-    private static final float MIN_PULL_PROGRESS = 0.10F;
-    private static final float MAX_PULL_PROGRESS = 1.0F;
-    private static final double MAX_ALLOWED_AIM_DEV_DOT = 0.50D;
+    private static final float MIN_PULL_PROGRESS = dev.nivorat.arc.internal.ArcDomain.f(1447133922);
+    private static final float MAX_PULL_PROGRESS = dev.nivorat.arc.internal.ArcDomain.f(1410158127);
+    private static final double MAX_ALLOWED_AIM_DEV_DOT = dev.nivorat.arc.internal.ArcDomain.d(6083604637466516286L);
 
     private static final long MIN_PLACEMENT_INTERVAL_MS = 200L;
     private static volatile boolean placementRunning = false;
@@ -503,8 +503,8 @@ public final class AutoCartController {
 
     private TargetResolution predictReleasedArrow(MinecraftClient client, int drawTicks) {
         double power = BowItem.getPullProgress(drawTicks);
-        Vec3d position = client.player.getEyePos().add(0.0D, -0.1D, 0.0D);
-        Vec3d velocity = client.player.getRotationVec(1.0F).multiply(power * 3.0D);
+        Vec3d position = client.player.getEyePos().add(0.0D, dev.nivorat.arc.internal.ArcDomain.d(-3155660258378661212L), 0.0D);
+        Vec3d velocity = client.player.getRotationVec(1.0F).multiply(power * dev.nivorat.arc.internal.ArcDomain.d(3135998681352526654L));
         Vec3d playerVel = client.player.getVelocity();
         if (playerVel != null) {
             velocity = velocity.add(playerVel.x, client.player.isOnGround() ? 0.0D : playerVel.y, playerVel.z);
@@ -517,7 +517,7 @@ public final class AutoCartController {
             Vec3d nextPosition = position.add(velocity);
 
             double distFromPlayer = position.distanceTo(client.player.getEyePos());
-            if (distFromPlayer >= 1.2D && distFromPlayer <= getReachDistance(client)) {
+            if (distFromPlayer >= dev.nivorat.arc.internal.ArcDomain.d(6088441306691889165L) && distFromPlayer <= getReachDistance(client)) {
                 BlockPos floorBelow = findSolidGroundBelow(client.world, BlockPos.ofFloored(position.x, position.y, position.z), 3);
                 if (floorBelow != null && canPlaceRail(client, floorBelow)) {
                     Vec3d cartUpper = new Vec3d(floorBelow.getX() + 0.5D, floorBelow.getY() + 0.62D, floorBelow.getZ() + 0.5D);
@@ -526,7 +526,7 @@ public final class AutoCartController {
                         floorBelow.getX() + 0.98D, floorBelow.getY() + 0.85D, floorBelow.getZ() + 0.98D
                     ).expand(0.35D);
                     if (cartHitbox.raycast(position, nextPosition).isPresent() || cartHitbox.contains(nextPosition) || cartHitbox.contains(position)) {
-                        double score = Math.abs(distFromPlayer - 2.5D);
+                        double score = Math.abs(distFromPlayer - dev.nivorat.arc.internal.ArcDomain.d(3137124581259369278L));
                         if (score < bestInterceptScore) {
                             bestInterceptScore = score;
                             bestInReachIntercept = new TargetResolution(floorBelow, cartUpper, tick + 1);
@@ -585,7 +585,7 @@ public final class AutoCartController {
             }
 
             position = nextPosition;
-            velocity = velocity.multiply(ARROW_DRAG).add(0.0D, -ARROW_GRAVITY, 0.0D);
+            velocity = stepArrowPhysics(velocity);
         }
 
         if (bestInReachIntercept != null) {
@@ -1087,15 +1087,25 @@ public final class AutoCartController {
         }
         float power = job.pullProgress;
         int flightTicks = Math.max(1, job.flightTicks);
-        int flightTimeMs = flightTicks * 50;
+        int scale = dev.nivorat.arc.internal.ArcDomain.i(1245457199);
+        int flightTimeMs = flightTicks * scale;
 
-        if (power >= 0.7F || flightTimeMs <= 140) {
-            int allocated = Math.max(20, (flightTimeMs - 15) / 2);
+        float pThresh = dev.nivorat.arc.internal.ArcDomain.f(1421770012);
+        int timeThresh = dev.nivorat.arc.internal.ArcDomain.i(1245457297);
+        if (power >= pThresh || flightTimeMs <= timeThresh) {
+            int sub = dev.nivorat.arc.internal.ArcDomain.i(1245457170);
+            int floorAlloc = dev.nivorat.arc.internal.ArcDomain.i(1245457161);
+            int floorDelay = dev.nivorat.arc.internal.ArcDomain.i(1245457214);
+            int allocated = Math.max(floorAlloc, (flightTimeMs - sub) / 2);
             int baseDelay = Math.min(allocated, MorrowConfig.getMinDelayMs());
-            return Math.max(35, baseDelay);
+            return Math.max(floorDelay, baseDelay);
         }
 
         return getRandomDelay();
+    }
+
+    private static Vec3d stepArrowPhysics(Vec3d currentVelocity) {
+        return currentVelocity.multiply(ARROW_DRAG).add(0.0D, -ARROW_GRAVITY, 0.0D);
     }
 
     private static int sampleLearnedDelay(int mean, ArcMotionProfile profile) {
@@ -1110,8 +1120,9 @@ public final class AutoCartController {
         double dy = hitPos.y - eyePos.y;
         double dz = hitPos.z - eyePos.z;
         double distXZ = Math.sqrt(dx * dx + dz * dz);
-        float pitch = MathHelper.clamp((float) -Math.toDegrees(Math.atan2(dy, distXZ)), -90.0F, 90.0F);
-        float yaw = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90.0F;
+        float bound = dev.nivorat.arc.internal.ArcDomain.f(691621423);
+        float pitch = MathHelper.clamp((float) -Math.toDegrees(Math.atan2(dy, distXZ)), -bound, bound);
+        float yaw = (float) Math.toDegrees(Math.atan2(dz, dx)) - bound;
         return new float[]{pitch, yaw};
     }
 
