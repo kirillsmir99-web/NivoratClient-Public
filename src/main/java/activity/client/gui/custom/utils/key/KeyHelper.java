@@ -22,7 +22,14 @@ public final class KeyHelper {
             return "NONE";
         }
         if (n >= 0 && n <= 7) {
-            return "M" + (n - 0 + 1);
+            return switch (n) {
+                case 0 -> "ЛКМ";
+                case 1 -> "ПКМ";
+                case 2 -> "Колесико";
+                case 3 -> "Боковая 1";
+                case 4 -> "Боковая 2";
+                default -> "Мышь " + (n + 1);
+            };
         }
         if (n >= 290 && n <= 314) {
             return "F" + (n - 290 + 1);
@@ -131,16 +138,27 @@ public final class KeyHelper {
         linkedHashMap.put("PAUSE", 284);
         linkedHashMap.put("LEFT_SHIFT", 340);
         linkedHashMap.put("LSHIFT", 340);
+        linkedHashMap.put("L-SHIFT", 340);
         linkedHashMap.put("LEFT_CONTROL", 341);
         linkedHashMap.put("LCTRL", 341);
+        linkedHashMap.put("L-CTRL", 341);
+        linkedHashMap.put("CTRL", 341);
         linkedHashMap.put("LEFT_ALT", 342);
         linkedHashMap.put("LALT", 342);
+        linkedHashMap.put("L-ALT", 342);
+        linkedHashMap.put("ALT", 342);
         linkedHashMap.put("RIGHT_SHIFT", 344);
         linkedHashMap.put("RSHIFT", 344);
+        linkedHashMap.put("R-SHIFT", 344);
+        linkedHashMap.put("SHIFT", 344);
         linkedHashMap.put("RIGHT_CONTROL", 345);
         linkedHashMap.put("RCTRL", 345);
+        linkedHashMap.put("R-CTRL", 345);
         linkedHashMap.put("RIGHT_ALT", 346);
         linkedHashMap.put("RALT", 346);
+        linkedHashMap.put("R-ALT", 346);
+        linkedHashMap.put("БОКОВАЯ 1", 3);
+        linkedHashMap.put("БОКОВАЯ 2", 4);
         linkedHashMap.put("LEFT_SUPER", 343);
         linkedHashMap.put("LSUPER", 343);
         linkedHashMap.put("RIGHT_SUPER", 347);
@@ -219,18 +237,21 @@ public final class KeyHelper {
 
     private static Map<Integer, String> buildShortMap() {
         HashMap<Integer, String> hashMap = new HashMap<Integer, String>();
-        hashMap.put(344, "RSH");
-        hashMap.put(340, "LSH");
-        hashMap.put(345, "RCT");
-        hashMap.put(341, "LCT");
-        hashMap.put(346, "RALT");
-        hashMap.put(342, "LALT");
-        hashMap.put(32, "SPC");
-        hashMap.put(1000, "SCR\u2191");
-        hashMap.put(1001, "SCR\u2193");
-        hashMap.put(1000, "SU");
-        hashMap.put(1001, "SD");
-        hashMap.put(1002, "M3");
+        hashMap.put(344, "R-Shift");
+        hashMap.put(340, "L-Shift");
+        hashMap.put(345, "R-Ctrl");
+        hashMap.put(341, "L-Ctrl");
+        hashMap.put(346, "R-Alt");
+        hashMap.put(342, "L-Alt");
+        hashMap.put(32, "Space");
+        hashMap.put(258, "Tab");
+        hashMap.put(259, "Backspace");
+        hashMap.put(257, "Enter");
+        hashMap.put(256, "Esc");
+        hashMap.put(280, "Caps");
+        hashMap.put(1000, "Scroll Up");
+        hashMap.put(1001, "Scroll Down");
+        hashMap.put(1002, "Колесико");
         return hashMap;
     }
 

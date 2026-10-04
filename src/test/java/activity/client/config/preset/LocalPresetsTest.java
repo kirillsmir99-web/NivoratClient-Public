@@ -63,4 +63,48 @@ class LocalPresetsTest {
         assertFalse(modules.has("auto_cart"));
         assertFalse(modules.has("auto_shieldbreaker"));
     }
+
+    @Test void encryptedPresetRoundTripAndLegacyCompatibility() throws Exception {
+        JsonObject root = LocalPresets.capture("Зашифрованный", LocalPresets.Template.DEFAULTS, EnumSet.of(LocalPresets.Part.BINDS));
+        java.nio.file.Path temp = java.nio.file.Files.createTempFile("preset_test", ".json");
+        try {
+            java.lang.reflect.Method writeMethod = LocalPresets.class.getDeclaredMethod("write", java.nio.file.Path.class, JsonObject.class);
+            writeMethod.setAccessible(true);
+            writeMethod.invoke(null, temp, root);
+
+            String rawContent = java.nio.file.Files.readString(temp, java.nio.charset.StandardCharsets.UTF_8).trim();
+            assertTrue(rawContent.startsWith("NVP1:"), "Preset file content should start with encrypted prefix NVP1:");
+            assertFalse(rawContent.startsWith("{"), "Preset should not be stored as plain JSON");
+
+            var preview = LocalPresets.read(temp);
+            assertEquals("Зашифрованный", preview.name());
+
+            String exported = LocalPresets.exportString(temp);
+            assertTrue(exported.startsWith("NVP1:"));
+
+            var previewFromExport = LocalPresets.parse(exported);
+            assertEquals("Зашифрованный", previewFromExport.name());
+
+            var previewFromLegacyJson = LocalPresets.parse(root.toString());
+            assertEquals("Зашифрованный", previewFromLegacyJson.name());
+        } finally {
+            java.nio.file.Files.deleteIfExists(temp);
+        }
+    }
+
+    @Test void applyPresetWithoutThemesPreservesActiveTheme() throws Exception {
+        var cfg = ActivityConfigManager.getConfig();
+        String savedTheme = cfg.guiTheme;
+        try {
+            cfg.guiTheme = "special_theme_42";
+            JsonObject root = LocalPresets.capture("Без тем", LocalPresets.Template.DEFAULTS, EnumSet.of(LocalPresets.Part.BINDS));
+            var preview = LocalPresets.parse(root.toString());
+            assertFalse(preview.sections().has("themes"));
+
+            LocalPresets.apply(preview);
+            assertEquals("special_theme_42", ActivityConfigManager.getConfig().guiTheme);
+        } finally {
+            cfg.guiTheme = savedTheme;
+        }
+    }
 }

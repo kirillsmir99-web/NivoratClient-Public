@@ -36,7 +36,13 @@ public final class VisualSettingsStore {
     }
 
     private static Path path() {
-        return net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("nc-visual.json");
+        try {
+            var loader = net.fabricmc.loader.api.FabricLoader.getInstance();
+            if (loader != null && loader.getConfigDir() != null) {
+                return loader.getConfigDir().resolve("nc-visual.json");
+            }
+        } catch (Throwable ignored) {}
+        return Path.of("config", "nc-visual.json");
     }
 
     private static List<Entry> entries() {
@@ -139,7 +145,7 @@ public final class VisualSettingsStore {
             activity.client.gui.custom.api.ui.theme.CustomThemeManager.init();
             var theme = activity.client.gui.custom.api.ui.theme.CustomThemeManager.getById(config.guiTheme);
             if (theme != null) activity.client.gui.custom.api.ui.theme.ThemeManager.set(theme);
-            else CustomRender.theme(activity.client.gui.theme.ThemePreset.fromId(config.guiTheme));
+            else activity.client.gui.custom.api.ui.theme.ThemeManager.setById(config.guiTheme);
             } finally { loading = false; }
         }
     }

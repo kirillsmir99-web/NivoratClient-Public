@@ -27,13 +27,50 @@ public final class ClickGui extends Module {
         "Пользовательский размер интерфейса меню в процентах."
     ).range(0.70f, 1.30f).increment(0.05f).setValue(1.0f).visible(() -> this.scaleMode.is(SCALE_CUSTOM)));
 
+    public final activity.client.gui.custom.api.modules.settings.impl.BindSetting menuKey = this.register(
+        new activity.client.gui.custom.api.modules.settings.impl.BindSetting("Клавиша меню", "Клавиша для открытия и закрытия меню клиента")
+    );
+
     public ClickGui() {
         super("ClickGui", "Открывает клик-меню клиента.", Category.DISPLAY);
 
-
+        activity.client.module.setting.KeybindSetting ks = new activity.client.module.setting.KeybindSetting(
+            "menu_keybind",
+            net.minecraft.text.Text.literal("Клавиша меню"),
+            net.minecraft.text.Text.literal("Клавиша для открытия и закрытия меню клиента"),
+            (activity.client.module.setting.SettingSection) null,
+            new activity.client.module.keybind.Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT),
+            () -> activity.client.config.ActivityConfigManager.getConfig().menuKeybind,
+            kb -> {
+                var cfg = activity.client.config.ActivityConfigManager.getConfig();
+                cfg.menuKeybind.copyFrom(kb);
+                activity.client.ActivityClient.syncOpenMenuKey();
+                activity.client.config.ActivityConfigManager.markDirty();
+                activity.client.config.ActivityConfigManager.save();
+            }
+        );
+        this.menuKey.setSource(ks);
         this.scaleMode.setChangeListener(ConfigManager::markDirty);
         this.customScale.setChangeListener(ConfigManager::markDirty);
     }
- @Override public KeyBind getBind() { return new KeyBind(activity.client.config.ActivityConfigManager.getConfig().menuKeybind.getKeyCode()); }
- @Override public void setBind(KeyBind bind) { var cfg=activity.client.config.ActivityConfigManager.getConfig(); cfg.menuKeybind.set(bind.getCode(),cfg.menuKeybind.isCtrl(),cfg.menuKeybind.isShift(),cfg.menuKeybind.isAlt()); activity.client.config.ActivityConfigManager.markDirty(); }
+ @Override public KeyBind getBind() {
+     var cfg = activity.client.config.ActivityConfigManager.getConfig();
+     if (cfg == null || cfg.menuKeybind == null) return new KeyBind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+     int code = cfg.menuKeybind.getKeyCode();
+     return code <= activity.client.module.keybind.Keybind.MOUSE_OFFSET
+         ? KeyBind.mouse(activity.client.module.keybind.Keybind.MOUSE_OFFSET - code)
+         : KeyBind.keyboard(code);
+ }
+ @Override public void setBind(KeyBind bind) {
+     var cfg = activity.client.config.ActivityConfigManager.getConfig();
+     if (cfg == null) return;
+     int code = bind.getCode();
+     if (bind.getType() == activity.client.gui.custom.utils.key.InputType.MOUSE) {
+         code = activity.client.module.keybind.Keybind.MOUSE_OFFSET - (code == 1002 ? 2 : code);
+     }
+     cfg.menuKeybind.set(code, cfg.menuKeybind.isCtrl(), cfg.menuKeybind.isShift(), cfg.menuKeybind.isAlt());
+     activity.client.ActivityClient.syncOpenMenuKey();
+     activity.client.config.ActivityConfigManager.markDirty();
+     activity.client.config.ActivityConfigManager.save();
+ }
 }

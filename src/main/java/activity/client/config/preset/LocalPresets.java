@@ -21,7 +21,15 @@ public final class LocalPresets {
 
     private LocalPresets() {}
 
-    public static Path directory() { return FabricLoader.getInstance().getConfigDir().resolve("nivorat-presets"); }
+    public static Path directory() {
+        try {
+            var loader = FabricLoader.getInstance();
+            if (loader != null && loader.getConfigDir() != null) {
+                return loader.getConfigDir().resolve("nivorat-presets");
+            }
+        } catch (Throwable ignored) {}
+        return Path.of("config", "nivorat-presets");
+    }
 
     public static List<Entry> list() throws IOException {
         Files.createDirectories(directory());
@@ -182,8 +190,19 @@ public final class LocalPresets {
 
     public static Preview parse(String text) throws IOException {
         if (text == null || text.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) throw new IOException("Пресет превышает 1 МБ");
+        String candidate = text.trim();
+        if (candidate.startsWith("NVP1:")) {
+            String decrypted = activity.client.util.Obf.decrypt(candidate.substring(5));
+            if (decrypted == null || decrypted.isEmpty()) throw new IOException("Не удалось расшифровать пресет");
+            candidate = decrypted.trim();
+        } else if (!candidate.startsWith("{")) {
+            String decrypted = activity.client.util.Obf.decrypt(candidate);
+            if (decrypted != null && decrypted.trim().startsWith("{")) {
+                candidate = decrypted.trim();
+            }
+        }
         try {
-            JsonElement tree = JsonParser.parseString(text);
+            JsonElement tree = JsonParser.parseString(candidate);
             checkTree(tree, 0);
             JsonObject root = tree.getAsJsonObject();
             if (!root.get("type").getAsString().equals("nivoratclient_preset") || root.get("version").getAsInt() != 1)
@@ -284,8 +303,13 @@ public final class LocalPresets {
         if (preview.sections().has("cart_profile")) dev.nivorat.arc.ArcMotionProfile.getInstance().importProfile(preview.sections().getAsJsonObject("cart_profile"));
         JsonObject merged = GSON.toJsonTree(ActivityConfigManager.getConfig()).getAsJsonObject();
         for (String group : List.of("modules", "binds", "hud")) if (preview.sections().has(group)) merged = merge(merged, preview.sections().getAsJsonObject(group));
+        String preservedTheme = ActivityConfigManager.getConfig() != null ? ActivityConfigManager.getConfig().guiTheme : null;
+        if (preservedTheme == null || preservedTheme.isEmpty()) preservedTheme = activity.client.gui.custom.api.ui.theme.ThemeManager.currentThemeId();
         ActivityConfig next = GSON.fromJson(merged, ActivityConfig.class);
         next.syncFromModuleEntries(); next.sanitize();
+        if (!preview.sections().has("themes")) {
+            next.guiTheme = preservedTheme;
+        }
         ActivityConfigManager.setConfig(next);
         if (preview.sections().has("themes")) {
             var themes = preview.sections().getAsJsonObject("themes");
@@ -319,7 +343,7 @@ public final class LocalPresets {
 
     public static String exportString(Path source) throws IOException {
         read(source);
-        return Files.readString(source, StandardCharsets.UTF_8);
+        return Files.readString(source, StandardCharsets.UTF_8).trim();
     }
 
     public static Path importFile(Path external) throws IOException {
@@ -342,6 +366,7 @@ public final class LocalPresets {
 
     private static void write(Path file, JsonObject root) throws IOException {
         String text = GSON.toJson(root); parse(text);
-        activity.client.gui.custom.utils.storage.AtomicFiles.writeUtf8(file, text);
+        String encrypted = "NVP1:" + activity.client.util.Obf.encrypt(text);
+        activity.client.gui.custom.utils.storage.AtomicFiles.writeUtf8(file, encrypted);
     }
 }

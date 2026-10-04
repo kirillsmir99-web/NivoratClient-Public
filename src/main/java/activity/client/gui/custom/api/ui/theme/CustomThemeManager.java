@@ -27,13 +27,20 @@ public final class CustomThemeManager {
         if (initialized) return;
         initialized = true;
         try {
-            themesDir = FabricLoader.getInstance().getGameDir().resolve("nc-visual").resolve("themes");
+            Path base = null;
+            try {
+                var loader = FabricLoader.getInstance();
+                if (loader != null && loader.getGameDir() != null) {
+                    base = loader.getGameDir();
+                }
+            } catch (Throwable ignored) {}
+            if (base == null) base = Path.of(".");
+            themesDir = base.resolve("nc-visual").resolve("themes");
             if (!Files.exists(themesDir)) {
                 Files.createDirectories(themesDir);
             }
             loadAll();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
     }
 

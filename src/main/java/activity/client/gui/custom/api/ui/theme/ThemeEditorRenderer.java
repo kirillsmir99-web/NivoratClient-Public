@@ -231,6 +231,9 @@ public final class ThemeEditorRenderer {
 
     public void close() {
         ThemeManager.clearLiveOverride();
+        if (this.originalTheme != null) {
+            ThemeManager.set(this.originalTheme);
+        }
         this.open = false;
         this.nameFocused = false;
         this.nameSelectedAll = false;
@@ -1442,6 +1445,7 @@ public final class ThemeEditorRenderer {
 
         this.draft.setDirty(false);
         this.draft.setEditingTheme(target);
+        this.originalTheme = target;
         ConfigManager.markDirty();
         try { Sounds.play("select_category"); } catch (Throwable ignored) {}
         return true;

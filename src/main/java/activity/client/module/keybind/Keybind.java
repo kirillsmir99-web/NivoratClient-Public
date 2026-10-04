@@ -104,7 +104,10 @@ public final class Keybind {
 
     public boolean matchesKey(int key, int modifiers) {
         if (isUnbound() || isMouseButton()) return false;
-        if (this.keyCode != key) return false;
+        boolean keyMatches = this.keyCode == key ||
+            ((this.keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT || this.keyCode == GLFW.GLFW_KEY_LEFT_SHIFT) &&
+             (key == GLFW.GLFW_KEY_RIGHT_SHIFT || key == GLFW.GLFW_KEY_LEFT_SHIFT));
+        if (!keyMatches) return false;
 
         boolean ctrlDown = (modifiers & GLFW.GLFW_MOD_CONTROL) != 0;
         boolean shiftDown = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
@@ -141,6 +144,10 @@ public final class Keybind {
             return button >= 0 && button <= GLFW.GLFW_MOUSE_BUTTON_LAST && GLFW.glfwGetMouseButton(window.getHandle(), button) == GLFW.GLFW_PRESS;
         }
 
+        if (this.keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT || this.keyCode == GLFW.GLFW_KEY_LEFT_SHIFT) {
+            return shiftDown || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT) || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT);
+        }
+
         return InputUtil.isKeyPressed(window, this.keyCode);
     }
 
@@ -160,22 +167,31 @@ public final class Keybind {
 
         if (isMouseButton()) {
             int button = getMouseButton();
-            try {
-                switch (button) {
-                    case 0 -> sb.append(Text.translatable("activity.keybind.mouse.lmb").getString());
-                    case 1 -> sb.append(Text.translatable("activity.keybind.mouse.rmb").getString());
-                    case 2 -> sb.append(Text.translatable("activity.keybind.mouse.wheel").getString());
-                    default -> sb.append(Text.translatable("activity.keybind.mouse.button", String.valueOf(button + 1)).getString());
-                }
-            } catch (Throwable ignored) {
-                switch (button) {
-                    case 0 -> sb.append("ЛКМ");
-                    case 1 -> sb.append("ПКМ");
-                    case 2 -> sb.append("Колесико");
-                    default -> sb.append("Мышь ").append(button + 1);
-                }
+            boolean ru = activity.client.i18n.LocalizationService.isRussianPreferred();
+            switch (button) {
+                case 0 -> sb.append(ru ? "ЛКМ" : "LMB");
+                case 1 -> sb.append(ru ? "ПКМ" : "RMB");
+                case 2 -> sb.append(ru ? "Колесико" : "Wheel");
+                case 3 -> sb.append(ru ? "Боковая 1 (M4)" : "Mouse 4");
+                case 4 -> sb.append(ru ? "Боковая 2 (M5)" : "Mouse 5");
+                default -> sb.append(ru ? "Мышь " : "Mouse ").append(button + 1);
             }
             return sb.toString();
+        }
+
+        switch (this.keyCode) {
+            case GLFW.GLFW_KEY_RIGHT_SHIFT -> { sb.append("R-Shift"); return sb.toString(); }
+            case GLFW.GLFW_KEY_LEFT_SHIFT -> { sb.append("L-Shift"); return sb.toString(); }
+            case GLFW.GLFW_KEY_RIGHT_CONTROL -> { sb.append("R-Ctrl"); return sb.toString(); }
+            case GLFW.GLFW_KEY_LEFT_CONTROL -> { sb.append("L-Ctrl"); return sb.toString(); }
+            case GLFW.GLFW_KEY_RIGHT_ALT -> { sb.append("R-Alt"); return sb.toString(); }
+            case GLFW.GLFW_KEY_LEFT_ALT -> { sb.append("L-Alt"); return sb.toString(); }
+            case GLFW.GLFW_KEY_CAPS_LOCK -> { sb.append("Caps Lock"); return sb.toString(); }
+            case GLFW.GLFW_KEY_SPACE -> { sb.append("Space"); return sb.toString(); }
+            case GLFW.GLFW_KEY_TAB -> { sb.append("Tab"); return sb.toString(); }
+            case GLFW.GLFW_KEY_BACKSPACE -> { sb.append("Backspace"); return sb.toString(); }
+            case GLFW.GLFW_KEY_ENTER -> { sb.append("Enter"); return sb.toString(); }
+            case GLFW.GLFW_KEY_ESCAPE -> { sb.append("Esc"); return sb.toString(); }
         }
 
         String name = null;

@@ -57,7 +57,16 @@ public final class ThemeManager {
 
     public static void set(ITheme theme) {
         liveOverride = null;
-        if (theme == null || theme == current) {
+        if (theme == null) {
+            return;
+        }
+        var cfg = ActivityConfigManager.getConfig();
+        if (cfg != null && !theme.id().equals(cfg.guiTheme)) {
+            cfg.guiTheme = theme.id();
+            ActivityConfigManager.markDirty();
+            ActivityConfigManager.save();
+        }
+        if (theme == current) {
             return;
         }
         fromShades = ThemeManager.blendedShades();
@@ -72,7 +81,15 @@ public final class ThemeManager {
 
     public static void setById(String id) {
         if (id == null || id.isEmpty()) return;
-        set(Theme.fromSerializedName(id));
+        CustomTheme custom = CustomThemeManager.getById(id);
+        if (custom != null) {
+            set(custom);
+            return;
+        }
+        Theme th = Theme.fromSerializedName(id);
+        if (th != null) {
+            set(th);
+        }
     }
 
     public static Theme current() {

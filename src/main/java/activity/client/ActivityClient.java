@@ -44,6 +44,13 @@ public class ActivityClient implements ClientModInitializer {
                 cooldownCategory
         ));
 
+        openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.activity.open_menu",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_RIGHT_SHIFT,
+                KeyBinding.Category.create(net.minecraft.util.Identifier.of("activity", "main"))
+        ));
+        syncOpenMenuKey();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             activity.client.module.service.CooldownTrackerService.tick(client);
@@ -56,6 +63,21 @@ public class ActivityClient implements ClientModInitializer {
             while (openCooldownHudKey != null && openCooldownHudKey.wasPressed()) {
                 if (client != null && client.currentScreen == null) {
                     client.setScreen(new CooldownHudStandaloneScreen(null));
+                }
+            }
+
+            while (openMenuKey != null && openMenuKey.wasPressed()) {
+                if (client != null && client.currentScreen == null) {
+                    menuKeyDown = true;
+                    try {
+                        client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
+                    } catch (Throwable t) {
+                        try {
+                            ActivityScreen.clearSession();
+                            client.setScreen(activity.client.gui.custom.api.ui.UI.INSTANCE);
+                        } catch (Throwable ignored) {
+                        }
+                    }
                 }
             }
 
@@ -86,9 +108,19 @@ public class ActivityClient implements ClientModInitializer {
             boolean configMatches = (config != null && config.menuKeybind != null && !config.menuKeybind.isUnbound())
                     && config.menuKeybind.matchesWindow(window, ctrl, shift, alt);
 
-            boolean rawPressed = menuKeyCode > 0 && InputUtil.isKeyPressed(window, menuKeyCode);
+            boolean isShiftBound = menuKeyCode == GLFW.GLFW_KEY_RIGHT_SHIFT || menuKeyCode == GLFW.GLFW_KEY_LEFT_SHIFT;
+            boolean shiftPressed = isShiftBound && shift;
+
+            boolean rawPressed = false;
+            if (config != null && config.menuKeybind != null && config.menuKeybind.isMouseButton()) {
+                int btn = config.menuKeybind.getMouseButton();
+                rawPressed = btn >= 0 && btn <= GLFW.GLFW_MOUSE_BUTTON_LAST && GLFW.glfwGetMouseButton(window.getHandle(), btn) == GLFW.GLFW_PRESS;
+            } else if (menuKeyCode > 0) {
+                rawPressed = InputUtil.isKeyPressed(window, menuKeyCode);
+            }
+
             boolean requiresModifiers = config != null && config.menuKeybind != null && (config.menuKeybind.isCtrl() || config.menuKeybind.isAlt());
-            boolean isDown = configMatches || (rawPressed && !requiresModifiers);
+            boolean isDown = configMatches || shiftPressed || (rawPressed && !requiresModifiers);
 
             if (client.currentScreen != null) {
                 if (!isDown) {
@@ -128,5 +160,20 @@ public class ActivityClient implements ClientModInitializer {
 
     public static void suppressMenuKey() {
         menuKeyDown = true;
+    }
+
+    public static void syncOpenMenuKey() {
+        if (openMenuKey == null) return;
+        ActivityConfig cfg = ActivityConfigManager.getConfig();
+        if (cfg == null || cfg.menuKeybind == null || cfg.menuKeybind.isUnbound()) {
+            openMenuKey.setBoundKey(InputUtil.UNKNOWN_KEY);
+            return;
+        }
+        int code = cfg.menuKeybind.getKeyCode();
+        if (cfg.menuKeybind.isMouseButton()) {
+            openMenuKey.setBoundKey(InputUtil.Type.MOUSE.createFromCode(cfg.menuKeybind.getMouseButton()));
+        } else if (code > 0) {
+            openMenuKey.setBoundKey(InputUtil.Type.KEYSYM.createFromCode(code));
+        }
     }
 }

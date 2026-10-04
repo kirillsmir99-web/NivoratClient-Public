@@ -203,6 +203,8 @@ public final class PresetRenderer {
         this.drawerParts.clear();
         this.drawerParts.addAll(EnumSet.allOf(LocalPresets.Part.class));
         this.drawerParts.remove(LocalPresets.Part.APPEARANCE);
+        this.drawerParts.remove(LocalPresets.Part.THEMES);
+        this.drawerParts.remove(LocalPresets.Part.CART_PROFILE);
         this.drawerModules.clear();
         this.drawerModules.addAll(ALL_FEATURE_MODULES);
         this.autoActivate = true;
@@ -1131,7 +1133,7 @@ public final class PresetRenderer {
             if (clip.startsWith("\"") && clip.endsWith("\"")) {
                 clip = clip.substring(1, clip.length() - 1).trim();
             }
-            if (clip.startsWith("{") && clip.endsWith("}")) {
+            if ((clip.startsWith("{") && clip.endsWith("}")) || clip.startsWith("NVP1:")) {
                 LocalPresets.importString(clip);
                 this.reload();
                 this.showToast(tr("Пресет импортирован!", "Preset imported!"));

@@ -418,6 +418,14 @@ implements GuiCapture.Source {
         }
     }
 
+    private static boolean isMenuKeyMatch(int pressedKey, int boundKey) {
+        if (pressedKey == boundKey) return true;
+        if ((boundKey == 344 || boundKey == 340) && (pressedKey == 344 || pressedKey == 340)) return true;
+        if ((boundKey == 345 || boundKey == 341) && (pressedKey == 345 || pressedKey == 341)) return true;
+        if ((boundKey == 346 || boundKey == 342) && (pressedKey == 346 || pressedKey == 342)) return true;
+        return false;
+    }
+
     public boolean keyPressed(KeyInput input) {
         capitulationHold.cancel();
         if (this.presetDropdownOpen && input.key() == 256) {
@@ -435,7 +443,7 @@ implements GuiCapture.Source {
             int n2;
             ClickGui clickGui = ModuleManager.get().get(ClickGui.class);
             int n3 = n2 = clickGui != null ? clickGui.getBind().getCode() : 344;
-            if (input.key() == n2) {
+            if (isMenuKeyMatch(input.key(), n2)) {
                 pendingAfterClose = null;
                 WorldGuiCloseAnimation.reverse();
                 GuiShatterAnimation.gather(WorldGuiCloseAnimation.isReversing() ? WorldGuiCloseAnimation.remainingNanos() : 0L);
@@ -486,7 +494,7 @@ implements GuiCapture.Source {
             this.close();
             return true;
         }
-        if (input.key() == n) {
+        if (isMenuKeyMatch(input.key(), n)) {
             this.close();
             return true;
         }
@@ -558,7 +566,24 @@ implements GuiCapture.Source {
         if (this.inspector.captureMouse(click.button())) return true;
         if (this.bindPopup.mouseBind(click.button())) return true;
         if(click.button()==2&&isModuleView()){Module m=moduleAtCursor();if(m!=null){bindPopup.open(m,Position.mouseX(),Position.mouseY());return true;}}
+        ClickGui clickGui = ModuleManager.get().get(ClickGui.class);
+        if (this.screenAnim.isClosing()) {
+            if (clickGui != null && clickGui.getBind().getType() == activity.client.gui.custom.utils.key.InputType.MOUSE
+                && clickGui.getBind().matchesMouseButton(click.button())) {
+                pendingAfterClose = null;
+                WorldGuiCloseAnimation.reverse();
+                GuiShatterAnimation.gather(WorldGuiCloseAnimation.isReversing() ? WorldGuiCloseAnimation.remainingNanos() : 0L);
+                this.screenAnim.resumeOpening();
+                Sounds.play("gui_open");
+            }
+            return true;
+        }
         if (!this.screenAnim.canInteract()) {
+            return true;
+        }
+        if (clickGui != null && click.button() != 0 && clickGui.getBind().getType() == activity.client.gui.custom.utils.key.InputType.MOUSE
+            && clickGui.getBind().matchesMouseButton(click.button())) {
+            this.close();
             return true;
         }
         if (this.presetDropdownOpen && click.button() == 0) {
