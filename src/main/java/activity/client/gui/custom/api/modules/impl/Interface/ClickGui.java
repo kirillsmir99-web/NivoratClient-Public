@@ -23,7 +23,7 @@ public final class ClickGui extends Module {
 
     public final SeparatorSetting networkSeparator = this.register(new SeparatorSetting("Сеть и защита"));
     public final activity.client.gui.custom.api.modules.settings.impl.BooleanSetting srpSpoofSetting = this.register(
-        new activity.client.gui.custom.api.modules.settings.impl.BooleanSetting("Спуфер ресурс-пака", "Не скачивать серверный ресурс-пак (отправлять статус успешной загрузки)", false)
+        new activity.client.gui.custom.api.modules.settings.impl.BooleanSetting("Спуфер ресурс-пака", "Не скачивать серверный ресурс-пак. Внимание: выключите при игре на серверах с проверкой уникальных токен-ссылок.", false)
     );
 
     public final SeparatorSetting scaleSeparator = this.register(new SeparatorSetting("Масштаб"));

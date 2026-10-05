@@ -34,9 +34,14 @@ public abstract class ClientCommonNetworkHandlerMixin {
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             try {
                 Thread.sleep(downloadDelay);
-                sendPacket(new net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket(packId, net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.Status.DOWNLOADED));
+                net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+                if (mc != null) {
+                    mc.send(() -> sendPacket(new net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket(packId, net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.Status.DOWNLOADED)));
+                }
                 Thread.sleep(reloadDelay - downloadDelay);
-                sendPacket(new net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket(packId, net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.Status.SUCCESSFULLY_LOADED));
+                if (mc != null) {
+                    mc.send(() -> sendPacket(new net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket(packId, net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.Status.SUCCESSFULLY_LOADED)));
+                }
             } catch (Throwable ignored) {}
         });
     }

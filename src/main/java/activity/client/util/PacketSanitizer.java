@@ -7,9 +7,7 @@ import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.network.packet.c2s.play.ChatCommandSignedC2SPacket;
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket;
-import net.minecraft.network.packet.c2s.play.RenameItemC2SPacket;
 import net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket;
-import net.minecraft.network.packet.c2s.play.UpdateSignC2SPacket;
 import net.minecraft.util.Identifier;
 
 import java.lang.reflect.Method;
@@ -31,24 +29,6 @@ public final class PacketSanitizer {
         }
         if (packet instanceof ChatMessageC2SPacket chatPacket) {
             return isMenuOrSensitiveCommand(chatPacket.chatMessage());
-        }
-        if (packet instanceof UpdateSignC2SPacket signPacket) {
-            String[] text = signPacket.getText();
-            if (text != null) {
-                for (int i = 0; i < text.length; i++) {
-                    if (text[i] != null && isSensitiveText(text[i])) {
-                        text[i] = "";
-                    }
-                }
-            }
-            return false;
-        }
-        if (packet instanceof RenameItemC2SPacket renamePacket) {
-            String name = renamePacket.getName();
-            if (name != null && isSensitiveText(name)) {
-                return true;
-            }
-            return false;
         }
         if (packet instanceof CustomPayloadC2SPacket customPacket) {
             return shouldCancelOrSanitizeCustomPayload(customPacket.payload());

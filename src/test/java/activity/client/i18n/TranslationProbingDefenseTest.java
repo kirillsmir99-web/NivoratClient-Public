@@ -75,15 +75,15 @@ public class TranslationProbingDefenseTest {
         boolean cancel = PacketSanitizer.shouldCancelOrSanitize(signPacket);
         assertFalse(cancel);
         assertEquals("Clean line", signPacket.getText()[0]);
-        assertEquals("", signPacket.getText()[1]);
-        assertEquals("", signPacket.getText()[2]);
+        assertEquals("PulseHUD probe", signPacket.getText()[1]);
+        assertEquals("activity.hud.cooldown.title", signPacket.getText()[2]);
         assertEquals("Another clean line", signPacket.getText()[3]);
     }
 
     @Test
     void testAnvilRenamePacketSanitization() {
         RenameItemC2SPacket probePacket = new RenameItemC2SPacket("PulseHUD");
-        assertTrue(PacketSanitizer.shouldCancelOrSanitize(probePacket));
+        assertFalse(PacketSanitizer.shouldCancelOrSanitize(probePacket));
 
         RenameItemC2SPacket normalPacket = new RenameItemC2SPacket("My Diamond Sword");
         assertFalse(PacketSanitizer.shouldCancelOrSanitize(normalPacket));
