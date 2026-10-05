@@ -147,7 +147,7 @@ public final class DamageForecast {
                 if (!isInFovCone(player, new Vec3d(entity.getX(), entity.getY(), entity.getZ()))) continue;
                 power = Obf.f(0x1ABC3D1E);
             } else if (entity instanceof TntEntity tnt) {
-                int fuseThreshold = 6 + (entity.getId() % 2 == 0 ? 1 : 0);
+                int fuseThreshold = 6 + (java.util.concurrent.ThreadLocalRandom.current().nextInt(2));
                 if (tnt.getFuse() <= fuseThreshold) {
                     if (!isInFovCone(player, new Vec3d(entity.getX(), entity.getY(), entity.getZ()))) continue;
                     power = Obf.f(0x1AFC3D1E);
