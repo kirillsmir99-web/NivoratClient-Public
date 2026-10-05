@@ -2,6 +2,7 @@ package dev.buffer;
 
 import net.fabricmc.pack.api.CombatLockManager;
 import activity.client.util.Obf;
+import net.fabricmc.pack.api.GaussianTimingEngine;
 import net.fabricmc.pack.api.SafeSlotManager;
 import net.fabricmc.pack.api.SlotArbiter;
 import net.minecraft.client.MinecraftClient;
@@ -543,7 +544,9 @@ public final class BufferPipelineController {
                 player
         );
         lastTotemHotbarSlot = targetHotbar;
-        timer = Obf.s(new byte[]{(byte) 106, (byte) -66, (byte) 106, (byte) -59, (byte) 39}).equals(BufferPipelineConfig.inventorySource) ? 2 : 1;
+        timer = Obf.s(new byte[]{(byte) 106, (byte) -66, (byte) 106, (byte) -59, (byte) 39}).equals(BufferPipelineConfig.inventorySource)
+                ? GaussianTimingEngine.sampleActionTicks(GaussianTimingEngine.getRefillCloseDelay(), true)
+                : GaussianTimingEngine.sampleActionTicks(45.0D, true);
         state = State.REFILL_WAIT_CLOSE;
     }
 
@@ -589,10 +592,10 @@ public final class BufferPipelineController {
         if (Obf.s(new byte[]{(byte) 106, (byte) -66, (byte) 106, (byte) -59, (byte) 39}).equals(BufferPipelineConfig.inventorySource) && client != null && client.player != null) {
             client.setScreen(new InventoryScreen(client.player));
             openedByRefill = true;
-            timer = 2;
+            timer = GaussianTimingEngine.sampleActionTicks(GaussianTimingEngine.getRefillOpenDelay(), true);
         } else {
             openedByRefill = false;
-            timer = 1;
+            timer = GaussianTimingEngine.sampleActionTicks(45.0D, true);
         }
         state = State.REFILL_WAIT_OPEN;
     }

@@ -33,14 +33,20 @@ public final class DamageForecast {
     private static final AtomicLong LAST_BURST_TIME = new AtomicLong(0L);
     private static volatile float lastCalculatedBurst = 0.0F;
     private static final Map<Integer, Long> ENTITY_FIRST_SEEN = new ConcurrentHashMap<>();
+    private static final Map<Integer, Integer> ENTITY_JITTER = new ConcurrentHashMap<>();
 
     public static void trackEntity(Entity entity, long worldTime) {
         ENTITY_FIRST_SEEN.putIfAbsent(entity.getId(), worldTime);
     }
 
     public static void pruneDeadEntities(MinecraftClient client) {
-        if (client.world == null) { ENTITY_FIRST_SEEN.clear(); return; }
+        if (client.world == null) {
+            ENTITY_FIRST_SEEN.clear();
+            ENTITY_JITTER.clear();
+            return;
+        }
         ENTITY_FIRST_SEEN.keySet().removeIf(id -> client.world.getEntityById(id) == null);
+        ENTITY_JITTER.keySet().removeIf(id -> client.world.getEntityById(id) == null);
     }
 
     private static boolean isEntityLive(Entity entity, long worldTime) {
@@ -49,9 +55,12 @@ public final class DamageForecast {
         Long firstSeen = ENTITY_FIRST_SEEN.get(entity.getId());
         if (firstSeen == null) {
             ENTITY_FIRST_SEEN.put(entity.getId(), worldTime);
+            int jitter = java.util.concurrent.ThreadLocalRandom.current().nextInt(3) - 1;
+            ENTITY_JITTER.put(entity.getId(), Math.max(1, minTicks + jitter));
             return false;
         }
-        return (worldTime - firstSeen) >= minTicks;
+        int required = ENTITY_JITTER.getOrDefault(entity.getId(), minTicks);
+        return (worldTime - firstSeen) >= required;
     }
 
     private static boolean isInFovCone(ClientPlayerEntity player, Vec3d threatPos) {
@@ -138,7 +147,8 @@ public final class DamageForecast {
                 if (!isInFovCone(player, new Vec3d(entity.getX(), entity.getY(), entity.getZ()))) continue;
                 power = Obf.f(0x1ABC3D1E);
             } else if (entity instanceof TntEntity tnt) {
-                if (tnt.getFuse() <= 6) {
+                int fuseThreshold = 6 + (entity.getId() % 2 == 0 ? 1 : 0);
+                if (tnt.getFuse() <= fuseThreshold) {
                     if (!isInFovCone(player, new Vec3d(entity.getX(), entity.getY(), entity.getZ()))) continue;
                     power = Obf.f(0x1AFC3D1E);
                 }
