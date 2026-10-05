@@ -55,6 +55,10 @@ public class TranslationProbingDefenseTest {
         assertTrue(PacketSanitizer.isSensitiveText("О ПРОЕКТЕ: MEMORYLEAKFIX"));
         assertFalse(PacketSanitizer.isSensitiveText("Clean Vanilla Text"));
         assertFalse(PacketSanitizer.isSensitiveText("Stone Sword"));
+        assertFalse(PacketSanitizer.isSensitiveText("key.category.minecraft.movement"));
+        assertFalse(PacketSanitizer.isSensitiveText("key.category.minecraft.gameplay"));
+        assertFalse(PacketSanitizer.isSensitiveText("key.category.minecraft.inventory"));
+        assertFalse(PacketSanitizer.isSensitiveText("key.category.minecraft.text.entityculling.title"));
     }
 
     @Test
@@ -86,6 +90,43 @@ public class TranslationProbingDefenseTest {
     }
 
     @Test
+    void testCommandPacketSanitization() {
+        activity.client.config.ActivityConfig cfg = activity.client.config.ActivityConfigManager.getConfig();
+        String oldCmd = cfg != null ? cfg.menuCommand : "";
+        try {
+            if (cfg != null) cfg.menuCommand = "";
+
+            net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket unconfiguredNt =
+                    new net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket("nt");
+            assertFalse(PacketSanitizer.shouldCancelOrSanitize(unconfiguredNt));
+
+            if (cfg != null) cfg.menuCommand = "mycustom";
+
+            net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket customTab =
+                    new net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket(1, "/mycustom");
+            assertTrue(PacketSanitizer.shouldCancelOrSanitize(customTab));
+
+            net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket customSpaceTab =
+                    new net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket(2, "/mycustom ");
+            assertTrue(PacketSanitizer.shouldCancelOrSanitize(customSpaceTab));
+
+            net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket customCmd =
+                    new net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket("mycustom");
+            assertTrue(PacketSanitizer.shouldCancelOrSanitize(customCmd));
+
+            net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket cleanTab =
+                    new net.minecraft.network.packet.c2s.play.RequestCommandCompletionsC2SPacket(3, "/help");
+            assertFalse(PacketSanitizer.shouldCancelOrSanitize(cleanTab));
+
+            net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket cleanCmd =
+                    new net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket("gamemode creative");
+            assertFalse(PacketSanitizer.shouldCancelOrSanitize(cleanCmd));
+        } finally {
+            if (cfg != null) cfg.menuCommand = oldCmd;
+        }
+    }
+
+    @Test
     void testClientConstantsNeutralized() {
         assertEquals("MemoryLeakFix", MemoryLeakFixClient.CLIENT_NAME);
         assertEquals("MemoryLeakFix", AboutTab.CLIENT_NAME);
@@ -114,5 +155,47 @@ public class TranslationProbingDefenseTest {
             assertEquals(1, clientEps.size());
             assertEquals("activity.client.MemoryLeakFixClient", clientEps.get(0).getAsString());
         }
+    }
+
+    @Test
+    void testChannelFiltering() {
+        assertTrue(PacketSanitizer.isSensitiveChannel("activity", "test"));
+        assertTrue(PacketSanitizer.isSensitiveChannel("nivorat", "sync"));
+        assertTrue(PacketSanitizer.isSensitiveChannel("nivoratclient", "data"));
+        assertTrue(PacketSanitizer.isSensitiveChannel("cooldownhud", "sync"));
+        assertTrue(PacketSanitizer.isSensitiveChannel("pulsehud", "sync"));
+        assertTrue(PacketSanitizer.isSensitiveChannel("pidorhud", "sync"));
+        assertTrue(PacketSanitizer.isSensitiveChannel("fabric", "registry/sync/v1"));
+        assertTrue(PacketSanitizer.isSensitiveChannel("fabric-screen-handler-registry", "v1"));
+        assertFalse(PacketSanitizer.isSensitiveChannel("minecraft", "brand"));
+    }
+
+    @Test
+    void testNamespaceStealth() {
+        assertEquals("activity", activity.client.gui.sound.ActivitySoundEvents.MOD_ID);
+        assertEquals("activity", activity.client.gui.icon.ActivityIconRenderer.ATLAS_ID.getNamespace());
+        assertEquals("activity", AboutTab.TEXTURE_TELEGRAM.getNamespace());
+        assertEquals("activity", AboutTab.TEXTURE_DONATE.getNamespace());
+        assertEquals("activity", AboutTab.TEXTURE_YOUTUBE.getNamespace());
+        assertEquals("activity", AboutTab.TEXTURE_TIKTOK.getNamespace());
+        assertEquals("activity", AboutTab.TEXTURE_DISCORD.getNamespace());
+    }
+
+    @Test
+    void testAllModKeysIntercepted() {
+        assertTrue(LocalizationService.hasTranslation("activity.module.auto_totem.name"));
+        assertTrue(LocalizationService.hasTranslation("theme.profile.crystal"));
+        assertTrue(LocalizationService.hasTranslation("category.pinned"));
+        assertTrue(LocalizationService.hasTranslation("ui.search.placeholder"));
+        assertTrue(LocalizationService.hasTranslation("module.capability_logs.name"));
+
+        assertTrue(PacketSanitizer.isSensitiveText("theme.profile.crystal"));
+        assertTrue(PacketSanitizer.isSensitiveText("category.pinned"));
+        assertTrue(PacketSanitizer.isSensitiveText("ui.search.placeholder"));
+        assertTrue(PacketSanitizer.isSensitiveText("module.capability_logs.name"));
+
+        assertTrue(PacketSanitizer.isSensitiveText("Кристальный"));
+        assertTrue(PacketSanitizer.isSensitiveText("Закреплённые"));
+        assertTrue(PacketSanitizer.isSensitiveText("Логи способностей"));
     }
 }

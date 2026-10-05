@@ -7,7 +7,7 @@ import net.minecraft.util.Identifier;
 
 public final class ActivityIconRenderer {
 
-    public static final Identifier ATLAS_ID = Identifier.of("nivoratclient", "textures/gui/nivorat_icons_atlas.png");
+    public static final Identifier ATLAS_ID = Identifier.of("activity", "textures/gui/nivorat_icons_atlas.png");
     public static final int ATLAS_WIDTH = 192;
     public static final int ATLAS_HEIGHT = 120;
 

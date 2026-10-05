@@ -119,8 +119,8 @@ public class NivoratFontSystemTest {
 
     @Test
     void testFontLocalizationPresence() {
-        InputStream isRu = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json");
-        assertNotNull(isRu, "ru_ru.json must exist in resources");
+        InputStream isRu = getClass().getResourceAsStream("/assets/activity/locale/ru_ru.lang");
+        assertNotNull(isRu, "ru_ru.lang must exist in resources");
         JsonObject ru = new Gson().fromJson(new InputStreamReader(isRu, StandardCharsets.UTF_8), JsonObject.class);
 
         assertTrue(ru.has("activity.font.minecraft"));
@@ -133,8 +133,8 @@ public class NivoratFontSystemTest {
         assertTrue(ru.has("activity.typography.size.normal"));
         assertTrue(ru.has("activity.typography.size.large"));
 
-        InputStream isEn = getClass().getResourceAsStream("/assets/activity/lang/en_us.json");
-        assertNotNull(isEn, "en_us.json must exist in resources");
+        InputStream isEn = getClass().getResourceAsStream("/assets/activity/locale/en_us.lang");
+        assertNotNull(isEn, "en_us.lang must exist in resources");
         JsonObject en = new Gson().fromJson(new InputStreamReader(isEn, StandardCharsets.UTF_8), JsonObject.class);
 
         assertTrue(en.has("activity.font.minecraft"));

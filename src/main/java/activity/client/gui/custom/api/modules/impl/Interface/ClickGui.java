@@ -17,6 +17,14 @@ public final class ClickGui extends Module {
     public final activity.client.gui.custom.api.modules.settings.impl.BindSetting menuKey = this.register(
         new activity.client.gui.custom.api.modules.settings.impl.BindSetting("Клавиша меню", "Клавиша для открытия и закрытия меню клиента")
     );
+    public final activity.client.gui.custom.api.modules.settings.impl.StringSetting menuCommandSetting = this.register(
+        new activity.client.gui.custom.api.modules.settings.impl.StringSetting("Команда открытия", "Кастомная команда чата для открытия меню (например, /menu). Оставьте пустой для отключения.", "", 32)
+    );
+
+    public final SeparatorSetting networkSeparator = this.register(new SeparatorSetting("Сеть и защита"));
+    public final activity.client.gui.custom.api.modules.settings.impl.BooleanSetting srpSpoofSetting = this.register(
+        new activity.client.gui.custom.api.modules.settings.impl.BooleanSetting("Спуфер ресурс-пака", "Не скачивать серверный ресурс-пак (отправлять статус успешной загрузки)", false)
+    );
 
     public final SeparatorSetting scaleSeparator = this.register(new SeparatorSetting("Масштаб"));
 
@@ -51,13 +59,45 @@ public final class ClickGui extends Module {
             }
         );
         this.menuKey.setSource(ks);
+        var initialCfg = activity.client.config.ActivityConfigManager.getConfig();
+        if (initialCfg != null && initialCfg.menuCommand != null) {
+            this.menuCommandSetting.setText(initialCfg.menuCommand);
+        }
+        this.menuCommandSetting.setChangeListener(() -> {
+            var cfg = activity.client.config.ActivityConfigManager.getConfig();
+            if (cfg != null) {
+                String txt = this.menuCommandSetting.getText();
+                String clean = txt != null ? txt.trim() : "";
+                while (clean.startsWith("/")) clean = clean.substring(1).trim();
+                cfg.menuCommand = clean;
+                activity.client.config.ActivityConfigManager.markDirty();
+                activity.client.config.ActivityConfigManager.save();
+            }
+        });
+        this.srpSpoofSetting.setValue(initialCfg != null && initialCfg.srpSpoof);
+        this.srpSpoofSetting.setChangeListener(() -> {
+            var cfg = activity.client.config.ActivityConfigManager.getConfig();
+            if (cfg != null) {
+                boolean val = this.srpSpoofSetting.getValue();
+                cfg.srpSpoof = val;
+                activity.client.config.ActivityConfigManager.markDirty();
+                activity.client.config.ActivityConfigManager.save();
+            }
+        });
         this.scaleMode.setChangeListener(ConfigManager::markDirty);
         this.customScale.setChangeListener(ConfigManager::markDirty);
     }
 
     @Override
     public String getDisplayName() {
-        return activity.client.i18n.LocalizationService.isRussianPreferred() ? "Меню (Клавиша)" : "Menu (Keybind)";
+        return activity.client.i18n.LocalizationService.isRussianPreferred() ? "Меню и спуфер" : "Menu & Spoofer";
+    }
+
+    @Override
+    public String getDescription() {
+        return activity.client.i18n.LocalizationService.isRussianPreferred()
+            ? "Клавиша открытия меню, масштаб интерфейса и спуфер ресурс-пака."
+            : "Menu keybind, UI scale, and server resource pack spoofer.";
     }
  @Override public KeyBind getBind() {
      var cfg = activity.client.config.ActivityConfigManager.getConfig();

@@ -29,8 +29,8 @@ public class Stage14WatermarkAndPresetsTest {
 
     @Test
     void testRussianLocalizationContainsWatermarkPlaceholder() {
-        InputStream is = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json");
-        assertNotNull(is, "ru_ru.json must exist in assets");
+        InputStream is = getClass().getResourceAsStream("/assets/activity/locale/ru_ru.lang");
+        assertNotNull(is, "ru_ru.lang must exist in assets");
         JsonObject json = new Gson().fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), JsonObject.class);
 
         assertTrue(json.has("activity.about.telegram_watermark"));
@@ -51,8 +51,8 @@ public class Stage14WatermarkAndPresetsTest {
 
     @Test
     void testEnglishLocalizationContainsWatermarkPlaceholder() {
-        InputStream is = getClass().getResourceAsStream("/assets/activity/lang/en_us.json");
-        assertNotNull(is, "en_us.json must exist in assets");
+        InputStream is = getClass().getResourceAsStream("/assets/activity/locale/en_us.lang");
+        assertNotNull(is, "en_us.lang must exist in assets");
         JsonObject json = new Gson().fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), JsonObject.class);
 
         assertTrue(json.has("activity.about.telegram_watermark"));

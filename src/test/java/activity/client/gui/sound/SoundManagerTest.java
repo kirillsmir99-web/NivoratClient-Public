@@ -138,26 +138,26 @@ public class SoundManagerTest {
     @Test
     void testSoundIdentifiers() {
 
-        assertEquals("nivoratclient:ui.serene.open", ActivitySoundEvents.SERENE_OPEN_ID.toString());
-        assertEquals("nivoratclient:ui.serene.close", ActivitySoundEvents.SERENE_CLOSE_ID.toString());
-        assertEquals("nivoratclient:ui.serene.button_primary", ActivitySoundEvents.SERENE_BUTTON_PRIMARY_ID.toString());
-        assertEquals("nivoratclient:ui.serene.button_secondary", ActivitySoundEvents.SERENE_BUTTON_SECONDARY_ID.toString());
-        assertEquals("nivoratclient:ui.serene.hover", ActivitySoundEvents.SERENE_HOVER_ID.toString());
-        assertEquals("nivoratclient:ui.serene.toggle_on", ActivitySoundEvents.SERENE_TOGGLE_ON_ID.toString());
-        assertEquals("nivoratclient:ui.serene.toggle_off", ActivitySoundEvents.SERENE_TOGGLE_OFF_ID.toString());
-        assertEquals("nivoratclient:ui.serene.dropdown_open", ActivitySoundEvents.SERENE_DROPDOWN_OPEN_ID.toString());
-        assertEquals("nivoratclient:ui.serene.dropdown_close", ActivitySoundEvents.SERENE_DROPDOWN_CLOSE_ID.toString());
-        assertEquals("nivoratclient:ui.serene.category_expand", ActivitySoundEvents.SERENE_CATEGORY_EXPAND_ID.toString());
-        assertEquals("nivoratclient:ui.serene.category_collapse", ActivitySoundEvents.SERENE_CATEGORY_COLLAPSE_ID.toString());
-        assertEquals("nivoratclient:ui.serene.slider_tick", ActivitySoundEvents.SERENE_SLIDER_TICK_ID.toString());
-        assertEquals("nivoratclient:ui.serene.success", ActivitySoundEvents.SERENE_SUCCESS_ID.toString());
-        assertEquals("nivoratclient:ui.serene.warning", ActivitySoundEvents.SERENE_WARNING_ID.toString());
-        assertEquals("nivoratclient:ui.serene.error", ActivitySoundEvents.SERENE_ERROR_ID.toString());
+        assertEquals("activity:ui.serene.open", ActivitySoundEvents.SERENE_OPEN_ID.toString());
+        assertEquals("activity:ui.serene.close", ActivitySoundEvents.SERENE_CLOSE_ID.toString());
+        assertEquals("activity:ui.serene.button_primary", ActivitySoundEvents.SERENE_BUTTON_PRIMARY_ID.toString());
+        assertEquals("activity:ui.serene.button_secondary", ActivitySoundEvents.SERENE_BUTTON_SECONDARY_ID.toString());
+        assertEquals("activity:ui.serene.hover", ActivitySoundEvents.SERENE_HOVER_ID.toString());
+        assertEquals("activity:ui.serene.toggle_on", ActivitySoundEvents.SERENE_TOGGLE_ON_ID.toString());
+        assertEquals("activity:ui.serene.toggle_off", ActivitySoundEvents.SERENE_TOGGLE_OFF_ID.toString());
+        assertEquals("activity:ui.serene.dropdown_open", ActivitySoundEvents.SERENE_DROPDOWN_OPEN_ID.toString());
+        assertEquals("activity:ui.serene.dropdown_close", ActivitySoundEvents.SERENE_DROPDOWN_CLOSE_ID.toString());
+        assertEquals("activity:ui.serene.category_expand", ActivitySoundEvents.SERENE_CATEGORY_EXPAND_ID.toString());
+        assertEquals("activity:ui.serene.category_collapse", ActivitySoundEvents.SERENE_CATEGORY_COLLAPSE_ID.toString());
+        assertEquals("activity:ui.serene.slider_tick", ActivitySoundEvents.SERENE_SLIDER_TICK_ID.toString());
+        assertEquals("activity:ui.serene.success", ActivitySoundEvents.SERENE_SUCCESS_ID.toString());
+        assertEquals("activity:ui.serene.warning", ActivitySoundEvents.SERENE_WARNING_ID.toString());
+        assertEquals("activity:ui.serene.error", ActivitySoundEvents.SERENE_ERROR_ID.toString());
 
-        assertEquals("nivoratclient:ui.classic.open", ActivitySoundEvents.CLASSIC_OPEN_ID.toString());
-        assertEquals("nivoratclient:ui.classic.close", ActivitySoundEvents.CLASSIC_CLOSE_ID.toString());
-        assertEquals("nivoratclient:ui.classic.button", ActivitySoundEvents.CLASSIC_BUTTON_ID.toString());
-        assertEquals("nivoratclient:ui.classic.slider_tick", ActivitySoundEvents.CLASSIC_SLIDER_TICK_ID.toString());
+        assertEquals("activity:ui.classic.open", ActivitySoundEvents.CLASSIC_OPEN_ID.toString());
+        assertEquals("activity:ui.classic.close", ActivitySoundEvents.CLASSIC_CLOSE_ID.toString());
+        assertEquals("activity:ui.classic.button", ActivitySoundEvents.CLASSIC_BUTTON_ID.toString());
+        assertEquals("activity:ui.classic.slider_tick", ActivitySoundEvents.CLASSIC_SLIDER_TICK_ID.toString());
 
         assertEquals(ActivitySoundEvents.SERENE_OPEN_ID, ActivitySoundEvents.MENU_OPEN_ID);
         assertEquals(ActivitySoundEvents.SERENE_CLOSE_ID, ActivitySoundEvents.MENU_CLOSE_ID);

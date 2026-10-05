@@ -19,8 +19,10 @@ public final class LocalizationService {
     private static final Map<String, String> EN_STRINGS = new HashMap<>();
 
     static {
-        loadLang("/assets/activity/lang/ru_ru.json", RU_STRINGS);
-        loadLang("/assets/activity/lang/en_us.json", EN_STRINGS);
+        loadLang("/assets/activity/locale/ru_ru.lang", RU_STRINGS);
+        loadLang("/assets/activity/locale/en_us.lang", EN_STRINGS);
+        loadLang("/assets/nivorat/locale/ru_ru.lang", RU_STRINGS);
+        loadLang("/assets/nivorat/locale/en_us.lang", EN_STRINGS);
     }
 
     private LocalizationService() {}
@@ -71,7 +73,6 @@ public final class LocalizationService {
 
     public static String get(String key, String fallback) {
         if (key == null) return fallback;
-        if (!key.startsWith("activity.")) return fallback;
 
         boolean ru = isRussianPreferred();
         String val = ru ? RU_STRINGS.get(key) : EN_STRINGS.get(key);
@@ -89,7 +90,7 @@ public final class LocalizationService {
     }
 
     public static boolean hasTranslation(String key) {
-        if (key == null || !key.startsWith("activity.")) return false;
+        if (key == null) return false;
         return RU_STRINGS.containsKey(key) || EN_STRINGS.containsKey(key);
     }
 

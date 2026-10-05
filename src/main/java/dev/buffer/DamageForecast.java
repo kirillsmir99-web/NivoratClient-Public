@@ -17,8 +17,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+
 
 public final class DamageForecast {
 
@@ -27,6 +32,36 @@ public final class DamageForecast {
     private static final AtomicReference<PublishedIntent> ACTIVE_INTENT = new AtomicReference<>(null);
     private static final AtomicLong LAST_BURST_TIME = new AtomicLong(0L);
     private static volatile float lastCalculatedBurst = 0.0F;
+    private static final Map<Integer, Long> ENTITY_FIRST_SEEN = new ConcurrentHashMap<>();
+
+    public static void trackEntity(Entity entity, long worldTime) {
+        ENTITY_FIRST_SEEN.putIfAbsent(entity.getId(), worldTime);
+    }
+
+    public static void pruneDeadEntities(MinecraftClient client) {
+        if (client.world == null) { ENTITY_FIRST_SEEN.clear(); return; }
+        ENTITY_FIRST_SEEN.keySet().removeIf(id -> client.world.getEntityById(id) == null);
+    }
+
+    private static boolean isEntityLive(Entity entity, long worldTime) {
+        int minTicks = BufferPipelineConfig.livenessMinTicks;
+        if (minTicks <= 0) return true;
+        Long firstSeen = ENTITY_FIRST_SEEN.get(entity.getId());
+        if (firstSeen == null) {
+            ENTITY_FIRST_SEEN.put(entity.getId(), worldTime);
+            return false;
+        }
+        return (worldTime - firstSeen) >= minTicks;
+    }
+
+    private static boolean isInFovCone(ClientPlayerEntity player, Vec3d threatPos) {
+        double halfAngleDeg = BufferPipelineConfig.fovFilterDegrees / 2.0;
+        if (halfAngleDeg >= 90.0) return true;
+        double cosThreshold = Math.cos(Math.toRadians(halfAngleDeg));
+        Vec3d look = player.getRotationVec(1.0f).normalize();
+        Vec3d toThreat = threatPos.subtract(new Vec3d(player.getX(), player.getEyeY(), player.getZ())).normalize();
+        return look.dotProduct(toThreat) >= cosThreshold;
+    }
 
     private DamageForecast() {}
 
@@ -93,17 +128,23 @@ public final class DamageForecast {
         Vec3d pos = new Vec3d(player.getX(), player.getY(), player.getZ());
         Box searchBox = player.getBoundingBox().expand(Obf.d(1900023293373332766L));
         float highestDamage = 0.0F;
+        long worldTime = client.world.getTime();
 
         for (Entity entity : client.world.getOtherEntities(player, searchBox)) {
+            if (!isEntityLive(entity, worldTime)) continue;
+
             float power = 0.0F;
             if (entity instanceof EndCrystalEntity) {
+                if (!isInFovCone(player, new Vec3d(entity.getX(), entity.getY(), entity.getZ()))) continue;
                 power = Obf.f(0x1ABC3D1E);
             } else if (entity instanceof TntEntity tnt) {
                 if (tnt.getFuse() <= 6) {
+                    if (!isInFovCone(player, new Vec3d(entity.getX(), entity.getY(), entity.getZ()))) continue;
                     power = Obf.f(0x1AFC3D1E);
                 }
             } else if (entity instanceof CreeperEntity creeper) {
                 if (creeper.getFuseSpeed() > 0) {
+                    if (!isInFovCone(player, new Vec3d(entity.getX(), entity.getY(), entity.getZ()))) continue;
                     power = Obf.f(0x1A3C3D1E);
                 }
             }
@@ -130,6 +171,8 @@ public final class DamageForecast {
                     if (client.world.getBlockState(p).isOf(Blocks.RESPAWN_ANCHOR)) {
                         int charges = client.world.getBlockState(p).get(RespawnAnchorBlock.CHARGES);
                         if (charges > 0) {
+                            Vec3d anchorCenter = Vec3d.ofCenter(p);
+                            if (!isInFovCone(player, anchorCenter)) continue;
                             double dist = Math.sqrt(p.getSquaredDistance(pos));
                             double maxDist = Obf.d(1898334443513068830L);
                             if (dist <= maxDist) {
@@ -170,9 +213,13 @@ public final class DamageForecast {
         Vec3d pos = new Vec3d(player.getX(), player.getY(), player.getZ());
         Box box = player.getBoundingBox().expand(Obf.d(1904526893000703262L));
         float highestMace = 0.0F;
+        long worldTime = client.world.getTime();
 
         for (Entity e : client.world.getOtherEntities(player, box)) {
             if (e instanceof PlayerEntity enemy && enemy.isAlive()) {
+                if (!isEntityLive(enemy, worldTime)) continue;
+                if (!isInFovCone(player, new Vec3d(enemy.getX(), enemy.getY(), enemy.getZ()))) continue;
+
                 if (enemy.getEquippedStack(EquipmentSlot.MAINHAND).isOf(Items.MACE)) {
                     if (enemy.getY() > player.getY() && enemy.getVelocity().y < Obf.d(-1894427165225278332L)) {
                         float fall = (float) enemy.fallDistance;

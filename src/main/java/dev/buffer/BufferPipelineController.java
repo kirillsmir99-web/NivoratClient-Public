@@ -34,7 +34,7 @@ public final class BufferPipelineController {
     private float lastHp = Obf.f(467418398);
     private boolean awaitingHealAfterPop = false;
     private long lastPopTime = 0L;
-    private static final long POST_POP_GRACE_MS = Obf.l(6520153561102040822L);
+    private static final long POST_POP_GRACE_MS = 50L;
     private int userOverrideCount = 0;
     private int lastControllerAssignedSlot = -1;
     private int timer = 0;
@@ -90,7 +90,8 @@ public final class BufferPipelineController {
         long now = System.currentTimeMillis();
         lastPopTime = now;
         lastThreatTime = now;
-        awaitingHealAfterPop = true;
+        awaitingHealAfterPop = false;
+        pendingOffhandTicks = 0;
         userOverrideCount = 0;
         userCancelled = false;
 
@@ -117,7 +118,7 @@ public final class BufferPipelineController {
                 SafeSlotManager.selectSlot(client, returnSlot);
             }
             clear();
-            awaitingHealAfterPop = true;
+            awaitingHealAfterPop = false;
             return;
         }
 
@@ -150,7 +151,7 @@ public final class BufferPipelineController {
                 SafeSlotManager.selectSlot(client, returnSlot);
             }
             clear();
-            awaitingHealAfterPop = true;
+            awaitingHealAfterPop = false;
         }
     }
 
@@ -208,7 +209,7 @@ public final class BufferPipelineController {
 
         boolean isHealed = (hp >= maxHp - Obf.f(1711029534)) || (restoreHp > triggerHp && hp >= restoreHp);
         if (awaitingHealAfterPop) {
-            if (isHealed || now - lastPopTime > POST_POP_GRACE_MS) {
+            if (isHealed || now - lastPopTime > POST_POP_GRACE_MS || !player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                 awaitingHealAfterPop = false;
             }
         }
@@ -328,7 +329,7 @@ public final class BufferPipelineController {
                     }
                     releaseTotemLease(true);
                     clear();
-                    awaitingHealAfterPop = true;
+                    awaitingHealAfterPop = false;
                     return;
                 }
 
@@ -372,8 +373,11 @@ public final class BufferPipelineController {
                 }
                 if (awaitingHealAfterPop) {
                     float effHp = player.getHealth() + player.getAbsorptionAmount();
-                    if (now - lastPopTime < POST_POP_GRACE_MS && effHp > 2.0F) {
+                    if (now - lastPopTime < POST_POP_GRACE_MS && effHp > 2.0F && player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                         return;
+                    }
+                    if (now - lastPopTime >= POST_POP_GRACE_MS || !player.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+                        awaitingHealAfterPop = false;
                     }
                 }
 

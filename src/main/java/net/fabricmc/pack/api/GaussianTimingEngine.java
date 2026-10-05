@@ -19,12 +19,25 @@ public final class GaussianTimingEngine {
         return (int) getDelay(base, 0.65D, Math.max(1L, (long) base - 1L), Math.min(Integer.MAX_VALUE, (long) base + 2L));
     }
 
+    private static double sessionDriftOffset = 0.0D;
+    private static long lastDriftUpdateTime = 0L;
+
+    private static double getSessionDrift() {
+        long now = System.currentTimeMillis();
+        if (now - lastDriftUpdateTime > 20000L) {
+            lastDriftUpdateTime = now;
+            sessionDriftOffset = (RNG.nextDouble() - 0.5D) * 10.0D;
+        }
+        return sessionDriftOffset;
+    }
+
     public static long getDelay(double mean, double stdDev, long min, long max) {
         if (max <= min) {
             return min;
         }
         double gaussian = RNG.nextGaussian();
-        long delay = Math.round(mean + gaussian * stdDev);
+        double drift = (mean >= 10.0D) ? getSessionDrift() : 0.0D;
+        long delay = Math.round(mean + drift + gaussian * stdDev);
         return Math.max(min, Math.min(max, delay));
     }
 

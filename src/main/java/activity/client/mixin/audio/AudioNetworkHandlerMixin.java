@@ -143,36 +143,52 @@ public final class AudioNetworkHandlerMixin {
 
     @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true)
     private void activity$onSendChatMessage(String content, CallbackInfo ci) {
-        if (activity$executeMenuCommand(content)) {
+        if (activity$executeMenuCommand(content, false)) {
             ci.cancel();
         }
     }
 
     @Inject(method = "sendChatCommand", at = @At("HEAD"), cancellable = true)
     private void activity$onSendChatCommand(String command, CallbackInfo ci) {
-        if (activity$executeMenuCommand(command)) {
+        if (activity$executeMenuCommand(command, true)) {
             ci.cancel();
         }
     }
 
-    private boolean activity$executeMenuCommand(String command) {
+    private boolean activity$executeMenuCommand(String input, boolean isCommand) {
         if (activity.client.capitulation.CapitulationManager.isCapitulated()) {
             return false;
         }
-        if (command == null || command.isBlank()) return false;
-        String clean = command.trim();
-        while (clean.startsWith("/") || clean.startsWith(".") || clean.startsWith("!") || clean.startsWith("#") || clean.startsWith(",")) {
-            clean = clean.substring(1).trim();
+        if (input == null || input.isBlank()) return false;
+
+        activity.client.config.ActivityConfig cfg = activity.client.config.ActivityConfigManager.getConfig();
+        String activeCmd = cfg != null ? cfg.menuCommand : null;
+        if (activeCmd == null || activeCmd.isBlank()) {
+            return false;
         }
-        String activeCmd = activity.client.config.ActivityConfigManager.getConfig() != null
-                ? activity.client.config.ActivityConfigManager.getConfig().menuCommand
-                : "nt";
-        if (activeCmd == null || activeCmd.isBlank()) activeCmd = "nt";
-        while (activeCmd.startsWith("/") || activeCmd.startsWith(".") || activeCmd.startsWith("!") || activeCmd.startsWith("#") || activeCmd.startsWith(",")) {
+        while (activeCmd.startsWith("/")) {
             activeCmd = activeCmd.substring(1).trim();
         }
+        if (activeCmd.isEmpty()) return false;
 
-        if (clean.equalsIgnoreCase(activeCmd)) {
+        String clean = input.trim();
+        if (!isCommand) {
+            if (!clean.startsWith("/")) {
+                return false;
+            }
+            while (clean.startsWith("/")) {
+                clean = clean.substring(1).trim();
+            }
+        } else {
+            while (clean.startsWith("/")) {
+                clean = clean.substring(1).trim();
+            }
+        }
+
+        int spaceIdx = clean.indexOf(' ');
+        String firstWord = spaceIdx > 0 ? clean.substring(0, spaceIdx) : clean;
+
+        if (firstWord.equalsIgnoreCase(activeCmd)) {
             MinecraftClient mc = MinecraftClient.getInstance();
             if (mc != null) {
                 mc.send(() -> {

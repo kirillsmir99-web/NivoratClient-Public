@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "nivoratclient:font/dev_badge.png",
+      "file": "activity:font/dev_badge.png",
       "ascent": 10,
       "height": 12,
       "chars": ["\ue001"]

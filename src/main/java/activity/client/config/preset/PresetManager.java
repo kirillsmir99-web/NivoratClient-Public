@@ -380,7 +380,7 @@ public final class PresetManager {
                 }
             }
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Failed to load custom presets from {}: {}", targetToRead, e.getMessage());
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] Failed to load custom presets from {}: {}", targetToRead, e.getMessage());
         }
     }
 
@@ -433,7 +433,7 @@ public final class PresetManager {
             } catch (Throwable ignored) {
             }
         } catch (IOException e) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Failed to save custom presets: {}", e.getMessage());
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] Failed to save custom presets: {}", e.getMessage());
         }
     }
 

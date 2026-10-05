@@ -373,20 +373,20 @@ public class CombatModulesMigrationTest {
 
     @Test
     void testCombatLocalization() throws Exception {
-        java.io.InputStream ruStream = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json");
-        assertNotNull(ruStream, "ru_ru.json must exist in classpath");
+        java.io.InputStream ruStream = getClass().getResourceAsStream("/assets/activity/locale/ru_ru.lang");
+        assertNotNull(ruStream, "ru_ru.lang must exist in classpath");
         String ruJson = new String(ruStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertTrue(ruJson.contains("\"activity.module.auto_stun_slam.name\": \"Авто Стан Слэм\""),
-                "ru_ru.json must translate auto_stun_slam to 'Авто Стан Слэм'");
+                "ru_ru.lang must translate auto_stun_slam to 'Авто Стан Слэм'");
         assertTrue(ruJson.contains("\"activity.setting.combat.abort_on_manual_switch\": \"Прерывать при ручном свапе\""),
-                "ru_ru.json must translate abort_on_manual_switch");
+                "ru_ru.lang must translate abort_on_manual_switch");
 
-        java.io.InputStream enStream = getClass().getResourceAsStream("/assets/activity/lang/en_us.json");
-        assertNotNull(enStream, "en_us.json must exist in classpath");
+        java.io.InputStream enStream = getClass().getResourceAsStream("/assets/activity/locale/en_us.lang");
+        assertNotNull(enStream, "en_us.lang must exist in classpath");
         String enJson = new String(enStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertTrue(enJson.contains("\"activity.module.auto_stun_slam.name\": \"AutoStunSlam\""),
-                "en_us.json must translate auto_stun_slam to 'AutoStunSlam'");
+                "en_us.lang must translate auto_stun_slam to 'AutoStunSlam'");
         assertTrue(enJson.contains("\"activity.setting.combat.abort_on_manual_switch\": \"Abort on Manual Switch\""),
-                "en_us.json must translate abort_on_manual_switch");
+                "en_us.lang must translate abort_on_manual_switch");
     }
 }

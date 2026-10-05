@@ -687,8 +687,8 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testDefenseLocalization() throws Exception {
-        try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json")) {
-            assertNotNull(ruStream, "ru_ru.json must exist in classpath");
+        try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/locale/ru_ru.lang")) {
+            assertNotNull(ruStream, "ru_ru.lang must exist in classpath");
             String ruJson = new String(ruStream.readAllBytes(), StandardCharsets.UTF_8);
 
             assertTrue(ruJson.contains("\"activity.setting.defense.trigger_hearts\": \"Порог срабатывания\""));
@@ -702,8 +702,8 @@ public class DefenseModulesMigrationTest {
             assertTrue(ruJson.contains("\"activity.setting.defense.delay_ticks\": \"Задержка пополнения\""));
         }
 
-        try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/lang/en_us.json")) {
-            assertNotNull(enStream, "en_us.json must exist in classpath");
+        try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/locale/en_us.lang")) {
+            assertNotNull(enStream, "en_us.lang must exist in classpath");
             String enJson = new String(enStream.readAllBytes(), StandardCharsets.UTF_8);
 
             assertTrue(enJson.contains("\"activity.setting.defense.trigger_hearts\": \"Trigger Threshold\""));
@@ -754,14 +754,14 @@ public class DefenseModulesMigrationTest {
 
     @Test
     void testDevWarningLocalizationStrings() throws Exception {
-        try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json")) {
+        try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/locale/ru_ru.lang")) {
             assertNotNull(ruStream);
             String ruJson = new String(ruStream.readAllBytes(), StandardCharsets.UTF_8);
             assertTrue(ruJson.contains("\"activity.anchor.double_dev_warning\": \"Данный режим находится в режиме бета-тестирования\""));
             assertTrue(ruJson.contains("\"activity.autotool.dev_warning\": \"Данная функция находится в режиме экспериментальной настройки\""));
         }
 
-        try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/lang/en_us.json")) {
+        try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/locale/en_us.lang")) {
             assertNotNull(enStream);
             String enJson = new String(enStream.readAllBytes(), StandardCharsets.UTF_8);
             assertTrue(enJson.contains("\"activity.anchor.double_dev_warning\": \"This mode is currently in beta testing\""));

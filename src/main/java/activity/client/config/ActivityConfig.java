@@ -703,7 +703,7 @@ public class ActivityConfig {
     @SerializedName("menuKeybind")
     public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
     @SerializedName("menuCommand")
-    public String menuCommand = "nt";
+    public String menuCommand = "";
     @SerializedName("guiTheme")
     public String guiTheme = "client";
     @SerializedName("fontFamily")
@@ -718,6 +718,8 @@ public class ActivityConfig {
     public double panelOpacity = 65.0;
     @SerializedName("glassEffect")
     public boolean glassEffect = true;
+    @SerializedName("srpSpoof")
+    public boolean srpSpoof = false;
     @SerializedName("windowPosX")
     public int windowPosX = -1;
     @SerializedName("windowPosY")
@@ -833,6 +835,8 @@ public class ActivityConfig {
         public double panelOpacity = 65.0;
         @SerializedName("glassEffect")
         public boolean glassEffect = true;
+        @SerializedName("srpSpoof")
+        public boolean srpSpoof = false;
         @SerializedName("hudCustomX")
         public int hudCustomX = -1;
         @SerializedName("hudCustomY")
@@ -842,7 +846,7 @@ public class ActivityConfig {
         @SerializedName("menuKeybind")
         public Keybind menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
         @SerializedName("menuCommand")
-        public String menuCommand = "nt";
+        public String menuCommand = "";
         @SerializedName("language")
         public String language = "auto";
         @Override
@@ -866,6 +870,7 @@ public class ActivityConfig {
                     animationsEnabled == that.animationsEnabled &&
                     spatialOpenAnimation == that.spatialOpenAnimation &&
                     glassEffect == that.glassEffect &&
+                    srpSpoof == that.srpSpoof &&
                     hudCustomX == that.hudCustomX &&
                     hudCustomY == that.hudCustomY &&
                     hudShowActiveModules == that.hudShowActiveModules &&
@@ -888,7 +893,7 @@ public class ActivityConfig {
                 hideInF3, showCoordinates, showFps, showBiome, showWorldTime, showDirection,
                 coordFormat, hudPadding, customTitle, textShadow, themeVariant, compactMode,
                 tooltipsEnabled, showKeyHints, smoothTransitions, animationsEnabled,
-                spatialOpenAnimation, windowOpacity, panelOpacity, glassEffect, menuKeybind, language
+                spatialOpenAnimation, windowOpacity, panelOpacity, glassEffect, srpSpoof, menuKeybind, language
             );
         }
     }
@@ -1319,6 +1324,7 @@ public class ActivityConfig {
         this.windowOpacity = 85.0;
         this.panelOpacity = 65.0;
         this.glassEffect = true;
+        this.srpSpoof = false;
         this.windowPosX = -1;
         this.windowPosY = -1;
         this.windowWidth = -1;
@@ -1335,7 +1341,7 @@ public class ActivityConfig {
         this.animationsEnabled = true;
         this.spatialOpenAnimation = true;
         this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
-        this.menuCommand = "nt";
+        this.menuCommand = "";
         this.client = new ClientSection();
         syncClientSection();
         syncModuleConfigEntries();
@@ -1387,7 +1393,7 @@ public class ActivityConfig {
         if (this.clickPearlKeybind == null) this.clickPearlKeybind = new Keybind();
         if (this.clickPearlTriggerKeybind == null) this.clickPearlTriggerKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_V, false, false, false);
         if (this.menuKeybind == null) this.menuKeybind = new Keybind(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
-        if (this.menuCommand == null || this.menuCommand.isBlank()) this.menuCommand = "nt";
+        if (this.menuCommand == null) this.menuCommand = "";
 
         if (this.autoStunSlimeEnabled != null) {
             this.autoStunSlamEnabled = this.autoStunSlimeEnabled;
@@ -1746,6 +1752,7 @@ public class ActivityConfig {
         this.client.ui.windowOpacity = this.windowOpacity;
         this.client.ui.panelOpacity = this.panelOpacity;
         this.client.ui.glassEffect = this.glassEffect;
+        this.client.ui.srpSpoof = this.srpSpoof;
         this.client.ui.hudCustomX = this.hudCustomX;
         this.client.ui.hudCustomY = this.hudCustomY;
         this.client.ui.hudShowActiveModules = this.hudShowActiveModules;
@@ -1791,11 +1798,12 @@ public class ActivityConfig {
             this.windowOpacity = this.client.ui.windowOpacity;
             this.panelOpacity = this.client.ui.panelOpacity;
             this.glassEffect = this.client.ui.glassEffect;
+            this.srpSpoof = this.client.ui.srpSpoof;
             this.hudCustomX = this.client.ui.hudCustomX;
             this.hudCustomY = this.client.ui.hudCustomY;
             this.hudShowActiveModules = this.client.ui.hudShowActiveModules;
             if (this.client.ui.menuKeybind != null) this.menuKeybind = this.client.ui.menuKeybind;
-            if (this.client.ui.menuCommand != null && !this.client.ui.menuCommand.isBlank()) this.menuCommand = this.client.ui.menuCommand;
+            if (this.client.ui.menuCommand != null) this.menuCommand = this.client.ui.menuCommand;
             if (this.client.ui.language != null) this.language = this.client.ui.language;
         }
         if (this.client.sound != null) {
@@ -2968,6 +2976,7 @@ public class ActivityConfig {
         copy.windowOpacity = this.windowOpacity;
         copy.panelOpacity = this.panelOpacity;
         copy.glassEffect = this.glassEffect;
+        copy.srpSpoof = this.srpSpoof;
         copy.windowPosX = this.windowPosX;
         copy.windowPosY = this.windowPosY;
         copy.windowWidth = this.windowWidth;
@@ -3293,6 +3302,7 @@ public class ActivityConfig {
                Double.compare(this.windowOpacity, that.windowOpacity) == 0 &&
                Double.compare(this.panelOpacity, that.panelOpacity) == 0 &&
                this.glassEffect == that.glassEffect &&
+               this.srpSpoof == that.srpSpoof &&
                this.windowPosX == that.windowPosX &&
                this.windowPosY == that.windowPosY &&
                this.windowWidth == that.windowWidth &&
@@ -3389,7 +3399,7 @@ public class ActivityConfig {
             customPrefix, toastStyle, showCoordinates, showFps, showBiome, showWorldTime, showDirection, coordFormat, hudPadding,
             customTitle, textShadow, hudCustomX, hudCustomY, hudShowActiveModules, debugLogging, profilerActive, asyncTickEnabled, logLevel, benchmarksEnabled, maxCacheEntries,
             scissorOpt, filterRegex, gcPolicy,
-            guiTheme, fontFamily, typographySize, language, windowOpacity, panelOpacity, glassEffect, windowPosX, windowPosY, windowWidth, windowHeight, windowMaximized, unmaximizedX, unmaximizedY, unmaximizedWidth, unmaximizedHeight, soundEnabled, soundProfile, sliderSoundEnabled, animationsEnabled, spatialOpenAnimation
+            guiTheme, fontFamily, typographySize, language, windowOpacity, panelOpacity, glassEffect, srpSpoof, windowPosX, windowPosY, windowWidth, windowHeight, windowMaximized, unmaximizedX, unmaximizedY, unmaximizedWidth, unmaximizedHeight, soundEnabled, soundProfile, sliderSoundEnabled, animationsEnabled, spatialOpenAnimation
         );
         return result;
     }

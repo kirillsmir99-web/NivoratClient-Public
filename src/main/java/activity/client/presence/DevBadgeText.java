@@ -8,7 +8,7 @@ import net.minecraft.util.Identifier;
 
 public final class DevBadgeText {
     private static final Style BADGE_STYLE = Style.EMPTY.withFont(
-        new StyleSpriteSource.Font(Identifier.of("nivoratclient", "dev_badge")));
+        new StyleSpriteSource.Font(Identifier.of("activity", "dev_badge")));
     private static final Style SEPARATOR_STYLE = Style.EMPTY
         .withFont(StyleSpriteSource.DEFAULT)
         .withColor(0xC184FF);

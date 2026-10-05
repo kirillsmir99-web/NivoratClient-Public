@@ -441,11 +441,8 @@ public final class SoundManager {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client != null && client.getSoundManager() != null) {
                 SoundEvent eventToPlay = targetEvent;
-                if (targetEvent.id() != null && "nivoratclient".equals(targetEvent.id().getNamespace())) {
-                    Identifier altId = Identifier.of("activity", targetEvent.id().getPath());
-                    if (Registries.SOUND_EVENT != null && Registries.SOUND_EVENT.containsId(altId)) {
-                        eventToPlay = SoundEvent.of(altId);
-                    }
+                if (targetEvent.id() != null && "nivorat".equals(targetEvent.id().getNamespace())) {
+                    eventToPlay = SoundEvent.of(Identifier.of("activity", targetEvent.id().getPath()));
                 }
                 client.getSoundManager().play(
                     PositionedSoundInstance.ui(eventToPlay, pitch, finalVolume)

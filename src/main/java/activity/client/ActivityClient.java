@@ -31,6 +31,7 @@ public class ActivityClient implements ClientModInitializer {
         activity.client.gui.font.FontManager.init();
         activity.client.gui.sound.ActivitySoundEvents.register();
         activity.client.gui.custom.utils.sounds.SoundManager.init();
+        activity.client.integration.ModMenuStealth.init();
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> activity.client.integration.NivoratEcosystem.discover());
 
 

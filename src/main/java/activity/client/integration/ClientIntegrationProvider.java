@@ -15,9 +15,9 @@ public final class ClientIntegrationProvider implements Supplier<Map<String, Obj
     @Override
     public Map<String, Object> get() {
         return Map.of("version", 1, "modId", ActivityClient.MOD_ID, "sections", List.of(
-                section("appearance", "Оформление NivoratClient", "NivoratClient appearance"),
-                section("menu", "Меню NivoratClient", "NivoratClient menu"),
-                section("sounds", "Звуки NivoratClient", "NivoratClient sounds")),
+                section("appearance", "Оформление интерфейса", "Interface appearance"),
+                section("menu", "Параметры меню", "Menu settings"),
+                section("sounds", "Звуковые эффекты", "Sound effects")),
                 "stop", (Runnable) () -> activity.client.capitulation.CapitulationManager.capitulate(net.minecraft.client.MinecraftClient.getInstance()));
     }
 

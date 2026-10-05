@@ -408,6 +408,7 @@
   "activity.sound_profile.minecraft": "Minecraft",
   "activity.setting.interface.compact_density": "Компактный интерфейс",
   "activity.setting.interface.glass_effect": "Стеклянный полупрозрачный стиль",
+  "activity.setting.interface.srp_spoof": "Спуфер ресурс-пака (не скачивать)",
   "activity.setting.interface.hints": "Подсказки горячих клавиш",
   "activity.setting.interface.hud_prefix": "Префикс тегов HUD",
   "activity.setting.interface.notification_style": "Стиль уведомлений",

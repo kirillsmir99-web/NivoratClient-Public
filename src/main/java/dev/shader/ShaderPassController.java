@@ -32,7 +32,7 @@ public final class ShaderPassController {
     private static final int MAX_SWAP_TICKS = 6;
     private static final int SEMI_AWAIT_TIMEOUT_TICKS = 25;
     private static final int MIN_SHIELD_WARMUP_TICKS = 5;
-    private static final double FACING_MIN_DOT = -0.15D;
+    private static final double FACING_MIN_DOT = 0.25D;
 
     private ClientPlayerEntity owner;
     private World ownerWorld;
@@ -277,6 +277,13 @@ public final class ShaderPassController {
             return;
         }
 
+        PlayerEntity target = getTarget(client);
+        if (target == null || !isValidTarget(client, target)) {
+            restoreWeapon(client);
+            finish(ABORT_COOLDOWN_TICKS);
+            return;
+        }
+
         if (client.player.getInventory().getSelectedSlot() != activeAxeSlot) {
             selectSlot(client, activeAxeSlot);
             return;
@@ -441,11 +448,20 @@ public final class ShaderPassController {
         }
         toMe = toMe.normalize();
         Vec3d headLook = target.getRotationVector(0.0F, target.getHeadYaw());
-        if (headLook.dotProduct(toMe) > minDot) {
-            return true;
+        Vec3d flatHeadLook = new Vec3d(headLook.x, 0.0, headLook.z);
+        if (flatHeadLook.lengthSquared() > 1.0E-4) {
+            flatHeadLook = flatHeadLook.normalize();
+            if (flatHeadLook.dotProduct(toMe) > minDot) {
+                return true;
+            }
         }
         Vec3d bodyLook = target.getRotationVector(0.0F, target.getYaw());
-        return bodyLook.dotProduct(toMe) > minDot;
+        Vec3d flatBodyLook = new Vec3d(bodyLook.x, 0.0, bodyLook.z);
+        if (flatBodyLook.lengthSquared() > 1.0E-4) {
+            flatBodyLook = flatBodyLook.normalize();
+            return flatBodyLook.dotProduct(toMe) > minDot;
+        }
+        return false;
     }
 
     private PlayerEntity findTargetAlongRay(MinecraftClient client) {

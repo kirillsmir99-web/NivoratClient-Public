@@ -46,8 +46,8 @@ public final class SearchController {
     private static final Map<String, String> EN_STRINGS = new HashMap<>();
 
     static {
-        loadLang("/assets/activity/lang/ru_ru.json", RU_STRINGS);
-        loadLang("/assets/activity/lang/en_us.json", EN_STRINGS);
+        loadLang("/assets/activity/locale/ru_ru.lang", RU_STRINGS);
+        loadLang("/assets/activity/locale/en_us.lang", EN_STRINGS);
         initIndex();
     }
 
@@ -583,8 +583,8 @@ public final class SearchController {
 
     public static synchronized void resetForTesting() {
         clearForCapitulation();
-        loadLang("/assets/activity/lang/ru_ru.json", RU_STRINGS);
-        loadLang("/assets/activity/lang/en_us.json", EN_STRINGS);
+        loadLang("/assets/activity/locale/ru_ru.lang", RU_STRINGS);
+        loadLang("/assets/activity/locale/en_us.lang", EN_STRINGS);
         initIndex();
     }
 }

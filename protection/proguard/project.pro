@@ -34,6 +34,10 @@
     public static *;
 }
 
+-keep public class activity.client.integration.ModMenuStealth {
+    public static *;
+}
+
 -keep public class activity.client.integration.ClientIntegrationProvider {
     public *;
 }

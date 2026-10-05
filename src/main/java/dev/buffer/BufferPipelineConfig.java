@@ -44,6 +44,8 @@ public final class BufferPipelineConfig {
     public static boolean predictTrident = true;
     public static boolean lowTotemNotify = true;
     public static String inventorySource = "rage";
+    public static double fovFilterDegrees = 110.0;
+    public static int livenessMinTicks = 3;
 
     private BufferPipelineConfig() { }
 
@@ -95,6 +97,8 @@ public final class BufferPipelineConfig {
             predictTrident = Boolean.parseBoolean(props.getProperty("predictTrident", "true"));
             lowTotemNotify = Boolean.parseBoolean(props.getProperty("lowTotemNotify", "true"));
             inventorySource = props.getProperty("inventorySource", "rage");
+            fovFilterDegrees = Math.max(30.0, Math.min(180.0, Double.parseDouble(props.getProperty("fovFilterDegrees", "110.0"))));
+            livenessMinTicks = Math.max(0, Math.min(20, Integer.parseInt(props.getProperty("livenessMinTicks", "3"))));
 
             validateHysteresis();
         } catch (Exception ignored) {
@@ -123,6 +127,8 @@ public final class BufferPipelineConfig {
             predictTrident = true;
             lowTotemNotify = true;
             inventorySource = "rage";
+            fovFilterDegrees = 110.0;
+            livenessMinTicks = 3;
         }
     }
 
@@ -159,6 +165,8 @@ public final class BufferPipelineConfig {
                 props.setProperty("predictTrident", String.valueOf(predictTrident));
                 props.setProperty("lowTotemNotify", String.valueOf(lowTotemNotify));
                 props.setProperty("inventorySource", inventorySource);
+                props.setProperty("fovFilterDegrees", String.valueOf(fovFilterDegrees));
+                props.setProperty("livenessMinTicks", String.valueOf(livenessMinTicks));
                 props.store(out, null);
             }
         } catch (Exception ignored) {}

@@ -47,6 +47,8 @@ public final class PrestigeAutoMaceController {
     private boolean slotSwitchedInTick = false;
     private long lastAttackTime = 0L;
     private Entity currentTarget = null;
+    private boolean macePending = false;
+    private int macePendingTicks = 0;
 
     private PrestigeAutoMaceController() {
     }
@@ -89,6 +91,8 @@ public final class PrestigeAutoMaceController {
                 hasEverFallen = false;
                 hasAttackedInFall = false;
                 shieldBrokenInFall = false;
+                macePending = false;
+                macePendingTicks = 0;
             }
             if (originalSlot != -1 && !config.stayOnMace) {
                 restoreSlot(player);
@@ -98,15 +102,38 @@ public final class PrestigeAutoMaceController {
             if (vy > 0.1 && hasAttackedInFall) {
                 hasAttackedInFall = false;
                 shieldBrokenInFall = false;
+                macePending = false;
+                macePendingTicks = 0;
             }
             if (!hasEverFallen) {
                 hasEverFallen = true;
                 hasAttackedInFall = false;
                 shieldBrokenInFall = false;
+                macePending = false;
+                macePendingTicks = 0;
             }
         }
 
         double fallDistance = player.fallDistance;
+
+        if (macePending) {
+            if (macePendingTicks > 0) {
+                macePendingTicks--;
+            }
+            if (macePendingTicks <= 0) {
+                if (currentTarget != null && isValidTarget(currentTarget, player) && canRaycastTarget(player, currentTarget, 3.0D)) {
+                    int maceSlot = resolveOptimalWeaponSlot(player, fallDistance);
+                    if (maceSlot != -1 && (player.getInventory().getSelectedSlot() == maceSlot || setSlotForce(player, maceSlot))) {
+                        executeAttack(client, player, currentTarget);
+                        hasAttackedInFall = true;
+                        lastAttackTime = System.currentTimeMillis();
+                    }
+                }
+                macePending = false;
+                macePendingTicks = 0;
+            }
+            return;
+        }
         double vy = player.getVelocity().y;
         boolean isFalling = !onGround && vy < -0.1 && !player.isUsingItem();
         boolean normalFall = isFalling && !player.isGliding() && fallDistance >= 1.2;
@@ -173,14 +200,8 @@ public final class PrestigeAutoMaceController {
                 if (holdingAxe || setSlotSafe(player, axeSlot)) {
                     executeAttack(client, player, currentTarget);
                     shieldBrokenInFall = true;
-                }
-                if (shieldBrokenInFall) {
-                    int maceSlot = resolveOptimalWeaponSlot(player, fallDistance);
-                    if (maceSlot != -1 && setSlotForce(player, maceSlot)) {
-                        executeAttack(client, player, currentTarget);
-                        hasAttackedInFall = true;
-                        lastAttackTime = System.currentTimeMillis();
-                    }
+                    macePending = true;
+                    macePendingTicks = 1;
                 }
                 return;
             }
@@ -548,6 +569,8 @@ public final class PrestigeAutoMaceController {
         hasEverFallen = false;
         slotSwitchedInTick = false;
         currentTarget = null;
+        macePending = false;
+        macePendingTicks = 0;
         PrestigeSilentAim.getInstance().stop();
     }
 }

@@ -87,6 +87,7 @@ public class SettingsTab extends ActivityTab {
             config.windowOpacity = 85.0;
             config.panelOpacity = 65.0;
             config.glassEffect = true;
+            config.srpSpoof = false;
             config.animationsEnabled = true;
             config.spatialOpenAnimation = true;
             config.soundEnabled = true;
@@ -121,7 +122,7 @@ public class SettingsTab extends ActivityTab {
         int col1Y = startY;
         int col2Y = startY;
 
-        int rows1 = 8;
+        int rows1 = 9;
         int card1Height = 22 + rows1 * (ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING) + 4;
         int card1X = col1X;
         int innerStartX1 = card1X + ActivityMetrics.PADDING_PANEL;
@@ -149,7 +150,7 @@ public class SettingsTab extends ActivityTab {
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelMenuCmd = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.menu_command"));
         labelMenuCmd.setMaxWidth(Math.max(20, innerRowW - keybindW - 6));
-        String cmdDisplay = "/" + (config.menuCommand != null && !config.menuCommand.isBlank() ? config.menuCommand : "nt");
+        String cmdDisplay = (config.menuCommand != null && !config.menuCommand.isBlank()) ? ("/" + config.menuCommand) : "Нет";
         ActivityButton btnMenuCmd = new ActivityButton(
             innerStartX1 + innerRowW - keybindW, rowY, keybindW, ActivityMetrics.CONTROL_HEIGHT,
             Text.literal(cmdDisplay),
@@ -158,13 +159,13 @@ public class SettingsTab extends ActivityTab {
                 screen.getModalManager().showTextInput(
                     Text.translatable("activity.modal.menu_command.title"),
                     Text.translatable("activity.modal.menu_command.desc"),
-                    Text.literal("nt"),
-                    config.menuCommand != null && !config.menuCommand.isBlank() ? config.menuCommand : "nt",
+                    Text.literal(""),
+                    config.menuCommand != null ? config.menuCommand : "",
                     cmd -> {
-                        if (cmd == null) return false;
+                        if (cmd == null) return true;
                         String clean = cmd.trim();
                         if (clean.startsWith("/")) clean = clean.substring(1).trim();
-                        if (clean.isEmpty() || clean.length() > 32) return false;
+                        if (clean.length() > 32) return false;
                         for (int i = 0; i < clean.length(); i++) {
                             char c = clean.charAt(i);
                             if (Character.isWhitespace(c) || c == '/' || c == '\\' || Character.isISOControl(c)) return false;
@@ -172,9 +173,8 @@ public class SettingsTab extends ActivityTab {
                         return true;
                     },
                     newCmd -> {
-                        String clean = newCmd.trim();
+                        String clean = newCmd != null ? newCmd.trim() : "";
                         if (clean.startsWith("/")) clean = clean.substring(1).trim();
-                        if (clean.isEmpty()) clean = "nt";
                         config.menuCommand = clean;
                         ActivityConfigManager.markDirty();
                         ActivityConfigManager.save();
@@ -259,6 +259,21 @@ public class SettingsTab extends ActivityTab {
         );
         addControl(container, labelGlass);
         addControl(container, toggleGlass);
+
+        rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
+        ActivityLabel labelSrp = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.srp_spoof"));
+        labelSrp.setMaxWidth(Math.max(20, innerRowW - ActivityMetrics.TOGGLE_WIDTH - 6));
+        ActivityToggle toggleSrp = new ActivityToggle(
+            innerStartX1 + innerRowW - ActivityMetrics.TOGGLE_WIDTH, rowY,
+            config.srpSpoof,
+            state -> {
+                config.srpSpoof = state;
+                ActivityConfigManager.markDirty();
+                ActivityConfigManager.save();
+            }
+        );
+        addControl(container, labelSrp);
+        addControl(container, toggleSrp);
 
         rowY += ActivityMetrics.CONTROL_HEIGHT + ActivityMetrics.ROW_SPACING;
         ActivityLabel labelWinOpacity = new ActivityLabel(innerStartX1, rowY + 3, Text.translatable("activity.setting.interface.window_opacity"));

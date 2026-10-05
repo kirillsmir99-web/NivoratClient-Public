@@ -7,7 +7,7 @@ import net.minecraft.util.Identifier;
 
 public final class ActivitySoundEvents {
 
-    public static final String MOD_ID = "nivoratclient";
+    public static final String MOD_ID = "activity";
     public static final String ALT_MOD_ID = "activity";
 
     public static final Identifier SERENE_OPEN_ID = Identifier.of(MOD_ID, "ui.serene.open");

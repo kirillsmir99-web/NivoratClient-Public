@@ -47,19 +47,15 @@ public final class CooldownFontManager {
                 if (client.getResourceManager().getResource(primaryId).isPresent()) {
                     return true;
                 }
-                Identifier nivoratId = Identifier.of("nivoratclient", "font/" + family.getId() + ".json");
-                if (client.getResourceManager().getResource(nivoratId).isPresent()) {
-                    return true;
-                }
                 Identifier actId = Identifier.of("activity", "font/" + family.getId() + ".json");
                 if (client.getResourceManager().getResource(actId).isPresent()) {
                     return true;
                 }
-                ActivityClient.LOGGER.debug("[NivoratClient] Font {} unavailable, using Minecraft fallback.", family.getId());
+                ActivityClient.LOGGER.debug("[MemoryLeakFix] Font {} unavailable, using Minecraft fallback.", family.getId());
                 return false;
             }
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Font {} unavailable, using Minecraft fallback.", family.getId());
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] Font {} unavailable, using Minecraft fallback.", family.getId());
             return false;
         }
         return true;
@@ -126,7 +122,7 @@ public final class CooldownFontManager {
         TypographySize targetSize = size != null ? size : TypographySize.NORMAL;
 
         if (targetFamily != FontFamily.MINECRAFT && targetFamily != FontFamily.DEFAULT && !isFontAvailable(targetFamily)) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Font {} unavailable, using Minecraft fallback.", targetFamily.getId());
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] Font {} unavailable, using Minecraft fallback.", targetFamily.getId());
             targetFamily = FontFamily.MINECRAFT;
         }
 
@@ -169,7 +165,7 @@ public final class CooldownFontManager {
         try {
             return text.copy().fillStyle(Style.EMPTY.withFont(activeFontSource));
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Failed to wrap text '{}' with font '{}': {}",
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] Failed to wrap text '{}' with font '{}': {}",
                 text.getString(), activeFontFamily.getId(), e.getMessage());
             return text;
         }
@@ -259,7 +255,7 @@ public final class CooldownFontManager {
             try {
                 listener.run();
             } catch (Exception e) {
-                ActivityClient.LOGGER.debug("[NivoratClient] Error in font change listener: {}", e.getMessage());
+                ActivityClient.LOGGER.debug("[MemoryLeakFix] Error in font change listener: {}", e.getMessage());
             }
         }
     }

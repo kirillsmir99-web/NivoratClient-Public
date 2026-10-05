@@ -201,7 +201,7 @@ public final class LegacyConfigMigrator {
                                        "client=NivoratClient\n";
                 Files.writeString(markerPath, markerContent, StandardCharsets.UTF_8);
             } catch (Exception e) {
-                ActivityClient.LOGGER.debug("[NivoratClient] Could not write migration marker: {}", e.getMessage());
+                ActivityClient.LOGGER.debug("[MemoryLeakFix] Could not write migration marker: {}", e.getMessage());
             }
         }
     }
@@ -228,17 +228,17 @@ public final class LegacyConfigMigrator {
         if (config == null || configDir == null) return false;
 
         if (!force && isAlreadyMigrated(config, configDir)) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Legacy config migration already completed. Skipping.");
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] Legacy config migration already completed. Skipping.");
             return false;
         }
 
         if (!hasAnyLegacyConfig(configDir)) {
-            ActivityClient.LOGGER.debug("[NivoratClient] No legacy mod configs detected in {}. Marking as clean install.", configDir);
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] No legacy mod configs detected in {}. Marking as clean install.", configDir);
             markMigrated(config, configDir);
             return false;
         }
 
-        ActivityClient.LOGGER.debug("[NivoratClient] Found legacy mod configs in {}. Starting consolidated migration...", configDir);
+        ActivityClient.LOGGER.debug("[MemoryLeakFix] Found legacy mod configs in {}. Starting consolidated migration...", configDir);
 
         int migratedModules = 0;
 
@@ -275,7 +275,7 @@ public final class LegacyConfigMigrator {
         markMigrated(config, configDir);
         cleanupLegacyFiles(configDir);
 
-        ActivityClient.LOGGER.debug("[NivoratClient] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
+        ActivityClient.LOGGER.debug("[MemoryLeakFix] Legacy migration finished. Migrated {} module configurations successfully.", migratedModules);
         return true;
     }
 
@@ -939,7 +939,7 @@ public final class LegacyConfigMigrator {
             p.load(in);
             return p;
         } catch (Exception e) {
-            ActivityClient.LOGGER.debug("[NivoratClient] Failed to read {}: {}", path, e.getMessage());
+            ActivityClient.LOGGER.debug("[MemoryLeakFix] Failed to read {}: {}", path, e.getMessage());
             return null;
         }
     }
@@ -957,7 +957,7 @@ public final class LegacyConfigMigrator {
                             return new LegacyConfigData(parsed.getAsJsonObject());
                         }
                     } catch (Exception e) {
-                        ActivityClient.LOGGER.debug("[NivoratClient] Failed to parse JSON {}: {}", file, e.getMessage());
+                        ActivityClient.LOGGER.debug("[MemoryLeakFix] Failed to parse JSON {}: {}", file, e.getMessage());
                     }
                 } else {
                     Properties p = loadProperties(file);

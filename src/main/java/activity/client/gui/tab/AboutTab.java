@@ -32,11 +32,11 @@ public class AboutTab extends ActivityTab {
     public static final String CLIENT_VERSION = "v1.0.0";
     public static final String DEVELOPER = "fxmorin";
 
-    public static final Identifier TEXTURE_TELEGRAM = Identifier.of("nivoratclient", "textures/gui/social/telegram.png");
-    public static final Identifier TEXTURE_DONATE = Identifier.of("nivoratclient", "textures/gui/social/donate.png");
-    public static final Identifier TEXTURE_YOUTUBE = Identifier.of("nivoratclient", "textures/gui/social/youtube.png");
-    public static final Identifier TEXTURE_TIKTOK = Identifier.of("nivoratclient", "textures/gui/social/tiktok.png");
-    public static final Identifier TEXTURE_DISCORD = Identifier.of("nivoratclient", "textures/gui/social/discord.png");
+    public static final Identifier TEXTURE_TELEGRAM = Identifier.of("activity", "textures/gui/social/telegram.png");
+    public static final Identifier TEXTURE_DONATE = Identifier.of("activity", "textures/gui/social/donate.png");
+    public static final Identifier TEXTURE_YOUTUBE = Identifier.of("activity", "textures/gui/social/youtube.png");
+    public static final Identifier TEXTURE_TIKTOK = Identifier.of("activity", "textures/gui/social/tiktok.png");
+    public static final Identifier TEXTURE_DISCORD = Identifier.of("activity", "textures/gui/social/discord.png");
 
     private static final Text HEADER_TITLE = Text.translatable("activity.tab.about.header");
     private static final Text SUBTITLE = Text.translatable("activity.tab.about.subtitle");

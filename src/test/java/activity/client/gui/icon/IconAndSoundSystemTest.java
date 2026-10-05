@@ -60,7 +60,7 @@ public class IconAndSoundSystemTest {
     @Test
     void testAtlasConstantIsZeroAllocations() {
         assertNotNull(ActivityIconRenderer.ATLAS_ID);
-        assertEquals("nivoratclient", ActivityIconRenderer.ATLAS_ID.getNamespace());
+        assertEquals("activity", ActivityIconRenderer.ATLAS_ID.getNamespace());
         assertEquals("textures/gui/nivorat_icons_atlas.png", ActivityIconRenderer.ATLAS_ID.getPath());
         assertEquals(192, ActivityIconRenderer.ATLAS_WIDTH);
         assertEquals(120, ActivityIconRenderer.ATLAS_HEIGHT);

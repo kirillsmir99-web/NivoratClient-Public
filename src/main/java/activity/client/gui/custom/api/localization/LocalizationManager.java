@@ -13,8 +13,8 @@ import activity.client.gui.custom.api.config.ConfigManager;
 
 public final class LocalizationManager {
     public enum Language {
-        RU("ru", "RU", "assets/nivorat/lang/ru_ru.json"),
-        EN("en", "EN", "assets/nivorat/lang/en_us.json");
+        RU("ru", "RU", "assets/activity/locale/ru_ru.lang"),
+        EN("en", "EN", "assets/activity/locale/en_us.lang");
 
         private final String code;
         private final String label;

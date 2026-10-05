@@ -408,6 +408,7 @@
   "activity.sound_profile.minecraft": "Minecraft",
   "activity.setting.interface.compact_density": "Compact Visual Density",
   "activity.setting.interface.glass_effect": "Glass Effect",
+  "activity.setting.interface.srp_spoof": "Resource Pack Spoofer (do not download)",
   "activity.setting.interface.hints": "Show Keybinding Hints",
   "activity.setting.interface.hud_prefix": "HUD Tag Prefix",
   "activity.setting.interface.notification_style": "Notification Style",

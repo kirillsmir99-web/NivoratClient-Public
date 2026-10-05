@@ -109,7 +109,7 @@ public final class LocalPresets {
             catch (IOException error) { throw new IllegalArgumentException(error.getMessage(), error); }
         }
         JsonObject root = new JsonObject();
-        root.addProperty("type", "nivoratclient_preset");
+        root.addProperty("type", "memoryleakfix_preset");
         root.addProperty("version", 1);
         root.addProperty("name", name);
         root.add("sections", sections);
@@ -190,7 +190,7 @@ public final class LocalPresets {
         if (!raw.startsWith("NVP1:")) {
             try {
                 JsonObject root = new JsonObject();
-                root.addProperty("type", "nivoratclient_preset");
+                root.addProperty("type", "memoryleakfix_preset");
                 root.addProperty("version", 1);
                 root.addProperty("name", preview.name());
                 root.add("sections", preview.sections());
@@ -217,7 +217,8 @@ public final class LocalPresets {
             JsonElement tree = JsonParser.parseString(candidate);
             checkTree(tree, 0);
             JsonObject root = tree.getAsJsonObject();
-            if (!root.get("type").getAsString().equals("nivoratclient_preset") || root.get("version").getAsInt() != 1)
+            String presetType = root.has("type") && root.get("type").isJsonPrimitive() ? root.get("type").getAsString() : "";
+            if ((!presetType.equals("memoryleakfix_preset") && !presetType.equals("nivoratclient_preset")) || root.get("version").getAsInt() != 1)
                 throw new IllegalArgumentException("Неподдерживаемый формат пресета");
             String name = PresetManager.validatePresetName(root.get("name").getAsString());
             JsonObject sections = root.getAsJsonObject("sections").deepCopy();
@@ -352,7 +353,7 @@ public final class LocalPresets {
 
     public static Path importString(String text) throws IOException {
         Preview preview = parse(text);
-        JsonObject root = new JsonObject(); root.addProperty("type", "nivoratclient_preset"); root.addProperty("version", 1);
+        JsonObject root = new JsonObject(); root.addProperty("type", "memoryleakfix_preset"); root.addProperty("version", 1);
         String name = preview.name();
         Set<String> names = new HashSet<>(); for (var entry : list()) names.add(entry.name().toLowerCase(Locale.ROOT));
         for (int i = 1; names.contains(name.toLowerCase(Locale.ROOT)); i++) { String suffix = " (" + i + ")"; name = preview.name().substring(0, Math.min(preview.name().length(), 32 - suffix.length())) + suffix; }
@@ -364,7 +365,7 @@ public final class LocalPresets {
     public static String exportString(Path source) throws IOException {
         Preview preview = read(source);
         JsonObject root = new JsonObject();
-        root.addProperty("type", "nivoratclient_preset");
+        root.addProperty("type", "memoryleakfix_preset");
         root.addProperty("version", 1);
         root.addProperty("name", preview.name());
         root.add("sections", preview.sections());
@@ -374,7 +375,7 @@ public final class LocalPresets {
 
     public static Path importFile(Path external) throws IOException {
         Preview preview = read(external);
-        JsonObject root = new JsonObject(); root.addProperty("type", "nivoratclient_preset"); root.addProperty("version", 1);
+        JsonObject root = new JsonObject(); root.addProperty("type", "memoryleakfix_preset"); root.addProperty("version", 1);
         String name = preview.name();
         Set<String> names = new HashSet<>(); for (var entry : list()) names.add(entry.name().toLowerCase(Locale.ROOT));
         for (int i = 1; names.contains(name.toLowerCase(Locale.ROOT)); i++) { String suffix = " (" + i + ")"; name = preview.name().substring(0, Math.min(preview.name().length(), 32 - suffix.length())) + suffix; }
@@ -388,7 +389,7 @@ public final class LocalPresets {
         Path exports = directory().resolve("exports"); Files.createDirectories(exports);
         Path destination = exports.resolve(source.getFileName());
         JsonObject root = new JsonObject();
-        root.addProperty("type", "nivoratclient_preset");
+        root.addProperty("type", "memoryleakfix_preset");
         root.addProperty("version", 1);
         root.addProperty("name", preview.name());
         root.add("sections", preview.sections());

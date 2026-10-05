@@ -396,8 +396,8 @@ public class UtilityModulesMigrationTest {
 
     @Test
     void testUtilityLocalization() throws Exception {
-        try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/lang/ru_ru.json")) {
-            assertNotNull(ruStream, "ru_ru.json must exist in classpath");
+        try (InputStream ruStream = getClass().getResourceAsStream("/assets/activity/locale/ru_ru.lang")) {
+            assertNotNull(ruStream, "ru_ru.lang must exist in classpath");
             String ruJson = new String(ruStream.readAllBytes(), StandardCharsets.UTF_8);
 
             assertTrue(ruJson.contains("\"activity.module.hp_reaper.name\": \"HPReaper\""));
@@ -426,8 +426,8 @@ public class UtilityModulesMigrationTest {
             assertTrue(ruJson.contains("\"activity.setting.utility.reset_carthud_pos\": \"Сбросить позицию\""));
         }
 
-        try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/lang/en_us.json")) {
-            assertNotNull(enStream, "en_us.json must exist in classpath");
+        try (InputStream enStream = getClass().getResourceAsStream("/assets/activity/locale/en_us.lang")) {
+            assertNotNull(enStream, "en_us.lang must exist in classpath");
             String enJson = new String(enStream.readAllBytes(), StandardCharsets.UTF_8);
 
             assertTrue(enJson.contains("\"activity.module.hp_reaper.name\": \"HPReaper\""));

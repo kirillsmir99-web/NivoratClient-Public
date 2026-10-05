@@ -200,7 +200,7 @@ public class ActivityScreenSessionTest {
     void testSocialIconResourceFilesExist() {
         String[] icons = {"telegram.png", "donate.png", "youtube.png", "tiktok.png", "discord.png"};
         for (String iconName : icons) {
-            String path = "/assets/nivoratclient/textures/gui/social/" + iconName;
+            String path = "/assets/activity/textures/gui/social/" + iconName;
             java.io.InputStream is = getClass().getResourceAsStream(path);
             assertNotNull(is, "Texture resource must exist: " + path);
             try {
