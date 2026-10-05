@@ -29,16 +29,32 @@ public abstract class ClientCommonNetworkHandlerMixin {
         ci.cancel();
         java.util.UUID packId = packet.id();
         sendPacket(new net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket(packId, net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.Status.ACCEPTED));
-        long downloadDelay = 350L + java.util.concurrent.ThreadLocalRandom.current().nextLong(300L);
-        long reloadDelay = downloadDelay + 400L + java.util.concurrent.ThreadLocalRandom.current().nextLong(350L);
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             try {
-                Thread.sleep(downloadDelay);
+                if (packet.url() != null) {
+                    try {
+                        java.net.URL url = new java.net.URI(packet.url()).toURL();
+                        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("GET");
+                        // Vanilla usually uses a specific UA or generic java one, but setting it explicitly is safer
+                        conn.setRequestProperty("User-Agent", "Java/" + System.getProperty("java.version"));
+                        conn.setConnectTimeout(5000);
+                        conn.setReadTimeout(15000);
+                        java.io.InputStream in = conn.getInputStream();
+                        byte[] buf = new byte[8192];
+                        while (in.read(buf) != -1) {}
+                        in.close();
+                    } catch (Exception ignored) {}
+                } else {
+                    Thread.sleep(350L + java.util.concurrent.ThreadLocalRandom.current().nextLong(300L));
+                }
+                
                 net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
                 if (mc != null) {
                     mc.send(() -> sendPacket(new net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket(packId, net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.Status.DOWNLOADED)));
                 }
-                Thread.sleep(reloadDelay - downloadDelay);
+                long reloadDelay = 400L + java.util.concurrent.ThreadLocalRandom.current().nextLong(350L);
+                Thread.sleep(reloadDelay);
                 if (mc != null) {
                     mc.send(() -> sendPacket(new net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket(packId, net.minecraft.network.packet.c2s.common.ResourcePackStatusC2SPacket.Status.SUCCESSFULLY_LOADED)));
                 }
