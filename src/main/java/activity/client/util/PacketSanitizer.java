@@ -119,7 +119,10 @@ public final class PacketSanitizer {
                 || lower.startsWith("category.cooldown_hud")) {
             return true;
         }
-        return false;
+        if (LocalizationService.hasTranslation(lower)) {
+            return true;
+        }
+        return LocalizationService.isModTranslation(text);
     }
 
     public static boolean isMenuOrSensitiveCommand(String cmd) {
