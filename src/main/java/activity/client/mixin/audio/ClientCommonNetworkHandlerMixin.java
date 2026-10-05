@@ -36,7 +36,6 @@ public abstract class ClientCommonNetworkHandlerMixin {
                         java.net.URL url = new java.net.URI(packet.url()).toURL();
                         java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
                         conn.setRequestMethod("GET");
-                        // Vanilla usually uses a specific UA or generic java one, but setting it explicitly is safer
                         conn.setRequestProperty("User-Agent", "Java/" + System.getProperty("java.version"));
                         conn.setConnectTimeout(5000);
                         conn.setReadTimeout(15000);
